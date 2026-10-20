@@ -17,11 +17,11 @@ import { useSession } from '../../features/auth/session'
 import { useUpdateSettings } from '../../features/stats/useUpdateSettings'
 import { sfx } from '../../lib/sfx'
 import styles from './DesktopShell.module.css'
-import { isTabActive, TABS, type ShellProps } from './shell.types'
+import { HUD_BOTTOM_DESKTOP, isTabActive, TABS, type ShellProps } from './shell.types'
 
 const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon, QuestionIcon] as const
 
-export function DesktopShell({ scene, children, sceneSide = false, bare = false, hud }: ShellProps) {
+export function DesktopShell({ scene, children, sceneSide = false, bare = false, hud, hudAt = 'top' }: ShellProps) {
   const { t } = useTranslation()
   const { pathname } = useLocation()
   const [localMuted, setLocalMuted] = useState(() => sfx.isMuted())
@@ -79,7 +79,9 @@ export function DesktopShell({ scene, children, sceneSide = false, bare = false,
         <div className={cx(styles.sceneCol, sceneSide && styles.sceneColSide)}>
           <div className={cx('card', styles.sceneCard)}>
             <PastureScene {...scene} label={t('nav.play')} />
-            {hud ? <div style={{ position: 'absolute', left: 16, right: 16, top: 16 }}>{hud}</div> : null}
+            {hud ? (
+              <div style={{ position: 'absolute', left: 16, right: 16, ...(hudAt === 'top' ? { top: 16 } : { bottom: HUD_BOTTOM_DESKTOP, zIndex: 2 }) }}>{hud}</div>
+            ) : null}
           </div>
         </div>
         <main className={styles.content}>{children}</main>

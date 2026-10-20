@@ -16,7 +16,13 @@ export interface ShellProps {
   panelPadding?: string
   /** Overlay rendered on top of the scene (HUD chips), as in the prototypes. */
   hud?: ReactNode
+  /** Where the hud sits: `top` (solo chips) or `bottom`, just above the panel (PasDuel opponent strip). */
+  hudAt?: 'top' | 'bottom'
 }
+
+/** PasDuel: the strip ends 34px above the scene's lower edge, which the panel overlaps by 24px. */
+export const HUD_GAP_ABOVE_PANEL = 10
+export const HUD_BOTTOM_DESKTOP = 34
 
 export const TABS = [
   { to: '/', key: 'nav.play', end: true },

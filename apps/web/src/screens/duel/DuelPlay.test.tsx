@@ -33,6 +33,14 @@ afterEach(() => {
 })
 
 describe('DuelPlay', () => {
+  it('shows the opponent strip over the scene, outside the panel', () => {
+    show()
+    const strip = document.querySelector('.ostrip') as HTMLElement
+    expect(strip).not.toBeNull()
+    expect(strip.closest('main')).toBeNull()
+    expect(screen.getByTestId('opp-progress')).toBeInTheDocument()
+  })
+
   it('enables the keypad on my turn', () => {
     show()
     expect(digit('1')).toBeEnabled()
