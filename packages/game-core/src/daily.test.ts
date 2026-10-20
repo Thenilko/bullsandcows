@@ -12,6 +12,11 @@ describe('sofiaDate', () => {
 })
 
 describe('dailyIndex', () => {
+  it('matches a known answer', () => {
+    // This literal pins the HMAC byte order/endianness, so a refactor cannot
+    // silently change every daily number.
+    expect(dailyIndex('s', '2026-10-20', 4, false)).toBe(1956)
+  })
   it('is an integer within [0, total) and deterministic', () => {
     const a = dailyIndex('s', '2026-10-20', 4, false)
     expect(Number.isInteger(a)).toBe(true)
