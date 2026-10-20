@@ -72,6 +72,10 @@ jobs:
         working-directory: apps/web
         run: pnpm exec playwright install --with-deps chromium
       # `pnpm e2e` locally; split in two jobs here so each stays well inside the timeout.
+      - name: Build web (fake auth) for the local Worker assets
+        run: pnpm --filter web build
+        env:
+          VITE_AUTH_MODE: fake
       - name: Run Playwright flows (fake auth, memory repo, no secrets)
         run: pnpm --filter web exec playwright test --project=mobile --project=desktop
       - name: Upload Playwright report
@@ -102,6 +106,10 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       # Screenshot baselines are rendered on macOS, so CI runs axe over the gallery but skips the
       # pixel comparison (playwright.config.ts: ignoreSnapshots). CI_SCREENSHOTS=1 turns it on.
+      - name: Build web (fake auth) for the local Worker assets
+        run: pnpm --filter web build
+        env:
+          VITE_AUTH_MODE: fake
       - name: Run Playwright gallery (axe; screenshots only with CI_SCREENSHOTS=1)
         run: pnpm --filter web exec playwright test --project=gallery
       - name: Upload Playwright report
