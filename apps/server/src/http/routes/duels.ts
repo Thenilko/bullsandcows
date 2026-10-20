@@ -105,6 +105,7 @@ export function duelsRoutes(): Hono<AppEnv> {
     const { token } = await room.create({
       opts: { format, len, zero, opponentKind: 'human' },
       host,
+      inviteCode: code,
     })
     const origin = c.get('deps').env.APP_ORIGIN.replace(/\/+$/, '')
     const dto: InviteDto = { code, url: `${origin}/d/${code}`, roomId: room.id, token }

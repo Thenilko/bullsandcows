@@ -4,6 +4,7 @@ import { parseEnv } from '../env'
 import { authenticateWs, forwardWithIdentity, readIdentity } from './wsAuth'
 
 const env = parseEnv(workerEnv)
+const MEMBERS = { allowGuests: false }
 const req = (auth?: string) =>
   new Request(
     `https://x/ws/queue${auth === undefined ? '' : `?auth=${encodeURIComponent(auth)}`}`,
@@ -14,28 +15,37 @@ const req = (auth?: string) =>
 
 describe('authenticateWs', () => {
   it('answers 401 ERR_AUTH without a token', async () => {
-    const res = await authenticateWs(req(), env)
+    const res = await authenticateWs(req(), env, MEMBERS)
     expect(res).toBeInstanceOf(Response)
     expect((res as Response).status).toBe(401)
     expect(await (res as Response).json()).toEqual({ ok: false, error: { code: 'ERR_AUTH' } })
   })
 
   it('answers 401 for an invalid token', async () => {
-    const res = await authenticateWs(req('garbage'), env)
+    const res = await authenticateWs(req('garbage'), env, MEMBERS)
     expect((res as Response).status).toBe(401)
   })
 
   it('answers 403 ERR_GUEST for a guest', async () => {
-    const res = await authenticateWs(req('fake:g1:guesty:guest'), env)
+    const res = await authenticateWs(req('fake:g1:guesty:guest'), env, MEMBERS)
     expect((res as Response).status).toBe(403)
     expect(await (res as Response).json()).toEqual({ ok: false, error: { code: 'ERR_GUEST' } })
   })
 
   it('returns the member PlayerInfo with the stored profile', async () => {
-    const res = await authenticateWs(req('fake:u1:alice'), env)
+    const res = await authenticateWs(req('fake:u1:alice'), env, MEMBERS)
     expect(res).not.toBeInstanceOf(Response)
     const { info } = res as { info: { id: string; isGuest: boolean; level: number } }
     expect(info).toMatchObject({ id: 'u1', isGuest: false, level: 1 })
+  })
+
+  it('admits a guest when the room allows guests', async () => {
+    const res = await authenticateWs(req('fake:g2:guestina:guest'), env, { allowGuests: true })
+    expect(res).not.toBeInstanceOf(Response)
+    expect((res as { info: { id: string; isGuest: boolean } }).info).toMatchObject({
+      id: 'g2',
+      isGuest: true,
+    })
   })
 })
 

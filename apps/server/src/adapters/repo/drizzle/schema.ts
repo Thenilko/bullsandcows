@@ -136,6 +136,8 @@ export const duels = pgTable(
     ratingDeltaB: doublePrecision('rating_delta_b'),
     createdAt: ts('created_at').notNull().defaultNow(),
     finishedAt: ts('finished_at'),
+    /** XP/ratings credited; flipped once, in the transaction that credits them. */
+    rewardsApplied: boolean('rewards_applied').notNull().default(false),
   },
   (t) => [
     index('duels_invite_code_idx').on(t.inviteCode),

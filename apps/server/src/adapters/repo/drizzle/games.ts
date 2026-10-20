@@ -30,8 +30,18 @@ function wonFilter(q: WonAttemptsQuery): SQL | undefined {
 export function drizzleGames(db: Db): GamesRepo {
   return {
     create: async (input) => {
-      const [row] = await db.insert(games).values(input).returning(publicColumns)
-      return toPublicGame(required(row))
+      const inserted = db.insert(games).values(input)
+      if (input.id === undefined) {
+        const [row] = await inserted.returning(publicColumns)
+        return toPublicGame(required(row))
+      }
+      // Idempotent by id: a retry gets the row that is already there.
+      const [row] = await inserted
+        .onConflictDoNothing({ target: games.id })
+        .returning(publicColumns)
+      if (row) return toPublicGame(row)
+      const [existing] = await db.select(publicColumns).from(games).where(eq(games.id, input.id))
+      return toPublicGame(required(existing))
     },
     get: async (id) => {
       const [row] = await db.select(publicColumns).from(games).where(eq(games.id, id)).limit(1)

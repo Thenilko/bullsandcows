@@ -390,7 +390,12 @@
       "raceNote": "{{name}} is guessing the same number. First to find it wins.",
       "giveUp": "I give up",
       "oppProgress": "guess {{attempt}} · {{left}} left",
-      "oppStatus": { "solved": "got it!", "thinking": "thinking…", "waiting": "waiting", "trying": "guessing" },
+      "oppStatus": {
+        "solved": "got it!",
+        "thinking": "thinking…",
+        "waiting": "waiting",
+        "trying": "guessing"
+      },
       "chip": { "bulls": "{{count}}B", "cows": "{{count}}C" },
       "toast": {
         "solved": "{{name}} guessed the number!",
@@ -447,16 +452,26 @@
       "timeoutOpp": "{{name}} ran out of time",
       "disconnectOpp": "{{name}} lost connection",
       "disconnectSelf": "You lost connection",
-      "ceiling": "15 minutes passed — a draw, rating unchanged"
+      "ceiling": "15 minutes passed — a draw, rating unchanged",
+      "abandoned": "The match never started — no XP, rating unchanged"
     }
   },
   "bot": {
     "name": "Scarecrow",
     "thinking": "The Scarecrow is thinking…",
     "level": {
-      "easy": { "name": "Easy", "desc": "The Scarecrow dozes off and sometimes slips — for little kids and first games." },
-      "normal": { "name": "Medium", "desc": "Pays attention and only tries numbers that fit the hints." },
-      "hard": { "name": "Hard", "desc": "Thinks like an old shepherd — picks guesses that narrow things down the most." },
+      "easy": {
+        "name": "Easy",
+        "desc": "The Scarecrow dozes off and sometimes slips — for little kids and first games."
+      },
+      "normal": {
+        "name": "Medium",
+        "desc": "Pays attention and only tries numbers that fit the hints."
+      },
+      "hard": {
+        "name": "Hard",
+        "desc": "Thinks like an old shepherd — picks guesses that narrow things down the most."
+      },
       "expert": { "name": "Expert", "desc": "Never slips and plays fast. For masters only." }
     }
   },

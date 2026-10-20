@@ -1,5 +1,5 @@
 {
-  "id": "3d5ad35f-68be-4c93-9280-688dee450a91",
+  "id": "90815ba5-d11e-4814-88df-3fbab7a4703f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -157,6 +157,13 @@
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
+        },
+        "rewards_applied": {
+          "name": "rewards_applied",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {
