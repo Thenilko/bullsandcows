@@ -2,7 +2,7 @@ import tseslint from 'typescript-eslint'
 import reactHooks from 'eslint-plugin-react-hooks'
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/coverage/**', '**/.wrangler/**', 'design/**', '**/*.tsbuildinfo', '**/worker-configuration.d.ts'] },
+  { ignores: ['.worktrees/**', '**/test-results/**', '**/playwright-report/**', '**/dist/**', '**/coverage/**', '**/.wrangler/**', 'design/**', '**/*.tsbuildinfo', '**/worker-configuration.d.ts'] },
   ...tseslint.configs.recommended,
   {
     files: ['apps/web/**/*.{ts,tsx}'],
