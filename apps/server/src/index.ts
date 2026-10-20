@@ -6,6 +6,8 @@ import { parseEnv, type Env } from './env'
 import { createApp } from './http/app'
 import { SECURITY_HEADERS } from './http/middleware/headers'
 import { systemClock } from './ports/clock'
+import { QueueRoom } from './rooms/QueueRoom'
+import { authenticateWs, forwardWithIdentity } from './rooms/wsAuth'
 
 /** Any id works: the cron only needs one cheap query so Supabase sees activity. */
 const KEEP_ALIVE_PROFILE_ID = '00000000-0000-0000-0000-000000000000'
@@ -47,6 +49,20 @@ async function handleApi(
   }
 }
 
+/** `/ws/queue`: authenticate and reject guests before the upgrade, then hand over to the lobby. */
+async function handleQueueWs(request: Request, raw: CloudflareBindings): Promise<Response> {
+  let env: Env
+  try {
+    env = loadEnv(raw)
+  } catch (err) {
+    console.error(errorText(err))
+    return Response.json(apiErr('ERR_INTERNAL'), { status: 500, headers: SECURITY_HEADERS })
+  }
+  const auth = await authenticateWs(request, env)
+  if (auth instanceof Response) return auth
+  return env.QUEUE.get(env.QUEUE.idFromName('lobby')).fetch(forwardWithIdentity(request, auth.info))
+}
+
 async function keepAlive(raw: CloudflareBindings, ctx: ExecutionContext): Promise<void> {
   try {
     const repo = makeRepo(loadEnv(raw))
@@ -64,6 +80,7 @@ export default {
   async fetch(request, env, ctx) {
     const { pathname } = new URL(request.url)
     if (pathname === '/api' || pathname.startsWith('/api/')) return handleApi(request, env, ctx)
+    if (pathname === '/ws/queue') return handleQueueWs(request, env)
     if (pathname === '/ws' || pathname.startsWith('/ws/')) return notImplemented()
     return env.ASSETS.fetch(request)
   },
@@ -72,12 +89,7 @@ export default {
   },
 } satisfies ExportedHandler<CloudflareBindings>
 
-/** Matchmaking lobby; implemented by the queue task. */
-export class QueueRoom extends DurableObject<CloudflareBindings> {
-  async fetch(): Promise<Response> {
-    return notImplemented()
-  }
-}
+export { QueueRoom }
 
 /** A single duel (race, classic or bot); implemented by the duel tasks. */
 export class DuelRoom extends DurableObject<CloudflareBindings> {
