@@ -35,7 +35,7 @@ id = "6660123b9e744a6db01bf27c1924a467"
 AUTH_MODE = "supabase"
 REPO_MODE = "postgres"
 ENVIRONMENT = "production"
-APP_ORIGIN = "https://pasishte.ACCOUNT.workers.dev"
+APP_ORIGIN = "https://pasishte.danailsimeonov89.workers.dev"
 
 # Local development: fake auth + in-memory repo.
 # Durable Object bindings and vars are not inherited by environments.
