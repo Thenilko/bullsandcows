@@ -141,6 +141,20 @@ describe('auth routes', () => {
     expect((await login('boris')).status).not.toBe(429)
   })
 
+  it('caps account calls at 30 a minute per IP across identifiers', async () => {
+    const app = makeApp()
+    const ip = `10.0.7.${unique()}`
+    for (let i = 0; i < 30; i += 1) {
+      const res = await post(app, ip, 'login', { identifier: `spray-${i}`, password: 'wrong1' })
+      expect(res.status).not.toBe(429)
+    }
+    const limited = await post(app, ip, 'login', { identifier: 'spray-30', password: 'wrong1' })
+    expect(limited.status).toBe(429)
+    expect((await post(app, ip, 'reset', { email: 'd@example.com' })).status).toBe(429)
+    expect((await post(app, ip, 'guest')).status).toBe(201)
+    expect((await post(app, `${ip}-other`, 'login', { identifier: 'spray-0', password: 'wrong1' })).status).not.toBe(429)
+  })
+
   it('allows 60 guests a minute per IP, apart from the account limit', async () => {
     const app = makeApp()
     const ip = `10.0.5.${unique()}`
