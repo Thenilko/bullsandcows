@@ -1,71 +1,43 @@
-# Бикове и крави
+# Бикове и крави · Пасището
 
-Уеб версия на класическата игра с вход, класиране, число на деня и дуел на живо с приятели.
+Уеб игра по класическата „Бикове и крави“: познаваш тайно число от 3, 4 или 5 цифри, а резултатът се разказва като сцена на пасище, което се разсъмва с всеки опит. Има соло игра, бот, число на деня, дуели с приятели и бърз мач с рейтинг. Тайното число и проверката на опитите са само на сървъра.
 
-**Стек:** Vite + React + TypeScript · Supabase (Postgres, Auth, Realtime) · Vercel · GitHub Actions
+## Структура
 
-## Режими
+```
+apps/
+  web/            React клиент (Vite)
+  server/         Cloudflare Worker + Durable Objects (/api, /ws)
+packages/
+  game-core/      чиста игрова логика (споделена от клиента и сървъра)
+  i18n/           преводи BG (референтен) и EN
+  protocol/       (предстои) споделени схеми и типове на съобщенията
+design/pasishte/  референтни прототипи от Claude Design (не се шипват)
+docs/superpowers/ спецификация и план
+```
 
-- **Играя** – компютърът избира число с различни цифри (3, 4 или 5), ти го познаваш. Точки, звезди и оценка след всяка победа.
-- **Число на деня** – едно число за всички играчи през деня, с отделно класиране.
-- **Дуел** – стая с 4-знаков код, всички получават едно и също число, печели първият познал. Опитите се виждат на живо.
-- **Компютърът** – ти намисляш число, компютърът го познава с алгоритъма на Кнут (обикновено за 5–6 хода).
-- **Класиране** – число на деня, общо точки, победи.
-
-## Пускане локално
+## Команди
 
 ```sh
-npm install
-npm run dev        # http://localhost:5173
+pnpm install      # зависимости (Node 22, pnpm 10)
+pnpm dev          # web + server паралелно
+pnpm test         # vitest (workspace)
+pnpm typecheck    # tsc -b през project references
+pnpm lint         # eslint
+pnpm build        # pnpm -r build
 ```
 
-Без `.env` играта работи в **локален режим**: всичко освен вход, класиране и дуел. За пълната версия:
+## Променливи на средата
 
-```sh
-cp .env.example .env   # попълни VITE_SUPABASE_URL и VITE_SUPABASE_ANON_KEY
-```
+Само имената; стойностите са в `.env.local` / `.dev.vars` и не се комитват.
 
-Инструкциите за базата са в [`supabase/README.md`](supabase/README.md).
+- `CLOUDFLARE_API_TOKEN`
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `DAILY_SALT`
 
-Други команди:
+## Документи
 
-```sh
-npm test            # unit тестове на игровата логика (vitest)
-npm run typecheck   # tsc
-npm run build       # production билд в dist/
-```
-
-## Качване на Vercel
-
-1. Импортирай репото във Vercel (Framework: Vite, build `npm run build`, output `dist`).
-2. Добави променливите `VITE_SUPABASE_URL` и `VITE_SUPABASE_ANON_KEY` в Project Settings → Environment Variables.
-3. В Supabase → Authentication → URL Configuration добави адреса на Vercel в Redirect URLs.
-
-Всеки push в `main` се качва автоматично.
-
-## Как е направено
-
-```
-src/
-  game/logic.ts       чиста логика: бикове/крави, кандидати, решател, точки (с тестове)
-  game/service.ts     LocalService (в браузъра) и OnlineService (Supabase RPC)
-  lib/supabase.ts     клиент; null = локален режим
-  lib/fx.ts           звуци, конфети, ефекти
-  hooks/useAuth.ts    сесия и профил
-  components/         Header, Play, Result, Solver, Duel, Leaderboard, Avatar
-supabase/migrations/  схема, RLS, игрови функции, изгледи за класиране
-```
-
-Принципи:
-
-- **Тайното число никога не стига до браузъра** в онлайн режим. Генерира се и се проверява в Postgres функции (`new_game`, `make_guess`, `use_hint`, `give_up`), а колоната `games.secret` не се дава на API ролите.
-- **Числото на деня** се извлича от датата и сол, която не се чете през API, така че да е еднакво за всички, но непредвидимо.
-- **Точките** се смятат по една и съща формула в `logic.ts` и в SQL (`compute_score`): база × min(1.5, пар ÷ опити) × (1 + бонус за време до 25%).
-- **Дуелът** ползва Supabase Realtime: presence за опитите на всеки и broadcast за старт, победа и реакции. Първият, който познае, се записва в `duels.winner_id` на сървъра.
-
-## Пътна карта
-
-- Класически дуел „един срещу друг“: всеки измисля число и познава чуждото на ходове.
-- Постижения и серии от дни с числото на деня.
-- Статистика на профила с графики.
-- Режим с думи вместо цифри.
+- Спецификация: [`docs/superpowers/specs/2026-10-20-pasishte-design.md`](docs/superpowers/specs/2026-10-20-pasishte-design.md)
+- План: [`docs/superpowers/plans/2026-10-20-pasishte.md`](docs/superpowers/plans/2026-10-20-pasishte.md)

@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<title>Пасището — нова игра и дуел</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./pasishte.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="dl {{layoutCls}}">
+
+<header class="d-only" style="max-width: 1240px; margin: 0 auto; padding: 16px 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px">
+<svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9C4 9 2 7 2 3.5c1.3 1.8 3 2.6 5.5 2.8z" fill="#F3E6C8" stroke="#2E3B24" stroke-width=".8"></path><path d="M17 9c3 0 5-2 5-5.5-1.3 1.8-3 2.6-5.5 2.8z" fill="#F3E6C8" stroke="#2E3B24" stroke-width=".8"></path><path d="M6.5 7.5h11l-1 8.5a4.5 4.5 0 0 1-9 0z" fill="#4A3427" stroke="#2E3B24" stroke-width=".8"></path><ellipse cx="12" cy="17.2" rx="3.6" ry="2.6" fill="#8A6A58"></ellipse><circle cx="9.6" cy="11.8" r="1" fill="#FFFFFF"></circle><circle cx="14.4" cy="11.8" r="1" fill="#FFFFFF"></circle></svg>
+<span style="font-size: 22px; font-weight: 900">Бикове и крави</span>
+<span style="font-weight: 800; color: #6B7560">· {{title}}</span>
+</div>
+<div style="display: flex; gap: 10px">
+<button class="soft sm" onClick="{{goSetup}}">Нова игра</button>
+<button class="iconbox icobtn" onClick="{{toggleMute}}" aria-label="{{muteLabel}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2E3B24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"></path><path d="{{muteIcon}}"></path></svg></button>
+</div>
+</header>
+
+<div class="dl-wrap">
+<div class="dl-scene">
+<dc-import name="PasScene" fog="{{fog}}" sun-y="{{sunY}}" dawn="{{dawn}}" animals="{{animals}}" parity="{{parity}}" miss="{{isMiss}}" hint-size="100%,100%"></dc-import>
+<div class="m-only" style="position: absolute; left: 12px; right: 12px; top: 12px; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 8px">
+<button class="iconbox icobtn" onClick="{{goSetup}}" aria-label="Към нова игра"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2E3B24" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
+<span class="ps-hud" style="font-size: 14px">{{title}}</span>
+<button class="iconbox icobtn" onClick="{{toggleMute}}" aria-label="{{muteLabel}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2E3B24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"></path><path d="{{muteIcon}}"></path></svg></button>
+</div>
+<sc-if value="{{showStrip}}" hint-placeholder-val="{{ false }}">
+<div class="ostrip rise" style="position: absolute; left: 12px; right: 12px; bottom: 34px; z-index: 2">
+<span class="av {{oppThinkCls}}" style="width: 42px; height: 42px; background: {{oppBg}}">
+<sc-if value="{{oppIsBot}}" hint-placeholder-val="{{ false }}"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 19 L6 23 M12 19 V23 M16.5 19 L18 23 M9.5 19 L9 22.5 M14.5 19 L15 22.5" stroke="#D9AE52" stroke-width="1.2" stroke-linecap="round"></path><circle cx="12" cy="13.5" r="6" fill="#E8C98A" stroke="#2E3B24" stroke-width=".8"></circle><path d="M8.8 11.6 l1.8 1.8 M10.6 11.6 l-1.8 1.8 M13.4 11.6 l1.8 1.8 M15.2 11.6 l-1.8 1.8" stroke="#2E3B24" stroke-width=".9" stroke-linecap="round"></path><path d="M9.2 16.2 Q12 17.8 14.8 16.2" stroke="#2E3B24" stroke-width=".8" fill="none" stroke-linecap="round"></path><path d="M3.5 8.6 H20.5" stroke="#5E4129" stroke-width="1.6" stroke-linecap="round"></path><path d="M7.5 8.6 L8.6 2.8 C10.5 2.2 13.5 2.2 15.4 2.8 L16.5 8.6Z" fill="#8E5B2E" stroke="#2E3B24" stroke-width=".8"></path><path d="M8.1 6.6 H15.9" stroke="#B5452F" stroke-width="1.3"></path></svg></sc-if>
+<sc-if value="{{oppIsHuman}}" hint-placeholder-val="{{ true }}"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.4 7.6 C7.9 5.6 6.6 4.3 4.9 3.9 C5.7 5 6.2 6.4 6.4 7.8Z" fill="#EADBB8" stroke="#2E3B24" stroke-width=".6"></path><path d="M15.6 7.6 C16.1 5.6 17.4 4.3 19.1 3.9 C18.3 5 17.8 6.4 17.6 7.8Z" fill="#EADBB8" stroke="#2E3B24" stroke-width=".6"></path><path d="M7.2 9.4 2.5 8.4c.6 2 2.1 3.2 4.7 3.3z" fill="#F4EFE6" stroke="#2E3B24" stroke-width=".8"></path><path d="M16.8 9.4l4.7-1c-.6 2-2.1 3.2-4.7 3.3z" fill="#F4EFE6" stroke="#2E3B24" stroke-width=".8"></path><path d="M7 7h10l-.6 9a4.4 4.4 0 0 1-8.8 0z" fill="#FFFFFF" stroke="#2E3B24" stroke-width=".8"></path><path d="M12.6 7.1c2.2.2 3.6 1.5 4 3.4-1.9.7-3.7.1-4.2-1.6z" fill="#1F1F23"></path><ellipse cx="12" cy="17" rx="3.8" ry="2.6" fill="#F0B2AE" stroke="#2E3B24" stroke-width=".6"></ellipse><ellipse cx="9.6" cy="11.5" rx="1.5" ry="1.35" fill="#FFFFFF" stroke="#2E3B24" stroke-width=".45"></ellipse><circle cx="9.8" cy="11.7" r=".8" fill="#2A1A10"></circle><ellipse cx="14.4" cy="11.5" rx="1.5" ry="1.35" fill="#FFFFFF" stroke="#2E3B24" stroke-width=".45"></ellipse><circle cx="14.6" cy="11.7" r=".8" fill="#2A1A10"></circle></svg></sc-if>
+</span>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: baseline"><b style="font-size: 15px">{{oppName}}</b><span style="font-size: 12px; font-weight: 800; color: #4A5640">опит {{oppN}} · {{oppLeft}} вар.</span></div>
+<div style="height: 6px; border-radius: 3px; background: #E7E0CC; overflow: hidden"><div style="height: 100%; width: {{oppProgW}}; background: #4A7FB0; border-radius: 3px; transition: width .8s cubic-bezier(.3,1.2,.5,1)"></div></div>
+</div>
+<span class="tag" style="background: {{oppTagBg}}; color: {{oppTagFg}}">{{oppStatus}}</span>
+</div>
+</sc-if>
+</div>
+
+<div class="dl-panel">
+
+<sc-if value="{{isSetup}}" hint-placeholder-val="{{ true }}">
+<h1 class="rise" style="margin: 0; font-size: 30px; font-weight: 900">Нова игра</h1>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px" role="group" aria-label="Режим на игра">
+<sc-for list="{{modes}}" as="m" hint-placeholder-count="3">
+<button class="mode {{m.cls}}" onClick="{{m.pick}}" aria-pressed="{{m.on}}">
+<sc-if value="{{m.iSolo}}" hint-placeholder-val="{{ false }}"><svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9C4 9 2 7 2 3.5c1.3 1.8 3 2.6 5.5 2.8z" fill="#F3E6C8" stroke="#2E3B24" stroke-width=".8"></path><path d="M17 9c3 0 5-2 5-5.5-1.3 1.8-3 2.6-5.5 2.8z" fill="#F3E6C8" stroke="#2E3B24" stroke-width=".8"></path><path d="M6.5 7.5h11l-1 8.5a4.5 4.5 0 0 1-9 0z" fill="#4A3427" stroke="#2E3B24" stroke-width=".8"></path><ellipse cx="12" cy="17.2" rx="3.6" ry="2.6" fill="#8A6A58"></ellipse><circle cx="9.6" cy="11.8" r="1" fill="#FFFFFF"></circle><circle cx="14.4" cy="11.8" r="1" fill="#FFFFFF"></circle></svg></sc-if>
+<sc-if value="{{m.iDuel}}" hint-placeholder-val="{{ false }}"><span style="display: flex"><svg width="32" height="32" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9C4 9 2 7 2 3.5c1.3 1.8 3 2.6 5.5 2.8z" fill="#F3E6C8" stroke="#2E3B24" stroke-width=".8"></path><path d="M17 9c3 0 5-2 5-5.5-1.3 1.8-3 2.6-5.5 2.8z" fill="#F3E6C8" stroke="#2E3B24" stroke-width=".8"></path><path d="M6.5 7.5h11l-1 8.5a4.5 4.5 0 0 1-9 0z" fill="#4A3427" stroke="#2E3B24" stroke-width=".8"></path><ellipse cx="12" cy="17.2" rx="3.6" ry="2.6" fill="#8A6A58"></ellipse><circle cx="9.6" cy="11.8" r="1" fill="#FFFFFF"></circle><circle cx="14.4" cy="11.8" r="1" fill="#FFFFFF"></circle></svg><svg width="32" height="32" viewBox="0 0 24 24" aria-hidden="true" style="margin-left: -10px; margin-top: 6px"><path d="M8.4 7.6 C7.9 5.6 6.6 4.3 4.9 3.9 C5.7 5 6.2 6.4 6.4 7.8Z" fill="#EADBB8" stroke="#2E3B24" stroke-width=".6"></path><path d="M15.6 7.6 C16.1 5.6 17.4 4.3 19.1 3.9 C18.3 5 17.8 6.4 17.6 7.8Z" fill="#EADBB8" stroke="#2E3B24" stroke-width=".6"></path><path d="M7.2 9.4 2.5 8.4c.6 2 2.1 3.2 4.7 3.3z" fill="#F4EFE6" stroke="#2E3B24" stroke-width=".8"></path><path d="M16.8 9.4l4.7-1c-.6 2-2.1 3.2-4.7 3.3z" fill="#F4EFE6" stroke="#2E3B24" stroke-width=".8"></path><path d="M7 7h10l-.6 9a4.4 4.4 0 0 1-8.8 0z" fill="#FFFFFF" stroke="#2E3B24" stroke-width=".8"></path><path d="M12.6 7.1c2.2.2 3.6 1.5 4 3.4-1.9.7-3.7.1-4.2-1.6z" fill="#1F1F23"></path><ellipse cx="12" cy="17" rx="3.8" ry="2.6" fill="#F0B2AE" stroke="#2E3B24" stroke-width=".6"></ellipse><ellipse cx="9.6" cy="11.5" rx="1.5" ry="1.35" fill="#FFFFFF" stroke="#2E3B24" stroke-width=".45"></ellipse><circle cx="9.8" cy="11.7" r=".8" fill="#2A1A10"></circle><ellipse cx="14.4" cy="11.5" rx="1.5" ry="1.35" fill="#FFFFFF" stroke="#2E3B24" stroke-width=".45"></ellipse><circle cx="14.6" cy="11.7" r=".8" fill="#2A1A10"></circle></svg></span></sc-if>
+<sc-if value="{{m.iBot}}" hint-placeholder-val="{{ false }}"><svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 19 L6 23 M12 19 V23 M16.5 19 L18 23 M9.5 19 L9 22.5 M14.5 19 L15 22.5" stroke="#D9AE52" stroke-width="1.2" stroke-linecap="round"></path><circle cx="12" cy="13.5" r="6" fill="#E8C98A" stroke="#2E3B24" stroke-width=".8"></circle><path d="M8.8 11.6 l1.8 1.8 M10.6 11.6 l-1.8 1.8 M13.4 11.6 l1.8 1.8 M15.2 11.6 l-1.8 1.8" stroke="#2E3B24" stroke-width=".9" stroke-linecap="round"></path><path d="M9.2 16.2 Q12 17.8 14.8 16.2" stroke="#2E3B24" stroke-width=".8" fill="none" stroke-linecap="round"></path><path d="M3.5 8.6 H20.5" stroke="#5E4129" stroke-width="1.6" stroke-linecap="round"></path><path d="M7.5 8.6 L8.6 2.8 C10.5 2.2 13.5 2.2 15.4 2.8 L16.5 8.6Z" fill="#8E5B2E" stroke="#2E3B24" stroke-width=".8"></path><path d="M8.1 6.6 H15.9" stroke="#B5452F" stroke-width="1.3"></path></svg></sc-if>
+{{m.label}}<small>{{m.sub}}</small>
+</button>
+</sc-for>
+</div>
+<div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 14px">
+<div class="setrow"><span class="setlab">Цифри</span><div style="display: flex; gap: 6px"><sc-for list="{{lens}}" as="l" hint-placeholder-count="3"><button class="pill {{l.cls}}" onClick="{{l.pick}}" style="min-height: 40px; min-width: 48px">{{l.label}}</button></sc-for></div></div>
+<div class="setrow"><div style="display: flex; flex-direction: column"><span class="setlab">С нулата</span><span style="font-size: 12px; font-weight: 700; color: #6B7560">{{zeroText}}</span></div><button class="toggle {{zeroCls}}" onClick="{{toggleZero}}" aria-label="Разреши цифрата 0" aria-pressed="{{zero}}"></button></div>
+<span style="font-size: 12px; font-weight: 800; color: #8E3424">{{codesText}}</span>
+<sc-if value="{{isSolo}}" hint-placeholder-val="{{ false }}"><div class="setrow"><span class="setlab">Число</span><div style="display: flex; gap: 6px"><sc-for list="{{soloModes}}" as="o" hint-placeholder-count="2"><button class="pill {{o.cls}}" onClick="{{o.pick}}" style="min-height: 40px">{{o.label}}</button></sc-for></div></div></sc-if>
+<sc-if value="{{needsFormat}}" hint-placeholder-val="{{ true }}">
+<span class="setlab">Формат</span>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><sc-for list="{{formats}}" as="o" hint-placeholder-count="2"><button class="opt {{o.cls}}" onClick="{{o.pick}}">{{o.label}}<small>{{o.sub}}</small></button></sc-for></div>
+</sc-if>
+<sc-if value="{{isDuel}}" hint-placeholder-val="{{ true }}">
+<span class="setlab">Противник</span>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><sc-for list="{{oppTypes}}" as="o" hint-placeholder-count="2"><button class="opt {{o.cls}}" onClick="{{o.pick}}">{{o.label}}<small>{{o.sub}}</small></button></sc-for></div>
+</sc-if>
+<sc-if value="{{isBot}}" hint-placeholder-val="{{ false }}">
+<span class="setlab">Ниво на Плашилото</span>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px"><sc-for list="{{botLvls}}" as="o" hint-placeholder-count="4"><button class="pill {{o.cls}}" onClick="{{o.pick}}" style="min-height: 40px; padding: 0 6px; font-size: 13px">{{o.label}}</button></sc-for></div>
+<p style="margin: 0; font-size: 13px; font-weight: 700; color: #4A5640; line-height: 1.45">{{botDesc}}</p>
+</sc-if>
+</div>
+<button class="cta" onClick="{{go}}" style="min-height: 58px; font-size: 19px">{{ctaLabel}}</button>
+<sc-if value="{{showQueueNote}}" hint-placeholder-val="{{ true }}"><p style="margin: 0; font-size: 12px; font-weight: 700; color: #6B7560; text-align: center; line-height: 1.45">В бързия мач играеш само срещу истински хора с близко ниво.</p></sc-if>
+</sc-if>
+
+<sc-if value="{{isInvite}}" hint-placeholder-val="{{ false }}">
+<h1 class="rise" style="margin: 0; font-size: 28px; font-weight: 900">Покани приятел</h1>
+<p style="margin: 0; font-weight: 700; color: #4A5640; line-height: 1.5">Изпрати кода или линка. Дуелът започва, щом приятелят ти влезе.</p>
+<div class="card" style="padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center">
+<span style="font-size: 12px; font-weight: 900; letter-spacing: .14em; color: #6B7560">КОД ЗА ДУЕЛ</span>
+<span class="boing" style="font-size: 44px; font-weight: 900; letter-spacing: .14em">{{code}}</span>
+<span style="font-size: 13px; font-weight: 700; color: #6B7560">[домейн]/d/{{code}}</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px"><button class="soft" onClick="{{copyInvite}}">{{copyLabel}}</button><button class="soft" onClick="{{copyInvite}}">Сподели</button></div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center"><sc-for list="{{chips}}" as="c" hint-placeholder-count="3"><span class="tag" style="background: #FFFFFF; border: 1.5px solid #DCD4BF">{{c}}</span></sc-for></div>
+<p role="status" style="margin: 0; text-align: center; font-weight: 800">Чакаме приятеля ти<span class="dots"><span>.</span><span>.</span><span>.</span></span> {{waitClock}}</p>
+<button class="soft sm" onClick="{{goSetup}}">Откажи</button>
+</sc-if>
+
+<sc-if value="{{isQueue}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center">
+<div style="position: relative; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; margin-top: 6px">
+<span class="ring"></span><span class="ring" style="animation-delay: .8s"></span><span class="ring" style="animation-delay: 1.6s"></span>
+<span class="av" style="width: 76px; height: 76px; background: #F2C230; position: relative"><svg width="54" height="54" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9C4 9 2 7 2 3.5c1.3 1.8 3 2.6 5.5 2.8z" fill="#F3E6C8" stroke="#2E3B24" stroke-width=".8"></path><path d="M17 9c3 0 5-2 5-5.5-1.3 1.8-3 2.6-5.5 2.8z" fill="#F3E6C8" stroke="#2E3B24" stroke-width=".8"></path><path d="M6.5 7.5h11l-1 8.5a4.5 4.5 0 0 1-9 0z" fill="#4A3427" stroke="#2E3B24" stroke-width=".8"></path><ellipse cx="12" cy="17.2" rx="3.6" ry="2.6" fill="#8A6A58"></ellipse><circle cx="9.6" cy="11.8" r="1" fill="#FFFFFF"></circle><circle cx="14.4" cy="11.8" r="1" fill="#FFFFFF"></circle></svg></span>
+</div>
+<h1 style="margin: 0; font-size: 26px; font-weight: 900">Търсим противник<span class="dots"><span>.</span><span>.</span><span>.</span></span></h1>
+<span style="font-size: 36px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1">{{waitClock}}</span>
+<div class="card" style="width: 100%; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; text-align: left">
+<div class="setrow"><span class="setlab">Сходно ниво</span><b>{{lvlRange}}</b></div>
+<div style="height: 8px; border-radius: 4px; background: #ECE5D2; overflow: hidden"><div style="height: 100%; width: {{rangeW}}; background: #86C462; border-radius: 4px; transition: width 1s ease"></div></div>
+<span style="font-size: 12px; font-weight: 700; color: #6B7560">Разширяваме търсенето на всеки 5 секунди. Само истински играчи.</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center"><sc-for list="{{chips}}" as="c" hint-placeholder-count="3"><span class="tag" style="background: #FFFFFF; border: 1.5px solid #DCD4BF">{{c}}</span></sc-for></div>
+<span style="font-size: 13px; font-weight: 800; color: #4A5640">Онлайн сега: 37 · в опашката: 4</span>
+<sc-if value="{{longWait}}" hint-placeholder-val="{{ false }}">
+<div class="card rise" style="width: 100%; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-weight: 800; line-height: 1.45">Още няма подходящ противник. Можеш да продължиш да чакаш или да поканиш приятел.</span>
+<button class="soft sm" onClick="{{toInvite}}">Покани приятел</button>
+</div>
+</sc-if>
+<button class="soft" onClick="{{goSetup}}" style="width: 100%">Откажи търсенето</button>
+</div>
+</sc-if>
+
+<sc-if value="{{isFound}}" hint-placeholder-val="{{ false }}">
+<h1 class="rise" style="margin: 0; font-size: 26px; font-weight: 900; text-align: center">{{foundTitle}}</h1>
+<div style="display: flex; align-items: center; gap: 6px">
+<div class="pcard vsL {{meReadyCls}}">
+<span class="av" style="width: 64px; height: 64px; background: #F2C230"><svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9C4 9 2 7 2 3.5c1.3 1.8 3 2.6 5.5 2.8z" fill="#F3E6C8" stroke="#2E3B24" stroke-width=".8"></path><path d="M17 9c3 0 5-2 5-5.5-1.3 1.8-3 2.6-5.5 2.8z" fill="#F3E6C8" stroke="#2E3B24" stroke-width=".8"></path><path d="M6.5 7.5h11l-1 8.5a4.5 4.5 0 0 1-9 0z" fill="#4A3427" stroke="#2E3B24" stroke-width=".8"></path><ellipse cx="12" cy="17.2" rx="3.6" ry="2.6" fill="#8A6A58"></ellipse><circle cx="9.6" cy="11.8" r="1" fill="#FFFFFF"></circle><circle cx="14.4" cy="11.8" r="1" fill="#FFFFFF"></circle></svg></span>
+<b style="font-size: 17px">{{meName}}</b>
+<span style="font-size: 12px; font-weight: 800; color: #4A5640">{{meSub}}</span>
+<span class="tag" style="background: {{meTagBg}}; color: {{meTagFg}}">{{meStatus}}</span>
+</div>
+<span class="vsx" style="font-size: 26px; font-weight: 900; color: #B5452F">VS</span>
+<div class="pcard vsR {{oppReadyCls}}">
+<span class="av" style="width: 64px; height: 64px; background: {{oppBg}}">
+<sc-if value="{{oppIsBot}}" hint-placeholder-val="{{ false }}"><svg width="46" height="46" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 19 L6 23 M12 19 V23 M16.5 19 L18 23 M9.5 19 L9 22.5 M14.5 19 L15 22.5" stroke="#D9AE52" stroke-width="1.2" stroke-linecap="round"></path><circle cx="12" cy="13.5" r="6" fill="#E8C98A" stroke="#2E3B24" stroke-width=".8"></circle><path d="M8.8 11.6 l1.8 1.8 M10.6 11.6 l-1.8 1.8 M13.4 11.6 l1.8 1.8 M15.2 11.6 l-1.8 1.8" stroke="#2E3B24" stroke-width=".9" stroke-linecap="round"></path><path d="M9.2 16.2 Q12 17.8 14.8 16.2" stroke="#2E3B24" stroke-width=".8" fill="none" stroke-linecap="round"></path><path d="M3.5 8.6 H20.5" stroke="#5E4129" stroke-width="1.6" stroke-linecap="round"></path><path d="M7.5 8.6 L8.6 2.8 C10.5 2.2 13.5 2.2 15.4 2.8 L16.5 8.6Z" fill="#8E5B2E" stroke="#2E3B24" stroke-width=".8"></path><path d="M8.1 6.6 H15.9" stroke="#B5452F" stroke-width="1.3"></path></svg></sc-if>
+<sc-if value="{{oppIsHuman}}" hint-placeholder-val="{{ true }}"><svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.4 7.6 C7.9 5.6 6.6 4.3 4.9 3.9 C5.7 5 6.2 6.4 6.4 7.8Z" fill="#EADBB8" stroke="#2E3B24" stroke-width=".6"></path><path d="M15.6 7.6 C16.1 5.6 17.4 4.3 19.1 3.9 C18.3 5 17.8 6.4 17.6 7.8Z" fill="#EADBB8" stroke="#2E3B24" stroke-width=".6"></path><path d="M7.2 9.4 2.5 8.4c.6 2 2.1 3.2 4.7 3.3z" fill="#F4EFE6" stroke="#2E3B24" stroke-width=".8"></path><path d="M16.8 9.4l4.7-1c-.6 2-2.1 3.2-4.7 3.3z" fill="#F4EFE6" stroke="#2E3B24" stroke-width=".8"></path><path d="M7 7h10l-.6 9a4.4 4.4 0 0 1-8.8 0z" fill="#FFFFFF" stroke="#2E3B24" stroke-width=".8"></path><path d="M12.6 7.1c2.2.2 3.6 1.5 4 3.4-1.9.7-3.7.1-4.2-1.6z" fill="#1F1F23"></path><ellipse cx="12" cy="17" rx="3.8" ry="2.6" fill="#F0B2AE" stroke="#2E3B24" stroke-width=".6"></ellipse><ellipse cx="9.6" cy="11.5" rx="1.5" ry="1.35" fill="#FFFFFF" stroke="#2E3B24" stroke-width=".45"></ellipse><circle cx="9.8" cy="11.7" r=".8" fill="#2A1A10"></circle><ellipse cx="14.4" cy="11.5" rx="1.5" ry="1.35" fill="#FFFFFF" stroke="#2E3B24" stroke-width=".45"></ellipse><circle cx="14.6" cy="11.7" r=".8" fill="#2A1A10"></circle></svg></sc-if>
+</span>
+<b style="font-size: 17px">{{oppName}}</b>
+<span style="font-size: 12px; font-weight: 800; color: #4A5640">{{oppSub}}</span>
+<span class="tag" style="background: {{oppReadyBg}}; color: {{oppReadyFg}}">{{oppReadyText}}</span>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center"><sc-for list="{{chips}}" as="c" hint-placeholder-count="3"><span class="tag" style="background: #FFFFFF; border: 1.5px solid #DCD4BF">{{c}}</span></sc-for></div>
+<p style="margin: 0; text-align: center; font-weight: 700; color: #4A5640; line-height: 1.5">{{formatRule}}</p>
+<button class="cta" onClick="{{ready}}" disabled="{{meReady}}" style="min-height: 60px; font-size: 20px">{{readyLabel}}</button>
+<span style="font-size: 12px; font-weight: 700; color: #6B7560; text-align: center">Часовникът тръгва, когато сте готови и двамата.</span>
+</sc-if>
+
+<sc-if value="{{isSecret}}" hint-placeholder-val="{{ false }}">
+<h1 class="rise" style="margin: 0; font-size: 26px; font-weight: 900">Скрий своето число</h1>
+<p style="margin: 0; font-weight: 700; color: #4A5640; line-height: 1.45">{{len}} различни цифри{{zeroNote}}. {{oppName}} ще се опитва да го познае.</p>
+<div class="{{shakeCls}}" style="display: flex; gap: 10px; justify-content: center"><sc-for list="{{slots}}" as="s" hint-placeholder-count="4"><div class="sign {{s.cls}}"><sc-if value="{{s.filled}}" hint-placeholder-val="{{ false }}"><span class="boing">{{s.show}}</span></sc-if></div></sc-for></div>
+<button class="icobtn" onClick="{{toggleEye}}" style="align-self: center; min-height: 36px; font-weight: 800; color: #4A5640"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>{{eyeText}}</button>
+<p role="status" style="margin: 0; min-height: 16px; text-align: center; font-weight: 800; font-size: 13px; color: #8A1F0B">{{err}}</p>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px"><sc-for list="{{keys}}" as="k" hint-placeholder-count="10"><button class="key" onClick="{{k.press}}" disabled="{{k.blocked}}" aria-label="Цифра {{k.d}}">{{k.d}}</button></sc-for></div>
+<div style="display: grid; grid-template-columns: 1fr 2.2fr; gap: 10px"><button class="soft" onClick="{{back}}">Изтрий</button><button class="cta" onClick="{{confirmSecret}}" disabled="{{waitSecret}}">{{secretLabel}}</button></div>
+<span style="text-align: center; font-weight: 800; color: #4A5640">{{oppHideText}}</span>
+</sc-if>
+
+<sc-if value="{{isPlay}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+<div style="display: flex; align-items: center; gap: 8px"><b style="font-size: 16px">Опит {{attemptNo}}</b><sc-if value="{{isClassicPlay}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: {{turnBg}}; color: #FFFFFF">{{turnText}}</span></sc-if></div>
+<span class="ps-hud" style="background: #FFFFFF; font-variant-numeric: tabular-nums">{{clock}}</span>
+</div>
+<div class="inset" style="padding: 10px 12px; font-weight: 800; font-size: 14px">{{myLast}}</div>
+<div class="{{shakeCls}}" style="display: flex; gap: 10px; justify-content: center"><sc-for list="{{slots}}" as="s" hint-placeholder-count="4"><div class="sign {{s.cls}}"><sc-if value="{{s.filled}}" hint-placeholder-val="{{ false }}"><span class="boing">{{s.show}}</span></sc-if></div></sc-for></div>
+<p role="status" style="margin: -4px 0 0; min-height: 16px; text-align: center; font-weight: 800; font-size: 13px; color: #8A1F0B">{{err}}</p>
+<div style="position: relative; display: flex; flex-direction: column; gap: 10px">
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px"><sc-for list="{{keys}}" as="k" hint-placeholder-count="10"><button class="key" onClick="{{k.press}}" disabled="{{k.blocked}}" aria-label="Цифра {{k.d}}">{{k.d}}</button></sc-for></div>
+<div style="display: grid; grid-template-columns: 1fr 2.2fr; gap: 10px"><button class="soft" onClick="{{back}}">Изтрий</button><button class="cta" onClick="{{submit}}">Пусни стадото!</button></div>
+<sc-if value="{{oppTurnOverlay}}" hint-placeholder-val="{{ false }}">
+<div class="fadein" style="position: absolute; inset: -6px; border-radius: 18px; background: rgba(246,242,230,.92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px">
+<span class="av think" style="width: 60px; height: 60px; background: {{oppBg}}"><svg width="42" height="42" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.4 7.6 C7.9 5.6 6.6 4.3 4.9 3.9 C5.7 5 6.2 6.4 6.4 7.8Z" fill="#EADBB8" stroke="#2E3B24" stroke-width=".6"></path><path d="M15.6 7.6 C16.1 5.6 17.4 4.3 19.1 3.9 C18.3 5 17.8 6.4 17.6 7.8Z" fill="#EADBB8" stroke="#2E3B24" stroke-width=".6"></path><path d="M7.2 9.4 2.5 8.4c.6 2 2.1 3.2 4.7 3.3z" fill="#F4EFE6" stroke="#2E3B24" stroke-width=".8"></path><path d="M16.8 9.4l4.7-1c-.6 2-2.1 3.2-4.7 3.3z" fill="#F4EFE6" stroke="#2E3B24" stroke-width=".8"></path><path d="M7 7h10l-.6 9a4.4 4.4 0 0 1-8.8 0z" fill="#FFFFFF" stroke="#2E3B24" stroke-width=".8"></path><path d="M12.6 7.1c2.2.2 3.6 1.5 4 3.4-1.9.7-3.7.1-4.2-1.6z" fill="#1F1F23"></path><ellipse cx="12" cy="17" rx="3.8" ry="2.6" fill="#F0B2AE" stroke="#2E3B24" stroke-width=".6"></ellipse><ellipse cx="9.6" cy="11.5" rx="1.5" ry="1.35" fill="#FFFFFF" stroke="#2E3B24" stroke-width=".45"></ellipse><circle cx="9.8" cy="11.7" r=".8" fill="#2A1A10"></circle><ellipse cx="14.4" cy="11.5" rx="1.5" ry="1.35" fill="#FFFFFF" stroke="#2E3B24" stroke-width=".45"></ellipse><circle cx="14.6" cy="11.7" r=".8" fill="#2A1A10"></circle></svg></span>
+<b style="font-size: 18px">{{oppName}} мисли<span class="dots"><span>.</span><span>.</span><span>.</span></span></b>
+<span style="font-size: 13px; font-weight: 700; color: #4A5640">Опитва се да познае твоето {{mySecret}}</span>
+</div>
+</sc-if>
+</div>
+<div style="display: flex; gap: 6px; overflow-x: auto; min-height: 36px" aria-label="Твоите опити"><sc-for list="{{myChips}}" as="g" hint-placeholder-count="2"><div class="chip {{g.cls}}"><span>{{g.g}}</span><span style="color: #8E3424">{{g.b}}Б</span><span style="color: #4A5640">{{g.c}}К</span></div></sc-for></div>
+<sc-if value="{{isClassicPlay}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-weight: 900; font-size: 14px">{{oppName}} срещу твоето {{mySecret}}</span>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-if value="{{noOppGuesses}}" hint-placeholder-val="{{ false }}"><span style="font-size: 13px; font-weight: 700; color: #6B7560">още няма опити</span></sc-if><sc-for list="{{oppChips}}" as="g" hint-placeholder-count="2"><div class="chip {{g.cls}}"><span>{{g.g}}</span><span style="color: #8E3424">{{g.b}}Б</span><span style="color: #4A5640">{{g.c}}К</span></div></sc-for></div>
+</div>
+</sc-if>
+<sc-if value="{{isRaceOpp}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-size: 12px; font-weight: 700; color: #6B7560; text-align: center">{{oppName}} познава същото число. Печели първият, който го открие.</p></sc-if>
+<button onClick="{{giveUp}}" style="min-height: 32px; font-size: 13px; font-weight: 800; color: #6B7560; text-decoration: underline">Предавам се</button>
+</sc-if>
+
+<sc-if value="{{isResult}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center">
+<sc-if value="{{isWin}}" hint-placeholder-val="{{ true }}"><svg class="shine" width="56" height="42" viewBox="0 0 32 24" fill="#F2C230" stroke="#7A5230" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M2 7l7 6 7-11 7 11 7-6-3 15H5z"></path></svg></sc-if>
+<span style="font-size: 13px; font-weight: 900; letter-spacing: .12em; color: #6B7560">{{resKicker}}</span>
+<h1 class="boing" style="margin: 0; font-size: 40px; font-weight: 900; line-height: 1; color: {{resColor}}">{{banner}}</h1>
+<p style="margin: 0; font-weight: 700; color: #4A5640; line-height: 1.45">{{resSub}}</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{resRows}}" as="r" hint-placeholder-count="2">
+<div class="hrow rise" style="animation-delay: {{r.d}}; padding: 12px">
+<span class="av" style="width: 38px; height: 38px; background: {{r.bg}}; font-weight: 900">{{r.initial}}</span>
+<b style="flex: 1; min-width: 0">{{r.name}}</b>
+<span style="font-weight: 800; color: #4A5640">{{r.n}} оп.</span>
+<span style="font-weight: 800; color: #4A5640; font-variant-numeric: tabular-nums">{{r.time}}</span>
+<span class="tag" style="background: {{r.tagBg}}; color: {{r.tagFg}}">{{r.status}}</span>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{ranked}}" hint-placeholder-val="{{ true }}">
+<div class="card" style="padding: 14px 16px; display: flex; align-items: center; justify-content: space-between">
+<div style="display: flex; flex-direction: column"><span style="font-size: 12px; font-weight: 900; letter-spacing: .1em; color: #6B7560">РЕЙТИНГ</span><span style="font-weight: 900; font-size: 18px">{{ratingFrom}} → {{ratingTo}}</span></div>
+<span class="boing" style="font-size: 30px; font-weight: 900; color: {{deltaColor}}; animation-delay: .4s">{{deltaText}}</span>
+</div>
+</sc-if>
+<div class="inset" style="padding: 10px 14px; font-weight: 800; font-size: 14px; text-align: center">{{secretsText}} · +{{xp}} т. опит</div>
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px"><button class="cta" onClick="{{rematch}}">{{rematchLabel}}</button><button class="soft" onClick="{{goSetup}}">Нова игра</button></div>
+</sc-if>
+</div>
+</div>
+
+<sc-if value="{{toastOn}}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{toastEven}}" hint-placeholder-val="{{ false }}"><div class="toastA" role="status">{{toast}}</div></sc-if>
+<sc-if value="{{toastOdd}}" hint-placeholder-val="{{ false }}"><div class="toastB" role="status">{{toast}}</div></sc-if>
+</sc-if>
+
+<sc-if value="{{counting}}" hint-placeholder-val="{{ false }}">
+<div class="cd fadein">
+<sc-if value="{{cd3}}" hint-placeholder-val="{{ false }}"><span class="boing" style="font-size: 130px; font-weight: 900; line-height: 1; color: #FFFFFF; text-shadow: 0 6px 0 #B5452F">3</span></sc-if>
+<sc-if value="{{cd2}}" hint-placeholder-val="{{ false }}"><span class="boing" style="font-size: 130px; font-weight: 900; line-height: 1; color: #FFFFFF; text-shadow: 0 6px 0 #B5452F">2</span></sc-if>
+<sc-if value="{{cd1}}" hint-placeholder-val="{{ false }}"><span class="boing" style="font-size: 130px; font-weight: 900; line-height: 1; color: #FFFFFF; text-shadow: 0 6px 0 #B5452F">1</span></sc-if>
+<span style="font-size: 20px; font-weight: 900; color: #FFFFFF">Готови…</span>
+</div>
+</sc-if>
+
+<sc-if value="{{showConfetti}}" hint-placeholder-val="{{ false }}"><div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 10"><sc-for list="{{confetti}}" as="c" hint-placeholder-count="0"><span class="confetti" style="left: {{c.l}}; background: {{c.c}}; animation-duration: {{c.t}}; animation-delay: {{c.d}}"></span></sc-for></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"layout":{"editor":"enum","options":["mobile","desktop"],"default":"mobile"},"start":{"editor":"enum","options":["setup","setup-bot","invite","queue","found","secret","race","classic","bot","result"],"default":"setup"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  state = { screen: 'setup', mode: 'duel', len: 4, zero: false, format: 'race', oppType: 'quick', botLvl: 2, soloMode: 'free', me: { name: 'Мира', level: 7, rating: 1240 }, opp: null, qStart: 0, now: 0, code: 'BK7Q2', copied: '', meReady: false, oppReady: false, oppHidden: false, waitSecret: false, countdown: 0, secret: '', mySecret: '', oppSecret: '', cur: '', eye: false, err: '', shake: 0, guesses: [], cands: [], oppGuesses: [], oppCands: [], oppSolved: false, mySolved: false, turn: 'me', oppThinking: false, started: false, startedAt: 0, endedAt: 0, outcome: '', delta: 0, muted: false, toast: '', toastN: 0 };
+
+  componentDidMount() {
+    this.timer = setInterval(() => { const sc = this.state.screen; if (sc === 'queue' || sc === 'invite' || (sc === 'play' && !this.state.endedAt)) this.setState({ now: Date.now() }); }, 1000);
+    this.boot(this.props.start || 'setup');
+  }
+  componentDidUpdate(prev) { if (prev.start !== this.props.start && this.props.start) this.boot(this.props.start); }
+  componentWillUnmount() { clearInterval(this.timer); this.clearT(); }
+  later(fn, ms) { this.tos = this.tos || []; this.tos.push(setTimeout(fn, ms)); }
+  clearT() { (this.tos || []).forEach(clearTimeout); this.tos = []; }
+  rnd(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+
+  ac() {
+    if (this.state.muted) return null;
+    try { if (!this._ac) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; this._ac = new C(); } if (this._ac.state === 'suspended') this._ac.resume(); return this._ac; } catch (e) { return null; }
+  }
+  tone(f, dur, type, vol, to, delay) {
+    const a = this.ac(); if (!a) return;
+    const t = a.currentTime + (delay || 0), o = a.createOscillator(), g = a.createGain();
+    o.type = type || 'sine'; o.frequency.setValueAtTime(f, t); if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.15, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + 0.05);
+  }
+  sfx(n, d) {
+    d = d || 0;
+    if (n === 'tap') this.tone(520, 0.06, 'triangle', 0.08, 380, d);
+    if (n === 'chirp') [0, 0.12, 0.24, 0.6, 0.7].forEach((x, i) => this.tone(2600 + (i % 2) * 500, 0.07, 'sine', 0.05, 3600, d + x));
+    if (n === 'hooves') for (let i = 0; i < 7; i++) this.tone(90 + (i % 2) * 20, 0.06, 'triangle', 0.18, 60, d + i * 0.09);
+    if (n === 'bull') { this.tone(140, 0.55, 'sawtooth', 0.08, 85, d); this.tone(280, 0.55, 'sine', 0.06, 170, d); }
+    if (n === 'cow') { this.tone(250, 0.65, 'triangle', 0.13, 185, d); this.tone(500, 0.5, 'sine', 0.04, 370, d); }
+    if (n === 'bell') { this.tone(1320, 0.5, 'sine', 0.06, null, d); this.tone(1980, 0.35, 'sine', 0.03, null, d + 0.02); }
+    if (n === 'miss') this.tone(200, 0.3, 'sawtooth', 0.03, 60, d);
+    if (n === 'pop') this.tone(700, 0.08, 'sine', 0.08, 1100, d);
+    if (n === 'err') { this.tone(140, 0.18, 'square', 0.07, 110, d); this.tone(133, 0.18, 'square', 0.07, 100, d); }
+    if (n === 'found') { [523, 784, 1047].forEach((f, i) => this.tone(f, 0.18, 'triangle', 0.12, null, d + i * 0.09)); }
+    if (n === 'win') { [392, 523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.22, 'triangle', 0.12, null, d + i * 0.1)); this.tone(1047, 0.9, 'sine', 0.08, null, d + 0.5); }
+    if (n === 'lose') [330, 294, 262, 196].forEach((f, i) => this.tone(f, 0.3, 'triangle', 0.1, null, d + i * 0.18));
+  }
+  buzz(p) { try { if (!this.state.muted && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+  toastMsg(t) { this.setState({ toast: t, toastN: this.state.toastN + 1 }); const n = this.state.toastN + 1; this.later(() => { if (this.state.toastN === n) this.setState({ toast: '' }); }, 2800); }
+
+  bc(a, g) { let b = 0, c = 0; for (let i = 0; i < g.length; i++) { if (a[i] === g[i]) b++; else if (a.indexOf(g[i]) >= 0) c++; } return { b, c }; }
+  codes(len, zero) {
+    this._c = this._c || {}; const k = len + (zero ? 'z' : 'n');
+    if (!this._c[k]) { const out = []; const rec = (p, u) => { if (p.length === len) { out.push(p); return; } for (let n = zero ? 0 : 1; n < 10; n++) { if (u & (1 << n)) continue; rec(p + n, u | (1 << n)); } }; rec('', 0); this._c[k] = out; }
+    return this._c[k];
+  }
+  replay(target, list) {
+    let cands = this.codes(target.length, this.state.zero).slice(); const out = [];
+    list.forEach((g) => { const r = this.bc(target, g); cands = cands.filter((c) => { const q = this.bc(c, g); return q.b === r.b && q.c === r.c; }); out.push({ g, b: r.b, c: r.c, left: cands.length }); });
+    return { list: out, cands };
+  }
+  botGuess(cands, guessed, lvl) {
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    let pool = cands.filter((x) => guessed.indexOf(x) < 0); if (!pool.length) pool = cands;
+    if (lvl === 1 && guessed.length && Math.random() < 0.35) { const all = this.codes(this.state.len, this.state.zero).filter((x) => guessed.indexOf(x) < 0); return pick(all); }
+    if (lvl >= 3 && pool.length > 2 && pool.length <= (lvl === 4 ? 900 : 400)) {
+      const k = lvl === 4 ? 10 : 4; let best = pool[0], bestW = 1e9;
+      for (let i = 0; i < k; i++) { const g = pick(pool), m = {}; let w = 0; for (let j = 0; j < pool.length; j++) { const r = this.bc(pool[j], g), key = r.b * 10 + r.c; m[key] = (m[key] || 0) + 1; if (m[key] > w) w = m[key]; } if (w < bestW) { bestW = w; best = g; } }
+      return best;
+    }
+    return pick(pool);
+  }
+  thinkMs(classic) {
+    const o = this.state.opp || {}, lvl = o.bot ? o.lvl : 2;
+    if (classic) return [0, 3600, 3000, 2500, 2000][lvl] + this.rnd(-500, 700);
+    return [0, 11000, 8500, 6500, 4500][lvl] + this.rnd(-2000, 2500);
+  }
+
+  boot(start) {
+    this.clearT();
+    const now = Date.now();
+    const humans = { b: { name: 'Боби', level: 6, rating: 1210 }, c: { name: 'Цвети', level: 7, rating: 1232 }, a: { name: 'Ани', level: 8, rating: 1285, friend: true } };
+    const fresh = { len: 4, zero: false, opp: null, meReady: false, oppReady: false, oppHidden: false, waitSecret: false, countdown: 0, cur: '', err: '', guesses: [], cands: [], oppGuesses: [], oppCands: [], oppSolved: false, mySolved: false, turn: 'me', oppThinking: false, started: false, startedAt: 0, endedAt: 0, outcome: '', delta: 0, toast: '' };
+    this.noAuto = false;
+    if (start === 'setup') { this.setState(Object.assign({}, fresh, { screen: 'setup', mode: 'duel', format: 'race', oppType: 'quick' })); return; }
+    if (start === 'setup-bot') { this.setState(Object.assign({}, fresh, { screen: 'setup', mode: 'bot', format: 'race', botLvl: 3 })); return; }
+    if (start === 'invite') { this.noAuto = true; this.setState(Object.assign({}, fresh, { screen: 'invite', mode: 'duel', oppType: 'friend', qStart: now - 9000, now })); return; }
+    if (start === 'queue') { this.noAuto = true; this.setState(Object.assign({}, fresh, { screen: 'queue', mode: 'duel', oppType: 'quick', qStart: now - 16000, now })); return; }
+    if (start === 'found') { this.noAuto = true; this.setState(Object.assign({}, fresh, { screen: 'found', mode: 'duel', oppType: 'quick', format: 'race', opp: humans.b })); return; }
+    if (start === 'secret') { this.setState(Object.assign({}, fresh, { screen: 'secret', mode: 'duel', oppType: 'quick', format: 'classic', opp: humans.b, oppHidden: true })); return; }
+    if (start === 'race' || start === 'bot') {
+      const bot = start === 'bot', secret = bot ? '6142' : '5274';
+      const opp = bot ? { name: 'Плашилото', bot: true, lvl: 3 } : humans.b;
+      this.setState(Object.assign({}, fresh, { mode: bot ? 'bot' : 'duel', oppType: 'quick', format: 'race', botLvl: 3, opp, secret }));
+      const me = this.replay(secret, bot ? ['1234', '5678'] : ['1234', '5679', '2814']), op = this.replay(secret, bot ? ['3456'] : ['3456', '7214']);
+      this.setState({ screen: 'play', started: true, startedAt: now - 75000, now, guesses: me.list, cands: me.cands, oppGuesses: op.list, oppCands: op.cands });
+      this.later(() => this.scheduleOpp(), 200);
+      return;
+    }
+    if (start === 'classic') {
+      this.setState(Object.assign({}, fresh, { mode: 'duel', oppType: 'quick', format: 'classic', opp: humans.c, mySecret: '3871', oppSecret: '5274' }));
+      const me = this.replay('5274', ['1234', '5679']), op = this.replay('3871', ['1569', '2378']);
+      this.setState({ screen: 'play', started: true, startedAt: now - 64000, now, guesses: me.list, cands: me.cands, oppGuesses: op.list, oppCands: op.cands, turn: 'me' });
+      return;
+    }
+    if (start === 'result') {
+      this.setState(Object.assign({}, fresh, { mode: 'duel', oppType: 'quick', format: 'race', opp: humans.b, secret: '5274' }));
+      const me = this.replay('5274', ['1234', '5679', '2814', '5247', '5274']), op = this.replay('5274', ['3456', '7214', '1784', '5214']);
+      this.setState({ screen: 'result', started: true, startedAt: now - 131000, endedAt: now, now, guesses: me.list, cands: me.cands, oppGuesses: op.list, oppCands: op.cands, outcome: 'win', delta: 18 });
+    }
+  }
+
+  go() {
+    const s = this.state; this.sfx('tap');
+    this.setState({ guesses: [], oppGuesses: [], outcome: '', endedAt: 0, started: false });
+    if (s.mode === 'solo') { this.countdown(() => this.startPlay()); return; }
+    if (s.mode === 'bot') { this.matchFound({ name: 'Плашилото', bot: true, lvl: s.botLvl }); return; }
+    if (s.oppType === 'friend') { this.enterInvite(); return; }
+    this.setState({ screen: 'queue', qStart: Date.now(), now: Date.now() });
+    if (!this.noAuto) this.later(() => { if (this.state.screen === 'queue') this.matchFound([{ name: 'Боби', level: 6, rating: 1210 }, { name: 'Цвети', level: 7, rating: 1232 }, { name: 'Ники', level: 8, rating: 1262 }][this.rnd(0, 2)]); }, this.rnd(4500, 7500));
+  }
+  enterInvite() {
+    const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let code = ''; for (let i = 0; i < 5; i++) code += abc[Math.floor(Math.random() * abc.length)];
+    this.setState({ screen: 'invite', oppType: 'friend', code, copied: '', qStart: Date.now(), now: Date.now() });
+    if (!this.noAuto) this.later(() => { if (this.state.screen === 'invite') this.matchFound({ name: 'Ани', level: 8, rating: 1285, friend: true }); }, 6500);
+  }
+  matchFound(opp) {
+    this.sfx('found'); this.sfx('cow', 0.3); this.buzz([30, 40, 30]);
+    this.setState({ screen: 'found', opp, meReady: false, oppReady: !!opp.bot, oppHidden: false, waitSecret: false });
+  }
+  ready() {
+    const s = this.state; if (s.meReady) return;
+    this.sfx('pop'); this.setState({ meReady: true });
+    if (s.oppReady) this.later(() => this.proceed(), 400);
+    else this.later(() => { this.sfx('bell'); this.setState({ oppReady: true }); this.toastMsg(s.opp.name + ' е готов'); this.later(() => this.proceed(), 600); }, this.rnd(900, 2200));
+  }
+  proceed() {
+    const s = this.state;
+    if (s.format === 'classic' && s.opp) {
+      this.setState({ screen: 'secret', cur: '', eye: false, err: '', oppHidden: false, waitSecret: false });
+      this.later(() => { this.setState({ oppHidden: true }); if (this.state.waitSecret) this.countdown(() => this.startPlay()); }, this.rnd(1500, 3500));
+    } else this.countdown(() => this.startPlay());
+  }
+  confirmSecret() {
+    const s = this.state;
+    if (s.cur.length !== s.len) { this.sfx('err'); this.setState({ err: 'Нужни са ' + s.len + ' различни цифри', shake: s.shake + 1 }); return; }
+    this.sfx('bell'); this.buzz(30);
+    this.setState({ mySecret: s.cur, cur: '', waitSecret: true, err: '' });
+    if (s.oppHidden) this.countdown(() => this.startPlay());
+  }
+  countdown(fn) {
+    [3, 2, 1].forEach((n, i) => this.later(() => { this.tone(n === 1 ? 880 : 660, 0.14, 'sine', 0.12); this.buzz(15); this.setState({ countdown: n }); }, i * 700));
+    this.later(() => { this.setState({ countdown: 0 }); fn(); }, 2100);
+  }
+  startPlay() {
+    const s = this.state, all = this.codes(s.len, s.zero), code = all[Math.floor(Math.random() * all.length)];
+    this.sfx('chirp');
+    this.setState({ screen: 'play', started: true, startedAt: Date.now(), now: Date.now(), endedAt: 0, secret: code, oppSecret: code, guesses: [], cands: all.slice(), oppGuesses: [], oppCands: all.slice(), oppSolved: false, mySolved: false, turn: 'me', oppThinking: false, outcome: '', cur: '', err: '' });
+    if (s.opp && s.format === 'race') this.later(() => this.scheduleOpp(), 100);
+  }
+  myTarget() { const s = this.state; return s.opp && s.format === 'classic' ? s.oppSecret : s.secret; }
+  press(d) {
+    const s = this.state;
+    if (s.screen === 'play' && (!s.started || s.endedAt || (s.opp && s.format === 'classic' && s.turn !== 'me'))) return;
+    if (s.screen !== 'play' && s.screen !== 'secret') return;
+    if (s.cur.length >= s.len || s.cur.indexOf(d) >= 0 || (d === '0' && !s.zero)) return;
+    this.sfx('tap'); this.buzz(6); this.setState({ cur: s.cur + d, err: '' });
+  }
+  submit() {
+    const s = this.state, g = s.cur;
+    if (s.screen !== 'play' || !s.started || s.endedAt) return;
+    const classic = s.opp && s.format === 'classic';
+    if (classic && s.turn !== 'me') return;
+    if (g.length !== s.len) { this.sfx('err'); this.setState({ err: 'Трябват ' + s.len + ' различни цифри', shake: s.shake + 1 }); return; }
+    if (s.guesses.some((x) => x.g === g)) { this.sfx('err'); this.setState({ err: 'Вече пробва ' + g, shake: s.shake + 1 }); return; }
+    const r = this.bc(this.myTarget(), g);
+    const cands = s.cands.filter((c) => { const q = this.bc(c, g); return q.b === r.b && q.c === r.c; });
+    const guesses = s.guesses.concat([{ g, b: r.b, c: r.c, left: cands.length }]);
+    if (r.b) { this.sfx('hooves'); this.sfx('bull', 0.75); }
+    if (r.c) { this.sfx('bell', r.b ? 1.2 : 0.4); this.sfx('cow', r.b ? 1.5 : 0.8); }
+    if (!r.b && !r.c) this.sfx('miss');
+    this.buzz(r.b ? [30, 40, 30] : 20);
+    const solved = r.b === s.len;
+    this.setState({ guesses, cands, cur: '', err: '', mySolved: solved });
+    if (!s.opp || s.format === 'race') { if (solved) this.end('win'); return; }
+    this.setState({ turn: 'opp' });
+    this.later(() => this.oppTurn(), 900);
+  }
+  scheduleOpp() { if (this.state.screen !== 'play' || this.state.endedAt) return; this.setState({ oppThinking: true }); this.later(() => this.oppMove(), this.thinkMs(false)); }
+  oppTurn() { if (this.state.screen !== 'play' || this.state.endedAt) return; this.setState({ oppThinking: true }); this.later(() => this.oppMove(), this.thinkMs(true)); }
+  oppMove() {
+    const s = this.state; if (s.screen !== 'play' || s.endedAt) return;
+    const classic = s.format === 'classic', target = classic ? s.mySecret : s.secret;
+    const lvl = s.opp.bot ? s.opp.lvl : 2;
+    const g = this.botGuess(s.oppCands, s.oppGuesses.map((x) => x.g), lvl);
+    const r = this.bc(target, g);
+    const oppCands = s.oppCands.filter((c) => { const q = this.bc(c, g); return q.b === r.b && q.c === r.c; });
+    const oppGuesses = s.oppGuesses.concat([{ g, b: r.b, c: r.c, left: oppCands.length }]);
+    const solved = r.b === s.len;
+    this.sfx('pop');
+    this.setState({ oppGuesses, oppCands, oppThinking: false, oppSolved: solved });
+    this.toastMsg(solved ? s.opp.name + ' позна числото!' : classic ? s.opp.name + ': ' + g + ' → ' + r.b + 'Б ' + r.c + 'К' : s.opp.name + ' направи опит №' + oppGuesses.length);
+    if (!classic) { if (solved) this.end('lose'); else this.scheduleOpp(); return; }
+    if (solved) this.end(s.mySolved ? 'draw' : 'lose');
+    else if (s.mySolved) this.end('win');
+    else this.setState({ turn: 'me' });
+  }
+  end(outcome) {
+    const s = this.state, ranked = s.mode === 'duel' && s.oppType === 'quick';
+    const delta = !ranked ? 0 : outcome === 'win' ? this.rnd(14, 22) : outcome === 'lose' ? -this.rnd(10, 17) : 2;
+    this.sfx(outcome === 'lose' ? 'lose' : 'win'); this.buzz(outcome === 'win' ? [40, 60, 40, 60, 160] : [80]);
+    this.setState({ endedAt: Date.now(), outcome, delta, oppThinking: false });
+    this.later(() => this.setState({ screen: 'result' }), 1400);
+  }
+  rematch() {
+    const s = this.state; this.clearT();
+    if (!s.opp) { this.go(); return; }
+    this.setState({ screen: 'found', meReady: false, oppReady: !!s.opp.bot, outcome: '', guesses: [], oppGuesses: [], endedAt: 0, started: false });
+  }
+
+  renderVals() {
+    const s = this.state, len = s.len, sc = s.screen, opp = s.opp;
+    const fmt = (t) => { t = Math.max(0, Math.round(t)); return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
+    const all = this.codes(len, s.zero), total = all.length;
+    const left = s.cands.length || total, oppLeft = s.oppCands.length || total;
+    const prog = total > 1 ? 1 - Math.log(left) / Math.log(total) : 0;
+    const oppProg = total > 1 ? 1 - Math.log(oppLeft) / Math.log(total) : 0;
+    const classic = !!opp && s.format === 'classic';
+    const last = s.guesses[s.guesses.length - 1];
+    const word = (n, one, many) => n + ' ' + (n === 1 ? one : many);
+    const bullSpots = [[10, 290], [68, 294], [126, 290], [38, 262], [96, 264]];
+    const cowSpots = [[214, 298], [298, 304], [252, 266], [330, 262], [206, 266]];
+    const mk = (kind, spot, cls, d) => { const back = spot[1] < 280; return { isBull: kind === 'b', isCow: kind === 'c', tf: 'translate(' + spot[0] + ' ' + spot[1] + ') scale(' + (back ? 0.725 : 0.875) + ')', cls, d, z: spot[1] }; };
+    let animals = null;
+    if (sc === 'play' && last) {
+      animals = [];
+      const nb = s.mySolved ? len : last.b;
+      for (let i = 0; i < nb; i++) animals.push(mk('b', bullSpots[i], 'a-run', (i * 0.16) + 's'));
+      for (let i = 0; i < last.c; i++) animals.push(mk('c', cowSpots[i], 'a-walk', (0.35 + i * 0.22) + 's'));
+    } else if (sc === 'play') animals = [];
+    else if (sc === 'result') {
+      animals = [];
+      if (s.outcome !== 'lose') for (let i = 0; i < len; i++) animals.push(mk('b', bullSpots[i], 'a-idle', (-i * 0.6) + 's'));
+      else { animals.push(mk('b', bullSpots[1], 'a-idle', '0s')); animals.push(mk('c', cowSpots[0], 'a-idle', '-1s')); animals.push(mk('c', cowSpots[1], 'a-idle', '-2s')); animals.push(mk('c', cowSpots[2], 'a-idle', '-3s')); }
+    }
+    if (animals) animals.sort((a, b) => a.z - b.z);
+    const waitSecs = s.qStart ? Math.max(0, (s.now - s.qStart) / 1000) : 0;
+    const steps = Math.min(6, Math.floor(waitSecs / 5));
+    const lvlLo = Math.max(1, s.me.level - 1 - steps), lvlHi = s.me.level + 1 + steps;
+    const keysFor = (playing) => [1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((n) => { const d = String(n); return { d, blocked: (playing && (!s.started || !!s.endedAt || (classic && s.turn !== 'me'))) || s.cur.indexOf(d) >= 0 || s.cur.length >= len || (d === '0' && !s.zero), press: () => this.press(d) }; });
+    const masked = sc === 'secret' && !s.eye;
+    const slots = []; for (let i = 0; i < len; i++) { const ch = s.cur[i] || ''; slots.push({ filled: !!ch, show: masked ? '•' : ch, cls: i === s.cur.length ? 'cur' : '' }); }
+    const pick = (k, v) => () => { this.sfx('tap'); this.setState({ [k]: v }); };
+    const isBotMode = s.mode === 'bot', isDuel = s.mode === 'duel', isSolo = s.mode === 'solo';
+    const botNames = ['', 'Лесно', 'Средно', 'Трудно', 'Експерт'];
+    const botDescs = ['', 'Плашилото дреме и понякога бърка — за малки деца и първи игри.', 'Внимава и пробва само числа, които пасват на подсказките.', 'Мисли като стар пастир — избира опити, които стесняват най-много.', 'Никога не бърка и е бързо. Само за майстори.'];
+    const fmtLabel = s.format === 'race' ? 'Надпревара' : 'Класически';
+    const chips = [len + ' цифри', s.zero ? 'с 0' : 'без 0', opp || !isSolo ? fmtLabel : (s.soloMode === 'daily' ? 'Дневно' : 'Свободно')].concat(isBotMode ? ['Плашилото · ' + botNames[s.botLvl]] : []);
+    const oppIsBot = !!(opp && opp.bot);
+    const myN = s.guesses.length, oppN = s.oppGuesses.length;
+    const mySecs = s.startedAt ? ((s.endedAt || s.now || Date.now()) - s.startedAt) / 1000 : 0;
+    const outcome = s.outcome;
+    const pal = ['#B5452F', '#F2C230', '#FFFFFF', '#86C462', '#F29BB8'];
+    const confetti = []; for (let i = 0; i < 30; i++) confetti.push({ l: ((i * 37) % 100) + '%', c: pal[i % 5], t: (2.6 + (i % 5) * 0.4) + 's', d: ((i % 7) * 0.25) + 's' });
+    const titles = { setup: 'Нова игра', invite: 'Покана', queue: 'Търсене', found: isBotMode ? 'Срещу Плашилото' : 'Дуел', secret: 'Скрий числото', play: opp ? (oppIsBot ? 'Срещу Плашилото' : 'Дуел · ' + fmtLabel) : 'Соло', result: 'Резултат' };
+    const resRows = [{ name: s.me.name + ' (ти)', n: myN, time: fmt(mySecs), initial: s.me.name.charAt(0), bg: '#F2C230', solved: s.mySolved || outcome === 'win' }].concat(opp ? [{ name: opp.name, n: oppN, time: s.oppSolved ? fmt(mySecs) : '—', initial: opp.name.charAt(0), bg: oppIsBot ? '#E9D7B4' : '#CFE3F5', solved: s.oppSolved }] : []).map((r, i) => Object.assign(r, { status: r.solved ? 'позна' : 'не позна', tagBg: r.solved ? '#DCEFD0' : '#ECE5D2', tagFg: r.solved ? '#2E5E1E' : '#6B7560', d: (0.2 + i * 0.1) + 's' }));
+    return {
+      layoutCls: this.props.layout === 'desktop' ? 'd' : 'm', title: titles[sc] || '',
+      fog: sc === 'play' ? (s.mySolved ? 0 : Math.max(0, 0.9 * (1 - prog))).toFixed(2) : sc === 'queue' || sc === 'invite' ? '0.25' : '0', sunY: sc === 'play' ? Math.round(176 - prog * 150) : 60, dawn: sc === 'play' ? (0.75 * (1 - prog)).toFixed(2) : '0.15',
+      animals, parity: s.guesses.length, isMiss: sc === 'play' && !!last && !last.b && !last.c,
+      muteLabel: s.muted ? 'Включи звука' : 'Изключи звука', muteIcon: s.muted ? 'M22 9l-6 6M16 9l6 6' : 'M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13', toggleMute: () => this.setState({ muted: !s.muted }),
+      goSetup: () => { this.clearT(); this.sfx('tap'); this.setState({ screen: 'setup', countdown: 0, toast: '' }); },
+      isSetup: sc === 'setup', isInvite: sc === 'invite', isQueue: sc === 'queue', isFound: sc === 'found', isSecret: sc === 'secret', isPlay: sc === 'play', isResult: sc === 'result',
+      modes: [['solo', 'Соло', 'само ти и числото'], ['duel', 'Дуел', 'срещу хора'], ['bot', 'Срещу бот', 'Плашилото']].map((m) => ({ label: m[1], sub: m[2], on: s.mode === m[0], cls: s.mode === m[0] ? 'on' : '', iSolo: m[0] === 'solo', iDuel: m[0] === 'duel', iBot: m[0] === 'bot', pick: pick('mode', m[0]) })),
+      lens: [3, 4, 5].map((n) => ({ label: String(n), cls: n === len ? 'on' : '', pick: pick('len', n) })),
+      zero: s.zero, zeroCls: s.zero ? 'on' : '', toggleZero: () => { this.sfx('tap'); this.setState({ zero: !s.zero }); },
+      zeroText: s.zero ? 'цифрите 0–9, 0 може и отпред' : 'само цифрите 1–9',
+      codesText: total.toLocaleString('bg-BG') + ' възможни числа',
+      isSolo, isDuel, isBot: isBotMode, needsFormat: !isSolo,
+      soloModes: [['daily', 'Дневно'], ['free', 'Свободно']].map((o) => ({ label: o[1], cls: s.soloMode === o[0] ? 'on' : '', pick: pick('soloMode', o[0]) })),
+      formats: [['race', 'Надпревара', 'Едно число за двамата. Печели първият, който го познае.'], ['classic', 'Класически', 'Всеки скрива свое число. Редувате се.']].map((o) => ({ label: o[1], sub: o[2], cls: s.format === o[0] ? 'on' : '', pick: pick('format', o[0]) })),
+      oppTypes: [['quick', 'Бърз мач', 'Случаен играч с близко ниво.'], ['friend', 'Покани приятел', 'С код или линк.']].map((o) => ({ label: o[1], sub: o[2], cls: s.oppType === o[0] ? 'on' : '', pick: pick('oppType', o[0]) })),
+      botLvls: [1, 2, 3, 4].map((n) => ({ label: botNames[n], cls: n === s.botLvl ? 'on' : '', pick: pick('botLvl', n) })), botDesc: botDescs[s.botLvl],
+      ctaLabel: isSolo ? 'Старт' : isBotMode ? 'Срещу Плашилото' : s.oppType === 'friend' ? 'Създай покана' : 'Търси противник',
+      showQueueNote: isDuel && s.oppType === 'quick', go: () => this.go(),
+      code: s.code, copyLabel: s.copied || 'Копирай линка', copyInvite: () => { const done = (m) => this.setState({ copied: m }); try { navigator.clipboard.writeText('[домейн]/d/' + s.code).then(() => done('Копирано!'), () => done('Неуспешно')); } catch (e) { done('Неуспешно'); } },
+      chips, waitClock: fmt(waitSecs), lvlRange: 'ниво ' + lvlLo + '–' + lvlHi, rangeW: Math.round(20 + steps / 6 * 80) + '%', longWait: waitSecs >= 20, toInvite: () => { this.clearT(); this.enterInvite(); },
+      foundTitle: oppIsBot ? 'Плашилото те чака' : opp && opp.friend ? opp.name + ' влезе!' : 'Противникът е намерен!',
+      meName: s.me.name, meSub: 'ниво ' + s.me.level + ' · ' + s.me.rating, meReady: s.meReady, meReadyCls: s.meReady ? 'ready' : '',
+      meStatus: s.meReady ? 'готов' : 'чака', meTagBg: s.meReady ? '#DCEFD0' : '#ECE5D2', meTagFg: s.meReady ? '#2E5E1E' : '#6B7560',
+      oppName: opp ? opp.name : '', oppSub: oppIsBot ? 'бот · ' + botNames[opp.lvl] : opp ? 'ниво ' + opp.level + ' · ' + opp.rating : '',
+      oppIsBot, oppIsHuman: !oppIsBot, oppBg: oppIsBot ? '#E9D7B4' : '#CFE3F5',
+      oppReadyCls: s.oppReady ? 'ready' : '', oppReadyText: s.oppReady ? 'готов' : 'чака…', oppReadyBg: s.oppReady ? '#DCEFD0' : '#ECE5D2', oppReadyFg: s.oppReady ? '#2E5E1E' : '#6B7560',
+      formatRule: s.format === 'race' ? 'Надпревара: едно и също число за двамата. Печели първият, който го познае.' : 'Класически: всеки скрива свое число и се редувате. При равен брой ходове — реми.',
+      readyLabel: s.meReady ? (s.oppReady ? 'Започваме!' : 'Чакаме ' + (opp ? opp.name : '') + '…') : 'Готов!', ready: () => this.ready(),
+      zeroNote: s.zero ? ', може и 0' : ', без 0', toggleEye: () => this.setState({ eye: !s.eye }), eyeText: s.eye ? 'Скрий' : 'Покажи',
+      confirmSecret: () => this.confirmSecret(), waitSecret: s.waitSecret, secretLabel: s.waitSecret ? 'Скрито — чакаме…' : 'Скрий числото',
+      oppHideText: s.oppHidden ? (opp ? opp.name : '') + ' вече скри своето число' : (opp ? opp.name : '') + ' скрива число…',
+      slots, keys: keysFor(sc === 'play'), err: s.err, shakeCls: s.shake ? (s.shake % 2 ? 'shakeA' : 'shakeB') : '',
+      back: () => { this.sfx('tap'); this.setState({ cur: s.cur.slice(0, -1), err: '' }); }, submit: () => this.submit(), giveUp: () => this.end('lose'),
+      attemptNo: myN + 1, clock: fmt(mySecs), myLast: last ? 'Последно ' + last.g + ': ' + word(last.b, 'бик', 'бика') + ', ' + word(last.c, 'крава', 'крави') + ' · ' + last.left + ' вар.' : 'Въведи ' + len + ' различни цифри' + (s.zero ? ' (може и 0)' : ' от 1 до 9'),
+      isClassicPlay: classic, turnText: s.turn === 'me' ? 'твой ход' : 'неговият ход', turnBg: s.turn === 'me' ? '#5E9E46' : '#4A7FB0',
+      oppTurnOverlay: classic && s.turn === 'opp' && !s.endedAt, mySecret: s.mySecret, isRaceOpp: !!opp && !classic,
+      myChips: s.guesses.map((x, i) => ({ g: x.g, b: x.b, c: x.c, cls: i === myN - 1 ? 'new' : '' })).reverse(),
+      oppChips: s.oppGuesses.map((x, i) => ({ g: x.g, b: x.b, c: x.c, cls: i === oppN - 1 ? 'new' : '' })).reverse(), noOppGuesses: !oppN,
+      showStrip: sc === 'play' && !!opp, oppN, oppLeft, oppProgW: Math.round(oppProg * 100) + '%', oppThinkCls: s.oppThinking ? 'think' : '',
+      oppStatus: s.oppSolved ? 'позна!' : s.oppThinking ? 'мисли…' : classic && s.turn === 'me' ? 'чака' : 'опитва', oppTagBg: s.oppSolved ? '#B5452F' : '#ECE5D2', oppTagFg: s.oppSolved ? '#FFFFFF' : '#4A5640',
+      isWin: outcome === 'win', resKicker: opp ? (oppIsBot ? 'СРЕЩУ ПЛАШИЛОТО · ' + botNames[opp.lvl].toUpperCase() : 'ДУЕЛ · ' + fmtLabel.toUpperCase()) : 'СОЛО',
+      banner: outcome === 'win' ? 'Победа!' : outcome === 'lose' ? 'Загуба' : 'Реми', resColor: outcome === 'win' ? '#B5452F' : outcome === 'lose' ? '#4A5640' : '#4A7FB0',
+      resSub: outcome === 'win' ? (opp ? 'Изпревари ' + opp.name + '. Биковете са в обора.' : 'Познато за ' + myN + ' опита.') : outcome === 'lose' ? (opp && s.oppSolved ? opp.name + ' позна пръв. Реванш?' : 'Следващия път!') : 'Двамата познахте с равен брой ходове.',
+      resRows, ranked: s.mode === 'duel' && s.oppType === 'quick', ratingFrom: s.me.rating, ratingTo: s.me.rating + s.delta, deltaText: (s.delta >= 0 ? '+' : '') + s.delta, deltaColor: s.delta >= 0 ? '#2E7D32' : '#B5452F',
+      secretsText: classic ? 'Неговото: ' + s.oppSecret + ' · твоето: ' + s.mySecret : 'Числото беше ' + s.secret, xp: outcome === 'win' ? 120 : outcome === 'draw' ? 70 : 40,
+      rematch: () => this.rematch(), rematchLabel: opp ? 'Реванш' : 'Още веднъж',
+      toastOn: !!s.toast, toastEven: s.toastN % 2 === 0, toastOdd: s.toastN % 2 === 1, toast: s.toast,
+      counting: s.countdown > 0, cd3: s.countdown === 3, cd2: s.countdown === 2, cd1: s.countdown === 1,
+      showConfetti: sc === 'result' && outcome === 'win', confetti
+    };
+  }
+}
+</script>
+</body>
+</html>
