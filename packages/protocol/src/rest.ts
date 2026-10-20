@@ -227,3 +227,52 @@ export type DistributionQuery = z.infer<typeof DistributionQuery>
 
 export const LeaderboardQuery = z.object({ period: PeriodSchema, len: LenQuery, zero: BoolQuery })
 export type LeaderboardQuery = z.infer<typeof LeaderboardQuery>
+
+/** Duel formats a room can run. */
+export const DuelFormatSchema = z.enum(['race', 'classic'])
+export type DuelFormat = z.infer<typeof DuelFormatSchema>
+
+export const CreateInviteBody = z.object({
+  len: LenSchema,
+  zero: ZeroSchema,
+  format: DuelFormatSchema,
+})
+export type CreateInviteBody = z.infer<typeof CreateInviteBody>
+
+export const InviteSettingsDto = z.object({
+  format: DuelFormatSchema,
+  len: LenSchema,
+  zero: ZeroSchema,
+})
+export type InviteSettingsDto = z.infer<typeof InviteSettingsDto>
+
+export const InviteDto = z.object({
+  code: z.string(),
+  url: z.string(),
+  roomId: z.string(),
+  token: z.string(),
+})
+export type InviteDto = z.infer<typeof InviteDto>
+
+export const InviteInfoDto = z.object({
+  status: z.enum(['waiting', 'started']),
+  host: z.object({ username: z.string(), level: z.number().int() }),
+  settings: InviteSettingsDto,
+})
+export type InviteInfoDto = z.infer<typeof InviteInfoDto>
+
+export const JoinInviteDto = z.object({ roomId: z.string(), token: z.string() })
+export type JoinInviteDto = z.infer<typeof JoinInviteDto>
+
+export const BotLevelSchema = z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)])
+
+export const CreateBotBody = z.object({
+  len: LenSchema,
+  zero: ZeroSchema,
+  format: DuelFormatSchema,
+  level: BotLevelSchema,
+})
+export type CreateBotBody = z.infer<typeof CreateBotBody>
+
+export const BotRoomDto = z.object({ roomId: z.string(), token: z.string() })
+export type BotRoomDto = z.infer<typeof BotRoomDto>

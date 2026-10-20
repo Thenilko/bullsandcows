@@ -5,6 +5,7 @@ import { AppError } from './errors'
 import { securityHeaders } from './middleware/headers'
 import { fail, ok } from './respond'
 import { authRoutes } from './routes/auth'
+import { botsRoutes, duelsRoutes } from './routes/duels'
 import { gamesRoutes } from './routes/games'
 import { leaderboardRoutes } from './routes/leaderboard'
 import { meRoutes } from './routes/me'
@@ -32,6 +33,8 @@ export function createApp(deps: AppDeps): Hono<AppEnv> {
   })
   app.get('/api/health', (c) => ok(c, { status: 'ok' as const }))
   app.route('/api/games', gamesRoutes())
+  app.route('/api/duels', duelsRoutes())
+  app.route('/api/bots', botsRoutes())
   app.route('/api/stats', statsRoutes())
   app.route('/api/leaderboard', leaderboardRoutes())
   app.route('/api/me', meRoutes())
