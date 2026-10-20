@@ -11,7 +11,7 @@ import {
   type RoomInfo,
   type RoomOpts,
 } from '../../duel/roomClient'
-import { parseEnv } from '../../env'
+import { parseEnv, type Env } from '../../env'
 import { createApp } from '../app'
 
 const clock = { now: () => Date.parse('2026-10-20T09:00:00Z') }
@@ -68,10 +68,10 @@ const newUser = () => {
   return `du-${seq}-${crypto.randomUUID().slice(0, 8)}`
 }
 
-function setup() {
+function setup(over: Partial<Env> = {}) {
   const fake = fakeRooms()
   const app = createApp({
-    env: parseEnv(workerEnv),
+    env: { ...parseEnv(workerEnv), ...over },
     repo: createMemoryRepo(clock),
     auth: createFakeAuth(clock),
     clock,
@@ -87,12 +87,14 @@ const call = (
   path: string,
   body?: unknown,
   guest = false,
+  extra: Record<string, string> = {},
 ) =>
   app.request(path, {
     method,
     headers: {
       Authorization: `Bearer fake:${user}:${user}${guest ? ':guest' : ''}`,
       'Content-Type': 'application/json',
+      ...extra,
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   })
@@ -259,5 +261,49 @@ describe('bot rooms', () => {
     const ctx = setup()
     const res = await call(ctx.app, newUser(), 'POST', '/api/bots', { ...settings, level: 5 })
     expect(res.status).toBe(400)
+  })
+})
+
+describe('test secret hook', () => {
+  const TEST = { 'x-test-secret': '1234' }
+  const bot = { ...settings, level: 1 }
+  const created = (ctx: ReturnType<typeof setup>) => [...ctx.rooms.values()][0]?.opts
+
+  it('passes x-test-secret to the room in test and dev, without echoing it', async () => {
+    for (const ENVIRONMENT of ['test', 'dev'] as const) {
+      const invite = setup({ ENVIRONMENT })
+      const res = await call(invite.app, newUser(), 'POST', '/api/duels/invites', settings, false, TEST)
+      expect(res.status).toBe(201)
+      expect(created(invite)?.testSecret).toBe('1234')
+      expect(JSON.stringify(await json(res))).not.toContain('1234')
+
+      const bots = setup({ ENVIRONMENT })
+      const botRes = await call(bots.app, newUser(), 'POST', '/api/bots', bot, true, TEST)
+      expect(botRes.status).toBe(201)
+      expect(created(bots)?.testSecret).toBe('1234')
+    }
+  })
+
+  it('never reads the header in production or preview', async () => {
+    for (const ENVIRONMENT of ['production', 'preview'] as const) {
+      const invite = setup({ ENVIRONMENT })
+      await call(invite.app, newUser(), 'POST', '/api/duels/invites', settings, false, TEST)
+      expect(created(invite)).toBeDefined()
+      expect(created(invite)?.testSecret).toBeUndefined()
+      const bots = setup({ ENVIRONMENT })
+      await call(bots.app, newUser(), 'POST', '/api/bots', bot, false, TEST)
+      expect(created(bots)?.testSecret).toBeUndefined()
+    }
+  })
+
+  it('omits the field without the header and rejects an invalid code', async () => {
+    const plain = setup()
+    await createInvite(plain, newUser())
+    expect(created(plain) && 'testSecret' in created(plain)!).toBe(false)
+    const bad = setup()
+    const res = await call(bad.app, newUser(), 'POST', '/api/bots', bot, false, { 'x-test-secret': '1123' })
+    expect(res.status).toBe(400)
+    expect((await json(res)).error.code).toBe('ERR_CODE')
+    expect(bad.rooms.size).toBe(0)
   })
 })

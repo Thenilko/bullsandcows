@@ -95,6 +95,28 @@
       "notebook": { "title": "Notebook", "desc": "your own notes" }
     }
   },
+  "reset": {
+    "title": "New password",
+    "text": "Choose a new password for your profile. Then you go straight to the pasture.",
+    "area": "Change password",
+    "password": "New password",
+    "confirm": "Repeat the password",
+    "submit": "Save password",
+    "noLink": "Open the link from the password reset email. If it has expired, request a new one from the sign-in screen.",
+    "checking": "Checking the link…",
+    "unavailable": "Password reset by email is not available in the test environment. Sign in with a name and password or as a guest.",
+    "back": "Back to sign in",
+    "validation": {
+      "short": "The password must be at least 6 characters",
+      "mismatch": "The passwords do not match"
+    },
+    "error": {
+      "same": "The new password must differ from the old one.",
+      "weak": "That password is too easy — pick a stronger one.",
+      "expired": "The link has expired or was already used. Request a new one from the sign-in screen.",
+      "failed": "We could not change the password. Try again."
+    }
+  },
   "rules": {
     "title": "How to play",
     "area": "How to play",

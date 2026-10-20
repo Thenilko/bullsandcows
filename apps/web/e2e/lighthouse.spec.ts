@@ -2,8 +2,9 @@ import { chromium, expect, test } from '@playwright/test'
 import type { Flags } from 'lighthouse'
 
 const DEBUG_PORT = 9333
-const PROD = 'http://127.0.0.1:4173'
-const GALLERY = 'http://127.0.0.1:4174'
+// playwright.config.ts resolves and exports these (defaults 4173 / 4174).
+const PROD = `http://127.0.0.1:${process.env.E2E_WEB_PORT ?? '4173'}`
+const GALLERY = `http://127.0.0.1:${process.env.E2E_GALLERY_PORT ?? '4174'}`
 
 const PAGES = [
   { name: 'login', url: `${PROD}/login` },

@@ -99,6 +99,24 @@ describe('DuelRoom', () => {
     vi.useRealTimers()
   })
 
+  it('after a reload shows rating and xp from the ended snapshot without an ended event', () => {
+    show('/duel/r1?token=t')
+    deliver(
+      fixtureState({
+        phase: 'ended',
+        turn: null,
+        outcome: { winner: 'a', reason: 'solved' },
+        secrets: { mine: '1234', theirs: '4321' },
+        rating: { from: 1240, to: 1258, delta: 18 },
+        xp: 120,
+      }),
+    )
+    expect(screen.getByTestId('where')).toHaveTextContent('/duel/r1/result')
+    expect(useDuelStore.getState().ended).toBeNull()
+    expect(screen.getByText(/\+120 т\. опит/)).toBeInTheDocument()
+    expect(screen.getByText('1240 → 1258')).toBeInTheDocument()
+  })
+
   it('does not leak a previous room into a new one', () => {
     useDuelStore.getState().enter('old')
     useDuelStore.getState().apply({ t: 'ended', outcome: 'win', reason: 'solved', secrets: { mine: null, theirs: null }, rating: null, xp: 1 })

@@ -88,15 +88,25 @@ const startCountdown = (m: Match, s: Secrets, now: number): Step => {
   return step({ ...m, phase: 'countdown', countdownAt: now }, s, [countdown])
 }
 
-/** Both ready → race: shared secret and countdown; classic: the secrets phase. */
-export function setReady(m: Match, s: Secrets, seat: Seat, now: number, rng: Rng): Step {
+/**
+ * Both ready → race: shared secret and countdown; classic: the secrets phase.
+ * `shared` (dev/test E2E only) replaces the random race secret.
+ */
+export function setReady(
+  m: Match,
+  s: Secrets,
+  seat: Seat,
+  now: number,
+  rng: Rng,
+  shared?: string,
+): Step {
   if (m.phase === 'ended') return fail('ERR_FINISHED')
   if (!m.players.b) return fail('ERR_INPUT')
   if (m.phase !== 'lobby') return step(m, s)
   const next = withPlayer(m, seat, { ready: true })
   if (!next.players.a.ready || !next.players.b?.ready) return step(next, s)
   if (next.format === 'classic') return step({ ...next, phase: 'secrets' }, s)
-  return startCountdown(next, { ...s, shared: pickCode(next, rng) }, now)
+  return startCountdown(next, { ...s, shared: shared ?? pickCode(next, rng) }, now)
 }
 
 /** Classic only. A rematch keeps its preset (swapped) first mover. */

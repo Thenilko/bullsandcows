@@ -24,3 +24,8 @@
   gap: 14px;
   overflow-y: auto;
 }
+
+/* Bare screens have no tab bar: the panel reaches the bottom, as in the prototype. */
+.panelBare {
+  bottom: 0;
+}

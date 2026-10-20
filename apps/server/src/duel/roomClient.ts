@@ -18,6 +18,8 @@ export interface RoomSettings {
 export interface RoomOpts extends RoomSettings {
   readonly opponentKind: 'human' | 'quick' | 'bot'
   readonly botLevel?: 1 | 2 | 3 | 4
+  /** Dev/test E2E only (the Worker reads it only there): the race and bot secret. */
+  readonly testSecret?: string
 }
 
 export type RoomStatus = 'waiting' | 'started' | 'ended' | 'expired'

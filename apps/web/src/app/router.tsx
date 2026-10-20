@@ -38,6 +38,7 @@ const duelRoom = (view: 'play' | 'result') => async () => {
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/rules', HydrateFallback: RouteFallback, lazy: page(() => import('../screens/Rules'), 'Rules') },
+  { path: '/reset', HydrateFallback: RouteFallback, lazy: page(() => import('../screens/ResetPassword'), 'ResetPassword') },
   {
     element: <RequireAuth />,
     HydrateFallback: RouteFallback,

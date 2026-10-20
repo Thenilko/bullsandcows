@@ -82,4 +82,16 @@ describe('DuelSetup', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Срещу Плашилото' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Много бързаш')
   })
+
+  it('the solo tab goes back to the solo setup', () => {
+    show('/duel/new', 'duel')
+    fireEvent.click(screen.getByRole('button', { name: /^Соло/ }))
+    expect(screen.getByTestId('where')).toHaveTextContent(/^\/new$/)
+  })
+
+  it('the duel tab from the bot setup opens the duel setup', () => {
+    show('/bot/new', 'bot')
+    fireEvent.click(screen.getByRole('button', { name: /^Дуел/ }))
+    expect(screen.getByTestId('where')).toHaveTextContent('/duel/new')
+  })
 })

@@ -7,10 +7,13 @@ export const SESSION_STORAGE_KEY = 'bc.session'
 export interface SessionState {
   session: SessionDto | null
   me: MeDto | null
+  /** True after supabase-js reported a password-recovery link (not persisted). */
+  recoverySession: boolean
   setAuth(res: AuthResponseDto): void
   setMe(me: MeDto): void
   /** Replaces only the token fields (used by the refresh flow). */
   setTokens(tokens: Pick<SessionDto, 'accessToken' | 'refreshToken' | 'expiresAt'>): void
+  setRecoverySession(on: boolean): void
   clear(): void
 }
 
@@ -44,9 +47,11 @@ export const useSession = create<SessionState>()(
     (set) => ({
       session: null,
       me: null,
+      recoverySession: false,
       setAuth: (res) => set({ session: res.session, me: res.me }),
       setMe: (me) => set({ me }),
       setTokens: (tokens) => set((s) => (s.session ? { session: { ...s.session, ...tokens } } : s)),
+      setRecoverySession: (on) => set({ recoverySession: on }),
       clear: () => set({ session: null, me: null }),
     }),
     {

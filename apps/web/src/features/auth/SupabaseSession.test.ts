@@ -53,6 +53,22 @@ describe('SupabaseSession', () => {
     expect(useSession.getState().session?.user.id).toBe('u')
   })
 
+  it('raises the recovery flag on PASSWORD_RECOVERY', async () => {
+    const { mod, useSession, emit } = await setup()
+    await mod.startSupabaseSync()
+    expect(useSession.getState().recoverySession).toBe(false)
+    emit('PASSWORD_RECOVERY', { access_token: 'x', refresh_token: 'y', expires_at: 5 })
+    expect(useSession.getState().recoverySession).toBe(true)
+  })
+
+  it('does not hand another user\'s tokens to the stored session', async () => {
+    const { mod, useSession, emit } = await setup()
+    useSession.setState({ session: SESSION })
+    await mod.startSupabaseSync()
+    emit('SIGNED_IN', { access_token: 'other', refresh_token: 'o', expires_at: 9, user: { id: 'someone-else' } } as never)
+    expect(useSession.getState().session?.accessToken).toBe('a')
+  })
+
   it('clears the store on SIGNED_OUT', async () => {
     const { mod, useSession, emit } = await setup()
     useSession.setState({ session: SESSION })

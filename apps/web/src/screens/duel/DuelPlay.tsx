@@ -48,9 +48,13 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
   const waitOverlay = m.classic && m.playing && !m.myTurn ? { title: m.bot ? t('duel.play.botThinking') : t('duel.play.oppThinking', { name: oppName }), secret: mySecret } : null
 
   return (
-    <Shell scene={playScene(state, store.parity, store.miss)} sceneSide>
+    <Shell
+      scene={playScene(state, store.parity, store.miss)}
+      sceneSide
+      hudAt="bottom"
+      hud={<OppStrip state={state} oppName={oppName} status={m.oppStatus} thinking={m.botTurn} />}
+    >
       <section aria-label={t('duel.title.play', { format: t(`newGame.format.${state.format}.name`) })} style={COL}>
-        <OppStrip state={state} oppName={oppName} status={m.oppStatus} thinking={m.botTurn} />
         <PlayHeader
           attempt={state.me.guesses.length + 1}
           turn={m.classic ? (m.myTurn ? 'me' : 'opp') : null}

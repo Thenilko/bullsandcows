@@ -33,6 +33,8 @@ export interface RoomMeta {
   readonly resultRecorded: boolean
   /** Invite rooms: the code, written to the duel row. */
   readonly inviteCode: string | null
+  /** Dev/test E2E only: replaces the random race secret and the bot's classic secret. */
+  readonly testSecret?: string | null
 }
 
 /** Row ids chosen when a result is claimed, so every retry writes the same rows. */
@@ -67,7 +69,11 @@ export interface RoomState {
   readonly meta: RoomMeta
 }
 
-export function initialMeta(now: number, inviteCode: string | null = null): RoomMeta {
+export function initialMeta(
+  now: number,
+  inviteCode: string | null = null,
+  testSecret: string | null = null,
+): RoomMeta {
   return {
     createdAt: now,
     inviteExpiresAt: now + INVITE_MS,
@@ -77,6 +83,7 @@ export function initialMeta(now: number, inviteCode: string | null = null): Room
     expired: false,
     resultRecorded: false,
     inviteCode,
+    testSecret,
   }
 }
 

@@ -1,8 +1,13 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const WEB_PORT = 4173
-const SERVER_PORT = 8787
-const GALLERY_PORT = 4174
+// Override the ports (E2E_WEB_PORT, E2E_API_PORT, E2E_GALLERY_PORT) to run next to another checkout's
+// servers; the web preview proxies to E2E_API_PORT (see vite.config.ts). The gallery defaults to WEB_PORT + 1.
+// Exported through the environment so e2e specs (lighthouse) resolve the same origins.
+const WEB_PORT = Number(process.env.E2E_WEB_PORT ?? 4173)
+const SERVER_PORT = Number(process.env.E2E_API_PORT ?? 8787)
+const GALLERY_PORT = Number(process.env.E2E_GALLERY_PORT ?? WEB_PORT + 1)
+process.env.E2E_WEB_PORT = String(WEB_PORT)
+process.env.E2E_GALLERY_PORT = String(GALLERY_PORT)
 
 // Hermetic worker vars: fake auth + memory repo come from `[env.dev]`; these satisfy the env schema
 // without needing a local `.dev.vars` (nothing here is a real secret).
@@ -35,13 +40,13 @@ export default defineConfig({
   projects: [
     {
       name: 'mobile',
-      testMatch: /solo\.spec\.ts/,
+      testMatch: /(solo|duel|bot)\.spec\.ts/,
       // Chromium engine with the iPhone 13 viewport (390 wide); only Chromium is installed in CI.
       use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium' },
     },
     {
       name: 'desktop',
-      testMatch: /solo\.spec\.ts/,
+      testMatch: /(solo|duel|bot)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
     },
     {
@@ -60,7 +65,7 @@ export default defineConfig({
       name: 'slow',
       testMatch: /lighthouse\.spec\.ts/,
       timeout: 120_000,
-      // Fixed ports (9333, 4173, 4174): one worker, tests in file order (config-level `workers: 1`).
+      // Fixed debug port 9333 (web/gallery ports come from the env above): one worker, tests in file order (config-level `workers: 1`).
       fullyParallel: false,
       use: { ...devices['Desktop Chrome'] },
     },
@@ -69,7 +74,7 @@ export default defineConfig({
   webServer: [
     {
       // Local Worker with fake auth and an in-memory repo .
-      command: `pnpm --filter server dev ${SERVER_VARS}`,
+      command: `pnpm --filter server exec wrangler dev --env dev --port ${SERVER_PORT} --inspector-port 0 ${SERVER_VARS}`,
       cwd: '../..',
       port: SERVER_PORT,
       reuseExistingServer: !process.env.CI,

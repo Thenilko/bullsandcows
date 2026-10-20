@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { MeDto } from '@bc/protocol'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithI18n } from '../test/render'
 
@@ -16,6 +16,10 @@ const meWith = (currentGameId: string | null) =>
 
 let client: QueryClient
 
+function Where() {
+  return <p data-testid="where">{useLocation().pathname}</p>
+}
+
 function show() {
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return renderWithI18n(
@@ -24,6 +28,7 @@ function show() {
         <Routes>
           <Route path="/new" element={<NewGame />} />
           <Route path="/play/:gameId" element={<p>play page</p>} />
+          <Route path="*" element={<Where />} />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -79,5 +84,18 @@ describe('NewGame', () => {
     show()
     fireEvent.click(screen.getByRole('button', { name: 'Старт' }))
     expect(await screen.findByText('Много бързаш — изчакай малко и опитай пак.')).toBeInTheDocument()
+  })
+
+  it('marks solo in the mode switch and navigates to the duel and bot setups', () => {
+    show()
+    expect(screen.getByRole('button', { name: /^Соло/ })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: /^Дуел/ }))
+    expect(screen.getByTestId('where')).toHaveTextContent('/duel/new')
+  })
+
+  it('the bot tab opens the bot setup', () => {
+    show()
+    fireEvent.click(screen.getByRole('button', { name: /^Срещу бот/ }))
+    expect(screen.getByTestId('where')).toHaveTextContent('/bot/new')
   })
 })

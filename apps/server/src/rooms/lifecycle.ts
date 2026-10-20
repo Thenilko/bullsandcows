@@ -112,9 +112,12 @@ const botRule: Rule = (st, now, rng) => {
   const { match: m } = st
   const bot = m.opponentKind === 'bot' ? m.players.b : null
   if (!bot) return null
-  if (m.phase === 'lobby' && !bot.ready) return fromStep(st, setReady(m, st.secrets, 'b', now, rng))
+  const testSecret = st.meta.testSecret ?? undefined
+  if (m.phase === 'lobby' && !bot.ready) {
+    return fromStep(st, setReady(m, st.secrets, 'b', now, rng, testSecret))
+  }
   if (m.phase === 'secrets' && !bot.hasSecret) {
-    return fromStep(st, setSecret(m, st.secrets, 'b', pickCode(m, rng), now, rng))
+    return fromStep(st, setSecret(m, st.secrets, 'b', testSecret ?? pickCode(m, rng), now, rng))
   }
   return null
 }
