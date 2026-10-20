@@ -6,10 +6,11 @@ import {
   type Match,
   type Seat,
 } from '../duel/types'
+import { botToMove } from './botDriver'
 import type { RoomMeta } from './state'
 
 /**
- * Everything a duel room waits for. `bot` is reserved for the bot's moves (a later task).
+ * Everything a duel room waits for. `bot` is the bot's next move.
  * `invite`, `ready` and `secrets` are room-level; the rest mirror the match machine.
  */
 export type TimerKind =
@@ -79,6 +80,9 @@ function roomLevel(m: Match, meta: RoomMeta): Timers {
   return {}
 }
 
+const botTimer = (m: Match, meta: RoomMeta): Timers =>
+  botToMove(m) && meta.botAt != null ? { bot: meta.botAt } : {}
+
 function rematchTimer(m: Match): Timers {
   if (m.phase !== 'ended') return {}
   const offers = [m.rematch.a, m.rematch.b].filter((t): t is number => t !== null)
@@ -87,5 +91,11 @@ function rematchTimer(m: Match): Timers {
 
 /** Every pending timer of the room, derived from the match and the room meta. */
 export function roomTimers(m: Match, meta: RoomMeta): Timers {
-  return { ...playTimers(m), ...reconnectTimers(m), ...roomLevel(m, meta), ...rematchTimer(m) }
+  return {
+    ...playTimers(m),
+    ...reconnectTimers(m),
+    ...roomLevel(m, meta),
+    ...botTimer(m, meta),
+    ...rematchTimer(m),
+  }
 }
