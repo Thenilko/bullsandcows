@@ -12,10 +12,23 @@ const BG: Readonly<Record<BadgeKey, string>> = {
   fiveDigits: '#E7DDF6',
 }
 
-export function BadgeGrid({ badges }: { badges: Readonly<Record<BadgeKey, boolean>> }) {
+export function BadgeGrid({
+  badges,
+  detailed = false,
+}: {
+  badges: Readonly<Record<BadgeKey, boolean>>
+  /** Desktop: bigger icons with the description under each name. */
+  detailed?: boolean
+}) {
   const { t } = useTranslation()
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+        gap: detailed ? 10 : 8,
+      }}
+    >
       {BADGE_KEYS.map((key, i) => (
         <Badge
           key={key}
@@ -24,6 +37,8 @@ export function BadgeGrid({ badges }: { badges: Readonly<Record<BadgeKey, boolea
           name={t(`badge.${key}.name`)}
           title={t(`badge.${key}.desc`)}
           locked={!badges[key]}
+          size={detailed ? 46 : 40}
+          desc={detailed ? t(`badge.${key}.desc`) : undefined}
         />
       ))}
     </div>

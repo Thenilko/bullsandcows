@@ -19,7 +19,31 @@ beforeEach(() => {
   get.mockReset()
 })
 
+function desktopViewport() {
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: (query: string) => ({
+      matches: query.includes('min-width'),
+      media: query,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    }),
+  })
+}
+
 describe('Leaderboard', () => {
+  it('shows the table header and the place aside on desktop', async () => {
+    desktopViewport()
+    get.mockResolvedValue(boardFixture)
+    show()
+    expect(await screen.findByText('МЯСТО')).toBeInTheDocument()
+    expect(screen.getByText('ТОЧКИ')).toBeInTheDocument()
+    expect(screen.queryByText('ВРЕМЕ')).toBeNull()
+    expect(screen.getByText('Твоето място')).toBeInTheDocument()
+    expect(screen.getByText('№5')).toBeInTheDocument()
+    Reflect.deleteProperty(window, 'matchMedia')
+  })
+
   it('renders the podium as 2-1-3 and highlights my row', async () => {
     get.mockResolvedValue(boardFixture)
     const { container } = show()
@@ -54,6 +78,7 @@ describe('Leaderboard', () => {
     expect(await screen.findByText('Класацията е за регистрирани пастири.')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Направи си профил' }))
     expect(await screen.findByLabelText('Парола')).toBeInTheDocument()
+    expect(sessionStorage.getItem('bc.returnTo')).toBe('/board')
   })
 
   it('shows an empty state with a way to play', async () => {

@@ -16,12 +16,19 @@ const DIVIDER = { borderBottom: '1px solid #ECE5D2' } as const
 export interface SettingsCardProps {
   profile: ProfileDto
   onPatch(patch: SettingsPatch): void
+  desktop?: boolean
 }
 
-export function SettingsCard({ profile, onPatch }: SettingsCardProps) {
+export function SettingsCard({ profile, onPatch, desktop = false }: SettingsCardProps) {
   const { t } = useTranslation()
   return (
-    <Card style={{ padding: '6px 14px', display: 'flex', flexDirection: 'column' }}>
+    <Card
+      style={{
+        padding: desktop ? '8px 24px' : '6px 14px',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       <div style={{ ...ROW, ...DIVIDER }}>
         <span style={{ fontWeight: 800 }}>{t('settings.sound')}</span>
         <Toggle

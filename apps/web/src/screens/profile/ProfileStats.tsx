@@ -5,40 +5,93 @@ import { Bar, Card } from '../../components/ui'
 const MIN_BAR = 4
 const TOP_BUCKET = 10
 
-function Tile({ value, label }: { value: string | number; label: string }) {
+function Tile({
+  value,
+  label,
+  desktop,
+}: {
+  value: string | number
+  label: string
+  desktop: boolean
+}) {
   return (
-    <Card style={{ padding: '10px 4px' }}>
-      <div style={{ fontSize: 22, fontWeight: 900 }}>{value}</div>
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7560' }}>{label}</div>
+    <Card style={{ padding: desktop ? 18 : '10px 4px' }}>
+      <div style={{ fontSize: desktop ? 32 : 22, fontWeight: 900 }}>{value}</div>
+      <div style={{ fontSize: desktop ? undefined : 11, fontWeight: 700, color: '#6B7560' }}>
+        {label}
+      </div>
     </Card>
   )
 }
 
-export function StatTiles({ stats }: { stats: MeDto['stats'] }) {
+export function StatTiles({
+  stats,
+  desktop = false,
+}: {
+  stats: MeDto['stats']
+  desktop?: boolean
+}) {
   const { t } = useTranslation()
   return (
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-        gap: 8,
+        gridTemplateColumns: desktop
+          ? 'repeat(auto-fit, minmax(140px, 1fr))'
+          : 'repeat(4, minmax(0, 1fr))',
+        gap: desktop ? 14 : 8,
         textAlign: 'center',
       }}
     >
-      <Tile value={stats.played} label={t('profile.stat.played')} />
-      <Tile value={`${stats.winRate}%`} label={t('profile.stat.winRate')} />
-      <Tile value={stats.streak} label={t('profile.stat.streak')} />
-      <Tile value={stats.best ?? '—'} label={t('profile.stat.best')} />
+      <Tile
+        value={stats.played}
+        label={t(desktop ? 'profile.stat.playedLong' : 'profile.stat.played')}
+        desktop={desktop}
+      />
+      <Tile value={`${stats.winRate}%`} label={t('profile.stat.winRate')} desktop={desktop} />
+      <Tile
+        value={stats.streak}
+        label={t(desktop ? 'profile.stat.streakLong' : 'profile.stat.streak')}
+        desktop={desktop}
+      />
+      <Tile
+        value={stats.best ?? '—'}
+        label={t(desktop ? 'profile.stat.bestLong' : 'profile.stat.best')}
+        desktop={desktop}
+      />
     </div>
   )
 }
 
-export function BucketChart({ buckets }: { buckets: MeDto['buckets'] }) {
+export function BucketChart({
+  buckets,
+  desktop = false,
+}: {
+  buckets: MeDto['buckets']
+  desktop?: boolean
+}) {
   const { t } = useTranslation()
   const max = Math.max(1, ...buckets.map((b) => b.count))
   return (
-    <Card style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 70 }}>
+    <Card
+      style={{
+        padding: desktop ? 24 : 14,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: desktop ? 10 : 6,
+      }}
+    >
+      {desktop ? (
+        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>{t('profile.yourGames')}</h2>
+      ) : null}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-end',
+          gap: desktop ? 10 : 6,
+          height: desktop ? 120 : 70,
+        }}
+      >
         {buckets.map((b, i) => (
           <div
             key={b.attempts}

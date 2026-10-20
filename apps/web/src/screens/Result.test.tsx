@@ -35,6 +35,17 @@ describe('Result', () => {
     expect(container.querySelector('.confetti')).not.toBeNull()
   })
 
+  it('renders as a dimmed overlay with a bottom sheet above the scene', async () => {
+    const { container } = route(wonGame)
+    const sheet = await screen.findByRole('region', { name: 'Резултат' })
+    expect(sheet).toHaveClass('sheetup')
+    expect(sheet.tagName).toBe('SECTION')
+    expect(sheet.querySelector('h2')).toHaveTextContent('Денят изгря!')
+    expect(screen.getByTestId('result-overlay')).toHaveClass('fadein')
+    expect(container.querySelector('svg')).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Виж класацията' })).toBeInTheDocument()
+  })
+
   it('computes time, points and logic', async () => {
     route(wonGame)
     await screen.findByText('ТОП 37%')

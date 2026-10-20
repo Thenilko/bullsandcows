@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useLocation } from 'react-router'
+import { RETURN_TO_KEY } from '../../app/RequireAuth'
 import { Card, Cta, Field } from '../../components/ui'
 import { sfx } from '../../lib/sound'
 import { useAuth } from './useAuth'
@@ -12,10 +14,20 @@ const ERROR_STYLE = { margin: 0, fontWeight: 800, fontSize: 14, color: '#8A1F0B'
 export function UpgradeDialog() {
   const { t } = useTranslation()
   const auth = useAuth()
+  const loc = useLocation()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [local, setLocal] = useState('')
+
+  // A successful upgrade returns to the screen it was started from.
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(RETURN_TO_KEY, loc.pathname + loc.search)
+    } catch {
+      // returnTo is a convenience only
+    }
+  }, [loc.pathname, loc.search])
 
   async function submit() {
     if (name.trim().length < MIN_NAME) return fail(t('login.validation.nameShort'))

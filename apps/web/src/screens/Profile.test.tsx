@@ -32,7 +32,27 @@ beforeEach(() => {
   })
 })
 
+function desktopViewport() {
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: (query: string) => ({
+      matches: query.includes('min-width'),
+      media: query,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    }),
+  })
+}
+
 describe('Profile', () => {
+  it('uses long stat labels and badge descriptions on desktop', async () => {
+    desktopViewport()
+    show()
+    expect(await screen.findByText('изиграни игри')).toBeInTheDocument()
+    expect(screen.getByText('Първа победа')).toBeInTheDocument()
+    Reflect.deleteProperty(window, 'matchMedia')
+  })
+
   it('shows level, title, xp, stats and badges', async () => {
     const { container } = show()
     expect(await screen.findByText('Говедар · ниво 2')).toBeInTheDocument()
