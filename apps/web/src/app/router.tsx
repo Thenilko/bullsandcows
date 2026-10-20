@@ -1,5 +1,7 @@
 import { createBrowserRouter, type RouteObject } from 'react-router'
 import { DevScreens } from '../dev/DevScreens'
+import { NewGame } from '../screens/NewGame'
+import { Play } from '../screens/Play'
 import { Login } from '../screens/Login'
 import { Rules } from '../screens/Rules'
 import { Home } from './Home'
@@ -11,6 +13,13 @@ const devRoutes: RouteObject[] =
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/rules', element: <Rules /> },
-  { element: <RequireAuth />, children: [{ path: '/', element: <Home /> }] },
+  {
+    element: <RequireAuth />,
+    children: [
+      { path: '/', element: <Home /> },
+      { path: '/new', element: <NewGame /> },
+      { path: '/play/:gameId', element: <Play /> },
+    ],
+  },
   ...devRoutes,
 ])

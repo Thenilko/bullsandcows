@@ -10,6 +10,12 @@ export interface ShellProps {
   sceneSide?: boolean
   /** Hides the tab bar (mobile) and the nav items (desktop); used while signed out. */
   bare?: boolean
+  /** Mobile only: top offset of the panel in px (the play screens use 356 to show the whole scene). */
+  panelTop?: number
+  /** Mobile only: CSS padding of the panel (play uses the prototype's 14px 16px 12px). */
+  panelPadding?: string
+  /** Overlay rendered on top of the scene (HUD chips), as in the prototypes. */
+  hud?: ReactNode
 }
 
 export const TABS = [
