@@ -1,0 +1,150 @@
+import type { Len } from '@bc/game-core'
+import type { Lang } from '@bc/i18n'
+import { sql } from 'drizzle-orm'
+import {
+  type AnyPgColumn,
+  bigint,
+  boolean,
+  check,
+  date,
+  doublePrecision,
+  index,
+  integer,
+  pgTable,
+  primaryKey,
+  smallint,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core'
+import type { DuelFormat, GameKind, OpponentKind } from '../../../ports/repo'
+
+const ts = (name: string) => timestamp(name, { withTimezone: true, mode: 'date' })
+const lenColumn = () => smallint('len').$type<Len>().notNull()
+const lenCheck = (table: string, column: AnyPgColumn) =>
+  check(`${table}_len_check`, sql`${column} between 3 and 5`)
+
+/**
+ * Row level security is enabled on every table without policies: the Supabase Data API
+ * (anon/authenticated roles) sees nothing, while the Worker connects as the owner role
+ * through Hyperdrive. `profiles.id` equals the Supabase auth user id, without a foreign
+ * key to `auth.users`, because the Worker's role is not guaranteed to see that schema.
+ */
+export const profiles = pgTable(
+  'profiles',
+  {
+    id: uuid('id').primaryKey(),
+    username: text('username').notNull(),
+    usernameLower: text('username_lower').notNull(),
+    email: text('email'),
+    isGuest: boolean('is_guest').notNull().default(false),
+    lang: text('lang').$type<Lang>().notNull().default('bg'),
+    sound: boolean('sound').notNull().default(true),
+    vibrate: boolean('vibrate').notNull().default(true),
+    defaultLen: smallint('default_len').$type<Len>().notNull().default(4),
+    xp: integer('xp').notNull().default(0),
+    rating: doublePrecision('rating').notNull().default(1500),
+    ratingDev: doublePrecision('rating_dev').notNull().default(350),
+    volatility: doublePrecision('volatility').notNull().default(0.06),
+    createdAt: ts('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('profiles_username_lower_idx').on(t.usernameLower),
+    check('profiles_lang_check', sql`${t.lang} in ('bg', 'en')`),
+    check('profiles_default_len_check', sql`${t.defaultLen} between 3 and 5`),
+  ],
+).enableRLS()
+
+export const games = pgTable(
+  'games',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    kind: text('kind').$type<GameKind>().notNull(),
+    len: lenColumn(),
+    zero: boolean('zero').notNull(),
+    secret: text('secret').notNull(),
+    dailyDate: date('daily_date', { mode: 'string' }),
+    practice: boolean('practice').notNull().default(false),
+    startedAt: ts('started_at'),
+    finishedAt: ts('finished_at'),
+    attempts: integer('attempts').notNull().default(0),
+    wasted: integer('wasted').notNull().default(0),
+    won: boolean('won'),
+    score: integer('score').notNull().default(0),
+    suspicious: boolean('suspicious').notNull().default(false),
+    createdAt: ts('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    index('games_user_created_idx').on(t.userId, t.createdAt),
+    index('games_daily_idx').on(t.kind, t.len, t.zero, t.dailyDate, t.won),
+    index('games_finished_idx').on(t.kind, t.len, t.zero, t.finishedAt, t.won),
+    check(
+      'games_kind_check',
+      sql`${t.kind} in ('daily', 'free', 'duel_race', 'duel_classic', 'bot')`,
+    ),
+    lenCheck('games', t.len),
+  ],
+).enableRLS()
+
+export const guesses = pgTable(
+  'guesses',
+  {
+    id: bigint('id', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
+    gameId: uuid('game_id')
+      .notNull()
+      .references(() => games.id, { onDelete: 'cascade' }),
+    guess: text('guess').notNull(),
+    bulls: smallint('bulls').notNull(),
+    cows: smallint('cows').notNull(),
+    consistent: boolean('consistent').notNull(),
+    at: ts('at').notNull(),
+  },
+  (t) => [index('guesses_game_idx').on(t.gameId, t.id)],
+).enableRLS()
+
+export const duels = pgTable(
+  'duels',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    format: text('format').$type<DuelFormat>().notNull(),
+    len: lenColumn(),
+    zero: boolean('zero').notNull(),
+    opponentKind: text('opponent_kind').$type<OpponentKind>().notNull(),
+    botLevel: smallint('bot_level'),
+    inviteCode: text('invite_code'),
+    playerA: uuid('player_a')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    playerB: uuid('player_b').references(() => profiles.id, { onDelete: 'set null' }),
+    gameA: uuid('game_a').references(() => games.id, { onDelete: 'set null' }),
+    gameB: uuid('game_b').references(() => games.id, { onDelete: 'set null' }),
+    winner: uuid('winner'),
+    outcome: text('outcome'),
+    ratingDeltaA: doublePrecision('rating_delta_a'),
+    ratingDeltaB: doublePrecision('rating_delta_b'),
+    createdAt: ts('created_at').notNull().defaultNow(),
+    finishedAt: ts('finished_at'),
+  },
+  (t) => [
+    index('duels_invite_code_idx').on(t.inviteCode),
+    check('duels_format_check', sql`${t.format} in ('race', 'classic')`),
+    check('duels_opponent_kind_check', sql`${t.opponentKind} in ('quick', 'friend', 'bot')`),
+    lenCheck('duels', t.len),
+  ],
+).enableRLS()
+
+/** Materialised daily numbers for auditing (the salt itself is the DAILY_SALT secret). */
+export const dailyNumbers = pgTable(
+  'daily_numbers',
+  {
+    date: date('date', { mode: 'string' }).notNull(),
+    len: lenColumn(),
+    zero: boolean('zero').notNull(),
+    idx: integer('idx').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.date, t.len, t.zero] })],
+).enableRLS()

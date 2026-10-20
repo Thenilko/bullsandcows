@@ -1,0 +1,62 @@
+# One Worker: SPA static assets + /api (Hono) + /ws (Durable Objects).
+name = "pasishte"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+# postgres.js needs the Node compatibility layer (net/tls shims over Workers sockets).
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "../web/dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*", "/ws/*"]
+
+[[durable_objects.bindings]]
+name = "QUEUE"
+class_name = "QueueRoom"
+
+[[durable_objects.bindings]]
+name = "DUEL"
+class_name = "DuelRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["QueueRoom", "DuelRoom"]
+
+# Daily keep-alive query so the free Supabase project is not paused.
+[triggers]
+crons = ["0 6 * * *"]
+
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "REPLACE_ME"
+
+[vars]
+AUTH_MODE = "supabase"
+REPO_MODE = "postgres"
+ENVIRONMENT = "production"
+APP_ORIGIN = "https://pasishte.ACCOUNT.workers.dev"
+
+# Local development: fake auth + in-memory repo.
+# Durable Object bindings and vars are not inherited by environments.
+[env.dev]
+[[env.dev.durable_objects.bindings]]
+name = "QUEUE"
+class_name = "QueueRoom"
+
+[[env.dev.durable_objects.bindings]]
+name = "DUEL"
+class_name = "DuelRoom"
+
+# Dev uses the memory repo; this binding only exists so that switching REPO_MODE to
+# "postgres" locally talks to a local Supabase (`supabase start`, port 54322).
+[[env.dev.hyperdrive]]
+binding = "HYPERDRIVE"
+id = "REPLACE_ME"
+localConnectionString = "postgres://postgres:postgres@127.0.0.1:54322/postgres"
+
+[env.dev.vars]
+AUTH_MODE = "fake"
+REPO_MODE = "memory"
+ENVIRONMENT = "dev"
+APP_ORIGIN = "http://127.0.0.1:5173"
