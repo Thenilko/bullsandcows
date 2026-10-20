@@ -114,4 +114,22 @@ describe('ResetPassword', () => {
     expect(screen.getByLabelText('Нова парола')).toBeInTheDocument()
     expect(screen.queryByRole('alert')).toBeNull()
   })
+
+  it('gallery preview pins the form or the expired state without supabase', () => {
+    vi.stubEnv('VITE_AUTH_MODE', 'fake')
+    useSession.setState({ recoverySession: false })
+    const form = renderWithI18n(
+      <MemoryRouter>
+        <ResetPassword preview="form" />
+      </MemoryRouter>,
+    )
+    expect(screen.getByLabelText('Нова парола')).toBeInTheDocument()
+    form.unmount()
+    renderWithI18n(
+      <MemoryRouter>
+        <ResetPassword preview="expired" />
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('alert')).toHaveTextContent('Линкът е изтекъл')
+  })
 })

@@ -12,6 +12,8 @@ export const DEV_SCREEN_KEYS: readonly string[] = [
   'login',
   'login-register',
   'login-error',
+  'reset',
+  'reset-expired',
   'rules',
   'new-game',
   'play-start',

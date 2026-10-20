@@ -1,28 +1,14 @@
 import { lazy, Suspense, type ReactElement } from 'react'
 import { LoginErrorScreen, LoginRegisterScreen, LoginScreen, RulesScreen } from './AuthScreens'
 import { PrimitivesScreen } from './PrimitivesScreen'
-import {
-  Board,
-  BoardGuest,
-  Profile,
-  ProfileGuest,
-  ResultLose,
-  ResultPractice,
-  ResultWin,
-} from './StatsScreens'
 import { SceneIdle, ScenePlay, SceneResult } from './SceneScreens'
 import { NewGameScreen, NotebookScreen, PlayDesktopNotebookScreen, PlayMidScreen, PlayStartScreen, PlayWinScreen } from './SoloScreens'
 import { DesktopShellScreen, MobileShellScreen } from './ShellScreens'
 
-type DuelScreenName = keyof typeof import('./DuelScreens')
-
-/**
- * Duel gallery screens load on demand so they stay out of the gallery entry chunk (Lighthouse measures
- * `play-mid` there). The fallback carries `data-gallery-loading` so Playwright can wait for the real screen.
- */
-function lazyDuel(name: DuelScreenName): () => ReactElement {
-  const Screen = lazy(async () => ({ default: (await import('./DuelScreens'))[name] }))
-  return function LazyDuelScreen() {
+/** The fallback carries `data-gallery-loading` so Playwright can wait for the real screen. */
+function lazyScreen(load: () => Promise<() => ReactElement>): () => ReactElement {
+  const Screen = lazy(async () => ({ default: await load() }))
+  return function LazyScreen() {
     return (
       <Suspense fallback={<p data-gallery-loading="">…</p>}>
         <Screen />
@@ -30,6 +16,18 @@ function lazyDuel(name: DuelScreenName): () => ReactElement {
     )
   }
 }
+
+type DuelScreenName = keyof typeof import('./DuelScreens')
+type StatsScreenName = keyof typeof import('./StatsScreens')
+type ResetScreenName = keyof typeof import('./ResetScreens')
+
+/**
+ * Duel and reset gallery screens load on demand so they stay out of the gallery entry chunk (Lighthouse
+ * measures `play-mid` there; its LCP margin is thin).
+ */
+const lazyDuel = (name: DuelScreenName) => lazyScreen(async () => (await import('./DuelScreens'))[name])
+const lazyStats = (name: StatsScreenName) => lazyScreen(async () => (await import('./StatsScreens'))[name])
+const lazyReset = (name: ResetScreenName) => lazyScreen(async () => (await import('./ResetScreens'))[name])
 
 /** Dev-only screen registry; later tasks add their screens here. */
 export const devScreens: Record<string, () => ReactElement> = {
@@ -42,18 +40,20 @@ export const devScreens: Record<string, () => ReactElement> = {
   login: LoginScreen,
   'login-register': LoginRegisterScreen,
   'login-error': LoginErrorScreen,
+  reset: lazyReset('ResetScreen'),
+  'reset-expired': lazyReset('ResetExpiredScreen'),
   rules: RulesScreen,
   'new-game': NewGameScreen,
   'play-start': PlayStartScreen,
   'play-mid': PlayMidScreen,
   'play-win': PlayWinScreen,
-  'result-win': ResultWin,
-  'result-lose': ResultLose,
-  'result-practice': ResultPractice,
-  board: Board,
-  'board-guest': BoardGuest,
-  profile: Profile,
-  'profile-guest': ProfileGuest,
+  'result-win': lazyStats('ResultWin'),
+  'result-lose': lazyStats('ResultLose'),
+  'result-practice': lazyStats('ResultPractice'),
+  board: lazyStats('Board'),
+  'board-guest': lazyStats('BoardGuest'),
+  profile: lazyStats('Profile'),
+  'profile-guest': lazyStats('ProfileGuest'),
   notebook: NotebookScreen,
   'play-desktop-notebook': PlayDesktopNotebookScreen,
   'duel-setup': lazyDuel('DuelSetupScreen'),

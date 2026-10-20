@@ -92,15 +92,18 @@ function useLinkFailed(waiting: boolean): boolean {
   return linkError || timedOut
 }
 
-function ResetBody() {
+/** Gallery-only: pins the body to one state without a recovery link or Supabase. */
+export type ResetPreview = 'form' | 'expired'
+
+function ResetBody({ preview }: { preview?: ResetPreview }) {
   const { t } = useTranslation()
   const recovery = useSession((s) => s.recoverySession)
   const supabase = isSupabaseMode()
   const [fromLink] = useState(isRecoveryUrl)
-  const failed = useLinkFailed(supabase && !recovery)
-  if (!supabase) return <p style={TEXT}>{t('reset.unavailable')}</p>
-  if (recovery) return <NewPasswordForm />
-  if (failed) {
+  const failed = useLinkFailed(!preview && supabase && !recovery)
+  if (preview === undefined && !supabase) return <p style={TEXT}>{t('reset.unavailable')}</p>
+  if (preview === 'form' || (preview === undefined && recovery)) return <NewPasswordForm />
+  if (preview === 'expired' || failed) {
     return (
       <p role="alert" style={{ ...TEXT, color: '#8A1F0B' }}>
         {t('reset.error.expired')}
@@ -111,13 +114,13 @@ function ResetBody() {
 }
 
 /** /reset — landing of the password-recovery mail link (public). */
-export function ResetPassword() {
+export function ResetPassword({ preview }: { preview?: ResetPreview } = {}) {
   const { t } = useTranslation()
   return (
     <Shell scene={IDLE_SCENE} bare>
       <Card style={{ padding: 24, ...STACK }}>
         <h1 style={{ margin: 0, fontSize: 30, fontWeight: 900 }}>{t('reset.title')}</h1>
-        <ResetBody />
+        <ResetBody preview={preview} />
         <Link to="/login" style={LINK_STYLE}>
           {t('reset.back')}
         </Link>
