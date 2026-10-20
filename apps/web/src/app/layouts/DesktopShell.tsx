@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { NavLink } from 'react-router'
+import { NavLink, useLocation } from 'react-router'
 import { PastureScene } from '../../components/scene'
 import { cx } from '../../components/ui/cx'
 import {
@@ -12,21 +12,30 @@ import {
   UserIcon,
   QuestionIcon,
 } from '../../components/ui/icons'
-import { setLang } from '../../i18n'
+import { LangSwitch } from '../../components/ui/LangSwitch'
+import { useSession } from '../../features/auth/session'
+import { useUpdateSettings } from '../../features/stats/useUpdateSettings'
 import { sfx } from '../../lib/sfx'
 import styles from './DesktopShell.module.css'
-import { TABS, type ShellProps } from './shell.types'
+import { isTabActive, TABS, type ShellProps } from './shell.types'
 
 const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon, QuestionIcon] as const
 
 export function DesktopShell({ scene, children, sceneSide = false, bare = false, hud }: ShellProps) {
-  const { t, i18n } = useTranslation()
-  const [muted, setMuted] = useState(() => sfx.isMuted())
-  const nextLang = i18n.language === 'bg' ? 'en' : 'bg'
+  const { t } = useTranslation()
+  const { pathname } = useLocation()
+  const [localMuted, setLocalMuted] = useState(() => sfx.isMuted())
+  const me = useSession((s) => s.me)
+  const update = useUpdateSettings()
+  const muted = me ? !me.profile.sound : localMuted
 
   function toggleSound() {
+    if (me) {
+      update.mutate({ sound: muted })
+      return
+    }
     sfx.setMuted(!muted)
-    setMuted(!muted)
+    setLocalMuted(!muted)
   }
 
   return (
@@ -45,7 +54,7 @@ export function DesktopShell({ scene, children, sceneSide = false, bare = false,
                   key={tab.to}
                   to={tab.to}
                   end={tab.end}
-                  className={({ isActive }) => cx('nav', isActive && 'on')}
+                  className={({ isActive }) => cx('nav', isTabActive(tab, pathname, isActive) && 'on')}
                 >
                   <Icon size={18} />
                   {t(tab.key)}
@@ -55,14 +64,7 @@ export function DesktopShell({ scene, children, sceneSide = false, bare = false,
           </nav>
         )}
         <div className={styles.tools}>
-          <button
-            type="button"
-            className="iconbox icobtn"
-            aria-label={t('settings.lang')}
-            onClick={() => setLang(nextLang)}
-          >
-            {nextLang.toUpperCase()}
-          </button>
+          <LangSwitch />
           <button
             type="button"
             className="iconbox icobtn"

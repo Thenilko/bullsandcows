@@ -24,3 +24,11 @@ export const TABS = [
   { to: '/profile', key: 'nav.profile', end: false },
   { to: '/rules', key: 'nav.rules', end: false },
 ] as const
+
+/** Route prefixes that belong to the "Игра" tab, so it stays highlighted on them. */
+const PLAY_PREFIXES = ['/new', '/play', '/result'] as const
+
+export function isTabActive(tab: (typeof TABS)[number], pathname: string, routerActive: boolean): boolean {
+  if (tab.to !== '/') return routerActive
+  return pathname === '/' || PLAY_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))
+}

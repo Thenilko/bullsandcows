@@ -9,11 +9,12 @@ import { shouldRetry } from './retry'
 export const ME_KEY = ['me'] as const
 
 /** The signed-in user's profile (screens using it sit behind `RequireAuth`); the result is mirrored into the session store and the sound switch. */
-export function useMe() {
+export function useMe(options: { fresh?: boolean } = {}) {
   const query = useQuery({
     queryKey: ME_KEY,
     queryFn: () => api.get<MeDto>('/api/me'),
     retry: shouldRetry,
+    ...(options.fresh ? { refetchOnMount: 'always' as const } : {}),
   })
   const data = query.data
   useEffect(() => {

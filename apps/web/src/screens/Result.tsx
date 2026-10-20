@@ -46,7 +46,7 @@ function Loaded({ model }: { model: ResultModel }) {
   }
 
   return (
-    <Shell scene={model.scene}>
+    <Shell scene={model.scene} bare>
       <ResultView
         model={model}
         shareLabel={copied ? t('common.copied') : t('common.share')}

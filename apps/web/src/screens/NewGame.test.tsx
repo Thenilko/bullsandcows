@@ -14,8 +14,10 @@ const { useSession } = await import('../features/auth/session')
 const meWith = (currentGameId: string | null) =>
   ({ profile: { defaultLen: 4, sound: true, vibrate: false }, currentGameId }) as unknown as MeDto
 
+let client: QueryClient
+
 function show() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return renderWithI18n(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={['/new']}>
@@ -53,6 +55,15 @@ describe('NewGame', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Старт' }))
     expect(await screen.findByText('play page')).toBeInTheDocument()
     expect(api.post).toHaveBeenCalledWith('/api/games', { len: 5, zero: true, kind: 'free' })
+  })
+
+  it('invalidates the cached profile after creating a game', async () => {
+    api.post.mockResolvedValue({ id: 'new1' })
+    show()
+    const spy = vi.spyOn(client, 'invalidateQueries')
+    fireEvent.click(screen.getByRole('button', { name: 'Старт' }))
+    await screen.findByText('play page')
+    expect(spy).toHaveBeenCalledWith({ queryKey: ['me'] })
   })
 
   it('offers to continue the unfinished game', async () => {

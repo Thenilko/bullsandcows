@@ -1,12 +1,13 @@
 import { totalCodes, type Len } from '@bc/game-core'
 import { isErrorCode } from '@bc/protocol'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { Shell } from '../app/layouts/Shell'
 import { Card, Cta, Pill, Soft, Toggle } from '../components/ui'
 import { useSession } from '../features/auth/session'
+import { ME_KEY } from '../features/stats/useMe'
 import { createGame, type GameKind } from '../features/solo/api'
 import { useAverageAttempts } from '../features/solo/useDistribution'
 import { useIsDesktop } from '../hooks/useIsDesktop'
@@ -84,9 +85,14 @@ export function NewGame({ initial }: { initial?: NewGameInitial }) {
   const [zero, setZero] = useState(initial?.zero ?? false)
   const [kind, setKind] = useState<GameKind>(initial?.kind ?? 'daily')
   const avg = useAverageAttempts(len, zero, kind)
+  const qc = useQueryClient()
   const create = useMutation({
     mutationFn: () => createGame({ len, zero, kind }),
-    onSuccess: (game) => void navigate(`/play/${game.id}`),
+    onSuccess: (game) => {
+      // `me.currentGameId` changes with a new game.
+      void qc.invalidateQueries({ queryKey: ME_KEY })
+      void navigate(`/play/${game.id}`)
+    },
   })
 
   const digits = t('common.digits', { count: len })
