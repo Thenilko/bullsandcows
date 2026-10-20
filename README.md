@@ -25,15 +25,24 @@ pnpm test           # vitest (всички проекти)
 pnpm test:coverage  # покритие без server (game-core >= 95%, общо >= 80%)
 pnpm typecheck      # tsc -b + тестовите конфигурации
 pnpm lint           # eslint
-pnpm build          # web build + dry-run на Worker-а
+pnpm build          # web build (по подразбиране VITE_AUTH_MODE=fake) + dry-run на Worker-а
 pnpm e2e            # Playwright (вдига wrangler dev + vite preview)
 ```
 
 E2E: първия път `pnpm --filter web exec playwright install chromium`. Иконите на PWA се
 генерират с `pnpm --filter web icons` (резултатът е в `apps/web/public/icons`).
 
-CI (`.github/workflows/ci.yml`): lint, typecheck, тестове с покритие, build, e2e. Деплой
-(`deploy.yml`) върви при push в `main`. Стъпките за Supabase, Hyperdrive и тайните са в
+Продукционният билд (`pnpm --filter web build`) спира с грешка, ако няма `VITE_SUPABASE_URL` и
+`VITE_SUPABASE_ANON_KEY`, освен при изрично `VITE_AUTH_MODE=fake` (E2E и CI). Билдът записва и
+`dist/_headers` (CSP и др.), който Cloudflare прилага към статичните файлове.
+
+CI (`.github/workflows/ci.yml`): lint, typecheck, тестове с покритие, build, e2e. Скрийншот
+базите в `apps/web/e2e/__screenshots__` са рендерирани на macOS, затова в CI (Linux) пикселното
+сравнение се пропуска (axe и сценариите си вървят); с `CI_SCREENSHOTS=1` се включва. За Linux
+бази по-късно: `docker run --rm -v "$PWD":/work -w /work mcr.microsoft.com/playwright:v1.64.1-noble
+bash -c "corepack enable && pnpm install --frozen-lockfile && pnpm --filter web exec playwright test
+--project=gallery --update-snapshots"`, после добави платформата в `snapshotPathTemplate` или
+замени базите. Деплой (`deploy.yml`) върви само след успешен CI за push в `main` (или ръчно). Стъпките за Supabase, Hyperdrive и тайните са в
 [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Променливи на средата
