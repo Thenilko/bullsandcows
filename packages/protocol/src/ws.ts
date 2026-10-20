@@ -19,8 +19,11 @@ export const OutcomeSchema = z.enum(['win', 'draw', 'lose'])
 export const EndReasonSchema = z.enum(['solved', 'giveUp', 'timeout', 'disconnect', 'cap', 'draw'])
 export type EndReason = z.infer<typeof EndReasonSchema>
 
-/** Only the shape is checked here; whether the code is valid for the match is `ERR_CODE`. */
-const CodeInput = z.string().max(16)
+/**
+ * Shape only: 3–5 distinct digits. Whether the code fits the match (length, zero) is checked by
+ * the room with `isValidCode` → `ERR_CODE`.
+ */
+const CodeInput = z.string().regex(/^(?!.*(.).*\1)\d{3,5}$/)
 const Int = z.number().int()
 
 // ── client → DuelRoom ──────────────────────────────────────────────────────
@@ -45,8 +48,16 @@ export const MyGuessDto = z.object({
 })
 export type MyGuessDto = z.infer<typeof MyGuessDto>
 
-/** The opponent's guesses never carry the code (unknown keys are stripped). */
-export const OppGuessDto = z.object({ bulls: Int, cows: Int, at: z.number() })
+/**
+ * Classic: the opponent guesses MY secret, so code and verdict are shown. Race: only the time
+ * (attempts/left/status, spec §5.2) — `guess`, `bulls`, `cows` are null. Unknown keys are stripped.
+ */
+export const OppGuessDto = z.object({
+  guess: z.string().nullable(),
+  bulls: Int.nullable(),
+  cows: Int.nullable(),
+  at: z.number(),
+})
 export type OppGuessDto = z.infer<typeof OppGuessDto>
 
 const PublicPlayerBase = z.object({

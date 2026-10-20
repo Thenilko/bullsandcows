@@ -14,7 +14,7 @@ const me = {
   disconnectedAt: null,
   guesses: [{ guess: '1234', bulls: 1, cows: 1, consistent: true, at: 5 }],
 }
-const opp = { ...me, id: 'u2', guesses: [{ bulls: 0, cows: 2, at: 6 }] }
+const opp = { ...me, id: 'u2', guesses: [{ guess: null, bulls: null, cows: null, at: 6 }] }
 const state = {
   format: 'race',
   len: 4,
@@ -53,6 +53,15 @@ describe('client messages', () => {
     expect(ClientMsg.safeParse({ t: 'guess', code: '1'.repeat(17) }).success).toBe(false)
   })
 
+  it('accepts only 3–5 distinct digits as a code shape', () => {
+    for (const code of ['123', '0123', '98765']) {
+      expect(ClientMsg.safeParse({ t: 'guess', code }).success, code).toBe(true)
+    }
+    for (const code of ['12', '123456', '1123', '12a4', ' 123', '']) {
+      expect(ClientMsg.safeParse({ t: 'secret', code }).success, code).toBe(false)
+    }
+  })
+
   it('validates queue joins', () => {
     const join = { t: 'join', len: 4, zero: true, format: 'classic' }
     expect(QueueClientMsg.parse(join)).toEqual(join)
@@ -62,13 +71,19 @@ describe('client messages', () => {
 })
 
 describe('server messages', () => {
-  it('accepts a public state where the opponent guesses carry no code', () => {
+  it('accepts a public state with hidden (race) and visible (classic) opponent guesses', () => {
     expect(PublicState.parse(state)).toEqual(state)
-    const leaky = {
+    const classic = {
       ...state,
+      format: 'classic',
       opp: { ...opp, guesses: [{ guess: '1234', bulls: 0, cows: 2, at: 6 }] },
     }
-    expect(PublicState.parse(leaky).opp?.guesses[0]).not.toHaveProperty('guess')
+    expect(PublicState.parse(classic)).toEqual(classic)
+    const noConsistent = {
+      ...classic,
+      opp: { ...opp, guesses: [{ guess: '1234', bulls: 0, cows: 2, consistent: true, at: 6 }] },
+    }
+    expect(PublicState.parse(noConsistent).opp?.guesses[0]).not.toHaveProperty('consistent')
   })
 
   it('accepts every room message', () => {

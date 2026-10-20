@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { expire } from './expire'
+import { expire, nextDueAt } from './expire'
 import { applyGuess } from './guess'
 import { markDisconnected, markReconnected } from './match'
 import { settle } from './settle'
-import { PLAY_AT, classicInPlay, eventsTo, lobby, ok, raceInPlay } from './testing'
-import { RACE_CAP_MS, RECONNECT_MS, TURN_MS, TURN_WARN_MS } from './types'
+import { PLAY_AT, T0, classicInPlay, eventsTo, lobby, ok, raceInPlay, readyBoth } from './testing'
+import { offerRematch } from './rematch'
+import { COUNTDOWN_MS, RACE_CAP_MS, RECONNECT_MS, REMATCH_MS, TURN_MS, TURN_WARN_MS } from './types'
 
 describe('expire', () => {
   it('does nothing when nothing is due', () => {
@@ -31,7 +32,7 @@ describe('expire', () => {
     expect(early.events).toEqual([])
     const w = ok(expire(g.match, g.secrets, PLAY_AT + TURN_MS - TURN_WARN_MS))
     expect(w.events).toEqual([{ to: 'a', msg: { t: 'warning', msLeft: TURN_WARN_MS } }])
-    expect(w.match.warnedTurnAt).toBe(PLAY_AT + TURN_MS)
+    expect(w.match.warnedTurn).toBe(w.match.turnNo)
     const again = ok(expire(w.match, w.secrets, PLAY_AT + TURN_MS - 1000))
     expect(again.events).toEqual([])
     const next = ok(applyGuess(w.match, w.secrets, 'a', '1235', PLAY_AT + TURN_MS - 500))
@@ -60,20 +61,38 @@ describe('expire', () => {
     expect(s.events).toEqual([])
   })
 
-  it('keeps the turn clock running for a disconnected player on turn (Review Focus 4)', () => {
+  it('keeps the turn clock, not the reconnect window, for a player on turn (Review Focus 4)', () => {
     const g = classicInPlay()
-    const t = PLAY_AT
+    const t = PLAY_AT + 1000
     const d = ok(markDisconnected(g.match, g.secrets, 'a', t))
-    const s = ok(expire(d.match, d.secrets, t + 60_001))
+    const still = ok(expire(d.match, d.secrets, t + RECONNECT_MS + 1))
+    expect(still.match.phase).toBe('playing')
+    const s = ok(expire(still.match, still.secrets, PLAY_AT + TURN_MS))
     expect(s.match.outcome).toEqual({ winner: 'b', reason: 'timeout' })
   })
 
-  it('applies the turn deadline first when it comes before the reconnect window', () => {
+  it('starts the reconnect window when a disconnected player gets the turn back off turn', () => {
     const g = classicInPlay()
-    const t = PLAY_AT + TURN_MS - 10_000
-    const d = ok(markDisconnected(g.match, g.secrets, 'a', t))
-    const s = ok(expire(d.match, d.secrets, PLAY_AT + TURN_MS + 1))
-    expect(s.match.outcome).toEqual({ winner: 'b', reason: 'timeout' })
+    const d = ok(markDisconnected(g.match, g.secrets, 'b', PLAY_AT + 1000))
+    const s = ok(expire(d.match, d.secrets, PLAY_AT + 1000 + RECONNECT_MS))
+    expect(s.match.outcome).toEqual({ winner: 'a', reason: 'disconnect' })
+  })
+
+  it('applies whichever deadline came first when evaluated late', () => {
+    const g = classicInPlay()
+    const d = ok(markDisconnected(g.match, g.secrets, 'b', PLAY_AT + 1000))
+    const late = ok(expire(d.match, d.secrets, PLAY_AT + 61_000))
+    expect(late.match.outcome).toEqual({ winner: 'a', reason: 'disconnect' })
+    const d2 = ok(markDisconnected(g.match, g.secrets, 'b', PLAY_AT + 40_000))
+    const late2 = ok(expire(d2.match, d2.secrets, PLAY_AT + 75_000))
+    expect(late2.match.outcome).toEqual({ winner: 'b', reason: 'timeout' })
+  })
+
+  it('prefers an earlier disconnect over the race cap when evaluated late', () => {
+    const g = raceInPlay()
+    const d = ok(markDisconnected(g.match, g.secrets, 'b', PLAY_AT + RACE_CAP_MS - 40_000))
+    const s = ok(expire(d.match, d.secrets, PLAY_AT + RACE_CAP_MS + 60_000))
+    expect(s.match.outcome).toEqual({ winner: 'a', reason: 'disconnect' })
   })
 
   it('ends a race at the 15 min cap as a draw without rating', () => {
@@ -97,5 +116,44 @@ describe('expire', () => {
     expect(again.events).toEqual([])
     const l = lobby('race')
     expect(ok(expire(l.match, l.secrets, PLAY_AT + RACE_CAP_MS)).events).toEqual([])
+  })
+})
+
+describe('nextDueAt', () => {
+  it('has nothing to schedule in the lobby', () => {
+    expect(nextDueAt(lobby('race').match)).toBeNull()
+  })
+
+  it('schedules the end of the countdown', () => {
+    expect(nextDueAt(readyBoth(lobby('race')).match)).toBe(T0 + COUNTDOWN_MS)
+  })
+
+  it('schedules the turn warning, then the turn deadline', () => {
+    const g = classicInPlay()
+    expect(nextDueAt(g.match)).toBe(PLAY_AT + TURN_MS - TURN_WARN_MS)
+    const w = ok(expire(g.match, g.secrets, PLAY_AT + TURN_MS - TURN_WARN_MS))
+    expect(nextDueAt(w.match)).toBe(PLAY_AT + TURN_MS)
+  })
+
+  it('schedules the earliest of reconnect window and race cap', () => {
+    const g = raceInPlay()
+    expect(nextDueAt(g.match)).toBe(PLAY_AT + RACE_CAP_MS)
+    const d = ok(markDisconnected(g.match, g.secrets, 'b', PLAY_AT + 1000))
+    expect(nextDueAt(d.match)).toBe(PLAY_AT + 1000 + RECONNECT_MS)
+  })
+
+  it('ignores the reconnect window of the player on turn', () => {
+    const g = classicInPlay()
+    const w = ok(expire(g.match, g.secrets, PLAY_AT + TURN_MS - TURN_WARN_MS))
+    const d = ok(markDisconnected(w.match, w.secrets, 'a', PLAY_AT + 1000))
+    expect(nextDueAt(d.match)).toBe(PLAY_AT + TURN_MS)
+  })
+
+  it('schedules rematch expiry after the end', () => {
+    const g = raceInPlay()
+    const e = ok(expire(g.match, g.secrets, PLAY_AT + RACE_CAP_MS))
+    expect(nextDueAt(e.match)).toBeNull()
+    const o = ok(offerRematch(e.match, e.secrets, 'a', PLAY_AT + RACE_CAP_MS))
+    expect(nextDueAt(o.match)).toBe(PLAY_AT + RACE_CAP_MS + REMATCH_MS)
   })
 })

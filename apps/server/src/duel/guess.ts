@@ -49,7 +49,7 @@ function record(m: Match, seat: Seat, code: string, target: string, now: number)
 }
 
 const passTurn = (m: Match, s: Secrets, to: Seat, now: number, events: readonly Emit[]): Step =>
-  step({ ...m, turn: to, turnDeadline: now + TURN_MS }, s, events)
+  step({ ...m, turn: to, turnDeadline: now + TURN_MS, turnNo: m.turnNo + 1 }, s, events)
 
 /**
  * Classic: a solver who moved first leaves the opponent one last move with equal moves;

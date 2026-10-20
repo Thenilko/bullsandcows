@@ -22,7 +22,7 @@ describe('publicView', () => {
     expect(JSON.stringify(publicView(g.match, 'b', g.secrets))).not.toContain('1234')
   })
 
-  it('shows my guesses in full and only verdicts of the opponent', () => {
+  it('shows the opponent classic guesses (against my secret) with verdicts', () => {
     const g = classicInPlay()
     const s = ok(applyGuess(g.match, g.secrets, 'a', '9876', PLAY_AT + 1000))
     const mine = publicView(s.match, 'a', s.secrets)
@@ -30,10 +30,20 @@ describe('publicView', () => {
       { guess: '9876', bulls: 1, cows: 2, consistent: true, at: PLAY_AT + 1000 },
     ])
     const theirs = publicView(s.match, 'b', s.secrets)
-    expect(theirs.opp?.guesses).toEqual([{ bulls: 1, cows: 2, at: PLAY_AT + 1000 }])
-    expect(JSON.stringify(theirs)).not.toContain('9876')
+    expect(theirs.opp?.guesses).toEqual([{ guess: '9876', bulls: 1, cows: 2, at: PLAY_AT + 1000 }])
     expect(theirs.mySeat).toBe('b')
     expect(theirs.me.id).toBe('bob')
+  })
+
+  it('hides the opponent race guesses and verdicts, keeping only attempts and left', () => {
+    const g = raceInPlay()
+    const s = ok(applyGuess(g.match, g.secrets, 'a', '9876', PLAY_AT + 1000))
+    const theirs = publicView(s.match, 'b', s.secrets)
+    expect(theirs.opp?.guesses).toEqual([
+      { guess: null, bulls: null, cows: null, at: PLAY_AT + 1000 },
+    ])
+    expect(theirs.opp?.left).toBe(s.match.players.a.left)
+    expect(JSON.stringify(theirs)).not.toContain('9876')
   })
 
   it('reveals both secrets after the end, from each side', () => {

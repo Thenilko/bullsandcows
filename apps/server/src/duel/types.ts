@@ -64,8 +64,10 @@ export interface Match {
   readonly endedAt: number | null
   readonly outcome: MatchOutcome | null
   readonly turnDeadline: number | null
-  /** The `turnDeadline` the last 15 s warning was sent for; one warning per turn. */
-  readonly warnedTurnAt: number | null
+  /** Classic: incremented on every turn change (first turn = 1). */
+  readonly turnNo: number
+  /** The `turnNo` the last 15 s warning was sent for; one warning per turn. */
+  readonly warnedTurn: number | null
   /** Per seat: when that seat's rematch offer expires, or null. */
   readonly rematch: { readonly a: number | null; readonly b: number | null }
 }

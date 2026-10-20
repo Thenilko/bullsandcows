@@ -65,7 +65,8 @@ export function createMatch(
     endedAt: null,
     outcome: null,
     turnDeadline: null,
-    warnedTurnAt: null,
+    turnNo: 0,
+    warnedTurn: null,
     rematch: NO_REMATCH,
   }
   return { match, secrets: EMPTY_SECRETS }
@@ -132,7 +133,8 @@ export function begin(m: Match, s: Secrets, now: number): Step {
     startedAt: now,
     turn: classic ? m.firstMover : null,
     turnDeadline: classic ? now + TURN_MS : null,
-    warnedTurnAt: null,
+    turnNo: classic ? m.turnNo + 1 : m.turnNo,
+    warnedTurn: null,
   }
   return step(next, s, [{ to: 'both', msg: { t: 'started', startedAt: now } }])
 }
