@@ -1,5 +1,5 @@
 import type { GameViewDto } from '@bc/protocol'
-import { useState } from 'react'
+import { useCallback, useRef, useState, type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, Chip, Hud, Keypad, NotebookIcon, Slots, Soft } from '../../components/ui'
 import { Notebook } from '../../features/notebook/Notebook'
@@ -113,13 +113,13 @@ const NOTES_BADGE_STYLE = {
   justifyContent: 'center',
 } as const
 
-function NotesButton({ gameId, onClick }: { gameId: string; onClick(): void }) {
+function NotesButton({ gameId, onClick, buttonRef }: { gameId: string; onClick(): void; buttonRef: RefObject<HTMLButtonElement | null> }) {
   const { t } = useTranslation()
   const count = countNotes(useNotebook(gameId))
   return (
-    <button type="button" className="iconbox icobtn" style={NOTES_BTN_STYLE} aria-label={t('notebook.title')} onClick={onClick}>
+    <button ref={buttonRef} type="button" className="iconbox icobtn" style={NOTES_BTN_STYLE} aria-label={t('notebook.title')} onClick={onClick}>
       <NotebookIcon />
-      {count > 0 ? <span style={NOTES_BADGE_STYLE}>{count}</span> : null}
+      {count > 0 ? <span aria-hidden="true" style={NOTES_BADGE_STYLE}>{count}</span> : null}
     </button>
   )
 }
@@ -128,15 +128,18 @@ function NotesButton({ gameId, onClick }: { gameId: string; onClick(): void }) {
 export function MobilePlay({ game, g, notesOpen = false }: Omit<PlayPanelProps, 'desktop'> & { notesOpen?: boolean }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(notesOpen)
-  const close = () => {
+  const opener = useRef<HTMLButtonElement>(null)
+  const close = useCallback(() => {
     sfx.play('page')
     setOpen(false)
-  }
+    opener.current?.focus()
+  }, [])
   return (
     <section aria-label={t('play.inputArea')} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <Status game={game} />
         <NotesButton
+          buttonRef={opener}
           gameId={game.id}
           onClick={() => {
             sfx.play('page')

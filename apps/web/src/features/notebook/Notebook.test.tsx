@@ -126,6 +126,27 @@ describe('Notebook sheet on mobile', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
+  it('moves focus into the dialog, traps Tab and restores focus to the opener on Escape', async () => {
+    show()
+    const open = await screen.findByRole('button', { name: 'Тефтерче' })
+    fireEvent.click(open)
+    const dialog = screen.getByRole('dialog', { name: 'Тефтерче' })
+    expect(dialog).toHaveFocus()
+
+    const close = screen.getByRole('button', { name: 'Затвори' })
+    const buttons = within(dialog).getAllByRole('button')
+    const last = buttons[buttons.length - 1]!
+    last.focus()
+    fireEvent.keyDown(last, { key: 'Tab' })
+    expect(close).toHaveFocus()
+    fireEvent.keyDown(close, { key: 'Tab', shiftKey: true })
+    expect(last).toHaveFocus()
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(open).toHaveFocus()
+  })
+
   it('shows a badge with the number of notes on the button', async () => {
     show()
     await screen.findByRole('button', { name: 'Тефтерче' })
