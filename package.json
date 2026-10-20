@@ -11,7 +11,7 @@
     "dev": "concurrently -n web,server \"pnpm --filter web dev\" \"pnpm --filter server dev\"",
     "build": "pnpm -r build",
     "test": "vitest run",
-    "typecheck": "tsc -b && tsc -p packages/game-core/tsconfig.test.json",
+    "typecheck": "tsc -b && tsc -p packages/game-core/tsconfig.test.json && tsc -p packages/i18n/tsconfig.test.json",
     "lint": "eslint ."
   },
   "devDependencies": {
