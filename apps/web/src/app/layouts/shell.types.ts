@@ -8,6 +8,8 @@ export interface ShellProps {
   children: ReactNode
   /** Desktop only: puts the scene in the narrow second column (non-play screens). */
   sceneSide?: boolean
+  /** Mobile only: top offset of the panel in px (the play screens use 356 to show the whole scene). */
+  panelTop?: number
 }
 
 export const TABS = [

@@ -8,14 +8,14 @@ import { TABS, type ShellProps } from './shell.types'
 
 const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon, QuestionIcon] as const
 
-export function MobileShell({ scene, children }: ShellProps) {
+export function MobileShell({ scene, children, panelTop }: ShellProps) {
   const { t } = useTranslation()
   return (
     <div className={styles.root}>
       <div className={styles.scene}>
         <PastureScene {...scene} label={t('nav.play')} />
       </div>
-      <main className={cx('panel', styles.panelBody)}>{children}</main>
+      <main className={cx('panel', styles.panelBody)} style={panelTop === undefined ? undefined : { top: panelTop }}>{children}</main>
       <nav className="tabbar" aria-label={t('nav.main')}>
         {TABS.map((tab, i) => {
           const Icon = TAB_ICONS[i] ?? HomeIcon
