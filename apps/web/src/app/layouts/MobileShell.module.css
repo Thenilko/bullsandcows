@@ -1,0 +1,26 @@
+.root {
+  position: relative;
+  height: 100dvh;
+  min-height: 560px;
+  overflow: hidden;
+  background: #f6f2e6;
+  color: #2e3b24;
+}
+
+.scene {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 380px;
+  overflow: hidden;
+  background: #a9d6f0;
+}
+
+.panelBody {
+  top: 190px;
+  bottom: 72px;
+  padding: 18px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}

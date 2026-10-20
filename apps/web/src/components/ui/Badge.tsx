@@ -1,0 +1,24 @@
+import type { ComponentProps } from 'react'
+import { cx } from './cx'
+import { BadgeGlyph, type BadgeVariant } from './icons'
+
+export interface BadgeProps extends ComponentProps<'div'> {
+  variant: BadgeVariant
+  /** Background of the round icon holder. */
+  bg: string
+  name: string
+  locked?: boolean
+}
+
+const HOLDER_STYLE = { width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' } as const
+
+export function Badge({ variant, bg, name, locked, className, ...rest }: BadgeProps) {
+  return (
+    <div className={cx('badge', locked && 'locked', className)} {...rest}>
+      <span style={{ ...HOLDER_STYLE, background: bg }}>
+        <BadgeGlyph variant={variant} />
+      </span>
+      <span>{name}</span>
+    </div>
+  )
+}
