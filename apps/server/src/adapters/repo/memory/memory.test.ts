@@ -181,7 +181,7 @@ describe('memory games', () => {
     await finishedGame({ ...day, practice: true }, { attempts: 7 })
     await finishedGame({ ...day, len: 5 }, { attempts: 8 })
     await finishedGame({ ...day, zero: true }, { attempts: 9 })
-    await finishedGame(day, { attempts: 10, won: false })
+    await finishedGame({ ...day, userId: 'u2' }, { attempts: 10, won: false })
     await finishedGame({}, { attempts: 11 })
     now = 5_000
     await finishedGame({}, { attempts: 12 })
@@ -194,6 +194,18 @@ describe('memory games', () => {
     expect(
       await repo.games.wonAttempts({ kind: 'free', len: 4, zero: false, sinceMs: 4_000 }),
     ).toEqual([12])
+  })
+
+  it('enforces one counted daily game per key and unique guesses, like the database', async () => {
+    const day = { kind: 'daily' as const, dailyDate: '2026-10-20' }
+    await repo.games.create(newGame(day))
+    await expect(repo.games.create(newGame(day))).rejects.toMatchObject({ code: '23505' })
+    await repo.games.create(newGame({ ...day, practice: true }))
+    await repo.games.create(newGame({ ...day, userId: 'u2' }))
+    const guess = { gameId: 'g', guess: '5678', bulls: 0, cows: 0, consistent: true, at: 1 }
+    await repo.games.addGuess(guess)
+    await expect(repo.games.addGuess(guess)).rejects.toMatchObject({ code: '23505' })
+    await repo.games.addGuess({ ...guess, gameId: 'other' })
   })
 
   it('lists history newest first with a limit', async () => {

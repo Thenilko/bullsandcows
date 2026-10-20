@@ -107,7 +107,11 @@ export const guesses = pgTable(
     consistent: boolean('consistent').notNull(),
     at: ts('at').notNull(),
   },
-  (t) => [index('guesses_game_idx').on(t.gameId, t.id)],
+  (t) => [
+    index('guesses_game_idx').on(t.gameId, t.id),
+    // A code can be guessed once per game, also when two requests race the repeat check.
+    uniqueIndex('guesses_game_guess_idx').on(t.gameId, t.guess),
+  ],
 ).enableRLS()
 
 export const duels = pgTable(

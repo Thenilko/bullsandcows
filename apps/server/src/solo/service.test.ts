@@ -219,3 +219,36 @@ describe('giveUp and get', () => {
     }
   })
 })
+
+describe('concurrency', () => {
+  it('returns the same counted daily game to two simultaneous creates', async () => {
+    const [a, b] = await Promise.all([daily(), daily()])
+    expect(a.id).toBe(b.id)
+    expect(a.practice).toBe(false)
+    const date = sofiaDate(new Date(START))
+    expect((await repo.games.dailyOf('alice', date, 4, false))?.id).toBe(a.id)
+  })
+
+  it('accepts the same guess only once when sent twice at the same time', async () => {
+    const game = await free('1234')
+    await solo.start(alice, game.id)
+    const codes = await Promise.all([
+      codeOf(solo.guess(alice, game.id, '5678')),
+      codeOf(solo.guess(alice, game.id, '5678')),
+    ])
+    expect(codes.sort()).toEqual(['ERR_REPEAT', null].sort())
+    expect(await repo.games.guesses(game.id)).toHaveLength(1)
+  })
+})
+
+describe('wasted', () => {
+  it('counts guesses that did not fit the earlier answers', async () => {
+    const game = await free('5678')
+    await solo.start(alice, game.id)
+    await solo.guess(alice, game.id, '1234')
+    await solo.guess(alice, game.id, '1567')
+    expect((await repo.games.get(game.id))?.wasted).toBe(1)
+    await solo.guess(alice, game.id, '5678')
+    expect(await repo.games.get(game.id)).toMatchObject({ wasted: 1, won: true })
+  })
+})

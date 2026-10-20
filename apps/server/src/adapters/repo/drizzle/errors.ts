@@ -1,6 +1,5 @@
 import { AppError } from '../../../http/errors'
-
-const UNIQUE_VIOLATION = '23505'
+import { UNIQUE_VIOLATION } from '../../../ports/errors'
 
 interface PgErrorLike {
   readonly code?: unknown

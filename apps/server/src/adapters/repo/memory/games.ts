@@ -1,9 +1,11 @@
 import { AppError } from '../../../http/errors'
 import type { Clock } from '../../../ports/clock'
+import { duplicateError } from '../../../ports/errors'
 import type {
   GameRow,
   GamesRepo,
   GuessRow,
+  NewGame,
   PublicGameRow,
   WonAttemptsQuery,
 } from '../../../ports/repo'
@@ -18,6 +20,17 @@ function matchesWon(g: GameRow, q: WonAttemptsQuery): boolean {
   return true
 }
 
+const isCountedDaily = (g: Pick<GameRow, 'kind' | 'practice'>) => g.kind === 'daily' && !g.practice
+
+/** Same rule as the partial unique index `games_daily_counted_idx`. */
+const sameCountedDaily = (a: GameRow, b: NewGame) =>
+  isCountedDaily(a) &&
+  isCountedDaily(b) &&
+  a.userId === b.userId &&
+  a.dailyDate === b.dailyDate &&
+  a.len === b.len &&
+  a.zero === b.zero
+
 export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
   const save = (game: GameRow): PublicGameRow => {
     store.games.set(game.id, copy(game))
@@ -26,8 +39,9 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
   const all = (): GameRow[] => [...store.games.values()]
 
   return {
-    create: async (input) =>
-      save({
+    create: async (input) => {
+      if (all().some((g) => sameCountedDaily(g, input))) throw duplicateError('daily game')
+      return save({
         ...input,
         id: crypto.randomUUID(),
         startedAt: null,
@@ -38,7 +52,8 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
         score: 0,
         suspicious: false,
         createdAt: clock.now(),
-      }),
+      })
+    },
     get: async (id) => {
       const found = store.games.get(id)
       return found ? publicGame(found) : null
@@ -53,9 +68,11 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
       return save({ ...current, ...defined(patch) })
     },
     addGuess: async (input) => {
+      const existing = store.guesses.get(input.gameId) ?? []
+      if (existing.some((g) => g.guess === input.guess)) throw duplicateError('guess')
       const row: GuessRow = { ...input, id: store.nextGuessId }
       store.nextGuessId += 1
-      store.guesses.set(input.gameId, [...(store.guesses.get(input.gameId) ?? []), copy(row)])
+      store.guesses.set(input.gameId, [...existing, copy(row)])
       return copy(row)
     },
     guesses: async (gameId) => copy([...(store.guesses.get(gameId) ?? [])]),

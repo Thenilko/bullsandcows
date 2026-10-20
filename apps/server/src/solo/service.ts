@@ -15,7 +15,8 @@ import {
 import type { ErrorCode } from '@bc/protocol'
 import type { AuthUser } from '../ports/auth'
 import type { Clock } from '../ports/clock'
-import type { GameRow, GuessRow, PublicGameRow, Repo } from '../ports/repo'
+import { isDuplicate } from '../ports/errors'
+import type { GameRow, GuessRow, NewGuess, PublicGameRow, Repo } from '../ports/repo'
 import { candidatesAfter, leftAfterEach } from './evaluate'
 import type { CreateInput, GameView, GuessResult } from './types'
 
@@ -58,7 +59,7 @@ export class SoloService {
   constructor(private readonly deps: SoloDeps) {}
 
   async create(user: AuthUser, input: CreateInput): Promise<GameView> {
-    const { repo, clock } = this.deps
+    const { repo } = this.deps
     const { len, zero } = input
     if (input.kind === 'free') {
       if (input.secretOverride !== undefined && !isValidCode(input.secretOverride, len, zero)) {
@@ -76,6 +77,11 @@ export class SoloService {
       })
       return this.view(game)
     }
+    return this.createDaily(user, len, zero)
+  }
+
+  private async createDaily(user: AuthUser, len: Len, zero: boolean): Promise<GameView> {
+    const { repo, clock } = this.deps
     const date = sofiaDate(new Date(clock.now()))
     const counted = await repo.games.dailyOf(user.id, date, len, zero)
     // An unfinished counted game is resumed; the unique index allows only one per key.
@@ -89,16 +95,23 @@ export class SoloService {
         dailyIndex(this.deps.dailySalt, date, len, zero),
       )
     }
-    const game = await repo.games.create({
-      userId: user.id,
-      kind: 'daily',
-      len,
-      zero,
-      secret: dailySecret(this.deps.dailySalt, date, len, zero),
-      dailyDate: date,
-      practice,
-    })
-    return this.view(game)
+    try {
+      const game = await repo.games.create({
+        userId: user.id,
+        kind: 'daily',
+        len,
+        zero,
+        secret: dailySecret(this.deps.dailySalt, date, len, zero),
+        dailyDate: date,
+        practice,
+      })
+      return this.view(game)
+    } catch (err) {
+      // A simultaneous request created the counted game first: resume that one.
+      const winner = isDuplicate(err) ? await repo.games.dailyOf(user.id, date, len, zero) : null
+      if (winner) return this.view(winner)
+      throw err
+    }
   }
 
   async start(user: AuthUser, gameId: string): Promise<{ startedAt: number }> {
@@ -122,15 +135,15 @@ export class SoloService {
     const verdict = bullsCows(game.secret, guess)
     const consistent = isConsistent(before, guess)
     const left = filterCandidates(before, guess, verdict).length
-    const at = clock.now()
-    const row = await repo.games.addGuess({ gameId, guess, ...verdict, consistent, at })
+    const row = await this.addGuessOnce({ gameId, guess, ...verdict, consistent, at: clock.now() })
     const attempts = previous.length + 1
+    const wasted = [...previous, row].filter((r) => !r.consistent).length
     const solved = verdict.bulls === game.len
     if (!solved) {
-      await repo.games.update(gameId, { attempts })
+      await repo.games.update(gameId, { attempts, wasted })
       return { ...verdict, consistent, left, solved }
     }
-    const score = await this.finishWin(user, game, [...previous, row], attempts)
+    const score = await this.finishWin(user, game, [...previous, row], attempts, wasted)
     return { ...verdict, consistent, left, solved, score }
   }
 
@@ -154,6 +167,7 @@ export class SoloService {
     game: GameRow,
     rows: readonly GuessRow[],
     attempts: number,
+    wasted: number,
   ): Promise<number> {
     const { repo, clock } = this.deps
     const finishedAt = clock.now()
@@ -166,10 +180,27 @@ export class SoloService {
       game.len,
       true,
     )
-    await repo.games.update(game.id, { attempts, finishedAt, won: true, score, suspicious })
+    await repo.games.update(game.id, {
+      attempts,
+      wasted,
+      finishedAt,
+      won: true,
+      score,
+      suspicious,
+    })
     // A user without a profile row yet is skipped by addXp (returns null).
     if (!game.practice) await repo.profiles.addXp(user.id, score)
     return score
+  }
+
+  /** The same guess sent twice at once passes the repeat check twice; the unique index decides. */
+  private async addGuessOnce(guess: NewGuess): Promise<GuessRow> {
+    try {
+      return await this.deps.repo.games.addGuess(guess)
+    } catch (err) {
+      if (isDuplicate(err)) throw new SoloError('ERR_REPEAT')
+      throw err
+    }
   }
 
   private async owned(user: AuthUser, gameId: string): Promise<PublicGameRow> {
