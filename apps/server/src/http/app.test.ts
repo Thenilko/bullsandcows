@@ -128,14 +128,14 @@ describe('worker entry', () => {
     expect(await res.json()).toEqual({ ok: true, data: { status: 'ok' } })
   })
 
-  it('answers /ws with 501 until the rooms exist', async () => {
-    const res = await exports.default.fetch('http://localhost/ws/queue')
+  it('answers /ws/duel with 501 until the duel room exists', async () => {
+    const res = await exports.default.fetch('http://localhost/ws/duel/abc')
     expect(res.status).toBe(501)
     await res.text()
   })
 
-  it('serves the stub durable objects with 501', async () => {
-    for (const ns of [workerEnv.QUEUE, workerEnv.DUEL]) {
+  it('serves the stub duel durable object with 501', async () => {
+    for (const ns of [workerEnv.DUEL]) {
       const res = await ns.get(ns.idFromName('t')).fetch('http://do/x')
       expect(res.status).toBe(501)
       await res.text()
