@@ -19,7 +19,8 @@
     "digits_other": "{{count}} цифри",
     "attempts_one": "{{count}} опит",
     "attempts_other": "{{count}} опита",
-    "attemptsShort": "{{count}} оп.",
+    "attemptsShort_one": "{{count}} оп.",
+    "attemptsShort_other": "{{count}} оп.",
     "variantsShort": "{{count}} вар.",
     "pointsShort": "{{count}} т.",
     "bull_one": "{{count}} бик",
@@ -249,7 +250,8 @@
     "boardShort": "Класация",
     "share": "Сподели",
     "shareText": {
-      "win": "Бикове и крави · {{count}} цифри · {{attempts}} опита · топ {{top}}%",
+      "win_one": "Бикове и крави · {{len}} цифри · {{count}} опит · топ {{top}}%",
+      "win_other": "Бикове и крави · {{len}} цифри · {{count}} опита · топ {{top}}%",
       "lose": "Бикове и крави · {{count}} цифри · числото устоя"
     }
   },
@@ -277,7 +279,8 @@
     "rank": "№{{rank}}",
     "top": "топ {{top}}%",
     "bestGame": "Най-добрата ти игра: {{best}}. Играй днешното число, за да се изкачиш.",
-    "bestGameValue": "{{attempts}} опита за {{time}}",
+    "bestGameValue_one": "{{count}} опит за {{time}}",
+    "bestGameValue_other": "{{count}} опита за {{time}}",
     "noBestGame": "още няма",
     "playNow": "Играй сега",
     "guestOnly": "Класацията е за регистрирани пастири.",
@@ -288,6 +291,7 @@
     "caption": "Твоето пасище",
     "levelLine": "{{title}} · ниво {{level}}",
     "xp": "{{xp}} / 1500 т. до ниво {{level}}",
+    "rating": "рейтинг {{rating}}",
     "streakBand": "серия {{count}}",
     "streakChip": "Серия {{count}}",
     "stat": {

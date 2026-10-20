@@ -19,7 +19,8 @@
     "digits_other": "{{count}} digits",
     "attempts_one": "{{count}} guess",
     "attempts_other": "{{count}} guesses",
-    "attemptsShort": "{{count}} guesses",
+    "attemptsShort_one": "{{count}} guess",
+    "attemptsShort_other": "{{count}} guesses",
     "variantsShort": "{{count}} left",
     "pointsShort": "{{count}} pts",
     "bull_one": "{{count}} bull",
@@ -249,7 +250,8 @@
     "boardShort": "Leaderboard",
     "share": "Share",
     "shareText": {
-      "win": "Bulls and Cows · {{count}} digits · {{attempts}} guesses · top {{top}}%",
+      "win_one": "Bulls and Cows · {{len}} digits · {{count}} guess · top {{top}}%",
+      "win_other": "Bulls and Cows · {{len}} digits · {{count}} guesses · top {{top}}%",
       "lose": "Bulls and Cows · {{count}} digits · the number held out"
     }
   },
@@ -277,7 +279,8 @@
     "rank": "#{{rank}}",
     "top": "top {{top}}%",
     "bestGame": "Your best game: {{best}}. Play today's number to climb higher.",
-    "bestGameValue": "{{attempts}} guesses in {{time}}",
+    "bestGameValue_one": "{{count}} guess in {{time}}",
+    "bestGameValue_other": "{{count}} guesses in {{time}}",
     "noBestGame": "none yet",
     "playNow": "Play now",
     "guestOnly": "The leaderboard is for registered shepherds.",
@@ -288,6 +291,7 @@
     "caption": "Your pasture",
     "levelLine": "{{title}} · level {{level}}",
     "xp": "{{xp}} / 1500 pts to level {{level}}",
+    "rating": "rating {{rating}}",
     "streakBand": "streak {{count}}",
     "streakChip": "Streak {{count}}",
     "stat": {
