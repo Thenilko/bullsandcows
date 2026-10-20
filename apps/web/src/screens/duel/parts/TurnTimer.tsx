@@ -30,7 +30,7 @@ export function TurnTimer({ msLeft, warn }: { msLeft: number; warn: boolean }) {
 export function TurnWarning({ msLeft }: { msLeft: number }) {
   const { t } = useTranslation()
   return (
-    <p role="alert" style={{ margin: 0, fontWeight: 900, fontSize: 13, color: '#B5452F' }}>
+    <p role="alert" style={{ margin: 0, fontWeight: 900, fontSize: 13, color: 'var(--c-red-dark)' }}>
       {t('duel.play.turnWarning', { count: Math.ceil(msLeft / 1000) })}
     </p>
   )

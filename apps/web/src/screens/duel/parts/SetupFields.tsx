@@ -13,7 +13,7 @@ const LEVELS = [
   { level: 3, key: 'hard' },
   { level: 4, key: 'expert' },
 ] as const satisfies readonly { level: BotLevel; key: string }[]
-export const SETUP_NOTE = { margin: 0, fontSize: 12, fontWeight: 700, color: '#6B7560', textAlign: 'center', lineHeight: 1.45 } as const
+export const SETUP_NOTE = { margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)', textAlign: 'center', lineHeight: 1.45 } as const
 
 export function ModeSwitch({ mode, onPick }: { mode: PickedMode; onPick(m: PickedMode): void }) {
   const { t } = useTranslation()

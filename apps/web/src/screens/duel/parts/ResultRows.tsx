@@ -10,7 +10,7 @@ export interface ResultRow {
 }
 
 const TAG_SOLVED = { background: '#DCEFD0', color: '#2E5E1E' } as const
-const TAG_UNSOLVED = { background: '#ECE5D2', color: '#6B7560' } as const
+const TAG_UNSOLVED = { background: '#ECE5D2', color: 'var(--c-muted-aa)' } as const
 
 export function ResultRows({ rows }: { rows: readonly ResultRow[] }) {
   const { t } = useTranslation()

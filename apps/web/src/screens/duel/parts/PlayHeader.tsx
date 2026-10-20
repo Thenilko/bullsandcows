@@ -11,7 +11,8 @@ export interface PlayHeaderProps {
   clockMs: number
 }
 
-const TAG_COLORS = { me: '#5E9E46', opp: '#4A7FB0' } as const
+// Darker shades of the design's green/blue so the white tag text meets AA (4.6:1+; the originals are 3.3:1 / 4.2:1).
+const TAG_COLORS = { me: '#4A8236', opp: '#4278A8' } as const
 const ROW = { display: 'flex', alignItems: 'center', gap: 8 } as const
 
 /** Attempt counter, turn tag, turn timer (with the 15 s warning) and the match clock. */

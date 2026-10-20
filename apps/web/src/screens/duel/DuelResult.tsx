@@ -111,7 +111,7 @@ function ResultHeader({ kicker, outcome, sub, explain }: { kicker: string; outco
   const { t } = useTranslation()
   return (
     <div style={{ ...COL, alignItems: 'center', textAlign: 'center', gap: 10 }}>
-      <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: '.12em', color: '#6B7560' }}>{kicker}</span>
+      <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: '.12em', color: 'var(--c-muted-aa)' }}>{kicker}</span>
       <h1 className="boing" style={{ margin: 0, fontSize: 40, fontWeight: 900, lineHeight: 1, color: HEAD_COLOR[outcome] }}>
         {t(`outcome.${outcome}`)}
       </h1>

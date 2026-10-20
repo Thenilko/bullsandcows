@@ -28,7 +28,7 @@ export interface DuelPlayProps {
 }
 
 const COL = { display: 'flex', flexDirection: 'column', gap: 10 } as const
-const GIVE_UP = { minHeight: 32, fontSize: 13, fontWeight: 800, color: '#6B7560', textDecoration: 'underline' } as const
+const GIVE_UP = { minHeight: 32, fontSize: 13, fontWeight: 800, color: 'var(--c-muted-aa)', textDecoration: 'underline' } as const
 
 export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
   const { t } = useTranslation()
@@ -74,7 +74,7 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
         {m.classic ? (
           <OppGuessesCard state={state} oppName={oppName} mySecret={mySecret} />
         ) : (
-          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#6B7560', textAlign: 'center' }}>
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)', textAlign: 'center' }}>
             {m.botTurn ? t('duel.play.botThinking') : t('duel.play.raceNote', { name: oppName })}
           </p>
         )}

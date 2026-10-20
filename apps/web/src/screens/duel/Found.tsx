@@ -18,7 +18,7 @@ export interface FoundProps {
 }
 
 const READY_TAG = { background: '#DCEFD0', color: '#2E5E1E' } as const
-const WAIT_TAG = { background: '#ECE5D2', color: '#6B7560' } as const
+const WAIT_TAG = { background: '#ECE5D2', color: 'var(--c-muted-aa)' } as const
 const noop = (): void => undefined
 
 export function Found({ state, send }: FoundProps) {
@@ -51,7 +51,7 @@ export function Found({ state, send }: FoundProps) {
         <Cta disabled={state.me.ready || opp === null} style={{ minHeight: 60, fontSize: 20 }} onClick={ready}>
           {label}
         </Cta>
-        <span style={{ fontSize: 12, fontWeight: 700, color: '#6B7560', textAlign: 'center' }}>{t('duel.found.clockNote')}</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)', textAlign: 'center' }}>{t('duel.found.clockNote')}</span>
       </section>
       {feedback.readyToast > 0 ? (
         <Overlay>
