@@ -3,13 +3,13 @@ import { useTranslation } from 'react-i18next'
 import { NavLink } from 'react-router'
 import { PastureScene } from '../../components/scene'
 import { cx } from '../../components/ui/cx'
-import { BullIcon, HomeIcon, SoundOffIcon, SoundOnIcon, TrophyIcon, UserIcon } from '../../components/ui/icons'
+import { BullIcon, HomeIcon, SoundOffIcon, SoundOnIcon, TrophyIcon, UserIcon, QuestionIcon } from '../../components/ui/icons'
 import { setLang } from '../../i18n'
 import { sfx } from '../../lib/sfx'
 import styles from './DesktopShell.module.css'
 import { TABS, type ShellProps } from './shell.types'
 
-const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon] as const
+const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon, QuestionIcon] as const
 
 export function DesktopShell({ scene, children, sceneSide = false }: ShellProps) {
   const { t, i18n } = useTranslation()

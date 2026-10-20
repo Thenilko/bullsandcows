@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next'
 import { NavLink } from 'react-router'
 import { PastureScene } from '../../components/scene'
-import { HomeIcon, TrophyIcon, UserIcon } from '../../components/ui/icons'
+import { HomeIcon, QuestionIcon, TrophyIcon, UserIcon } from '../../components/ui/icons'
 import { cx } from '../../components/ui/cx'
 import styles from './MobileShell.module.css'
 import { TABS, type ShellProps } from './shell.types'
 
-const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon] as const
+const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon, QuestionIcon] as const
 
 export function MobileShell({ scene, children }: ShellProps) {
   const { t } = useTranslation()

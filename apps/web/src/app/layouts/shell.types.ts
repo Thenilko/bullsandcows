@@ -14,4 +14,5 @@ export const TABS = [
   { to: '/', key: 'nav.play', end: true },
   { to: '/board', key: 'nav.board', end: false },
   { to: '/profile', key: 'nav.profile', end: false },
+  { to: '/rules', key: 'nav.rules', end: false },
 ] as const

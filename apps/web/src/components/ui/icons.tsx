@@ -48,6 +48,16 @@ export function UserIcon(p: IconProps) {
   )
 }
 
+export function QuestionIcon(p: IconProps) {
+  return (
+    <Stroke {...p}>
+      <circle cx="12" cy="12" r="9.5" />
+      <path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.4-2.7 4" />
+      <path d="M12 17.5h.01" />
+    </Stroke>
+  )
+}
+
 export function SoundOnIcon({ size = 20, ...p }: IconProps) {
   return (
     <Stroke size={size} {...p}>

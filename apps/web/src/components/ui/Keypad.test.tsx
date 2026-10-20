@@ -63,4 +63,27 @@ describe('Keypad', () => {
     expect(digit('5')).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Пусни стадото!' })).toBeDisabled()
   })
+
+  it('renders the ten digits in one grid in order 1..9,0', () => {
+    renderWithI18n(<Keypad {...base} />)
+    const grid = digit('1').parentElement!
+    expect(grid.style.gridTemplateColumns).toBe('repeat(5, minmax(0, 1fr))')
+    expect(Array.from(grid.children).map((c) => c.textContent)).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'])
+  })
+
+  it('renders an icon-only back button and a cta submit in a 1fr 2.2fr row', () => {
+    renderWithI18n(<Keypad {...base} current="1" />)
+    const back = screen.getByRole('button', { name: 'Изтрий' })
+    expect(back).toHaveClass('soft', 'icobtn')
+    expect(back.textContent).toBe('')
+    expect(back.querySelector('svg')).not.toBeNull()
+    expect(back.parentElement!.style.gridTemplateColumns).toBe('1fr 2.2fr')
+    expect(screen.getByRole('button', { name: 'Пусни стадото!' })).toHaveClass('cta')
+  })
+
+  it('uses 56px keys and 10px gap in the desktop layout', () => {
+    renderWithI18n(<Keypad {...base} layout="desktop" />)
+    expect(digit('1').style.height).toBe('56px')
+    expect(digit('1').parentElement!.style.gap).toBe('10px')
+  })
 })

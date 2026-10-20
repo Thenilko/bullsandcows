@@ -15,4 +15,15 @@ describe('devScreens', () => {
     expect(error).not.toHaveBeenCalled()
     error.mockRestore()
   })
+
+  it.each(['mobile-shell', 'desktop-shell'])('%s lists four navigation links', (name) => {
+    const Screen = devScreens[name]!
+    const { container } = renderWithI18n(
+      <MemoryRouter>
+        <Screen />
+      </MemoryRouter>,
+    )
+    const hrefs = Array.from(container.querySelectorAll('nav a')).map((a) => a.getAttribute('href'))
+    expect(hrefs).toEqual(['/', '/board', '/profile', '/rules'])
+  })
 })
