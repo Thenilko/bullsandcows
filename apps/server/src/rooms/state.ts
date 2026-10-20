@@ -7,8 +7,11 @@ export const INVITE_MS = 30 * 60_000
 export const READY_MS = 60_000
 /** Classic: time to choose a secret once the secrets phase begins. */
 export const SECRETS_MS = 60_000
-/** Delay before retrying a failed result write. */
+/** First retry delay of a failed result write; doubles per attempt up to the max. */
 export const PERSIST_RETRY_MS = 5_000
+export const PERSIST_RETRY_MAX_MS = 5 * 60_000
+/** Writes per result (the first one included) before the result is dropped. */
+export const PERSIST_MAX_ATTEMPTS = 10
 
 /** The seat tokens handed out by `/create` and `/join`; the bot seat has none. */
 export interface Tokens {
@@ -26,14 +29,34 @@ export interface RoomMeta {
   readonly expired: boolean
   /** The current match's result has been claimed for recording (set before the write). */
   readonly resultRecorded: boolean
+  /** Invite rooms: the code, written to the duel row. */
+  readonly inviteCode: string | null
 }
 
-/** A result whose write failed; kept apart from the live state and retried by the alarm. */
+/** Row ids chosen when a result is claimed, so every retry writes the same rows. */
+export interface ResultIds {
+  readonly duelId: string
+  readonly gameA: string | null
+  readonly gameB: string | null
+}
+
+/**
+ * A claimed result, stored (key `pending:<duelId>`) in the same write that claims it and
+ * deleted once written; kept apart from the live state, so a rematch cannot touch it.
+ */
 export interface PendingResult {
   readonly match: Match
   readonly secrets: Secrets
+  readonly ids: ResultIds
+  readonly inviteCode: string | null
+  /** Failed writes so far. */
+  readonly attempts: number
   readonly retryAt: number
 }
+
+/** Delay before the next try after `attempts` failures: 5 s, 10 s, 20 s… capped at 5 min. */
+export const retryDelay = (attempts: number): number =>
+  Math.min(PERSIST_RETRY_MS * 2 ** Math.max(0, attempts - 1), PERSIST_RETRY_MAX_MS)
 
 export interface RoomState {
   readonly match: Match
@@ -42,7 +65,7 @@ export interface RoomState {
   readonly meta: RoomMeta
 }
 
-export function initialMeta(now: number): RoomMeta {
+export function initialMeta(now: number, inviteCode: string | null = null): RoomMeta {
   return {
     createdAt: now,
     inviteExpiresAt: now + INVITE_MS,
@@ -50,6 +73,7 @@ export function initialMeta(now: number): RoomMeta {
     secretsDeadline: null,
     expired: false,
     resultRecorded: false,
+    inviteCode,
   }
 }
 

@@ -1,4 +1,4 @@
-import { DEFAULT_RATING } from '@bc/game-core'
+import { DEFAULT_RATING, isInviteCode } from '@bc/game-core'
 import { BotLevelSchema, FormatSchema, LenSchema, type ErrorCode } from '@bc/protocol'
 import { z } from 'zod'
 import { createMatch, join } from '../duel/match'
@@ -40,6 +40,8 @@ export const CreateBody = z.object({
       message: 'botLevel is required for bot rooms and only for them',
     }),
   host: PlayerInfoSchema.refine((p) => p.id !== BOT_ID, { message: 'reserved id' }),
+  /** Invite rooms: the code (written to the duel row). */
+  inviteCode: z.string().refine(isInviteCode, { message: 'not an invite code' }).optional(),
 })
 export type CreateBody = z.infer<typeof CreateBody>
 
@@ -77,7 +79,7 @@ export function createRoom(
     match: created.match,
     secrets: created.secrets,
     tokens: { a: token, b: null },
-    meta: initialMeta(now),
+    meta: initialMeta(now, body.inviteCode ?? null),
   }
   if (opts.botLevel === undefined) return base
   const joined = join(base.match, base.secrets, botInfo(opts.botLevel))

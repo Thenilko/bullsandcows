@@ -25,6 +25,7 @@ CREATE TABLE "duels" (
 	"rating_delta_b" double precision,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"finished_at" timestamp with time zone,
+	"rewards_applied" boolean DEFAULT false NOT NULL,
 	CONSTRAINT "duels_format_check" CHECK ("duels"."format" in ('race', 'classic')),
 	CONSTRAINT "duels_opponent_kind_check" CHECK ("duels"."opponent_kind" in ('quick', 'friend', 'bot')),
 	CONSTRAINT "duels_len_check" CHECK ("duels"."len" between 3 and 5)

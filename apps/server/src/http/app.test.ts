@@ -1,5 +1,5 @@
 import { env as workerEnv, exports } from 'cloudflare:workers'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import { createFakeAuth } from '../adapters/auth/fake'
 import { createMemoryRepo } from '../adapters/repo/memory'
@@ -122,7 +122,15 @@ describe('api app', () => {
   })
 })
 
-describe('worker entry', () => {
+/** A cold Worker isolate can take seconds to start under full parallel load. */
+const WORKER_TEST_MS = 15_000
+
+describe('worker entry', { timeout: WORKER_TEST_MS }, () => {
+  beforeAll(async () => {
+    // Warm the Worker once so the first test does not pay for the isolate start-up.
+    await (await exports.default.fetch('http://localhost/api/health')).text()
+  }, WORKER_TEST_MS)
+
   it('routes /api to the app', async () => {
     const res = await exports.default.fetch('http://localhost/api/health')
     expect(await res.json()).toEqual({ ok: true, data: { status: 'ok' } })

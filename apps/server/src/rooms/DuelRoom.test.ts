@@ -1,151 +1,48 @@
-import { env as workerEnv, exports } from 'cloudflare:workers'
-import { runDurableObjectAlarm, runInDurableObject } from 'cloudflare:test'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { ServerMsg } from '@bc/protocol'
-import { sharedMemoryRepo } from '../adapters/repo/memory'
+import { exports } from 'cloudflare:workers'
+import { afterEach, describe, expect, it } from 'vitest'
+import { RoomError } from '../duel/roomClient'
+import { COUNTDOWN_MS, RECONNECT_MS, TURN_MS, TURN_WARN_MS } from '../duel/types'
 import {
-  durableRoomClient,
-  RoomError,
-  type PlayerInfo,
-  type Room,
-  type RoomOpts,
-} from '../duel/roomClient'
-import { COUNTDOWN_MS, RECONNECT_MS, TURN_MS, TURN_WARN_MS, type Secrets } from '../duel/types'
-import type { DuelRoom } from './DuelRoom'
+  CLASSIC,
+  FAR_FUTURE,
+  RACE,
+  alarmAt,
+  cleanup,
+  connect,
+  last,
+  member,
+  of,
+  otherCode,
+  repo,
+  rooms,
+  send,
+  setup,
+  startRace,
+  storage,
+  stubOf,
+  track,
+  got,
+  sendRaw,
+  until,
+  useClock,
+  wsUrl,
+  type Setup,
+} from './duelRoom.testkit'
 import { INVITE_MS, READY_MS } from './state'
 import type { Timers } from './timers'
 
-/** Mocked clock far ahead of real time, so a real alarm never fires on its own. */
-const FAR_FUTURE = Date.now() + 1e9
-const ns = workerEnv.DUEL as unknown as DurableObjectNamespace
-const rooms = durableRoomClient(ns)
-const repo = sharedMemoryRepo()
+afterEach(cleanup)
 
-const RACE: RoomOpts = { format: 'race', len: 4, zero: false, opponentKind: 'quick' }
-const CLASSIC: RoomOpts = { format: 'classic', len: 4, zero: false, opponentKind: 'human' }
+const untilReconnectTimer = (s: Pick<Setup, 'stub'>) =>
+  until(
+    async () => (await storage<Timers>(s.stub, 'timers'))?.['reconnect:a'] !== undefined,
+    undefined,
+    'the reconnect timer',
+  )
 
-interface Member {
-  readonly info: PlayerInfo
-  readonly auth: string
-}
-
-let seq = 0
-async function member(name: string, isGuest = false): Promise<Member> {
-  seq += 1
-  const id = `${name}-${seq}-${crypto.randomUUID().slice(0, 8)}`
-  const profile = await repo.profiles.create({ id, username: id, email: null, isGuest })
-  return {
-    info: { id, username: profile.username, level: 1, rating: profile.rating, isGuest },
-    auth: `fake:${id}:${id}${isGuest ? ':guest' : ''}`,
-  }
-}
-
-interface Client {
-  readonly ws: WebSocket
-  readonly msgs: ServerMsg[]
-  closed: number | null
-}
-
-const wait = () => new Promise((r) => setTimeout(r, 25))
-
-function wsUrl(roomId: string, token: string, auth: string): string {
-  const q = new URLSearchParams({ token, auth })
-  return `https://x/ws/duel/${roomId}?${q.toString()}`
-}
-
-async function connect(roomId: string, token: string, who: Member): Promise<Client> {
-  const res = await exports.default.fetch(wsUrl(roomId, token, who.auth), {
-    headers: { Upgrade: 'websocket' },
-  })
-  expect(res.status).toBe(101)
-  const ws = res.webSocket!
-  const client: Client = { ws, msgs: [], closed: null }
-  ws.addEventListener('message', (e) => {
-    client.msgs.push(JSON.parse(e.data as string))
-  })
-  ws.addEventListener('close', (e) => {
-    client.closed = e.code
-  })
-  ws.accept()
-  await wait()
-  return client
-}
-
-const send = async (c: Client, msg: object) => {
-  c.ws.send(JSON.stringify(msg))
-  await wait()
-}
-
-const of = <T extends ServerMsg['t']>(c: Client, t: T) =>
-  c.msgs.filter((m): m is Extract<ServerMsg, { t: T }> => m.t === t)
-const last = <T extends ServerMsg['t']>(c: Client, t: T) => of(c, t).at(-1)
-
-interface Setup {
-  readonly room: Room
-  readonly stub: DurableObjectStub
-  readonly clock: { t: number }
-  readonly a: Member
-  readonly b: Member
-  readonly ta: string
-  readonly tb: string
-}
-
-const stubOf = (room: Room) => ns.get(ns.idFromString(room.id))
-
-async function useClock(stub: DurableObjectStub, clock: { t: number }): Promise<void> {
-  await runInDurableObject(stub, (instance: DuelRoom) => {
-    vi.spyOn(instance, 'now').mockImplementation(() => clock.t)
-  })
-}
-
-async function setup(opts: RoomOpts = RACE, room: Room = rooms.fresh()): Promise<Setup> {
-  const clock = { t: FAR_FUTURE }
-  const stub = stubOf(room)
-  await useClock(stub, clock)
-  const a = await member('anna')
-  const b = await member('boris')
-  const { token: ta } = await room.create({ opts, host: a.info })
-  const { token: tb } = await room.join({ info: b.info })
-  return { room, stub, clock, a, b, ta, tb }
-}
-
-const storage = <T>(stub: DurableObjectStub, key: string) =>
-  runInDurableObject(stub, async (_i: DuelRoom, state) => state.storage.get<T>(key))
-
-async function alarmAt(s: Pick<Setup, 'stub' | 'clock'>, t: number): Promise<void> {
-  s.clock.t = t
-  await runDurableObjectAlarm(s.stub)
-  await wait()
-}
-
-async function startRace(s: Setup): Promise<{ ca: Client; cb: Client; secret: string }> {
-  const ca = await connect(s.room.id, s.ta, s.a)
-  const cb = await connect(s.room.id, s.tb, s.b)
-  await send(ca, { t: 'ready' })
-  await send(cb, { t: 'ready' })
-  await alarmAt(s, s.clock.t + COUNTDOWN_MS)
-  const secrets = await storage<Secrets>(s.stub, 'secrets')
-  return { ca, cb, secret: secrets!.shared! }
-}
-
-/** A valid 4-digit code without zero that is not `secret`. */
-const otherCode = (secret: string) => (secret === '1234' ? '5678' : '1234')
-
-const openStubs: DurableObjectStub[] = []
-afterEach(async () => {
-  for (const stub of openStubs.splice(0)) {
-    await runInDurableObject(stub, async (_i: DuelRoom, state) => {
-      for (const ws of state.getWebSockets()) ws.close(1000)
-      await state.storage.deleteAlarm()
-    })
-  }
-  vi.restoreAllMocks()
-})
-const track = <T extends Pick<Setup, 'stub'>>(s: T): T => {
-  openStubs.push(s.stub)
-  return s
-}
-
+/** The result is written after the `ended` events go out. */
+const untilRecorded = (userId: string) =>
+  until(async () => ((await repo.profiles.get(userId))?.xp ?? 0) > 0, undefined, 'the xp')
 describe('Worker /ws/duel/:roomId', () => {
   it('answers 404 for a malformed room id', async () => {
     const m = await member('nobody')
@@ -153,6 +50,22 @@ describe('Worker /ws/duel/:roomId', () => {
       headers: { Upgrade: 'websocket' },
     })
     expect(res.status).toBe(404)
+    await res.text()
+  })
+
+  it('answers 404 with the envelope for a room id that is not even well-formed', async () => {
+    const m = await member('nobody')
+    const res = await exports.default.fetch(wsUrl('%ZZ', 't', m.auth), {
+      headers: { Upgrade: 'websocket' },
+    })
+    expect(res.status).toBe(404)
+    expect(await res.json()).toEqual({ ok: false, error: { code: 'ERR_NOT_FOUND' } })
+  })
+
+  it('answers 426 to a request that is not a WebSocket upgrade, before any auth', async () => {
+    const s = track(await setup())
+    const res = await exports.default.fetch(`https://x/ws/duel/${s.room.id}?token=${s.ta}`)
+    expect(res.status).toBe(426)
     await res.text()
   })
 
@@ -198,9 +111,13 @@ describe('DuelRoom race', () => {
     await send(ca, { t: 'ready' })
     await send(cb, { t: 'ready' })
     const startAt = s.clock.t + COUNTDOWN_MS
+    await got(ca, 'countdown')
+    await got(cb, 'countdown')
     expect(of(ca, 'countdown')).toEqual([{ t: 'countdown', startAt }])
     expect(of(cb, 'countdown')).toEqual([{ t: 'countdown', startAt }])
     await alarmAt(s, startAt)
+    await got(ca, 'started')
+    await got(cb, 'started')
     expect(of(ca, 'started')).toEqual([{ t: 'started', startedAt: startAt }])
     expect(of(cb, 'started')).toEqual([{ t: 'started', startedAt: startAt }])
   })
@@ -221,8 +138,7 @@ describe('DuelRoom race', () => {
     const ca = await connect(s.room.id, s.ta, s.a)
     await send(ca, { t: 'dance' })
     expect(ca.msgs.at(-1)).toEqual({ t: 'error', code: 'ERR_INPUT' })
-    ca.ws.send('not json')
-    await wait()
+    await sendRaw(ca, 'not json')
     expect(ca.msgs.at(-1)).toEqual({ t: 'error', code: 'ERR_INPUT' })
   })
 
@@ -231,6 +147,8 @@ describe('DuelRoom race', () => {
     const { ca, cb, secret } = await startRace(s)
     const guess = otherCode(secret)
     await send(ca, { t: 'guess', code: guess })
+    await got(ca, 'verdict')
+    await got(cb, 'oppMoved')
     expect(last(ca, 'verdict')).toMatchObject({ t: 'verdict', guess, attempts: 1 })
     const moved = last(cb, 'oppMoved')
     expect(moved).toMatchObject({ t: 'oppMoved', attempts: 1 })
@@ -245,10 +163,11 @@ describe('DuelRoom race', () => {
     const { ca, cb } = await startRace(s)
     const closedAt = s.clock.t
     ca.ws.close(1000)
-    await wait()
+    await untilReconnectTimer(s)
     const timers = await storage<Timers>(s.stub, 'timers')
     expect(timers?.['reconnect:a']).toBe(closedAt + RECONNECT_MS)
     await alarmAt(s, closedAt + RECONNECT_MS)
+    await got(cb, 'ended')
     expect(last(cb, 'ended')).toMatchObject({ outcome: 'win', reason: 'disconnect' })
   })
 
@@ -256,7 +175,7 @@ describe('DuelRoom race', () => {
     const s = track(await setup())
     const { ca } = await startRace(s)
     ca.ws.close(1000)
-    await wait()
+    await untilReconnectTimer(s)
     s.clock.t += 10_000
     const again = await connect(s.room.id, s.ta, s.a)
     expect(last(again, 'state')?.state.me.connected).toBe(true)
@@ -268,7 +187,7 @@ describe('DuelRoom race', () => {
     const s = track(await setup())
     const first = await connect(s.room.id, s.ta, s.a)
     const second = await connect(s.room.id, s.ta, s.a)
-    expect(first.closed).not.toBeNull()
+    await until(() => first.closed !== null, undefined, 'the old socket to close')
     await send(second, { t: 'ready' })
     expect(last(second, 'state')?.state.me.ready).toBe(true)
     expect(last(second, 'state')?.state.me.connected).toBe(true)
@@ -279,6 +198,9 @@ describe('DuelRoom race', () => {
     const { ca, cb, secret } = await startRace(s)
     s.clock.t += 20_000
     await send(ca, { t: 'guess', code: secret })
+    await got(ca, 'ended')
+    await got(cb, 'ended')
+    await untilRecorded(s.a.info.id)
     const endedA = last(ca, 'ended')
     expect(endedA).toMatchObject({ outcome: 'win', reason: 'solved', xp: 120 })
     expect(endedA?.rating).not.toBeNull()
@@ -299,6 +221,8 @@ describe('DuelRoom race', () => {
     const { ca, secret } = await startRace(s)
     s.clock.t += 20_000
     await send(ca, { t: 'guess', code: secret })
+    await got(ca, 'ended')
+    await untilRecorded(s.b.info.id)
     expect(last(ca, 'ended')).toMatchObject({ outcome: 'win', rating: null, xp: 120 })
     const pa = await repo.profiles.get(s.a.info.id)
     const pb = await repo.profiles.get(s.b.info.id)
@@ -312,16 +236,44 @@ describe('DuelRoom race', () => {
     const s = track(await setup())
     const { ca, secret } = await startRace(s)
     await send(ca, { t: 'giveUp' })
+    await got(ca, 'ended')
     expect(last(ca, 'state')?.state.secrets).toEqual({ mine: secret, theirs: secret })
+  })
+
+  it('restores the result and a pending rematch offer in the state after a reload', async () => {
+    const s = track(await setup())
+    const { ca, cb, secret } = await startRace(s)
+    expect(last(ca, 'state')?.state.xp).toBeUndefined()
+    await send(ca, { t: 'guess', code: secret })
+    await got(ca, 'ended')
+    await send(cb, { t: 'rematch' })
+    await got(ca, 'rematchOffer')
+    const ended = last(ca, 'ended')!
+    const offer = last(ca, 'rematchOffer')!
+    ca.ws.close(1000)
+    const again = await connect(s.room.id, s.ta, s.a)
+    expect(of(again, 'state')[0]?.state).toMatchObject({
+      outcome: { winner: 'a', reason: 'solved' },
+      rating: ended.rating,
+      xp: 120,
+      rematchOffer: { from: 'opp', expiresAt: offer.expiresAt },
+    })
+    expect(last(cb, 'state')?.state).toMatchObject({
+      xp: 40,
+      rematchOffer: { from: 'me' },
+    })
   })
 
   it('starts a fresh friendly match when both ask for a rematch', async () => {
     const s = track(await setup())
     const { ca, cb } = await startRace(s)
     await send(ca, { t: 'giveUp' })
+    await got(cb, 'ended')
     await send(cb, { t: 'rematch' })
+    await got(ca, 'rematchOffer')
     expect(last(ca, 'rematchOffer')).toMatchObject({ from: 'opp' })
     await send(ca, { t: 'rematch' })
+    await until(() => last(ca, 'state')?.state.phase === 'lobby', undefined, 'the new lobby')
     const st = last(ca, 'state')?.state
     expect(st).toMatchObject({ phase: 'lobby', opponentKind: 'friend' })
     expect(st?.secrets).toBeUndefined()
@@ -338,6 +290,8 @@ describe('DuelRoom classic', () => {
     await send(cb, { t: 'secret', code: '5678' })
     const startAt = s.clock.t + COUNTDOWN_MS
     await alarmAt(s, startAt)
+    await got(ca, 'started')
+    await got(cb, 'started')
     const turn = last(ca, 'state')?.state.turn
     return { ca, cb, startAt, onTurn: turn === 'a' ? ca : cb, offTurn: turn === 'a' ? cb : ca }
   }
@@ -346,9 +300,12 @@ describe('DuelRoom classic', () => {
     const s = track(await setup(CLASSIC))
     const { startAt, onTurn, offTurn } = await startClassic(s)
     await alarmAt(s, startAt + TURN_MS - TURN_WARN_MS)
+    await got(onTurn, 'warning')
     expect(of(onTurn, 'warning')).toEqual([{ t: 'warning', msLeft: TURN_WARN_MS }])
     expect(of(offTurn, 'warning')).toEqual([])
     await alarmAt(s, startAt + TURN_MS)
+    await got(onTurn, 'ended')
+    await got(offTurn, 'ended')
     expect(last(onTurn, 'ended')).toMatchObject({ outcome: 'lose', reason: 'timeout' })
     expect(last(offTurn, 'ended')).toMatchObject({ outcome: 'win', reason: 'timeout' })
   })
@@ -369,6 +326,8 @@ describe('DuelRoom classic', () => {
     const secretsFrom = s.clock.t
     await send(ca, { t: 'secret', code: '1234' })
     await alarmAt(s, secretsFrom + 60_000)
+    await got(ca, 'ended')
+    await got(cb, 'ended')
     expect(last(cb, 'ended')).toMatchObject({ outcome: 'lose', reason: 'timeout' })
     expect(last(ca, 'ended')).toMatchObject({ outcome: 'win', reason: 'timeout' })
   })
@@ -382,6 +341,8 @@ describe('DuelRoom lobby timers', () => {
     const joinedAt = s.clock.t
     await send(ca, { t: 'ready' })
     await alarmAt(s, joinedAt + READY_MS)
+    await got(ca, 'ended')
+    await got(cb, 'ended')
     for (const c of [ca, cb]) {
       expect(last(c, 'ended')).toMatchObject({
         outcome: 'draw',
@@ -411,7 +372,7 @@ describe('DuelRoom lobby timers', () => {
     })
     await alarmAt({ stub, clock }, FAR_FUTURE + INVITE_MS)
     expect((await room.info())?.status).toBe('expired')
-    expect(c.closed).not.toBeNull()
+    await until(() => c.closed !== null, undefined, 'the socket to close')
     const guest = await member('late')
     await expect(room.join({ info: guest.info })).rejects.toEqual(
       new RoomError('ERR_INVITE_EXPIRED'),
@@ -449,6 +410,7 @@ describe('DuelRoom bot rooms', () => {
     const c = await connect(room.id, token, host)
     expect(last(c, 'state')?.state.opp).toMatchObject({ username: 'bot', ready: true })
     await send(c, { t: 'ready' })
+    await until(() => last(c, 'state')?.state.phase === 'secrets', undefined, 'secrets phase')
     expect(last(c, 'state')?.state).toMatchObject({ phase: 'secrets', opp: { hasSecret: true } })
   })
 })

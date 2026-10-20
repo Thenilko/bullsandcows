@@ -1,6 +1,6 @@
 import type { ServerMsg } from '@bc/protocol'
-import { publicView } from '../duel/view'
 import type { Emit, Match, Secrets, Seat } from '../duel/types'
+import { snapshot } from './snapshot'
 
 /** Close codes the room uses (4000–4999 are free for applications). */
 export const CLOSE = {
@@ -37,7 +37,7 @@ export function sendTo(ctx: DurableObjectState, seat: Seat, msg: ServerMsg): voi
 /** Each connected seat gets its own `state` (never the other side's secret before the end). */
 export function broadcastState(ctx: DurableObjectState, m: Match, s: Secrets): void {
   for (const seat of SEATS) {
-    if (m.players[seat]) sendTo(ctx, seat, { t: 'state', state: publicView(m, seat, s) })
+    if (m.players[seat]) sendTo(ctx, seat, { t: 'state', state: snapshot(m, seat, s) })
   }
 }
 

@@ -40,10 +40,12 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
 
   return {
     create: async (input) => {
+      const existing = input.id === undefined ? undefined : store.games.get(input.id)
+      if (existing) return publicGame(existing)
       if (all().some((g) => sameCountedDaily(g, input))) throw duplicateError('daily game')
       return save({
         ...input,
-        id: crypto.randomUUID(),
+        id: input.id ?? crypto.randomUUID(),
         startedAt: null,
         finishedAt: null,
         attempts: 0,

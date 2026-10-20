@@ -42,7 +42,7 @@ export interface Room {
   /** `DurableObjectId.toString()`, the id the WebSocket path uses. */
   readonly id: string
   /** POST /create */
-  create(req: { opts: RoomOpts; host: PlayerInfo }): Promise<{ token: string }>
+  create(req: { opts: RoomOpts; host: PlayerInfo; inviteCode?: string }): Promise<{ token: string }>
   /** POST /join; throws `RoomError` for 404/409/410 */
   join(req: { info: PlayerInfo }): Promise<{ token: string }>
   /** GET /info; null when the room does not exist (404) */

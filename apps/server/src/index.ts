@@ -1,4 +1,4 @@
-import { apiErr } from '@bc/protocol'
+import { apiErr, type ErrorCode } from '@bc/protocol'
 import { DurableObject } from 'cloudflare:workers'
 import { makeAuth } from './adapters/auth'
 import { makeRepo } from './adapters/repo'
@@ -50,9 +50,11 @@ async function handleApi(
 }
 
 const DUEL_WS = /^\/ws\/duel\/([^/]+)$/
+/** `DurableObjectId.toString()`: 64 lowercase hex digits. Checked before any decoding. */
+const ROOM_ID = /^[0-9a-f]{64}$/
 
-const notFound = (): Response =>
-  Response.json(apiErr('ERR_NOT_FOUND'), { status: 404, headers: SECURITY_HEADERS })
+const reject = (code: ErrorCode, status: number): Response =>
+  Response.json(apiErr(code), { status, headers: SECURITY_HEADERS })
 
 function duelId(ns: DurableObjectNamespace, roomId: string): DurableObjectId | null {
   try {
@@ -68,16 +70,26 @@ function duelId(ns: DurableObjectNamespace, roomId: string): DurableObjectId | n
  * identity headers only the Worker sets. The seat token is checked by the room.
  */
 async function handleDuelWs(request: Request, raw: CloudflareBindings, roomId: string) {
+  if (request.headers.get('Upgrade')?.toLowerCase() !== 'websocket') {
+    return reject('ERR_INPUT', 426)
+  }
+  if (!ROOM_ID.test(roomId)) return reject('ERR_NOT_FOUND', 404)
   let env: Env
   try {
     env = loadEnv(raw)
   } catch (err) {
     console.error(errorText(err))
-    return Response.json(apiErr('ERR_INTERNAL'), { status: 500, headers: SECURITY_HEADERS })
+    return reject('ERR_INTERNAL', 500)
   }
   const id = duelId(env.DUEL, roomId)
-  if (!id) return notFound()
-  const auth = await authenticateWs(request, env, { allowGuests: true })
+  if (!id) return reject('ERR_NOT_FOUND', 404)
+  let auth: Awaited<ReturnType<typeof authenticateWs>>
+  try {
+    auth = await authenticateWs(request, env, { allowGuests: true })
+  } catch (err) {
+    console.error(`ws auth failed: ${errorText(err)}`)
+    return reject('ERR_INTERNAL', 500)
+  }
   if (auth instanceof Response) return auth
   const token = new URL(request.url).searchParams.get('token') ?? ''
   const inner = new Request(`https://room/ws?token=${encodeURIComponent(token)}`, request)
@@ -102,7 +114,7 @@ export default {
     const { pathname } = new URL(request.url)
     if (pathname === '/api' || pathname.startsWith('/api/')) return handleApi(request, env, ctx)
     const duel = DUEL_WS.exec(pathname)
-    if (duel?.[1]) return handleDuelWs(request, env, decodeURIComponent(duel[1]))
+    if (duel?.[1]) return handleDuelWs(request, env, duel[1])
     if (pathname === '/ws' || pathname.startsWith('/ws/')) return notImplemented()
     return env.ASSETS.fetch(request)
   },

@@ -8,7 +8,7 @@
     "resolveJsonModule": true
   },
   "include": ["src", "worker-configuration.d.ts"],
-  "exclude": ["src/**/*.test.ts"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.testkit.ts"],
   "references": [
     { "path": "../../packages/game-core" },
     { "path": "../../packages/i18n" },

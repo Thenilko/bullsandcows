@@ -19,9 +19,21 @@ const bg = flatten(resources.bg.translation)
 const en = flatten(resources.en.translation)
 
 const SERVER_ERRORS = [
-  'ERR_AUTH', 'ERR_GUEST', 'ERR_INPUT', 'ERR_CODE', 'ERR_NOT_FOUND', 'ERR_NOT_STARTED',
-  'ERR_FINISHED', 'ERR_REPEAT', 'ERR_NOT_YOUR_TURN', 'ERR_USERNAME_TAKEN',
-  'ERR_CREDENTIALS', 'ERR_INVITE_EXPIRED', 'ERR_ROOM_FULL', 'ERR_RATE_LIMIT', 'ERR_INTERNAL',
+  'ERR_AUTH',
+  'ERR_GUEST',
+  'ERR_INPUT',
+  'ERR_CODE',
+  'ERR_NOT_FOUND',
+  'ERR_NOT_STARTED',
+  'ERR_FINISHED',
+  'ERR_REPEAT',
+  'ERR_NOT_YOUR_TURN',
+  'ERR_USERNAME_TAKEN',
+  'ERR_CREDENTIALS',
+  'ERR_INVITE_EXPIRED',
+  'ERR_ROOM_FULL',
+  'ERR_RATE_LIMIT',
+  'ERR_INTERNAL',
 ]
 
 describe('translation resources', () => {
@@ -35,7 +47,10 @@ describe('translation resources', () => {
   })
 
   it('has no empty values', () => {
-    for (const [lang, flat] of [['bg', bg], ['en', en]] as const) {
+    for (const [lang, flat] of [
+      ['bg', bg],
+      ['en', en],
+    ] as const) {
       for (const [key, value] of Object.entries(flat)) {
         expect(value.trim(), `${lang}:${key}`).not.toBe('')
       }
@@ -66,7 +81,14 @@ describe('translation resources', () => {
     for (const rank of ['calf', 'herdsman', 'shepherd', 'pastor', 'steward', 'chiefBull']) {
       expect(bg).toHaveProperty(`rank.${rank}`)
     }
-    for (const badge of ['firstBull', 'noWaste', 'underMinute', 'streak7', 'chiefBull', 'fiveDigits']) {
+    for (const badge of [
+      'firstBull',
+      'noWaste',
+      'underMinute',
+      'streak7',
+      'chiefBull',
+      'fiveDigits',
+    ]) {
       expect(bg).toHaveProperty(`badge.${badge}.name`)
       expect(bg).toHaveProperty(`badge.${badge}.desc`)
     }
@@ -75,7 +97,12 @@ describe('translation resources', () => {
 
 describe('TranslationKey', () => {
   it('accepts real keys and collapses plural variants', () => {
-    const keys: TranslationKey[] = ['error.ERR_CODE', 'common.bull', 'rank.calf', 'duel.found.title.bot']
+    const keys: TranslationKey[] = [
+      'error.ERR_CODE',
+      'common.bull',
+      'rank.calf',
+      'duel.found.title.bot',
+    ]
     expect(keys).toHaveLength(4)
     // @ts-expect-error unknown key must not type-check
     const bad: TranslationKey = 'nope.missing'

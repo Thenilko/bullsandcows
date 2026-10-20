@@ -10,17 +10,21 @@ export function memoryDuels(store: MemoryStore, clock: Clock): DuelsRepo {
   }
 
   return {
-    create: async (input) =>
-      save({
+    create: async (input) => {
+      const existing = input.id === undefined ? undefined : store.duels.get(input.id)
+      if (existing) return copy(existing)
+      return save({
         ...input,
-        id: crypto.randomUUID(),
+        id: input.id ?? crypto.randomUUID(),
         winner: null,
         outcome: null,
         ratingDeltaA: null,
         ratingDeltaB: null,
         createdAt: clock.now(),
         finishedAt: null,
-      }),
+        rewardsApplied: false,
+      })
+    },
     finish: async (id, patch) => {
       const current = store.duels.get(id)
       if (!current) throw new AppError('ERR_NOT_FOUND', 404)
@@ -29,6 +33,20 @@ export function memoryDuels(store: MemoryStore, clock: Clock): DuelsRepo {
     get: async (id) => {
       const found = store.duels.get(id)
       return found ? copy(found) : null
+    },
+    // Synchronous between the check and the writes, so it is atomic like the SQL transaction.
+    applyRewards: async (id, rewards) => {
+      const current = store.duels.get(id)
+      if (!current) throw new AppError('ERR_NOT_FOUND', 404)
+      if (current.rewardsApplied) return false
+      for (const r of rewards) {
+        const profile = store.profiles.get(r.userId)
+        if (!profile) continue
+        const rating = r.rating ? { ...r.rating } : profile.rating
+        store.profiles.set(r.userId, copy({ ...profile, xp: profile.xp + r.xp, rating }))
+      }
+      save({ ...current, rewardsApplied: true })
+      return true
     },
   }
 }

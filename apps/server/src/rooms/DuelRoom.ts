@@ -5,10 +5,11 @@ import { nextDueAt } from '../duel/expire'
 import { markDisconnected, markReconnected } from '../duel/match'
 import type { Match, Seat } from '../duel/types'
 import { parseEnv, type Env } from '../env'
-import type { Profile } from '../ports/repo'
-import { advance, fromStep, type Advanced } from './lifecycle'
+import type { Profile, RepoHandle } from '../ports/repo'
+import { advance, fromStep, isAbandoned, type Advanced } from './lifecycle'
 import { acceptsRematch, applyClient, parseClient, refreshPlayers, rematch } from './messages'
-import { BOT_ID, recordResult } from './persist'
+import { BOT_ID } from './persist'
+import { attemptWrite, claimResult, earliestRetry, pendingKey, retryDue } from './results'
 import {
   CreateBody,
   JoinBody,
@@ -28,17 +29,15 @@ import {
   send,
   tagOf,
 } from './sockets'
-import { PERSIST_RETRY_MS, type PendingResult, type RoomState } from './state'
+import type { PendingResult, RoomState } from './state'
 import { nextAlarm, roomTimers } from './timers'
 
 const KEYS = ['match', 'secrets', 'tokens', 'meta'] as const
-const PENDING_KEY = 'pendingResult'
 /** Never re-arm closer than this, so a stuck deadline cannot spin the alarm. */
 const MIN_ALARM_GAP_MS = 250
 
 const json = (body: unknown, status = 200): Response => Response.json(body, { status })
 const refusal = (r: Refusal): Response => json({ code: r.code }, r.status)
-const errorText = (err: unknown): string => (err instanceof Error ? err.message : 'unknown error')
 
 /** Constant-time comparison of two seat tokens. */
 function sameToken(a: string, b: string): boolean {
@@ -102,7 +101,7 @@ export class DuelRoom extends DurableObject<CloudflareBindings> {
     if (!tag) return
     const msg = parseClient(data)
     if (typeof msg === 'string') return send(ws, { t: 'error', code: msg })
-    const profiles = msg.t === 'rematch' ? await this.loadProfiles() : {}
+    const profiles = msg.t === 'rematch' ? await this.profilesForRematch(tag.seat) : {}
     const st = await this.load()
     if (!st || st.match.players[tag.seat]?.id !== tag.userId) {
       return send(ws, { t: 'error', code: 'ERR_NOT_FOUND' })
@@ -125,6 +124,19 @@ export class DuelRoom extends DurableObject<CloudflareBindings> {
     await this.commit(st, { state: after.state, events }, now)
   }
 
+  /**
+   * Profiles only when this `rematch` would accept an offer (the only case that needs them),
+   * so offers and stray frames never open a database client. Loaded before the state the
+   * message is applied to, so no external I/O sits between that load and its save.
+   */
+  private async profilesForRematch(seat: Seat): Promise<Readonly<Record<string, Profile>>> {
+    const st = await this.load()
+    if (!st) return {}
+    const m = advance(st, this.now(), () => this.rng()).state.match
+    const accepting = m.phase === 'ended' && !isAbandoned(m) && acceptsRematch(m, seat, this.now())
+    return accepting ? this.loadProfiles(m) : {}
+  }
+
   async webSocketClose(ws: WebSocket): Promise<void> {
     await this.dropSocket(ws)
   }
@@ -135,7 +147,7 @@ export class DuelRoom extends DurableObject<CloudflareBindings> {
 
   async alarm(): Promise<void> {
     const now = this.now()
-    await this.retryPending(now)
+    await retryDue(this.ctx.storage, () => this.repo(), now)
     const st = await this.load()
     if (!st) return
     await this.commit(
@@ -250,7 +262,8 @@ export class DuelRoom extends DurableObject<CloudflareBindings> {
 
   /**
    * Persists `adv.state`, re-arms the alarm, sends `state` (per seat) when the match changed
-   * and routes the events; a newly ended match has its result claimed and then recorded.
+   * and routes the events. A newly ended match has its result claimed (flag + pending record,
+   * in the same storage write) and then written.
    */
   private async commit(
     prev: RoomState | null,
@@ -262,75 +275,50 @@ export class DuelRoom extends DurableObject<CloudflareBindings> {
     const st = ended
       ? { ...adv.state, meta: { ...adv.state.meta, resultRecorded: true } }
       : adv.state
-    const timers = roomTimers(st.match, st.meta)
-    await this.ctx.storage.put({ ...st, timers })
+    const claimed = ended ? claimResult(st, now) : null
+    const pending = claimed ? { [pendingKey(claimed)]: claimed } : {}
+    await this.ctx.storage.put({ ...st, timers: roomTimers(st.match, st.meta), ...pending })
     await this.arm(st, now)
     if (prev && !prev.meta.expired && st.meta.expired) closeAll(this.ctx, CLOSE.expired, 'expired')
     if (forceState || prev?.match !== st.match) broadcastState(this.ctx, st.match, st.secrets)
     route(this.ctx, adv.events)
-    if (ended) await this.record(st.match, st.secrets, now)
+    if (claimed) await this.writeClaimed(claimed, now)
     return st
   }
 
   private async arm(st: RoomState, now: number): Promise<void> {
-    const pending = await this.ctx.storage.get<PendingResult>(PENDING_KEY)
     const times = [
       nextAlarm(roomTimers(st.match, st.meta)),
       nextDueAt(st.match),
-      pending?.retryAt ?? null,
+      await earliestRetry(this.ctx.storage),
     ].filter((t): t is number => t !== null)
     if (times.length === 0) return this.ctx.storage.deleteAlarm()
     await this.ctx.storage.setAlarm(Math.max(Math.min(...times), now + MIN_ALARM_GAP_MS))
   }
 
   /**
-   * Writes the result once. The result is final when first written: the room handles one
-   * message at a time with its own monotonic clock, so a late race solve stamped earlier than
-   * the win cannot arrive after it in practice; if it did, the machine still emits a corrected
-   * `ended`, but the stored result is not rewritten.
+   * The result is final when first written: the room handles one message at a time with its
+   * own monotonic clock, so a late race solve stamped earlier than the win cannot arrive after
+   * it in practice; if it did, the machine still emits a corrected `ended`, but the stored
+   * result is not rewritten.
    */
-  private async record(match: Match, secrets: RoomState['secrets'], now: number): Promise<void> {
-    if (match.outcome?.reason === 'abandoned') return
-    try {
-      await this.writeResult(match, secrets)
-    } catch (err) {
-      console.error(`duel result not recorded, retrying: ${errorText(err)}`)
-      const pending: PendingResult = { match, secrets, retryAt: now + PERSIST_RETRY_MS }
-      await this.ctx.storage.put(PENDING_KEY, pending)
-      const st = await this.load()
-      if (st) await this.arm(st, now)
-    }
-  }
-
-  private async retryPending(now: number): Promise<void> {
-    const pending = await this.ctx.storage.get<PendingResult>(PENDING_KEY)
-    if (!pending || pending.retryAt > now) return
-    try {
-      await this.writeResult(pending.match, pending.secrets)
-      await this.ctx.storage.delete(PENDING_KEY)
-    } catch {
-      // Logged on the first failure; keep retrying without flooding the log.
-      await this.ctx.storage.put(PENDING_KEY, { ...pending, retryAt: now + PERSIST_RETRY_MS })
-    }
-  }
-
-  private async writeResult(match: Match, secrets: RoomState['secrets']): Promise<void> {
-    const repo = makeRepo(this.env_())
-    try {
-      await recordResult(repo, match, secrets)
-    } finally {
-      await repo.close()
-    }
-  }
-
-  /** Current profiles of the humans in the room, for a rematch. */
-  private async loadProfiles(): Promise<Readonly<Record<string, Profile>>> {
+  private async writeClaimed(claimed: PendingResult, now: number): Promise<void> {
+    await attemptWrite(this.ctx.storage, () => this.repo(), claimed, now)
     const st = await this.load()
-    if (!st) return {}
-    const ids = [st.match.players.a.id, st.match.players.b?.id].filter(
+    if (st) await this.arm(st, now)
+  }
+
+  /** The repository for one use; callers close it. Test seam. */
+  repo(): RepoHandle {
+    return makeRepo(this.env_())
+  }
+
+  /** Current profiles of the humans in `m`, for accepting a rematch. */
+  private async loadProfiles(m: Match): Promise<Readonly<Record<string, Profile>>> {
+    const ids = [m.players.a.id, m.players.b?.id].filter(
       (id): id is string => !!id && id !== BOT_ID,
     )
-    const repo = makeRepo(this.env_())
+    const repo = this.repo()
     try {
       const found = await Promise.all(ids.map((id) => repo.profiles.get(id)))
       return Object.fromEntries(found.flatMap((p) => (p ? [[p.id, p]] : [])))
