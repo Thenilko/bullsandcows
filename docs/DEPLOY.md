@@ -16,10 +16,18 @@
 
 ## 2. Миграции на базата
 
-Нужна е директна връзка (порт 5432, не pooler) от **Connect → Direct connection**:
+`DATABASE_URL` е **Session pooler** връзката на Supabase (Supavisor, порт 5432, поддържа DDL). Директната връзка (`db.PROJECT.supabase.co`) е само IPv6, а GitHub-hosted runner-ите са само IPv4, затова `deploy.yml` не може да я ползва.
+
+Къде: Supabase → **Connect** → **Session pooler**. Формат:
+
+```text
+postgresql://postgres.PROJECT:PASSWORD@aws-0-REGION.pooler.supabase.com:5432/postgres
+```
+
+(потребител `postgres.PROJECT`, порт 5432.) Директният хост работи само от IPv6 мрежа (напр. локално).
 
 ```sh
-DATABASE_URL='postgresql://postgres:...@db.PROJECT.supabase.co:5432/postgres' \
+DATABASE_URL='postgresql://postgres.PROJECT:...@aws-0-REGION.pooler.supabase.com:5432/postgres' \
   pnpm --filter server db:migrate
 ```
 
@@ -37,7 +45,21 @@ DATABASE_URL='postgresql://postgres:...@db.PROJECT.supabase.co:5432/postgres' \
 
 3. Копирай върнатия `id` в `apps/server/wrangler.toml` (`[[hyperdrive]]` → `id`, вместо `REPLACE_ME`) и комитни. (Блокът `[[env.dev.hyperdrive]]` е само за локална разработка и остава.)
 
-## 4. Тайни на Worker-а (веднъж, на ръка)
+## 4. Първи деплой
+
+Първо се създава самият Worker (ако `wrangler` попита дали да създаде услугата `pasishte`, потвърди):
+
+```sh
+pnpm install
+pnpm build                              # web + dry-run на Worker-а
+pnpm --filter server exec wrangler deploy --env=""
+```
+
+След този ръчен деплой `deploy.yml` деплоира автоматично при push в `main`.
+
+Преди тази стъпка `wrangler.toml` трябва да има истинско Hyperdrive `id` (стъпка 3). Докато тайните от стъпка 5 липсват, Worker-ът ще отговаря с грешка; това е очаквано.
+
+## 5. Тайни на Worker-а (веднъж, на ръка)
 
 От `apps/server`:
 
@@ -48,23 +70,13 @@ pnpm exec wrangler secret put SUPABASE_SERVICE_ROLE_KEY
 pnpm exec wrangler secret put DAILY_SALT      # дълъг случаен низ; сменянето променя числата на деня
 ```
 
-CI не задава тези тайни.
+Worker-ът вече съществува след стъпка 4. CI не задава тези тайни.
 
-## 5. Домейн и `APP_ORIGIN`
+## 6. Домейн и `APP_ORIGIN`
 
 - По подразбиране: `https://pasishte.<account>.workers.dev`.
 - Собствен домейн: Cloudflare → Workers & Pages → `pasishte` → Settings → Domains & Routes → Add custom domain.
 - Задай същия адрес в `[vars] APP_ORIGIN` в `apps/server/wrangler.toml` (проверката на `Origin` за API и WebSocket разчита на него) и в Supabase Site URL / Redirect URLs (стъпка 1.3).
-
-## 6. Първи деплой
-
-```sh
-pnpm install
-pnpm build                              # web + dry-run на Worker-а
-pnpm --filter server exec wrangler deploy --env=""
-```
-
-Оттук нататък `deploy.yml` деплоира автоматично при push в `main`.
 
 ## 7. Какво прави Cron
 
@@ -87,9 +99,15 @@ pnpm --filter server exec wrangler rollback            # предишната в
 |---|---|
 | `CLOUDFLARE_API_TOKEN` | API token с право „Edit Cloudflare Workers“ |
 | `CLOUDFLARE_ACCOUNT_ID` | ID на Cloudflare акаунта |
-| `DATABASE_URL` | директна Supabase връзка (порт 5432) за `drizzle-kit migrate` |
+| `DATABASE_URL` | Session pooler връзка (порт 5432, виж стъпка 2) за `drizzle-kit migrate` |
 
 `ci.yml` не изисква тайни (фалшива автентикация, in-memory хранилище).
+
+**Защита на `production`:** в Settings → Environments → `production` → Deployment branches избери „Selected branches“ = само `main` (по желание добави Required reviewers). Самият workflow също има `if: github.ref == 'refs/heads/main'`.
+
+**Без CI gate в `deploy.yml` (по дизайн):** в `main` се влиза само чрез PR със зелен CI, затова деплоят не чака отделен `workflow_run`. Пази `main` с branch protection (задължителни проверки `check`, `build`, `e2e`).
+
+**Първи push в `main`:** докато Hyperdrive `id` в `wrangler.toml` е `REPLACE_ME`, `deploy.yml` пада рано с ясно съобщение (guard стъпка), преди миграциите и деплоя. Липсващи GitHub secrets също водят до неуспех, без вреда.
 
 ## Локална разработка
 
@@ -101,5 +119,5 @@ pnpm dev        # web на :5173 + wrangler dev --env dev на :8787
 
 - Средата `dev` ползва `AUTH_MODE=fake` и `REPO_MODE=memory`: без Supabase и без акаунт.
 - `.dev.vars` и `.env.local` са в `.gitignore`. Реални стойности са нужни само ако пуснеш `AUTH_MODE=supabase` локално.
-- Клиентът чете `VITE_AUTH_MODE`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (виж `apps/web/.env.example`).
+- Клиентът чете `VITE_AUTH_MODE`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_DEV_SCREENS` (виж `apps/web/.env.example`).
 - Проверки: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage`, `pnpm e2e`.

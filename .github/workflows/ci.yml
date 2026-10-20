@@ -38,6 +38,7 @@ jobs:
           name: coverage-summary
           path: coverage/coverage-summary.json
           if-no-files-found: ignore
+          retention-days: 7
 
   build:
     runs-on: ubuntu-latest
@@ -52,11 +53,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Build web and dry-run the Worker bundle
         run: pnpm build
-      - uses: actions/upload-artifact@v4
-        with:
-          name: web-dist
-          path: apps/web/dist
-          if-no-files-found: error
 
   e2e:
     needs: build
@@ -84,3 +80,4 @@ jobs:
             apps/web/playwright-report
             apps/web/test-results
           if-no-files-found: ignore
+          retention-days: 7

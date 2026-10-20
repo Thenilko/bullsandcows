@@ -17,8 +17,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: production
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
+      - name: Guard - Hyperdrive id must be set
+        run: |
+          # Only the top-level block; [[env.dev.hyperdrive]] keeps its placeholder on purpose.
+          if awk '/^\[\[hyperdrive\]\]/{f=1;next} /^\[/{f=0} f&&/REPLACE_ME/{found=1} END{exit !found}' apps/server/wrangler.toml; then
+            echo "::error file=apps/server/wrangler.toml::Top-level [[hyperdrive]] id is still REPLACE_ME. Create it with 'wrangler hyperdrive create' and commit the id (docs/DEPLOY.md, step 3)."
+            exit 1
+          fi
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -27,14 +35,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Build web
         run: pnpm --filter web build
-      - name: Apply database migrations (direct Supabase connection, port 5432)
+      - name: Apply database migrations (Supavisor session pooler, port 5432)
         working-directory: apps/server
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: pnpm exec drizzle-kit migrate
       # Worker secrets (SUPABASE_*, DAILY_SALT) are set once by hand; see docs/DEPLOY.md.
       - name: Deploy Worker
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
