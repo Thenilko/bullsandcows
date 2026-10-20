@@ -103,6 +103,15 @@ describe('connectRealtime', () => {
     expect(JSON.stringify(warn.mock.calls)).not.toContain('jwt-value')
   })
 
+  it.each([1000, 1008])('treats close code %i as final and does not reconnect', (code) => {
+    const rt = connectRealtime('/ws/queue', OPTS, ServerMsg)
+    MockWebSocket.last().open()
+    MockWebSocket.last().drop(code)
+    expect(rt.status).toBe('closed')
+    vi.advanceTimersByTime(60_000)
+    expect(MockWebSocket.instances).toHaveLength(1)
+  })
+
   it('close() stops reconnecting', () => {
     const rt = connectRealtime('/ws/duel/r1', OPTS, ServerMsg)
     MockWebSocket.last().open()

@@ -38,16 +38,20 @@ export function useQueue({ len, zero, format }: QueueOptions): QueueApi {
   useEffect(() => {
     if (isGuest) return
     const rt = connectRealtime<QueueServerMsg, QueueClientMsg>('/ws/queue', { jwt: () => useSession.getState().session?.accessToken ?? '' }, QueueServerMsg)
-    rt.send({ t: 'join', len, zero, format })
+    let matchedYet = false
     const offMsg = rt.on((m) => {
       if (m.t === 'waiting') {
         setWaiting({ baseMs: m.elapsedMs, at: Date.now() })
         setSuggestInvite(m.suggestInvite)
-      } else if (m.t === 'matched') setMatched({ roomId: m.roomId, token: m.token })
-      else setRemoteError('server')
+      } else if (m.t === 'matched') {
+        matchedYet = true
+        setMatched({ roomId: m.roomId, token: m.token })
+      } else setRemoteError('server')
     })
+    // The server drops the queue entry on any socket close, so join again on every (re)open.
     const offStatus = rt.onStatus((s) => {
-      if (s === 'closed') setRemoteError((e) => e ?? 'closed')
+      if (s === 'open' && !matchedYet) rt.send({ t: 'join', len, zero, format })
+      if (s === 'closed' && !matchedYet) setRemoteError((e) => e ?? 'closed')
     })
     const stop = () => {
       offMsg()

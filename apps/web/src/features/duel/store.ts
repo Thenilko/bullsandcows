@@ -1,4 +1,4 @@
-import type { ErrorCode, PublicState, ServerMsg } from '@bc/protocol'
+import type { ErrorCode, PublicState, RatingChangeDto, ServerMsg } from '@bc/protocol'
 import { create } from 'zustand'
 import type { RealtimeStatus } from '../../lib/realtime'
 
@@ -21,6 +21,8 @@ export type ToastInfo =
   | { kind: 'race'; n: number; attempt: number }
 
 export interface DuelStoreData {
+  /** Room the data belongs to; a different room starts from scratch. */
+  roomId: string | null
   state: PublicState | null
   /** True when the very first snapshot after connecting was already an ended match (page reload). */
   resumedEnded: boolean
@@ -31,6 +33,8 @@ export interface DuelStoreData {
   startAt: number | null
   ended: EndedEvent | null
   rematchOffer: RematchOffer | null
+  /** Rating/xp carried by an ended snapshot (lets a reload show them); the `ended` event wins. */
+  snapEnd: { rating: RatingChangeDto | null; xp: number | null }
   errCode: ErrorCode | null
   cur: string
   shake: number
@@ -47,9 +51,12 @@ export interface DuelStore extends DuelStoreData {
   clearCur(): void
   reject(code: ErrorCode): void
   reset(): void
+  /** Starts a room: clears everything unless it is the same room (e.g. play -> result remount). */
+  enter(roomId: string): void
 }
 
 const INITIAL: DuelStoreData = {
+  roomId: null,
   state: null,
   resumedEnded: false,
   verdict: null,
@@ -59,6 +66,7 @@ const INITIAL: DuelStoreData = {
   startAt: null,
   ended: null,
   rematchOffer: null,
+  snapEnd: { rating: null, xp: null },
   errCode: null,
   cur: '',
   shake: 0,
@@ -68,7 +76,11 @@ const INITIAL: DuelStoreData = {
 }
 
 /** Snapshot: replaces the state and drops events that belong to a finished phase. */
+/** Optional extras a newer server may attach to the ended snapshot. */
+type SnapshotExtras = { rating?: RatingChangeDto | null; xp?: number; rematchOffer?: RematchOffer | null }
+
 function applySnapshot(s: DuelStoreData, next: PublicState): Partial<DuelStoreData> {
+  const extras = next as PublicState & SnapshotExtras
   const turnChanged = s.state?.turnDeadline !== next.turnDeadline
   const stillEnded = next.phase === 'ended'
   return {
@@ -76,7 +88,8 @@ function applySnapshot(s: DuelStoreData, next: PublicState): Partial<DuelStoreDa
     resumedEnded: s.state === null ? stillEnded : s.resumedEnded,
     warning: turnChanged ? null : s.warning,
     ended: stillEnded ? s.ended : null,
-    rematchOffer: stillEnded ? s.rematchOffer : null,
+    rematchOffer: stillEnded ? (extras.rematchOffer ?? s.rematchOffer) : null,
+    snapEnd: stillEnded ? { rating: extras.rating ?? s.snapEnd.rating, xp: extras.xp ?? s.snapEnd.xp } : { rating: null, xp: null },
     startAt: next.phase === 'countdown' || next.phase === 'playing' ? s.startAt : null,
     parity: Math.max(s.parity, next.me.guesses.length),
   }
@@ -128,4 +141,5 @@ export const useDuelStore = create<DuelStore>()((set) => ({
   clearCur: () => set({ cur: '' }),
   reject: (code) => set((s) => ({ errCode: code, shake: s.shake + 1 })),
   reset: () => set({ ...INITIAL }),
+  enter: (roomId) => set((s) => (s.roomId === roomId ? { status: 'connecting' } : { ...INITIAL, roomId })),
 }))

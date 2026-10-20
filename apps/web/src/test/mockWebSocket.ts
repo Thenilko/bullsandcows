@@ -7,7 +7,7 @@ export class MockWebSocket {
   sent: string[] = []
   onopen: (() => void) | null = null
   onmessage: ((e: { data: string }) => void) | null = null
-  onclose: (() => void) | null = null
+  onclose: ((e: { code: number }) => void) | null = null
   onerror: (() => void) | null = null
 
   constructor(public readonly url: string) {
@@ -18,9 +18,9 @@ export class MockWebSocket {
     this.sent.push(data)
   }
 
-  close(): void {
+  close(code = 1000): void {
     this.readyState = MockWebSocket.CLOSED
-    this.onclose?.()
+    this.onclose?.({ code })
   }
 
   open(): void {
@@ -33,8 +33,8 @@ export class MockWebSocket {
   }
 
   /** Server-side drop: the socket closes without the client asking for it. */
-  drop(): void {
-    this.close()
+  drop(code = 1006): void {
+    this.close(code)
   }
 
   static reset(): void {

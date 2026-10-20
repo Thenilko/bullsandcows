@@ -23,7 +23,7 @@ export function ResultRows({ rows }: { rows: readonly ResultRow[] }) {
           <span style={{ fontWeight: 800, color: '#4A5640' }}>{t('common.attemptsShort', { count: r.attempts })}</span>
           <span style={{ fontWeight: 800, color: '#4A5640', fontVariantNumeric: 'tabular-nums' }}>{r.time}</span>
           <span className="tag" style={r.solved ? TAG_SOLVED : TAG_UNSOLVED}>
-            {t(r.solved ? 'result.solved' : 'result.unsolved')}
+            {t(r.solved ? 'duel.result.solved' : 'duel.result.unsolved')}
           </span>
         </div>
       ))}

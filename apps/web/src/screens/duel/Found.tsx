@@ -8,7 +8,7 @@ import { Avatar } from './parts/Avatar'
 import { Overlay } from './parts/Overlay'
 import { SettingChips } from './parts/SettingChips'
 import { IDLE_SCENE } from './scenes'
-import { useCountdownRun } from './useCountdownRun'
+import { COUNTDOWN_TOTAL_MS, useCountdownRun } from './useCountdownRun'
 import { useFoundFeedback } from './useFoundFeedback'
 import { botLevelKey } from './duelUtils'
 
@@ -23,7 +23,7 @@ const noop = (): void => undefined
 
 export function Found({ state, send }: FoundProps) {
   const { t } = useTranslation()
-  const startAt = useDuelStore((s) => s.startAt ?? (state.phase === 'countdown' ? state.countdownAt : null))
+  const startAt = useDuelStore((s) => s.startAt ?? (state.phase === 'countdown' && state.countdownAt !== null ? state.countdownAt + COUNTDOWN_TOTAL_MS : null))
   const running = useCountdownRun(startAt)
   const opp = state.opp
   const bot = state.opponentKind === 'bot'

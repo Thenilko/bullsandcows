@@ -25,6 +25,8 @@ export interface RealtimeOptions {
 const DEFAULT_MAX_RECONNECT_MS = 30_000
 const BASE_DELAY_MS = 500
 const MAX_DELAY_MS = 4000
+/** Normal close and policy violation: the server meant it, so do not retry. */
+const FINAL_CLOSE_CODES: ReadonlySet<number> = new Set([1000, 1008])
 
 export function backoffDelay(attempt: number): number {
   return Math.min(BASE_DELAY_MS * 2 ** attempt, MAX_DELAY_MS)
@@ -140,10 +142,14 @@ class Connection<ServerT, ClientT> implements Realtime<ServerT, ClientT> {
       this.flush()
     }
     ws.onmessage = (e) => this.parse(e.data)
-    ws.onclose = () => {
+    ws.onclose = (e) => {
       if (this.socket !== ws) return
       this.socket = null
-      if (!this.stopped) this.scheduleReconnect()
+      if (this.stopped) return
+      if (FINAL_CLOSE_CODES.has(e.code)) {
+        this.stopped = true
+        this.setStatus('closed')
+      } else this.scheduleReconnect()
     }
   }
 }

@@ -43,6 +43,9 @@ export function DuelResult({ roomId, state, send }: DuelResultProps) {
   const navigate = useNavigate()
   const ended = useDuelStore((s) => s.ended)
   const offer = useDuelStore((s) => s.rematchOffer)
+  const snapEnd = useDuelStore((s) => s.snapEnd)
+  const rating = ended?.rating ?? snapEnd.rating
+  const xp = ended?.xp ?? snapEnd.xp
   const outcome = outcomeOf(state, ended) ?? 'draw'
   const reason = ended?.reason ?? state.outcome?.reason ?? 'solved'
   const bot = state.opponentKind === 'bot'
@@ -52,9 +55,9 @@ export function DuelResult({ roomId, state, send }: DuelResultProps) {
   const explain = reasonKey(reason, outcome)
   const formatLabel = t(`newGame.format.${state.format}.name`)
   const kicker = bot
-    ? t('result.kicker.bot', { level: t(`bot.level.${botLevelKey(state.botLevel)}.name`).toLocaleUpperCase(i18n.language) })
-    : t('result.kicker.duel', { format: formatLabel.toLocaleUpperCase(i18n.language) })
-  const sub = outcome === 'win' ? t('result.sub.winOpp', { name: oppName }) : outcome === 'draw' ? t('result.sub.draw') : reason === 'solved' ? t('result.sub.loseOpp', { name: oppName }) : t('result.sub.lose')
+    ? t('duel.result.kicker.bot', { level: t(`bot.level.${botLevelKey(state.botLevel)}.name`).toLocaleUpperCase(i18n.language) })
+    : t('duel.result.kicker.duel', { format: formatLabel.toLocaleUpperCase(i18n.language) })
+  const sub = outcome === 'win' ? t('duel.result.sub.winOpp', { name: oppName }) : outcome === 'draw' ? t('duel.result.sub.draw') : reason === 'solved' ? t('duel.result.sub.loseOpp', { name: oppName }) : t('duel.result.sub.lose')
 
   function newGame() {
     sfx.play('tap')
@@ -69,13 +72,13 @@ export function DuelResult({ roomId, state, send }: DuelResultProps) {
       <section aria-label={t('result.area')} style={COL}>
         <ResultHeader kicker={kicker} outcome={outcome} sub={sub} explain={explain ? t(explain, { name: oppName }) : null} />
         <ResultRows rows={rows} />
-        {ended?.rating ? <RatingCard rating={ended.rating} /> : null}
+        {rating ? <RatingCard rating={rating} /> : null}
         <div className="inset" style={{ padding: '10px 14px', fontWeight: 800, fontSize: 14, textAlign: 'center' }}>
-          {secretsLine(t, state, secrets, ended?.xp ?? null)}
+          {secretsLine(t, state, secrets, xp)}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
           <RematchButton offer={offer} oppName={oppName} onRematch={() => send({ t: 'rematch' })} />
-          <Soft onClick={newGame}>{t('result.newGame')}</Soft>
+          <Soft onClick={newGame}>{t('duel.result.newGame')}</Soft>
         </div>
       </section>
       <Confetti active={outcome === 'win'} />
@@ -87,9 +90,9 @@ function secretsLine(t: ReturnType<typeof useTranslation>['t'], state: PublicSta
   if (!secrets) return ''
   const text =
     state.format === 'classic'
-      ? t('result.secrets.classic', { theirs: secrets.theirs ?? '—', mine: secrets.mine ?? '—' })
-      : t('result.secrets.race', { secret: secrets.mine ?? secrets.theirs ?? '—' })
-  return xp === null ? text : t('result.secretsXp', { secrets: text, xp })
+      ? t('duel.result.secrets.classic', { theirs: secrets.theirs ?? '—', mine: secrets.mine ?? '—' })
+      : t('duel.result.secrets.race', { secret: secrets.mine ?? secrets.theirs ?? '—' })
+  return xp === null ? text : t('duel.result.secretsXp', { secrets: text, xp })
 }
 
 function buildRows(state: PublicState, outcome: Outcome, reason: string, oppName: string, myName: string, bot: boolean): ResultRow[] {
@@ -123,8 +126,8 @@ function RatingCard({ rating }: { rating: RatingChangeDto }) {
   return (
     <Card style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <span style={{ fontSize: 12, fontWeight: 900, letterSpacing: '.1em', color: '#6B7560' }}>{t('result.rating')}</span>
-        <span style={{ fontWeight: 900, fontSize: 18 }}>{t('result.ratingChange', { from: rating.from, to: rating.to })}</span>
+        <span style={{ fontSize: 12, fontWeight: 900, letterSpacing: '.1em', color: '#6B7560' }}>{t('duel.result.rating')}</span>
+        <span style={{ fontWeight: 900, fontSize: 18 }}>{t('duel.result.ratingChange', { from: rating.from, to: rating.to })}</span>
       </div>
       <span className="boing" style={{ fontSize: 30, fontWeight: 900, color: rating.delta >= 0 ? '#2E7D32' : '#B5452F', animationDelay: '.4s' }}>
         {rating.delta >= 0 ? '+' : ''}

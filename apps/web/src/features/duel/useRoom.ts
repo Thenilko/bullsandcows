@@ -54,7 +54,7 @@ export function useRoom(roomId: string, token: string): RoomApi {
 
   useEffect(() => {
     const store = useDuelStore.getState()
-    store.reset()
+    store.enter(roomId)
     storeRoom({ roomId, token })
     const rt = connectRealtime<ServerMsg, ClientMsg>(`/ws/duel/${encodeURIComponent(roomId)}`, { token, jwt: currentJwt }, ServerMsg)
     rtRef.current = rt

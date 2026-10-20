@@ -36,6 +36,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.useRealTimers()
   vi.unstubAllGlobals()
   useSession.setState({ session: null, me: null })
 })
@@ -81,5 +82,27 @@ describe('DuelRoom', () => {
     expect(screen.getByRole('heading', { name: 'Загуба' })).toBeInTheDocument()
     deliver(fixtureState({ phase: 'lobby', me: fixtureMe({ ready: false }) }))
     expect(screen.getByTestId('where')).toHaveTextContent(/^\/duel\/r1$/)
+  })
+
+  it('keeps rating and xp from the ended event across the play -> result route change', () => {
+    show('/duel/r1?token=t')
+    vi.useFakeTimers()
+    deliver(fixtureState())
+    const ended = fixtureState({ phase: 'ended', turn: null, outcome: { winner: 'a', reason: 'solved' }, secrets: { mine: '1234', theirs: '4321' } })
+    deliver(ended)
+    act(() => MockWebSocket.last().receive({ t: 'ended', outcome: 'win', reason: 'solved', secrets: { mine: '1234', theirs: '4321' }, rating: { from: 1240, to: 1258, delta: 18 }, xp: 120 }))
+    expect(screen.getByTestId('where')).toHaveTextContent(/^\/duel\/r1$/)
+    act(() => void vi.advanceTimersByTime(1400))
+    expect(screen.getByTestId('where')).toHaveTextContent('/duel/r1/result')
+    expect(screen.getByText(/\+120 т\. опит/)).toBeInTheDocument()
+    expect(screen.getByText('1240 → 1258')).toBeInTheDocument()
+    vi.useRealTimers()
+  })
+
+  it('does not leak a previous room into a new one', () => {
+    useDuelStore.getState().enter('old')
+    useDuelStore.getState().apply({ t: 'ended', outcome: 'win', reason: 'solved', secrets: { mine: null, theirs: null }, rating: null, xp: 1 })
+    show('/duel/r2?token=t')
+    expect(useDuelStore.getState().ended).toBeNull()
   })
 })
