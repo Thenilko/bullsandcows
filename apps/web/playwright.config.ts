@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 const WEB_PORT = 4173
 const SERVER_PORT = 8787
+const GALLERY_PORT = 4174
 
 // Hermetic worker vars: fake auth + memory repo come from `[env.dev]`; these satisfy the env schema
 // without needing a local `.dev.vars` (nothing here is a real secret).
@@ -34,11 +35,30 @@ export default defineConfig({
   projects: [
     {
       name: 'mobile',
+      testMatch: /solo\.spec\.ts/,
       // Chromium engine with the iPhone 13 viewport (390 wide); only Chromium is installed in CI.
       use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium' },
     },
-    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } } },
+    {
+      name: 'desktop',
+      testMatch: /solo\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
+    },
+    {
+      // Screenshot regression and axe over the dev gallery (a build with VITE_DEV_SCREENS=1).
+      name: 'gallery',
+      testMatch: /(screens|a11y)\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${GALLERY_PORT}` },
+    },
+    {
+      // Lighthouse is slow; it only runs via `pnpm e2e:full`.
+      name: 'slow',
+      testMatch: /lighthouse\.spec\.ts/,
+      timeout: 120_000,
+      use: { ...devices['Desktop Chrome'] },
+    },
   ],
+  snapshotPathTemplate: '{testDir}/__screenshots__/{arg}{ext}',
   webServer: [
     {
       // Local Worker with fake auth and an in-memory repo .
@@ -52,6 +72,14 @@ export default defineConfig({
       command: `pnpm --filter web build && pnpm --filter web preview --host 127.0.0.1 --port ${WEB_PORT} --strictPort`,
       cwd: '../..',
       port: WEB_PORT,
+      reuseExistingServer: !process.env.CI,
+      timeout: 180_000,
+    },
+    {
+      // Separate output dir: the production build in dist/ stays free of the dev gallery.
+      command: `VITE_DEV_SCREENS=1 pnpm --filter web exec vite build --outDir dist-gallery --emptyOutDir && pnpm --filter web exec vite preview --outDir dist-gallery --host 127.0.0.1 --port ${GALLERY_PORT} --strictPort`,
+      cwd: '../..',
+      port: GALLERY_PORT,
       reuseExistingServer: !process.env.CI,
       timeout: 180_000,
     },
