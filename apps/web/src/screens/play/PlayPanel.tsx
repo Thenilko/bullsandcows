@@ -80,19 +80,6 @@ function Overlay({ game, g, desktop }: PlayPanelProps) {
   )
 }
 
-function PlayHud({ game, g }: { game: GameViewDto; g: GameApi }) {
-  const { t } = useTranslation()
-  return (
-    <Hud
-      items={[
-        { label: t('common.attemptsShort', { count: game.attempts }), value: '' },
-        { label: t('play.fog', { count: g.left }), value: '' },
-        { label: formatClock(g.elapsedSec), value: '' },
-      ]}
-    />
-  )
-}
-
 function GiveUp({ g }: { g: GameApi }) {
   const { t } = useTranslation()
   return (
@@ -106,8 +93,7 @@ function GiveUp({ g }: { g: GameApi }) {
 export function MobilePlay({ game, g }: Omit<PlayPanelProps, 'desktop'>) {
   const { t } = useTranslation()
   return (
-    <section aria-label={t('play.inputArea')} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <PlayHud game={game} g={g} />
+    <section aria-label={t('play.inputArea')} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <Status game={game} />
       <Input game={game} g={g} desktop={false} />
       <History guesses={game.guesses} />
@@ -127,8 +113,7 @@ export function DesktopPlay({ game, g }: Omit<PlayPanelProps, 'desktop'>) {
           <h2 style={{ margin: 0, fontSize: 22, fontWeight: 900 }}>{t(`play.modeTitle.${game.kind}`)}</h2>
           {game.practice ? <Chip>{t('common.practice')}</Chip> : null}
         </div>
-        <PlayHud game={game} g={g} />
-        <Input game={game} g={g} desktop />
+          <Input game={game} g={g} desktop />
         <span style={{ fontSize: 13, fontWeight: 700, color: '#6B7560', textAlign: 'center' }}>{t('play.keyboardHint')}</span>
         <Overlay game={game} g={g} desktop />
       </Card>
@@ -139,4 +124,22 @@ export function DesktopPlay({ game, g }: Omit<PlayPanelProps, 'desktop'>) {
       </Card>
     </>
   )
+}
+
+const HUD_ROW = { display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between', alignItems: 'center' } as const
+
+/** HUD chips shown over the scene (M3 / D3). */
+export function PlayHud({ game, g, desktop }: PlayPanelProps) {
+  const { t } = useTranslation()
+  const clock = formatClock(g.elapsedSec)
+  const items = desktop
+    ? [
+        { label: t('play.fogLong', { count: g.left }), value: '' },
+        { label: t('play.clockAttempt', { clock, attempt: game.attempts + 1 }), value: '' },
+      ]
+    : [
+        { label: t('play.fog', { count: g.left }), value: '' },
+        { label: clock, value: '' },
+      ]
+  return <Hud items={items} style={{ ...HUD_ROW, fontSize: desktop ? 15 : undefined }} />
 }

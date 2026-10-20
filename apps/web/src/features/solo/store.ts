@@ -49,6 +49,8 @@ export interface SoloState {
   fail(id: string, err: UiError): void
   setCountdown(id: string, countdown: CountdownPhase): void
   markStarted(id: string, at: number): void
+  /** Undo an optimistic start (the server refused it); the user can press Start again. */
+  unstart(id: string): void
   verdict(id: string, v: Verdict, solved?: boolean): void
   reset(id: string): void
 }
@@ -72,6 +74,7 @@ export const useSolo = create<SoloState>()((set, get) => {
     fail: (id, err) => patch(id, (u) => ({ err, shake: u.shake + 1 })),
     setCountdown: (id, countdown) => patch(id, () => ({ countdown })),
     markStarted: (id, at) => patch(id, () => ({ localStartedAt: at, countdown: 'done' })),
+    unstart: (id) => patch(id, () => ({ localStartedAt: null, countdown: 'idle' })),
     verdict: (id, v, solved = false) =>
       patch(id, (u) => ({
         cur: '',

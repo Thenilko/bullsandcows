@@ -1,4 +1,4 @@
-import type { GameViewDto } from '@bc/protocol'
+import type { GameViewDto, MeDto } from '@bc/protocol'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router'
@@ -45,7 +45,10 @@ function useGameEffects(gameId: string) {
   /** The cached game and the profile's current game are stale once a game ends. */
   const toResult = useCallback(() => {
     void qc.invalidateQueries({ queryKey: gameKey(gameId) })
-    api.get<never>('/api/me').then((me) => useSession.getState().setMe(me), () => undefined)
+    api.get<MeDto>('/api/me').then(
+      (me) => useSession.getState().setMe(me),
+      () => void qc.invalidateQueries({ queryKey: ['me'] }),
+    )
     void navigate(`/result/${gameId}`)
   }, [qc, gameId, navigate])
 
@@ -60,6 +63,7 @@ function useStartActions(gameId: string, started: boolean) {
       const r = await startGame(gameId)
       qc.setQueryData<GameViewDto>(gameKey(gameId), (g) => (g ? { ...g, startedAt: r.startedAt } : g))
     } catch (e) {
+      useSolo.getState().unstart(gameId)
       onError(e)
     }
   }, [gameId, qc, onError])

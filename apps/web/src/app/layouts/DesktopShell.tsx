@@ -11,7 +11,7 @@ import { TABS, type ShellProps } from './shell.types'
 
 const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon, QuestionIcon] as const
 
-export function DesktopShell({ scene, children, sceneSide = false }: ShellProps) {
+export function DesktopShell({ scene, children, sceneSide = false, hud }: ShellProps) {
   const { t, i18n } = useTranslation()
   const [muted, setMuted] = useState(() => sfx.isMuted())
   const nextLang = i18n.language === 'bg' ? 'en' : 'bg'
@@ -57,6 +57,7 @@ export function DesktopShell({ scene, children, sceneSide = false }: ShellProps)
         <div className={cx(styles.sceneCol, sceneSide && styles.sceneColSide)}>
           <div className={cx('card', styles.sceneCard)}>
             <PastureScene {...scene} label={t('nav.play')} />
+            {hud ? <div style={{ position: 'absolute', left: 16, right: 16, top: 16 }}>{hud}</div> : null}
           </div>
         </div>
         <main className={styles.content}>{children}</main>

@@ -58,7 +58,7 @@ describe('NewGame', () => {
   it('offers to continue the unfinished game', async () => {
     useSession.setState({ me: meWith('g9') })
     show()
-    fireEvent.click(screen.getByRole('button', { name: 'Игра' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Продължи' }))
     await waitFor(() => expect(screen.getByText('play page')).toBeInTheDocument())
   })
 

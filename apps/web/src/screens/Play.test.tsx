@@ -95,6 +95,33 @@ describe('Play before the start', () => {
     expect(screen.queryByRole('button', { name: 'Старт' })).not.toBeInTheDocument()
   })
 
+  it('goes back to the Start gate with an error when POST start fails, and can retry', async () => {
+    serve(base)
+    api.post.mockRejectedValueOnce(new ApiError('ERR_INTERNAL', 500)).mockResolvedValue({ startedAt: 99 })
+    show()
+    await screen.findByRole('button', { name: 'Старт' })
+    vi.useFakeTimers()
+    key('Enter')
+    await act(async () => void (await vi.advanceTimersByTimeAsync(2100)))
+    expect(screen.getByRole('button', { name: 'Старт' })).toBeInTheDocument()
+    expect(screen.getByText('Нещо се обърка. Опитай пак.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Цифра 1')).toBeDisabled()
+
+    key('Enter')
+    await act(async () => void (await vi.advanceTimersByTimeAsync(2100)))
+    expect(api.post).toHaveBeenCalledTimes(2)
+    expect(screen.queryByRole('button', { name: 'Старт' })).not.toBeInTheDocument()
+  })
+
+  it('renders the HUD in the scene slot with fog count and clock', async () => {
+    serve(started)
+    const { container } = show()
+    await screen.findByLabelText('Цифра 1')
+    const hud = Array.from(container.querySelectorAll('.ps-hud')).map((e) => e.textContent?.trim())
+    expect(hud[0]).toMatch(/^Мъгла · .*възможни числа$/)
+    expect(hud[1]).toMatch(/^\d\d:\d\d · опит 1$/)
+  })
+
   it('redirects to the result when the game is already finished', async () => {
     serve({ ...base, startedAt: 1, finishedAt: 2, won: true })
     show()

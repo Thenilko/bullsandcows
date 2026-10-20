@@ -6,9 +6,10 @@ import { useGame } from '../features/solo/useGame'
 import { useKeyboard } from '../features/solo/useKeyboard'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { IDLE_SCENE } from './idleScene'
-import { DesktopPlay, MobilePlay } from './play/PlayPanel'
+import { DesktopPlay, MobilePlay, PlayHud } from './play/PlayPanel'
 
 const PANEL_TOP = 356
+const PANEL_PADDING = '14px 16px 12px'
 
 function Loading({ failed }: { failed: boolean }) {
   const { t } = useTranslation()
@@ -43,7 +44,12 @@ export function PlayGame({ gameId }: { gameId: string }) {
 
   if (!game || leaving) return <Loading failed={g.loadFailed} />
   return (
-    <Shell scene={g.scene} panelTop={PANEL_TOP}>
+    <Shell
+      scene={g.scene}
+      panelTop={PANEL_TOP}
+      panelPadding={PANEL_PADDING}
+      hud={<PlayHud game={game} g={g} desktop={desktop} />}
+    >
       {desktop ? <DesktopPlay game={game} g={g} /> : <MobilePlay game={game} g={g} />}
     </Shell>
   )

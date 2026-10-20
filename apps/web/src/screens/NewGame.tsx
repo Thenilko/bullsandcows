@@ -116,7 +116,7 @@ export function NewGame({ initial }: { initial?: NewGameInitial }) {
           {t('newGame.cta.solo')}
         </Cta>
         {resume ? (
-          <Soft onClick={() => void navigate(`/play/${resume}`)}>{t('nav.play')}</Soft>
+          <Soft onClick={() => void navigate(`/play/${resume}`)}>{t('common.continue')}</Soft>
         ) : null}
       </section>
     </Shell>
