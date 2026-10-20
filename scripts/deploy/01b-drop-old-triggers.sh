@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Стъпка 1b (еднократно): маха тригера и функциите на старото тестово приложение от auth.users / public.
+# Изисква --i-know-this-drops-everything; без него само показва плана.
 source "$(dirname "$0")/common.sh"
+echo "План: маха тригера on_auth_user_created от auth.users и функциите на старото приложение в public"
+echo "      (handle_new_user, is_valid_code, random_code, daily_secret, compute_score, new_game,"
+echo "       make_guess, use_hint, give_up, create_duel, join_duel)."
+has_drop_flag "$@" || { echo "Нищо не е направено. Пусни отново с $DROP_FLAG, за да изпълниш плана."; exit 1; }
 SQL="
 drop trigger if exists on_auth_user_created on auth.users;
 drop function if exists public.handle_new_user() cascade;

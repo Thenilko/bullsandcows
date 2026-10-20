@@ -9,4 +9,7 @@ export CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-$(token_from "$ROOT/local/d
 test -n "$CLOUDFLARE_API_TOKEN" || export CLOUDFLARE_API_TOKEN="$(token_from "$ROOT/.env.local")"
 test -n "$CLOUDFLARE_API_TOKEN" || { echo "Липсва Cloudflare API токен: сложи го на един ред в local/deploy/cf.token"; exit 1; }
 need() { test -s "$1" || { echo "Липсва файл: $1"; exit 1; }; }
-devvar() { grep "^$1=" "$ROOT/apps/server/.dev.vars" | head -1 | cut -d= -f2-; }
+devvar() { grep "^$1=" "$ROOT/apps/server/.dev.vars" | head -1 | cut -d= -f2- | sed -e 's/^"//' -e 's/"$//'; }
+# Разрушителните стъпки искат изричен флаг; без него само описват какво биха направили.
+DROP_FLAG="--i-know-this-drops-everything"
+has_drop_flag() { for a in "$@"; do test "$a" = "$DROP_FLAG" && return 0; done; return 1; }

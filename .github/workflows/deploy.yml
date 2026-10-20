@@ -1,7 +1,10 @@
 name: Deploy
 
+# Runs only after CI succeeded for a push to main (or by hand from main).
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -17,9 +20,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: production
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.conclusion == 'success')
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Deploy exactly the commit CI tested.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - name: Guard - Hyperdrive id must be set
         run: |
           # Only the top-level block; [[env.dev.hyperdrive]] keeps its placeholder on purpose.
@@ -33,8 +44,17 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Public client values (Supabase mode); the build fails without them (apps/web/build/prodEnv.ts).
       - name: Build web
+        env:
+          VITE_AUTH_MODE: supabase
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: pnpm --filter web build
+      - name: Guard - bundle carries the Supabase URL
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+        run: grep -lqF "$VITE_SUPABASE_URL" apps/web/dist/assets/*.js
       - name: Apply database migrations (Supavisor session pooler, port 5432)
         working-directory: apps/server
         env:
