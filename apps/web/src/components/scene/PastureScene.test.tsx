@@ -14,12 +14,16 @@ describe('PastureScene', () => {
     reduced.value = false
   })
 
-  it('renders an accessible svg with the design viewBox', () => {
+  it('renders an accessible image of two svgs on the design viewBox: sky at the top, meadow at the bottom', () => {
     const { container } = render(<PastureScene {...base} label="Pasture" />)
-    const svg = container.querySelector('svg')!
-    expect(svg.getAttribute('viewBox')).toBe('0 0 390 380')
-    expect(svg.getAttribute('role')).toBe('img')
-    expect(svg.getAttribute('aria-label')).toBe('Pasture')
+    const img = container.querySelector('[role="img"]')!
+    expect(img.getAttribute('aria-label')).toBe('Pasture')
+    const svgs = container.querySelectorAll('svg')
+    expect(svgs).toHaveLength(2)
+    expect([...svgs].map((s) => s.getAttribute('viewBox'))).toEqual(['0 0 390 380', '0 0 390 380'])
+    expect([...svgs].map((s) => s.getAttribute('preserveAspectRatio'))).toEqual(['xMidYMin slice', 'xMidYMax slice'])
+    expect(svgs[0]!.querySelector('[data-layer="sun"]')).not.toBeNull()
+    expect(svgs[1]!.querySelector('[data-layer="fog"]')).not.toBeNull()
   })
 
   it('wires fog opacity, sun position and dawn opacity', () => {

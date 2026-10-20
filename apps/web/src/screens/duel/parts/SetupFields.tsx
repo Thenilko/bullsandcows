@@ -15,12 +15,12 @@ const LEVELS = [
 ] as const satisfies readonly { level: BotLevel; key: string }[]
 export const SETUP_NOTE = { margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)', textAlign: 'center', lineHeight: 1.45 } as const
 
-export function ModeSwitch({ mode, onPick }: { mode: PickedMode; onPick(m: PickedMode): void }) {
+export function ModeSwitch({ mode, compact = false, onPick }: { mode: PickedMode; compact?: boolean; onPick(m: PickedMode): void }) {
   const { t } = useTranslation()
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }} role="group" aria-label={t('newGame.modeGroup')}>
       {MODES.map((m) => (
-        <button key={m} type="button" className={`mode${m === mode ? ' on' : ''}`} aria-pressed={m === mode} onClick={() => onPick(m)}>
+        <button key={m} type="button" className={`mode${m === mode ? ' on' : ''}${compact ? ' compact' : ''}`} aria-pressed={m === mode} onClick={() => onPick(m)}>
           {t(`newGame.mode.${m}.name`)}
           <small>{t(`newGame.mode.${m}.desc`)}</small>
         </button>

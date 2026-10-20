@@ -1,7 +1,12 @@
 .root {
+  /* The tab bar grows by the home-indicator inset on notched phones. */
+  --tabbar-h: calc(72px + env(safe-area-inset-bottom, 0px));
+  /* Set inline by MobileShell: the panel keeps its artboard height, the scene gives way on short viewports. */
+  --panel-top: 190px;
   position: relative;
+  height: 100vh;
   height: 100dvh;
-  min-height: 560px;
+  min-height: 480px;
   overflow: hidden;
   background: #f6f2e6;
   color: #2e3b24;
@@ -15,17 +20,29 @@
   background: #a9d6f0;
 }
 
+/* Play screens: the whole scene stays visible above the panel (the meadow anchors to the panel's edge). */
+.sceneFit {
+  height: min(380px, calc(var(--panel-top) + 26px));
+}
+
 .panelBody {
-  top: 190px;
-  bottom: 72px;
+  top: var(--panel-top);
+  bottom: var(--tabbar-h);
   padding: 18px 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 14px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 /* Bare screens have no tab bar: the panel reaches the bottom, as in the prototype. */
 .panelBare {
   bottom: 0;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+.tabbar {
+  height: var(--tabbar-h);
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }

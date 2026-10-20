@@ -1,0 +1,17 @@
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Mobile: the main button stays at the lower edge of the scrolling panel; the content scrolls underneath. */
+@media (max-width: 767px) {
+  .footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    margin: -4px -16px -16px;
+    padding: 10px 16px 16px;
+    background: linear-gradient(to bottom, rgba(246, 242, 230, 0), #f6f2e6 12px);
+  }
+}

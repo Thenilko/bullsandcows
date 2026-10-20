@@ -5,12 +5,13 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { Shell } from '../app/layouts/Shell'
-import { Card, Cta, Pill, Soft, Toggle } from '../components/ui'
+import { Card, Cta, PanelFooter, Pill, Soft, Toggle } from '../components/ui'
 import { useSession } from '../features/auth/session'
 import { ME_KEY } from '../features/stats/useMe'
 import { createGame, type GameKind } from '../features/solo/api'
 import { useAverageAttempts } from '../features/solo/useDistribution'
 import { useIsDesktop } from '../hooks/useIsDesktop'
+import { useIsShort } from '../hooks/useIsShort'
 import { ApiError } from '../lib/api'
 import { sfx } from '../lib/sound'
 import { ModeSwitch } from './duel/parts/SetupFields'
@@ -20,6 +21,7 @@ import { IDLE_SCENE } from './idleScene'
 const LENS: readonly Len[] = [3, 4, 5]
 const KINDS: readonly GameKind[] = ['daily', 'free']
 const COL = { display: 'flex', flexDirection: 'column', gap: 14 } as const
+const COL_SHORT = { ...COL, gap: 10 } as const
 const NOTE = { fontSize: 12, fontWeight: 800, color: '#8E3424' } as const
 
 export interface NewGameInitial {
@@ -46,11 +48,11 @@ function SettingRow({ label, hint, children }: { label: string; hint?: string; c
   )
 }
 
-function Settings(props: { len: Len; zero: boolean; kind: GameKind; onLen(v: Len): void; onZero(v: boolean): void; onKind(v: GameKind): void }) {
+function Settings(props: { len: Len; zero: boolean; kind: GameKind; compact: boolean; onLen(v: Len): void; onZero(v: boolean): void; onKind(v: GameKind): void }) {
   const { t } = useTranslation()
-  const { len, zero, kind } = props
+  const { len, zero, kind, compact } = props
   return (
-    <Card style={{ padding: 16, ...COL }}>
+    <Card style={compact ? { padding: 12, ...COL_SHORT } : { padding: 16, ...COL }}>
       <SettingRow label={t('newGame.digits')}>
         <div style={{ display: 'flex', gap: 6 }}>
           {LENS.map((l) => (
@@ -81,6 +83,8 @@ function Settings(props: { len: Len; zero: boolean; kind: GameKind; onLen(v: Len
 export function NewGame({ initial }: { initial?: NewGameInitial }) {
   const { t } = useTranslation()
   const desktop = useIsDesktop()
+  // Phone with the browser bars showing: tighter spacing so the settings fit above the pinned button.
+  const compact = useIsShort() && !desktop
   const navigate = useNavigate()
   const me = useSession((s) => s.me)
   const [len, setLen] = useState<Len>(initial?.len ?? me?.profile.defaultLen ?? 4)
@@ -104,35 +108,38 @@ export function NewGame({ initial }: { initial?: NewGameInitial }) {
 
   return (
     <Shell scene={IDLE_SCENE} sceneSide>
-      <section aria-label={t('newGame.title')} style={COL}>
-        <h1 className="rise" style={{ margin: 0, fontSize: desktop ? 40 : 30, fontWeight: 900 }}>
+      <section aria-label={t('newGame.title')} style={compact ? COL_SHORT : COL}>
+        <h1 className="rise" style={{ margin: 0, fontSize: desktop ? 40 : compact ? 26 : 30, fontWeight: 900 }}>
           {t('newGame.title')}
         </h1>
         <ModeSwitch
           mode="solo"
+          compact={compact}
           onPick={(m) => {
             sfx.play('tap')
             void navigate(modePath(m))
           }}
         />
-        <Settings len={len} zero={zero} kind={kind} onLen={setLen} onZero={setZero} onKind={setKind} />
+        <Settings len={len} zero={zero} kind={kind} compact={compact} onLen={setLen} onZero={setZero} onKind={setKind} />
         <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--c-muted-aa)' }}>{info}</span>
-        <p role="status" style={{ margin: 0, minHeight: 18, fontWeight: 800, fontSize: 14, color: '#8A1F0B' }}>
-          {create.isError ? t(errorKey(create.error)) : ''}
-        </p>
-        <Cta
-          style={{ minHeight: 58, fontSize: 19 }}
-          disabled={create.isPending}
-          onClick={() => {
-            sfx.play('tap')
-            create.mutate()
-          }}
-        >
-          {t('newGame.cta.solo')}
-        </Cta>
-        {resume ? (
-          <Soft onClick={() => void navigate(`/play/${resume}`)}>{t('common.continue')}</Soft>
-        ) : null}
+        <PanelFooter>
+          <p role="status" style={{ margin: 0, minHeight: compact ? 0 : 18, fontWeight: 800, fontSize: 14, color: '#8A1F0B' }}>
+            {create.isError ? t(errorKey(create.error)) : ''}
+          </p>
+          <Cta
+            style={{ minHeight: 58, fontSize: 19 }}
+            disabled={create.isPending}
+            onClick={() => {
+              sfx.play('tap')
+              create.mutate()
+            }}
+          >
+            {t('newGame.cta.solo')}
+          </Cta>
+          {resume ? (
+            <Soft onClick={() => void navigate(`/play/${resume}`)}>{t('common.continue')}</Soft>
+          ) : null}
+        </PanelFooter>
       </section>
     </Shell>
   )

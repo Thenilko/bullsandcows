@@ -28,6 +28,8 @@ export interface DuelPlayProps {
 }
 
 const COL = { display: 'flex', flexDirection: 'column', gap: 10 } as const
+/** PasDuel mobile: a 290px scene that the panel overlaps by 24px. */
+const PANEL_TOP = 266
 const GIVE_UP = { minHeight: 32, fontSize: 13, fontWeight: 800, color: 'var(--c-muted-aa)', textDecoration: 'underline' } as const
 
 export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
@@ -51,6 +53,7 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
     <Shell
       scene={playScene(state, store.parity, store.miss)}
       sceneSide
+      panelTop={PANEL_TOP}
       hudAt="bottom"
       hud={<OppStrip state={state} oppName={oppName} status={m.oppStatus} thinking={m.botTurn} />}
     >

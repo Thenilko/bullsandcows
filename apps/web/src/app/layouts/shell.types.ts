@@ -10,7 +10,10 @@ export interface ShellProps {
   sceneSide?: boolean
   /** Hides the tab bar (mobile) and the nav items (desktop); used while signed out. */
   bare?: boolean
-  /** Mobile only: top offset of the panel in px (the play screens use 356 to show the whole scene). */
+  /**
+   * Mobile only: top offset of the panel on the 390x844 artboard (the play screens use 356 to show the whole
+   * scene). Giving it also keeps the meadow visible above the panel on shorter viewports.
+   */
   panelTop?: number
   /** Mobile only: CSS padding of the panel (play uses the prototype's 14px 16px 12px). */
   panelPadding?: string

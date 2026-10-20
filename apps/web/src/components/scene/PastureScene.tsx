@@ -42,26 +42,28 @@ function Puffs() {
   )
 }
 
+const SVG_STYLE = { display: 'block', position: 'absolute', inset: 0 } as const
+
+/**
+ * Two stacked SVGs on the design viewBox: the sky anchors to the top, the meadow (hills, barn, animals, fog)
+ * to the bottom. In a 390x380 box they compose exactly as the artboard; a shorter box keeps the sun and the
+ * animals and loses the middle.
+ */
 export function PastureScene({ fog, sunY, dawn, animals, parity, miss, label = 'Пасището', className }: PastureSceneProps) {
   const reduced = useReducedMotion()
   return (
-    <svg
-      className={className}
-      role="img"
-      aria-label={label}
-      width="100%"
-      height="100%"
-      viewBox="0 0 390 380"
-      preserveAspectRatio="xMidYMid slice"
-      style={{ display: 'block', position: 'absolute', inset: 0 }}
-    >
-      <Defs />
-      <Sky dawn={dawn} sunY={sunY} reduced={reduced} />
-      <Landscape />
-      {parity ? <AnimalLayer layer="A" animals={animals} /> : <AnimalLayer layer="B" animals={animals} />}
-      {miss ? <Puffs /> : null}
-      <Foreground />
-      <FogLayer fog={fog} reduced={reduced} />
-    </svg>
+    <div className={className} role="img" aria-label={label} style={SVG_STYLE}>
+      <svg aria-hidden="true" width="100%" height="100%" viewBox="0 0 390 380" preserveAspectRatio="xMidYMin slice" style={SVG_STYLE}>
+        <Defs />
+        <Sky dawn={dawn} sunY={sunY} reduced={reduced} />
+      </svg>
+      <svg aria-hidden="true" width="100%" height="100%" viewBox="0 0 390 380" preserveAspectRatio="xMidYMax slice" style={SVG_STYLE}>
+        <Landscape />
+        {parity ? <AnimalLayer layer="A" animals={animals} /> : <AnimalLayer layer="B" animals={animals} />}
+        {miss ? <Puffs /> : null}
+        <Foreground />
+        <FogLayer fog={fog} reduced={reduced} />
+      </svg>
+    </div>
   )
 }
