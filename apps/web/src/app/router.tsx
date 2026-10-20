@@ -7,6 +7,11 @@ import { Login } from '../screens/Login'
 import { Profile } from '../screens/Profile'
 import { Result } from '../screens/Result'
 import { Rules } from '../screens/Rules'
+import { DuelRoom } from '../screens/duel/DuelRoom'
+import { DuelSetup } from '../screens/duel/DuelSetup'
+import { Invite } from '../screens/duel/Invite'
+import { JoinInvite } from '../screens/duel/JoinInvite'
+import { Queue } from '../screens/duel/Queue'
 import { Home } from './Home'
 import { RequireAuth } from './RequireAuth'
 
@@ -27,6 +32,13 @@ export const router = createBrowserRouter([
       { path: '/result/:gameId', element: <Result /> },
       { path: '/board', element: <Leaderboard /> },
       { path: '/profile', element: <Profile /> },
+      { path: '/duel/new', element: <DuelSetup mode="duel" /> },
+      { path: '/bot/new', element: <DuelSetup mode="bot" /> },
+      { path: '/duel/queue', element: <Queue /> },
+      { path: '/duel/invite/:code', element: <Invite /> },
+      { path: '/d/:code', element: <JoinInvite /> },
+      { path: '/duel/:roomId', element: <DuelRoom /> },
+      { path: '/duel/:roomId/result', element: <DuelRoom view="result" /> },
     ],
   },
   ...devRoutes,
