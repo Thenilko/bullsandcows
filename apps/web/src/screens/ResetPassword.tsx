@@ -1,16 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { Shell } from '../app/layouts/Shell'
 import { Card, Cta, Field } from '../components/ui'
 import { completeRecovery, RecoveryError } from '../features/auth/recovery'
 import { useSession } from '../features/auth/session'
-import { isSupabaseMode } from '../features/auth/SupabaseSession'
+import { isRecoveryUrl, isSupabaseMode } from '../features/auth/SupabaseSession'
 import { ApiError } from '../lib/api'
 import { sfx } from '../lib/sound'
 import { IDLE_SCENE } from './idleScene'
 
 const MIN_PASSWORD = 6
+/** How long to wait for supabase-js to report the recovery session before giving up. */
+export const RECOVERY_WAIT_MS = 8_000
 const STACK = { display: 'flex', flexDirection: 'column', gap: 12 } as const
 const TEXT = { margin: 0, fontSize: 15, fontWeight: 700, color: '#4A5640', lineHeight: 1.5 } as const
 const ERROR_STYLE = { margin: 0, fontWeight: 800, fontSize: 14, color: '#8A1F0B' } as const
@@ -42,9 +44,7 @@ function NewPasswordForm() {
     if (invalid) return
     setBusy(true)
     try {
-      const res = await completeRecovery(password)
-      useSession.getState().setAuth(res)
-      useSession.getState().setRecoverySession(false)
+      await completeRecovery(password)
       void navigate('/', { replace: true })
     } catch (e) {
       setMessage(failureKey(e))
@@ -75,16 +75,39 @@ function NewPasswordForm() {
   )
 }
 
-function hasRecoveryHash(): boolean {
-  return typeof window !== 'undefined' && /type=recovery/.test(window.location.hash)
+/** Supabase puts `error_code` / `error_description` in the hash of an expired or invalid link. */
+function hasLinkError(): boolean {
+  return typeof window !== 'undefined' && /(^|[#&])error(_code|_description)?=/.test(window.location.hash)
+}
+
+/** True once the link is known to be unusable: an error in the hash, or no recovery event in time. */
+function useLinkFailed(waiting: boolean): boolean {
+  const [linkError] = useState(hasLinkError)
+  const [timedOut, setTimedOut] = useState(false)
+  useEffect(() => {
+    if (!waiting || linkError) return
+    const id = setTimeout(() => setTimedOut(true), RECOVERY_WAIT_MS)
+    return () => clearTimeout(id)
+  }, [waiting, linkError])
+  return linkError || timedOut
 }
 
 function ResetBody() {
   const { t } = useTranslation()
   const recovery = useSession((s) => s.recoverySession)
-  if (!isSupabaseMode()) return <p style={TEXT}>{t('reset.unavailable')}</p>
+  const supabase = isSupabaseMode()
+  const [fromLink] = useState(isRecoveryUrl)
+  const failed = useLinkFailed(supabase && !recovery)
+  if (!supabase) return <p style={TEXT}>{t('reset.unavailable')}</p>
   if (recovery) return <NewPasswordForm />
-  return <p style={TEXT}>{t(hasRecoveryHash() ? 'reset.checking' : 'reset.noLink')}</p>
+  if (failed) {
+    return (
+      <p role="alert" style={{ ...TEXT, color: '#8A1F0B' }}>
+        {t('reset.error.expired')}
+      </p>
+    )
+  }
+  return <p style={TEXT}>{t(fromLink ? 'reset.checking' : 'reset.noLink')}</p>
 }
 
 /** /reset — landing of the password-recovery mail link (public). */

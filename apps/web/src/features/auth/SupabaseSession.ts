@@ -45,9 +45,22 @@ export async function signOutSupabase(): Promise<void> {
 }
 
 let started = false
+let recoveryUser: string | null = null
+
+/** The user of the recovery session supabase-js took from the mail link, once reported. */
+export function recoveryUserId(): string | null {
+  return recoveryUser
+}
+
+/** True when the address carries a password-recovery link (implicit flow hash). */
+export function isRecoveryUrl(): boolean {
+  return typeof window !== 'undefined' && /(^|[#&])type=recovery(&|$)/.test(window.location.hash)
+}
 
 type SyncEvent = Parameters<Parameters<SupabaseClient['auth']['onAuthStateChange']>[0]>
 const TOKEN_EVENTS: readonly string[] = ['TOKEN_REFRESHED', 'SIGNED_IN', 'USER_UPDATED']
+
+const userIdOf = (s: SyncEvent[1]): string | null => (s as { user?: { id?: string } } | null)?.user?.id ?? null
 
 /** Applies one supabase-js auth event to the store. */
 function onAuthEvent(event: SyncEvent[0], next: SyncEvent[1]): void {
@@ -57,12 +70,15 @@ function onAuthEvent(event: SyncEvent[0], next: SyncEvent[1]): void {
     return
   }
   if (event === 'PASSWORD_RECOVERY') {
+    recoveryUser = userIdOf(next)
+    // The link signs in its own user; a stored session of anyone else must not stay active.
+    if (store.session && store.session.user.id !== recoveryUser) store.clear()
     store.setRecoverySession(true)
     return
   }
   if (!TOKEN_EVENTS.includes(event) || !next) return
   // Never graft another account's tokens onto the stored session.
-  const ownerId = (next as { user?: { id?: string } }).user?.id
+  const ownerId = userIdOf(next)
   if (ownerId && store.session && ownerId !== store.session.user.id) return
   store.setTokens({ accessToken: next.access_token, refreshToken: next.refresh_token, expiresAt: next.expires_at ?? 0 })
 }
@@ -70,10 +86,16 @@ function onAuthEvent(event: SyncEvent[0], next: SyncEvent[1]): void {
 /** Subscribes once: keeps the store in step with supabase-js token refreshes and recovery links. */
 export async function startSupabaseSync(): Promise<void> {
   if (started) return
+  // Read before supabase-js consumes the hash: a recovery link must keep its own session.
+  const recovering = isRecoveryUrl()
   const supabase = await getSupabaseClient()
   if (!supabase || started) return
   started = true
   supabase.auth.onAuthStateChange(onAuthEvent)
   const current = useSession.getState().session
+  if (recovering) {
+    if (current) useSession.getState().clear()
+    return
+  }
   if (current) await adoptSession(current)
 }

@@ -37,3 +37,24 @@ describe.each([
     expect(wrapper.style.position).toBe('absolute')
   })
 })
+
+describe('MobileShell panel', () => {
+  const panel = (bare: boolean) => {
+    const { container, unmount } = renderWithI18n(
+      <MemoryRouter>
+        <MobileShell scene={IDLE_SCENE} bare={bare}>
+          <p>content</p>
+        </MobileShell>
+      </MemoryRouter>,
+    )
+    const cls = container.querySelector('main')?.className ?? ''
+    unmount()
+    return cls
+  }
+
+  it('reaches the bottom on bare screens and stops above the tab bar otherwise', () => {
+    expect(panel(true)).toMatch(/panelBare/)
+    expect(panel(false)).not.toMatch(/panelBare/)
+    expect(panel(false)).toMatch(/panelBody/)
+  })
+})

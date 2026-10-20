@@ -15,9 +15,7 @@
   background: #a9d6f0;
 }
 
-/* `.root` raises specificity above the global `.panel { bottom: 0 }`, whose stylesheet can load
-   after this module in the production bundle; otherwise the panel runs under the tab bar. */
-.root .panelBody {
+.panelBody {
   top: 190px;
   bottom: 72px;
   padding: 18px 16px 16px;
@@ -25,4 +23,9 @@
   flex-direction: column;
   gap: 14px;
   overflow-y: auto;
+}
+
+/* Bare screens have no tab bar: the panel reaches the bottom, as in the prototype. */
+.panelBare {
+  bottom: 0;
 }

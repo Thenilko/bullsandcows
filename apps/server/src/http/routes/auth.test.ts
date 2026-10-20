@@ -119,15 +119,34 @@ describe('auth routes', () => {
     expect(bad.status).toBe(400)
   })
 
-  it('limits auth calls to 10 a minute per IP', async () => {
+  it('limits account calls to 10 a minute per IP and account', async () => {
     const app = makeApp()
     const ip = `10.0.4.${unique()}`
     for (let i = 0; i < 10; i += 1) {
       expect((await post(app, ip, 'reset', { email: 'a@example.com' })).status).toBe(200)
     }
-    const limited = await post(app, ip, 'login', { identifier: 'x', password: 'y' })
+    const limited = await post(app, ip, 'reset', { email: 'A@Example.com' })
     expect(limited.status).toBe(429)
     expect(await json(limited)).toEqual({ ok: false, error: { code: 'ERR_RATE_LIMIT' } })
+    expect((await post(app, ip, 'reset', { email: 'b@example.com' })).status).toBe(200)
     expect((await post(app, `${ip}-other`, 'reset', { email: 'a@example.com' })).status).toBe(200)
+  })
+
+  it('limits logins per IP and identifier', async () => {
+    const app = makeApp()
+    const ip = `10.0.6.${unique()}`
+    const login = (identifier: string) => post(app, ip, 'login', { identifier, password: 'wrong1' })
+    for (let i = 0; i < 10; i += 1) expect((await login('mira')).status).not.toBe(429)
+    expect((await login('MIRA')).status).toBe(429)
+    expect((await login('boris')).status).not.toBe(429)
+  })
+
+  it('allows 60 guests a minute per IP, apart from the account limit', async () => {
+    const app = makeApp()
+    const ip = `10.0.5.${unique()}`
+    for (let i = 0; i < 60; i += 1) expect((await post(app, ip, 'guest')).status).toBe(201)
+    expect((await post(app, ip, 'guest')).status).toBe(429)
+    expect((await post(app, ip, 'reset', { email: 'c@example.com' })).status).toBe(200)
+    expect((await post(app, `${ip}-other`, 'guest')).status).toBe(201)
   })
 })

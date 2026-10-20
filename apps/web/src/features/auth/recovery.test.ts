@@ -1,10 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const ME = { profile: { username: 'pastir' }, xp: 0 }
+const USER_A = { accessToken: 'a-acc', refreshToken: 'a-ref', expiresAt: 1, user: { id: 'user-a', isGuest: false } }
 
-async function setup(opts: { updateError?: { code?: string; message: string; status?: number }; session?: unknown } = {}) {
+async function setup(
+  opts: { updateError?: { code?: string; message: string; status?: number }; session?: unknown; recoveryUser?: string; stored?: boolean } = {},
+) {
   vi.resetModules()
   const auth = {
+    setSession: vi.fn(async () => ({})),
     onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
     updateUser: vi.fn(async () => ({ data: { user: {} }, error: opts.updateError ?? null })),
     getSession: vi.fn(async () => ({
@@ -18,10 +22,21 @@ async function setup(opts: { updateError?: { code?: string; message: string; sta
     })),
   }
   vi.doMock('@supabase/supabase-js', () => ({ createClient: () => ({ auth }) }))
+  const store = await import('./session')
+  if (opts.stored) store.useSession.setState({ session: USER_A, me: null })
+  const session = await import('./SupabaseSession')
+  let listener: (e: string, s: unknown) => void = () => undefined
+  auth.onAuthStateChange.mockImplementation(((cb: typeof listener) => {
+    listener = cb
+    return { data: { subscription: { unsubscribe: vi.fn() } } }
+  }) as never)
+  await session.startSupabaseSync()
+  listener('PASSWORD_RECOVERY', { access_token: 'acc', refresh_token: 'ref', user: { id: opts.recoveryUser ?? 'u1' } })
   const fetchMock = vi.fn(async () => new Response(JSON.stringify({ ok: true, data: ME }), { status: 200 }))
   vi.stubGlobal('fetch', fetchMock)
   const mod = await import('./recovery')
-  return { mod, auth, fetchMock }
+  const { useSession } = await import('./session')
+  return { mod, auth, fetchMock, useSession }
 }
 
 beforeEach(() => {
@@ -30,6 +45,7 @@ beforeEach(() => {
   vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'anon')
 })
 afterEach(() => {
+  window.history.replaceState(null, '', '/')
   vi.unstubAllEnvs()
   vi.unstubAllGlobals()
 })
@@ -46,6 +62,30 @@ describe('completeRecovery', () => {
     const [path, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(path).toBe('/api/me')
     expect(new Headers(init.headers).get('authorization')).toBe('Bearer acc')
+  })
+
+  it('a recovery link for B on a device signed in as A changes only B and ends signed in as B', async () => {
+    window.history.replaceState(null, '', '/reset#access_token=acc&refresh_token=ref&type=recovery')
+    const { mod, auth, useSession } = await setup({ stored: true, recoveryUser: 'u1' })
+    expect(auth.setSession).not.toHaveBeenCalled()
+    expect(useSession.getState().session).toBeNull()
+    await mod.completeRecovery('secret1')
+    expect(auth.updateUser).toHaveBeenCalledTimes(1)
+    expect(useSession.getState().session).toMatchObject({ accessToken: 'acc', user: { id: 'u1' } })
+    expect(useSession.getState().recoverySession).toBe(false)
+  })
+
+  it('a PASSWORD_RECOVERY for another user drops the stored session even without the hash', async () => {
+    const { useSession, auth } = await setup({ stored: true, recoveryUser: 'u1' })
+    expect(auth.setSession).toHaveBeenCalled()
+    expect(useSession.getState().session).toBeNull()
+    expect(useSession.getState().recoverySession).toBe(true)
+  })
+
+  it('refuses to change a password on a session that is not the recovery one', async () => {
+    const { mod, auth } = await setup({ recoveryUser: 'someone-else' })
+    await expect(mod.completeRecovery('secret1')).rejects.toMatchObject({ key: 'reset.error.expired' })
+    expect(auth.updateUser).not.toHaveBeenCalled()
   })
 
   it('maps supabase errors to reset error keys', async () => {
@@ -65,6 +105,7 @@ describe('completeRecovery', () => {
   it('is unavailable in fake mode', async () => {
     vi.stubEnv('VITE_AUTH_MODE', 'fake')
     const { mod, auth } = await setup()
+    expect(auth.onAuthStateChange).not.toHaveBeenCalled()
     await expect(mod.completeRecovery('secret1')).rejects.toMatchObject({ key: 'reset.unavailable' })
     expect(auth.updateUser).not.toHaveBeenCalled()
   })
