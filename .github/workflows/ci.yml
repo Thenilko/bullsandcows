@@ -51,7 +51,9 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Build web and dry-run the Worker bundle
+      - name: Build web (fake auth) and dry-run the Worker bundle
+        env:
+          VITE_AUTH_MODE: fake
         run: pnpm build
 
   e2e:
@@ -69,13 +71,44 @@ jobs:
       - name: Install Chromium
         working-directory: apps/web
         run: pnpm exec playwright install --with-deps chromium
-      - name: Run Playwright (fake auth, memory repo, no secrets)
-        run: pnpm e2e
+      # `pnpm e2e` locally; split in two jobs here so each stays well inside the timeout.
+      - name: Run Playwright flows (fake auth, memory repo, no secrets)
+        run: pnpm --filter web exec playwright test --project=mobile --project=desktop
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          if-no-files-found: ignore
+          retention-days: 7
+
+  e2e-gallery:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        working-directory: apps/web
+        run: pnpm exec playwright install --with-deps chromium
+      # Screenshot baselines are rendered on macOS, so CI runs axe over the gallery but skips the
+      # pixel comparison (playwright.config.ts: ignoreSnapshots). CI_SCREENSHOTS=1 turns it on.
+      - name: Run Playwright gallery (axe; screenshots only with CI_SCREENSHOTS=1)
+        run: pnpm --filter web exec playwright test --project=gallery
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-gallery
           path: |
             apps/web/playwright-report
             apps/web/test-results
