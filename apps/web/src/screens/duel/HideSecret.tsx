@@ -16,7 +16,10 @@ export interface HideSecretProps {
 }
 
 const MASK = '•'
-const COL = { display: 'flex', flexDirection: 'column', gap: 14 } as const
+const COL = { display: 'flex', flexDirection: 'column', gap: 'var(--panel-gap, 14px)' } as const
+/** PasDuel mobile: a 290px scene that the panel overlaps by 24px; MK10 keeps the whole secret form visible. */
+const PANEL_TOP = 266
+const COMPACT_PANEL_H = 420
 
 /** Classic format: choose my own number. It stays in this tab only; the server never returns it. */
 export function HideSecret({ roomId, state, send }: HideSecretProps) {
@@ -31,7 +34,7 @@ export function HideSecret({ roomId, state, send }: HideSecretProps) {
 
   const display = showDigits ? cur : MASK.repeat(cur.length)
   return (
-    <Shell scene={IDLE_SCENE} sceneSide>
+    <Shell scene={IDLE_SCENE} sceneSide panelTop={PANEL_TOP} compactPanelHeight={COMPACT_PANEL_H}>
       <section aria-label={t('duel.title.secret')} style={COL}>
         <h1 className="rise" style={{ margin: 0, fontSize: 26, fontWeight: 900 }}>
           {t('duel.secret.title')}

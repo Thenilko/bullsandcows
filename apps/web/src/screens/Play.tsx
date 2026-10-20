@@ -9,7 +9,6 @@ import { IDLE_SCENE } from './idleScene'
 import { DesktopPlay, MobilePlay, PlayHud } from './play/PlayPanel'
 
 const PANEL_TOP = 356
-const PANEL_PADDING = '14px 16px 12px'
 
 function Loading({ failed }: { failed: boolean }) {
   const { t } = useTranslation()
@@ -48,7 +47,6 @@ export function PlayGame({ gameId, notesOpen = false }: { gameId: string; notesO
     <Shell
       scene={g.scene}
       panelTop={PANEL_TOP}
-      panelPadding={PANEL_PADDING}
       hud={<PlayHud game={game} g={g} desktop={desktop} />}
     >
       {desktop ? <DesktopPlay game={game} g={g} /> : <MobilePlay game={game} g={g} notesOpen={notesOpen} />}

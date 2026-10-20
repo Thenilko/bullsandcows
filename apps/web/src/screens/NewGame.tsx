@@ -11,7 +11,7 @@ import { ME_KEY } from '../features/stats/useMe'
 import { createGame, type GameKind } from '../features/solo/api'
 import { useAverageAttempts } from '../features/solo/useDistribution'
 import { useIsDesktop } from '../hooks/useIsDesktop'
-import { useIsShort } from '../hooks/useIsShort'
+import { useIsCompact } from '../hooks/useViewport'
 import { ApiError } from '../lib/api'
 import { sfx } from '../lib/sound'
 import { ModeSwitch } from './duel/parts/SetupFields'
@@ -84,7 +84,7 @@ export function NewGame({ initial }: { initial?: NewGameInitial }) {
   const { t } = useTranslation()
   const desktop = useIsDesktop()
   // Phone with the browser bars showing: tighter spacing so the settings fit above the pinned button.
-  const compact = useIsShort() && !desktop
+  const compact = useIsCompact() && !desktop
   const navigate = useNavigate()
   const me = useSession((s) => s.me)
   const [len, setLen] = useState<Len>(initial?.len ?? me?.profile.defaultLen ?? 4)

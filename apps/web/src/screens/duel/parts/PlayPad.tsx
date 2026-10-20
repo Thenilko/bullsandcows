@@ -27,7 +27,7 @@ export function PlayPad({ state, cur, shake, errCode, disabled, desktop, overlay
   const last = state.me.guesses[state.me.guesses.length - 1]
   return (
     <>
-      <Inset style={{ padding: '10px 12px', fontWeight: 800, fontSize: 14 }}>
+      <Inset className="cmp-hide" style={{ padding: '10px 12px', fontWeight: 800, fontSize: 14 }}>
         {last
           ? t('duel.play.last', { guess: last.guess, bulls: t('common.bull', { count: last.bulls }), cows: t('common.cow', { count: last.cows }), left: state.me.left })
           : t(state.zero ? 'duel.play.promptZero' : 'duel.play.promptNoZero', { count: state.len })}

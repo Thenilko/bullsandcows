@@ -9,7 +9,7 @@ const COUNT_STYLE = { display: 'flex', alignItems: 'center', gap: 2, fontWeight:
 /** Attempts, newest first; the latest row plays the entrance animation. */
 export function History({ guesses }: { guesses: readonly GuessEntryDto[] }) {
   const { t } = useTranslation()
-  if (guesses.length === 0) return <p style={{ margin: 0, color: 'var(--c-muted-aa)', fontWeight: 700 }}>{t('notebook.noGuesses')}</p>
+  if (guesses.length === 0) return <p className="cmp-hide" style={{ margin: 0, color: 'var(--c-muted-aa)', fontWeight: 700 }}>{t('notebook.noGuesses')}</p>
   const rows = guesses.map((g, i) => ({ g, n: i + 1 })).reverse()
   return (
     <ol aria-label={t('notebook.attempts')} style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>

@@ -1,8 +1,13 @@
+/*
+ * Mobile shell. Tall viewports (>= 760px) use the 390x844 artboard values; the compact rules below mirror the
+ * MK1–MK12 reference row (PasMobile.layout / PasDuel.frame): band screens 130px, login max(120, H - 540),
+ * play screens keep a 312px panel (290px under 640px), hide the tab bar and shrink keys and signs.
+ */
 .root {
-  /* The tab bar grows by the home-indicator inset on notched phones. */
   --tabbar-h: calc(72px + env(safe-area-inset-bottom, 0px));
-  /* Set inline by MobileShell: the panel keeps its artboard height, the scene gives way on short viewports. */
   --panel-top: 190px;
+  --panel-pad: 18px 16px 16px;
+  --panel-gap: 10px;
   position: relative;
   height: 100vh;
   height: 100dvh;
@@ -10,6 +15,12 @@
   overflow: hidden;
   background: #f6f2e6;
   color: #2e3b24;
+}
+
+/* Play-like screens: `--panel-top-tall` and `--panel-h-compact` come inline from MobileShell. */
+.play {
+  --panel-top: var(--panel-top-tall);
+  --panel-pad: 14px 16px 12px;
 }
 
 .scene {
@@ -21,14 +32,14 @@
 }
 
 /* Play screens: the whole scene stays visible above the panel (the meadow anchors to the panel's edge). */
-.sceneFit {
+.play .scene {
   height: min(380px, calc(var(--panel-top) + 26px));
 }
 
 .panelBody {
   top: var(--panel-top);
   bottom: var(--tabbar-h);
-  padding: 18px 16px 16px;
+  padding: var(--panel-pad);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -45,4 +56,73 @@
 .tabbar {
   height: var(--tabbar-h);
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (max-height: 760px) {
+  .root {
+    --panel-top: 130px;
+  }
+
+  .bare {
+    --panel-top: clamp(120px, calc(100dvh - 540px), 190px);
+  }
+
+  .play {
+    --panel-top: min(var(--panel-top-tall), calc(100dvh - var(--panel-h-compact)));
+    --panel-pad: 12px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+    --panel-gap: 8px;
+  }
+
+  /* Focus mode: the panel takes the tab bar's place; „Меню“ in the HUD leads back. */
+  .play .panelBody {
+    bottom: 0;
+  }
+
+  .play .tabbar {
+    display: none;
+  }
+
+  .play :global(.cmp-hide) {
+    display: none;
+  }
+
+  .play :global(.sign) {
+    width: 50px;
+    height: 50px;
+    font-size: 27px;
+    border-radius: 9px;
+  }
+
+  .play :global(.key) {
+    height: 44px;
+    font-size: 20px;
+    border-radius: 12px;
+  }
+
+  .play :global(.panel .cta),
+  .play :global(.panel .soft) {
+    min-height: 46px;
+  }
+}
+
+@media (max-height: 640px) {
+  .play {
+    --panel-top: min(var(--panel-top-tall), calc(100dvh - var(--panel-h-tiny)));
+    --panel-gap: 6px;
+  }
+
+  .play :global(.sign) {
+    width: 46px;
+    height: 44px;
+    font-size: 24px;
+  }
+
+  .play :global(.key) {
+    height: 40px;
+  }
+
+  .play :global(.panel .cta),
+  .play :global(.panel .soft) {
+    min-height: 42px;
+  }
 }

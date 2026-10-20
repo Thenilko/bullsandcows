@@ -1,5 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useIsCompact } from '../../hooks/useViewport'
 import { Notebook, type NotebookProps } from './Notebook'
 
 type SheetProps = Omit<NotebookProps, 'layout'> & { onClose(): void }
@@ -43,6 +44,8 @@ function trapTab(e: ReactKeyboardEvent<HTMLElement>): void {
 
 /** Mobile notebook: bottom sheet over the play panel; closes on backdrop tap and Escape. */
 export function NotebookSheet(props: SheetProps) {
+  // MK6: the sheet starts higher on compact phones.
+  const compact = useIsCompact()
   const { t } = useTranslation()
   const { onClose } = props
   const sheet = useRef<HTMLElement>(null)
@@ -60,7 +63,7 @@ export function NotebookSheet(props: SheetProps) {
   return (
     <>
       <div className="fadein" data-testid="notebook-backdrop" style={BACKDROP} onClick={onClose} />
-      <section className="sheetup" role="dialog" aria-modal="true" aria-label={t('notebook.title')} tabIndex={-1} ref={sheet} onKeyDown={trapTab} style={{ ...SHEET, outline: 'none' }}>
+      <section className="sheetup" role="dialog" aria-modal="true" aria-label={t('notebook.title')} tabIndex={-1} ref={sheet} onKeyDown={trapTab} style={{ ...SHEET, top: compact ? 48 : SHEET.top, outline: 'none' }}>
         <span style={GRIP} />
         <Notebook {...props} layout="sheet" />
       </section>

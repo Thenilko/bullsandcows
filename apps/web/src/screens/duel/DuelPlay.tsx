@@ -27,9 +27,11 @@ export interface DuelPlayProps {
   send(msg: ClientMsg): void
 }
 
-const COL = { display: 'flex', flexDirection: 'column', gap: 10 } as const
+const COL = { display: 'flex', flexDirection: 'column', gap: 'var(--panel-gap, 10px)' } as const
 /** PasDuel mobile: a 290px scene that the panel overlaps by 24px. */
 const PANEL_TOP = 266
+/** Compact phones: the classic panel (chips, opponent card, give up) fits without scrolling; the scene keeps >= 130px. */
+const COMPACT_PANEL_H = 450
 const GIVE_UP = { minHeight: 32, fontSize: 13, fontWeight: 800, color: 'var(--c-muted-aa)', textDecoration: 'underline' } as const
 
 export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
@@ -54,6 +56,7 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
       scene={playScene(state, store.parity, store.miss)}
       sceneSide
       panelTop={PANEL_TOP}
+      compactPanelHeight={COMPACT_PANEL_H}
       hudAt="bottom"
       hud={<OppStrip state={state} oppName={oppName} status={m.oppStatus} thinking={m.botTurn} />}
     >
@@ -81,7 +84,7 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
         {m.classic ? (
           <OppGuessesCard state={state} oppName={oppName} mySecret={mySecret} />
         ) : (
-          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)', textAlign: 'center' }}>
+          <p className="cmp-hide" style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)', textAlign: 'center' }}>
             {m.botTurn ? t('duel.play.botThinking') : t('duel.play.raceNote', { name: oppName })}
           </p>
         )}

@@ -3,7 +3,7 @@ import { Shell } from '../../app/layouts/Shell'
 import { Card, Cta, PanelFooter } from '../../components/ui'
 import { BotFields, CommonFields, ModeSwitch, OpponentFields, SETUP_NOTE } from './parts/SetupFields'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
-import { useIsShort } from '../../hooks/useIsShort'
+import { useIsCompact } from '../../hooks/useViewport'
 import { IDLE_SCENE } from './scenes'
 import { useSetupForm, type SetupMode } from './useSetupForm'
 
@@ -16,7 +16,7 @@ export function DuelSetup({ mode }: { mode: SetupMode }) {
   const { t } = useTranslation()
   const form = useSetupForm(mode)
   const desktop = useIsDesktop()
-  const short = useIsShort()
+  const short = useIsCompact()
   const compact = short && !desktop
   const quick = mode === 'duel' && form.opponent === 'quick'
   const cta = mode === 'bot' ? 'newGame.cta.bot' : quick ? 'newGame.cta.quick' : 'newGame.cta.invite'

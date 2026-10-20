@@ -212,6 +212,8 @@
     "last": "Last {{guess}}: {{bulls}}, {{cows}}",
     "keyboardHint": "You can also type: digits, Backspace, Enter.",
     "hiddenTitle": "The number is hidden in the fog",
+    "exit": "Menu",
+    "exitAria": "Leave the game",
     "hiddenText": "The clock only starts when you press “Start”.",
     "orEnter": "or press Enter",
     "tried": "You already tried {{guess}}",

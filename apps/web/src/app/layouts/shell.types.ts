@@ -15,8 +15,11 @@ export interface ShellProps {
    * scene). Giving it also keeps the meadow visible above the panel on shorter viewports.
    */
   panelTop?: number
-  /** Mobile only: CSS padding of the panel (play uses the prototype's 14px 16px 12px). */
-  panelPadding?: string
+  /**
+   * Mobile only, play-like screens: the panel's height on compact viewports (under 760px), default 312px
+   * (290px under 640px). The keypad has to fit in it without scrolling.
+   */
+  compactPanelHeight?: number
   /** Overlay rendered on top of the scene (HUD chips), as in the prototypes. */
   hud?: ReactNode
   /** Where the hud sits: `top` (solo chips) or `bottom`, just above the panel (PasDuel opponent strip). */

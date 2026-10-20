@@ -1,6 +1,8 @@
 import type { GameViewDto } from '@bc/protocol'
 import { useCallback, useRef, useState, type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router'
+import { useIsCompact } from '../../hooks/useViewport'
 import { Card, Chip, Hud, Keypad, NotebookIcon, Slots, Soft } from '../../components/ui'
 import { Notebook } from '../../features/notebook/Notebook'
 import { NotebookSheet } from '../../features/notebook/NotebookSheet'
@@ -74,10 +76,12 @@ function Input({ game, g, desktop }: PlayPanelProps) {
 
 function Overlay({ game, g, desktop }: PlayPanelProps) {
   const info = useStartInfo(game)
+  const compact = useIsCompact() && !desktop
   if (g.started) return null
   return (
     <StartOverlay
       desktop={desktop}
+      compact={compact}
       info={info}
       running={g.ui.countdown === 'running'}
       onBegin={g.beginCountdown}
@@ -86,10 +90,10 @@ function Overlay({ game, g, desktop }: PlayPanelProps) {
   )
 }
 
-function GiveUp({ g }: { g: GameApi }) {
+function GiveUp({ g, className }: { g: GameApi; className?: string }) {
   const { t } = useTranslation()
   return (
-    <Soft small style={GIVE_UP_STYLE} disabled={!g.started || g.finished} onClick={() => void g.giveUp()}>
+    <Soft small className={className} style={GIVE_UP_STYLE} disabled={!g.started || g.finished} onClick={() => void g.giveUp()}>
       {t('notebook.giveUp')}
     </Soft>
   )
@@ -135,7 +139,7 @@ export function MobilePlay({ game, g, notesOpen = false }: Omit<PlayPanelProps, 
     opener.current?.focus()
   }, [])
   return (
-    <section aria-label={t('play.inputArea')} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <section aria-label={t('play.inputArea')} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--panel-gap, 10px)' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <Status game={game} />
         <NotesButton
@@ -149,7 +153,8 @@ export function MobilePlay({ game, g, notesOpen = false }: Omit<PlayPanelProps, 
       </div>
       <Input game={game} g={g} desktop={false} />
       <History guesses={game.guesses} />
-      <GiveUp g={g} />
+      {/* Compact phones: the notebook sheet's footer carries it (MK3 keeps the keypad fully visible). */}
+      <GiveUp g={g} className="cmp-hide" />
       <Overlay game={game} g={g} desktop={false} />
       {open ? <NotebookSheet gameId={game.id} guesses={game.guesses} left={g.left} onClose={close} footer={<GiveUp g={g} />} /> : null}
     </section>
@@ -178,10 +183,32 @@ export function DesktopPlay({ game, g }: Omit<PlayPanelProps, 'desktop'>) {
 }
 
 const HUD_ROW = { display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between', alignItems: 'center' } as const
+const EXIT_STYLE = { display: 'flex', alignItems: 'center', gap: 4, minHeight: 32 } as const
+
+function BackChevron() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M15 5l-7 7 7 7" />
+    </svg>
+  )
+}
 
 /** HUD chips shown over the scene (M3 / D3). */
+/** Compact play (MK3): the tab bar is hidden, so „Меню“ in the HUD leads back to the new-game screen. */
+function ExitButton() {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  return (
+    <button type="button" className="ps-hud" aria-label={t('play.exitAria')} style={EXIT_STYLE} onClick={() => void navigate('/new')}>
+      <BackChevron />
+      {t('play.exit')}
+    </button>
+  )
+}
+
 export function PlayHud({ game, g, desktop }: PlayPanelProps) {
   const { t } = useTranslation()
+  const compact = useIsCompact() && !desktop
   const clock = formatClock(g.elapsedSec)
   const items = desktop
     ? [
@@ -192,5 +219,12 @@ export function PlayHud({ game, g, desktop }: PlayPanelProps) {
         { label: t('play.fog', { count: g.left }), value: '' },
         { label: clock, value: '' },
       ]
-  return <Hud items={items} style={{ ...HUD_ROW, fontSize: desktop ? 15 : undefined }} />
+  const hud = <Hud items={items} style={{ ...HUD_ROW, flex: 1, fontSize: desktop ? 15 : undefined }} />
+  if (!compact) return hud
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <ExitButton />
+      {hud}
+    </div>
+  )
 }

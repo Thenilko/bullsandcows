@@ -215,6 +215,8 @@
     "last": "Последно {{guess}}: {{bulls}}, {{cows}}",
     "keyboardHint": "Можеш да пишеш и от клавиатурата: цифри, Backspace, Enter.",
     "hiddenTitle": "Числото е скрито в мъглата",
+    "exit": "Меню",
+    "exitAria": "Изход от играта",
     "hiddenText": "Часовникът тръгва чак когато натиснеш „Старт“.",
     "orEnter": "или натисни Enter",
     "tried": "Вече пробва {{guess}}",
