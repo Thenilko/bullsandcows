@@ -10,6 +10,7 @@ export default defineConfig({
     alias: {
       '@bc/game-core': fromRoot('../../packages/game-core/src/index.ts'),
       '@bc/i18n': fromRoot('../../packages/i18n/src/index.ts'),
+      '@bc/protocol': fromRoot('../../packages/protocol/src/index.ts'),
     },
   },
   server: {

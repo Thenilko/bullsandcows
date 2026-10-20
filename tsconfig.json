@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/game-core" },
     { "path": "packages/i18n" },
+    { "path": "packages/protocol" },
     { "path": "apps/web" },
     { "path": "apps/server" }
   ]

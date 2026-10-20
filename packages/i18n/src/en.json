@@ -483,6 +483,7 @@
     "ERR_INVITE_EXPIRED": "The invite has expired or the code is wrong.",
     "ERR_ROOM_FULL": "This room already has two players.",
     "ERR_RATE_LIMIT": "Slow down a little — wait a moment and try again.",
+    "ERR_INTERNAL": "Something went wrong. Try again.",
     "network": "No connection. Check your internet and try again.",
     "unknown": "Something went wrong. Try again."
   }
