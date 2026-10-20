@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { ERROR_CODES } from './errors'
-import { LenSchema, ZeroSchema } from './rest'
+import { BotLevelSchema, LenSchema, ZeroSchema } from './rest'
 
 /** WebSocket message schemas shared by the duel/queue rooms and the client. */
 export const WS_PROTOCOL_VERSION = 1
@@ -10,7 +10,6 @@ export const FormatSchema = z.enum(['race', 'classic'])
 export type Format = z.infer<typeof FormatSchema>
 export const OpponentKindSchema = z.enum(['quick', 'friend', 'bot'])
 export type OpponentKind = z.infer<typeof OpponentKindSchema>
-export const BotLevelSchema = z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)])
 export const SeatSchema = z.enum(['a', 'b'])
 export type Seat = z.infer<typeof SeatSchema>
 export const PhaseSchema = z.enum(['lobby', 'secrets', 'countdown', 'playing', 'ended'])
