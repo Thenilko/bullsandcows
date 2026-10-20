@@ -82,9 +82,11 @@ describe('api app', () => {
     expect(await res.json()).toEqual({ ok: true, data: { id: 'u1' } })
   })
 
-  it('returns the authenticated user from /api/me', async () => {
+  it('returns the profile of the authenticated user from /api/me', async () => {
     const res = await makeTestApp().request('/api/me', bearer('fake:u1:Mira'))
-    expect(await res.json()).toEqual({ ok: true, data: { id: 'u1', isGuest: false } })
+    const body = (await res.json()) as { ok: boolean; data: { profile: unknown } }
+    expect(body.ok).toBe(true)
+    expect(body.data.profile).toMatchObject({ id: 'u1', isGuest: false })
   })
 
   it('maps validation failures and malformed json to ERR_INPUT', async () => {

@@ -2,10 +2,13 @@ import { Hono, type Context } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import { ZodError } from 'zod'
 import { AppError } from './errors'
-import { requireUser } from './middleware/auth'
 import { securityHeaders } from './middleware/headers'
 import { fail, ok } from './respond'
+import { authRoutes } from './routes/auth'
 import { gamesRoutes } from './routes/games'
+import { leaderboardRoutes } from './routes/leaderboard'
+import { meRoutes } from './routes/me'
+import { statsRoutes } from './routes/stats'
 import type { AppDeps, AppEnv } from './types'
 
 export type { AppDeps, AppEnv } from './types'
@@ -28,8 +31,11 @@ export function createApp(deps: AppDeps): Hono<AppEnv> {
     await next()
   })
   app.get('/api/health', (c) => ok(c, { status: 'ok' as const }))
-  app.get('/api/me', requireUser(), (c) => ok(c, c.get('user')))
   app.route('/api/games', gamesRoutes())
+  app.route('/api/stats', statsRoutes())
+  app.route('/api/leaderboard', leaderboardRoutes())
+  app.route('/api/me', meRoutes())
+  app.route('/api/auth', authRoutes())
   app.notFound((c) => fail(c, 'ERR_NOT_FOUND', 404))
   app.onError(handleError)
   return app

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, getTableColumns, gte, type SQL } from 'drizzle-orm'
+import { and, asc, count, desc, eq, getTableColumns, gte, type SQL } from 'drizzle-orm'
 import type { GamePatch, GamesRepo, WonAttemptsQuery } from '../../../ports/repo'
 import type { Db } from './client'
 import { required } from './errors'
@@ -81,9 +81,14 @@ export function drizzleGames(db: Db): GamesRepo {
         .limit(1)
       return row ? toPublicGame(row) : null
     },
+    // Grouped in the database so the Worker never pulls one row per game.
     wonAttempts: async (q) => {
-      const rows = await db.select({ attempts: games.attempts }).from(games).where(wonFilter(q))
-      return rows.map((r) => r.attempts)
+      const rows = await db
+        .select({ attempts: games.attempts, n: count() })
+        .from(games)
+        .where(wonFilter(q))
+        .groupBy(games.attempts)
+      return rows.flatMap((r) => Array<number>(r.n).fill(r.attempts))
     },
     leaderboard: (q) => drizzleLeaderboard(db, q),
     recordDailyNumber: async (date, len, zero, idx) => {

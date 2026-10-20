@@ -62,3 +62,168 @@ export const GameViewDto = z.object({
   secret: z.string().optional(),
 })
 export type GameViewDto = z.infer<typeof GameViewDto>
+
+export const LangSchema = z.enum(['bg', 'en'])
+export const GameKindSchema = z.enum(['daily', 'free', 'duel_race', 'duel_classic', 'bot'])
+export const PeriodSchema = z.enum(['today', 'week', 'all'])
+/** Mirrors `RANK_KEYS` in game-core; the client translates them. */
+export const RankKeySchema = z.enum([
+  'calf',
+  'herdsman',
+  'shepherd',
+  'pastor',
+  'steward',
+  'chiefBull',
+])
+
+export const BADGE_KEYS = [
+  'firstBull',
+  'noWaste',
+  'underMinute',
+  'streak7',
+  'chiefBull',
+  'fiveDigits',
+] as const
+export const BadgeKeySchema = z.enum(BADGE_KEYS)
+export type BadgeKey = z.infer<typeof BadgeKeySchema>
+
+export const DistributionDto = z.object({
+  histogram: z.array(z.number()),
+  sample: z.number().int(),
+  fallback: z.boolean(),
+})
+export type DistributionDto = z.infer<typeof DistributionDto>
+
+export const LeaderboardRowDto = z.object({
+  rank: z.number().int(),
+  username: z.string(),
+  attempts: z.number().int(),
+  score: z.number().int(),
+  you: z.boolean(),
+})
+export type LeaderboardRowDto = z.infer<typeof LeaderboardRowDto>
+
+export const LeaderboardDto = z.object({
+  rows: z.array(LeaderboardRowDto),
+  me: z
+    .object({ rank: z.number().int(), score: z.number().int(), top: z.number().int() })
+    .nullable(),
+})
+export type LeaderboardDto = z.infer<typeof LeaderboardDto>
+
+export const ProfileDto = z.object({
+  id: z.string(),
+  username: z.string(),
+  isGuest: z.boolean(),
+  lang: LangSchema,
+  sound: z.boolean(),
+  vibrate: z.boolean(),
+  defaultLen: LenSchema,
+})
+export type ProfileDto = z.infer<typeof ProfileDto>
+
+/** Wins per attempt count; the last bucket (`attempts: 10`) means ten or more. */
+export const BucketDto = z.object({ attempts: z.number().int(), count: z.number().int() })
+export type BucketDto = z.infer<typeof BucketDto>
+
+export const RecentGameDto = z.object({
+  id: z.string(),
+  kind: GameKindSchema,
+  len: LenSchema,
+  zero: z.boolean(),
+  won: z.boolean(),
+  attempts: z.number().int(),
+  score: z.number().int(),
+  finishedAt: z.number(),
+  practice: z.boolean(),
+})
+export type RecentGameDto = z.infer<typeof RecentGameDto>
+
+export const MeDto = z.object({
+  profile: ProfileDto,
+  xp: z.number().int(),
+  level: z.number().int(),
+  xpIntoLevel: z.number().int(),
+  rankKey: RankKeySchema,
+  rating: z.number().int(),
+  /** The most recent unfinished solo game, to resume after a reload. */
+  currentGameId: z.string().nullable(),
+  stats: z.object({
+    played: z.number().int(),
+    /** Percent, 0..100. */
+    winRate: z.number().int(),
+    streak: z.number().int(),
+    best: z.number().int().nullable(),
+  }),
+  buckets: z.array(BucketDto),
+  badges: z.record(BadgeKeySchema, z.boolean()),
+  recent: z.array(RecentGameDto),
+})
+export type MeDto = z.infer<typeof MeDto>
+
+/** Only these fields; anything else (xp, rating, username...) is rejected. */
+export const SettingsPatch = z
+  .object({
+    sound: z.boolean().optional(),
+    vibrate: z.boolean().optional(),
+    defaultLen: LenSchema.optional(),
+    lang: LangSchema.optional(),
+  })
+  .strict()
+export type SettingsPatch = z.infer<typeof SettingsPatch>
+
+const USERNAME_CHARS = /^[\p{L}\p{N}_\- ]+$/u
+
+/** Trimmed, inner whitespace collapsed to one space; 2–20 letters (any script), digits, _ - space. */
+export const UsernameSchema = z
+  .string()
+  .max(100)
+  .transform((s) => s.trim().replace(/\s+/g, ' '))
+  .pipe(z.string().min(2).max(20).regex(USERNAME_CHARS))
+
+export const EmailSchema = z
+  .email()
+  .max(254)
+  .transform((s) => s.toLowerCase())
+export const PasswordSchema = z.string().min(6).max(72)
+
+export const RegisterBody = z.object({
+  username: UsernameSchema,
+  email: EmailSchema,
+  password: PasswordSchema,
+  lang: LangSchema.optional(),
+})
+export type RegisterBody = z.infer<typeof RegisterBody>
+
+/** `identifier` is a username or an email. */
+export const LoginBody = z.object({
+  identifier: z.string().trim().min(1).max(254),
+  password: z.string().min(1).max(72),
+})
+export type LoginBody = z.infer<typeof LoginBody>
+
+export const UpgradeBody = z.object({
+  username: UsernameSchema,
+  email: EmailSchema,
+  password: PasswordSchema,
+})
+export type UpgradeBody = z.infer<typeof UpgradeBody>
+
+export const ResetBody = z.object({ email: EmailSchema })
+export type ResetBody = z.infer<typeof ResetBody>
+
+export const AuthResponseDto = z.object({ session: SessionDto, me: MeDto })
+export type AuthResponseDto = z.infer<typeof AuthResponseDto>
+
+export const ResetResponseDto = z.object({ sent: z.literal(true) })
+export type ResetResponseDto = z.infer<typeof ResetResponseDto>
+
+/** Query strings carry text; these turn `?len=4&zero=false` into typed values. */
+const LenQuery = z.enum(['3', '4', '5']).transform((v) => Number(v) as 3 | 4 | 5)
+const BoolQuery = z.enum(['true', 'false']).transform((v) => v === 'true')
+
+export const DistributionQuery = z.object({ len: LenQuery, zero: BoolQuery, kind: KindSchema })
+export type DistributionQuery = z.infer<typeof DistributionQuery>
+
+export const LeaderboardQuery = z.object({ period: PeriodSchema, len: LenQuery, zero: BoolQuery })
+export type LeaderboardQuery = z.infer<typeof LeaderboardQuery>
