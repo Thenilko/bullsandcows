@@ -4,7 +4,7 @@ import type { Db } from './client'
 import { required } from './errors'
 import { drizzleLeaderboard } from './leaderboard'
 import { toDate, toGame, toGuess, toPublicGame } from './mappers'
-import { games, guesses } from './schema'
+import { dailyNumbers, games, guesses } from './schema'
 
 /** Every column except `secret`: the default projection for all game reads and writes. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -86,6 +86,9 @@ export function drizzleGames(db: Db): GamesRepo {
       return rows.map((r) => r.attempts)
     },
     leaderboard: (q) => drizzleLeaderboard(db, q),
+    recordDailyNumber: async (date, len, zero, idx) => {
+      await db.insert(dailyNumbers).values({ date, len, zero, idx }).onConflictDoNothing()
+    },
     history: async (userId, limit) => {
       const rows = await db
         .select(publicColumns)

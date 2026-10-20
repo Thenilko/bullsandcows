@@ -80,15 +80,15 @@ describe('memory profiles', () => {
 
   it('adds xp and sets the rating', async () => {
     await member('u1', 'Mira')
-    expect((await repo.profiles.addXp('u1', 120)).xp).toBe(120)
-    expect((await repo.profiles.addXp('u1', 40)).xp).toBe(160)
+    expect((await repo.profiles.addXp('u1', 120))?.xp).toBe(120)
+    expect((await repo.profiles.addXp('u1', 40))?.xp).toBe(160)
     await repo.profiles.setRating('u1', { rating: 1600, rd: 200, vol: 0.06 })
     expect((await repo.profiles.get('u1'))?.rating).toEqual({ rating: 1600, rd: 200, vol: 0.06 })
   })
 
   it('reports a missing profile', async () => {
     expect(await repo.profiles.get('nobody')).toBeNull()
-    await expect(repo.profiles.addXp('nobody', 1)).rejects.toMatchObject({ code: 'ERR_NOT_FOUND' })
+    expect(await repo.profiles.addXp('nobody', 1)).toBeNull()
   })
 })
 

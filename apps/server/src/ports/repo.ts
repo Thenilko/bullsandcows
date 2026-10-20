@@ -146,7 +146,8 @@ export interface ProfilesRepo {
   /** Throws `ERR_USERNAME_TAKEN` when the name exists in any case. */
   create(profile: NewProfile): Promise<Profile>
   update(id: string, patch: ProfilePatch): Promise<Profile>
-  addXp(id: string, xp: number): Promise<Profile>
+  /** Returns null (and changes nothing) when the profile does not exist. */
+  addXp(id: string, xp: number): Promise<Profile | null>
   setRating(id: string, rating: Rating): Promise<void>
 }
 
@@ -168,6 +169,8 @@ export interface GamesRepo {
   wonAttempts(query: WonAttemptsQuery): Promise<number[]>
   /** Score desc, then earlier finish, then user id asc. */
   leaderboard(query: LeaderboardQuery): Promise<LeaderboardRow[]>
+  /** Audit row for the day's number; idempotent. */
+  recordDailyNumber(date: string, len: Len, zero: boolean, idx: number): Promise<void>
   /** Newest first. */
   history(userId: string, limit: number): Promise<PublicGameRow[]>
 }

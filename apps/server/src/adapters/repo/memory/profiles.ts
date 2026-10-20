@@ -60,8 +60,8 @@ export function memoryProfiles(store: MemoryStore, clock: Clock): ProfilesRepo {
       return save({ ...current, ...defined(patch), username, usernameLower: lower(username) })
     },
     addXp: async (id, xp) => {
-      const current = find(id)
-      return save({ ...current, xp: current.xp + xp })
+      const current = store.profiles.get(id)
+      return current ? save({ ...current, xp: current.xp + xp }) : null
     },
     setRating: async (id, rating) => {
       save({ ...find(id), rating: { ...rating } })

@@ -6,6 +6,7 @@ export interface MemoryStore {
   readonly games: Map<string, GameRow>
   readonly guesses: Map<string, readonly GuessRow[]>
   readonly duels: Map<string, DuelRow>
+  readonly dailyNumbers: Map<string, number>
   nextGuessId: number
 }
 
@@ -14,6 +15,7 @@ export const createStore = (): MemoryStore => ({
   games: new Map(),
   guesses: new Map(),
   duels: new Map(),
+  dailyNumbers: new Map(),
   nextGuessId: 1,
 })
 

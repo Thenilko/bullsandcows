@@ -71,6 +71,10 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
         .filter((g) => matchesWon(g, q))
         .map((g) => g.attempts),
     leaderboard: async (q) => rankLeaderboard(store.games.values(), store.profiles, q),
+    recordDailyNumber: async (date, len, zero, idx) => {
+      const key = `${date}|${len}|${zero ? 1 : 0}`
+      if (!store.dailyNumbers.has(key)) store.dailyNumbers.set(key, idx)
+    },
     history: async (userId, limit) =>
       all()
         .filter((g) => g.userId === userId)

@@ -58,7 +58,7 @@ export function drizzleProfiles(db: Db): ProfilesRepo {
         .set({ xp: sql`${profiles.xp} + ${xp}` })
         .where(eq(profiles.id, id))
         .returning()
-      return toProfile(required(row))
+      return row ? toProfile(row) : null
     },
     setRating: async (id, r) => {
       const rows = await db
