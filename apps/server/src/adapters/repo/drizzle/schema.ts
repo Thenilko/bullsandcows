@@ -82,6 +82,10 @@ export const games = pgTable(
     index('games_user_created_idx').on(t.userId, t.createdAt),
     index('games_daily_idx').on(t.kind, t.len, t.zero, t.dailyDate, t.won),
     index('games_finished_idx').on(t.kind, t.len, t.zero, t.finishedAt, t.won),
+    // At most one counted daily game per player, date and settings; repeats are practice.
+    uniqueIndex('games_daily_counted_idx')
+      .on(t.userId, t.dailyDate, t.len, t.zero)
+      .where(sql`${t.kind} = 'daily' and not ${t.practice}`),
     check(
       'games_kind_check',
       sql`${t.kind} in ('daily', 'free', 'duel_race', 'duel_classic', 'bot')`,

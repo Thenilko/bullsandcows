@@ -1,4 +1,4 @@
-import type { DuelRow, GameRow, GuessRow, Profile } from '../../../ports/repo'
+import type { DuelRow, GameRow, GuessRow, Profile, PublicGameRow } from '../../../ports/repo'
 
 /** The in-memory "database". Only the memory repo touches it; callers get copies. */
 export interface MemoryStore {
@@ -23,3 +23,10 @@ export const copy = <T>(value: T): T => structuredClone(value)
 /** Drops keys whose value is `undefined`, so a patch never erases stored fields. */
 export const defined = <T extends object>(patch: T): Partial<T> =>
   Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined)) as Partial<T>
+
+/** A detached copy of a stored game without the `secret` key. */
+export function publicGame(game: GameRow): PublicGameRow {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { secret, ...rest } = copy(game)
+  return rest
+}

@@ -40,6 +40,29 @@ describe('parseEnv', () => {
     ).toThrow(/REPO_MODE/)
   })
 
+  it('rejects fake auth and the memory repo in preview', () => {
+    const preview = { ...base, HYPERDRIVE: binding, ENVIRONMENT: 'preview' }
+    expect(() => parseEnv({ ...preview, AUTH_MODE: 'fake', REPO_MODE: 'postgres' })).toThrow(
+      /AUTH_MODE/,
+    )
+    expect(() => parseEnv({ ...preview, AUTH_MODE: 'supabase', REPO_MODE: 'memory' })).toThrow(
+      /REPO_MODE/,
+    )
+    expect(parseEnv({ ...preview, AUTH_MODE: 'supabase', REPO_MODE: 'postgres' }).ENVIRONMENT).toBe(
+      'preview',
+    )
+  })
+
+  it('accepts fake auth and the memory repo in test', () => {
+    const parsed = parseEnv({
+      ...base,
+      AUTH_MODE: 'fake',
+      REPO_MODE: 'memory',
+      ENVIRONMENT: 'test',
+    })
+    expect(parsed.ENVIRONMENT).toBe('test')
+  })
+
   it('requires Hyperdrive for the postgres repo', () => {
     expect(() =>
       parseEnv({

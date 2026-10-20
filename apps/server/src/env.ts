@@ -17,6 +17,9 @@ export interface Env {
 
 const MIN_SALT_LENGTH = 16
 
+/** Fake auth and the memory repo are never allowed outside these. */
+const LOCAL_ENVIRONMENTS: readonly Env['ENVIRONMENT'][] = ['dev', 'test']
+
 const binding = <T>() =>
   z.custom<T>((value) => typeof value === 'object' && value !== null, {
     message: 'binding is missing',
@@ -41,18 +44,19 @@ const EnvSchema = z
     ENVIRONMENT: z.enum(['production', 'preview', 'dev', 'test']),
   })
   .superRefine((env, ctx) => {
-    if (env.ENVIRONMENT === 'production' && env.AUTH_MODE === 'fake') {
+    const isLocal = LOCAL_ENVIRONMENTS.includes(env.ENVIRONMENT)
+    if (!isLocal && env.AUTH_MODE === 'fake') {
       ctx.addIssue({
         code: 'custom',
         path: ['AUTH_MODE'],
-        message: '"fake" is not allowed in production',
+        message: '"fake" is only allowed in dev and test',
       })
     }
-    if (env.ENVIRONMENT === 'production' && env.REPO_MODE === 'memory') {
+    if (!isLocal && env.REPO_MODE === 'memory') {
       ctx.addIssue({
         code: 'custom',
         path: ['REPO_MODE'],
-        message: '"memory" is not allowed in production',
+        message: '"memory" is only allowed in dev and test',
       })
     }
     if (env.REPO_MODE === 'postgres' && !env.HYPERDRIVE) {

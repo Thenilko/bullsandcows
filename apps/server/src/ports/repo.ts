@@ -35,7 +35,7 @@ export interface GameRow {
   readonly kind: GameKind
   readonly len: Len
   readonly zero: boolean
-  /** Never sent to a client before the game ends; see `withoutSecret`. */
+  /** Only `GamesRepo.getWithSecret` returns it; never sent to a client before the game ends. */
   readonly secret: string
   readonly dailyDate: string | null
   readonly practice: boolean
@@ -49,6 +49,7 @@ export interface GameRow {
   readonly createdAt: number
 }
 
+/** A game as every repo method except `getWithSecret` returns it: no `secret` key at all. */
 export type PublicGameRow = Omit<GameRow, 'secret'>
 
 export type NewGame = Pick<
@@ -149,19 +150,26 @@ export interface ProfilesRepo {
   setRating(id: string, rating: Rating): Promise<void>
 }
 
+/**
+ * Every method returns games without the secret. Only the guess and give-up paths may
+ * call `getWithSecret`, explicitly.
+ */
 export interface GamesRepo {
-  create(game: NewGame): Promise<GameRow>
-  get(id: string): Promise<GameRow | null>
-  update(id: string, patch: GamePatch): Promise<GameRow>
+  create(game: NewGame): Promise<PublicGameRow>
+  get(id: string): Promise<PublicGameRow | null>
+  /** The full row including the secret; for checking guesses and revealing at the end. */
+  getWithSecret(id: string): Promise<GameRow | null>
+  update(id: string, patch: GamePatch): Promise<PublicGameRow>
   addGuess(guess: NewGuess): Promise<GuessRow>
   /** In the order they were added. */
   guesses(gameId: string): Promise<GuessRow[]>
   /** The counted (non-practice) daily game of a user for a date and settings. */
-  dailyOf(userId: string, date: string, len: Len, zero: boolean): Promise<GameRow | null>
+  dailyOf(userId: string, date: string, len: Len, zero: boolean): Promise<PublicGameRow | null>
   wonAttempts(query: WonAttemptsQuery): Promise<number[]>
+  /** Score desc, then earlier finish, then user id asc. */
   leaderboard(query: LeaderboardQuery): Promise<LeaderboardRow[]>
   /** Newest first. */
-  history(userId: string, limit: number): Promise<GameRow[]>
+  history(userId: string, limit: number): Promise<PublicGameRow[]>
 }
 
 export interface DuelsRepo {
@@ -179,10 +187,4 @@ export interface Repo {
 /** A repo bound to resources that must be released when the request ends. */
 export interface RepoHandle extends Repo {
   close(): Promise<void>
-}
-
-export function withoutSecret(game: GameRow): PublicGameRow {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { secret, ...rest } = game
-  return rest
 }

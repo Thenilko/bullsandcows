@@ -18,21 +18,29 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
+interface TokenOptions {
+  readonly audience?: string
+  readonly subject?: string | null
+  /** `null` omits the `exp` claim. */
+  readonly expiresAt?: string | number | null
+}
+
 async function signedToken(
   url: string,
   claims: Record<string, unknown>,
-  audience = 'authenticated',
+  options: TokenOptions = {},
 ) {
+  const { audience = 'authenticated', subject = 'user-1', expiresAt = '1h' } = options
   const { publicKey, privateKey } = await generateKeyPair('ES256')
   const jwk = { ...(await exportJWK(publicKey)), kid: 'k1', alg: 'ES256', use: 'sig' }
   vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json({ keys: [jwk] }))
-  return new SignJWT(claims)
+  const jwt = new SignJWT(claims)
     .setProtectedHeader({ alg: 'ES256', kid: 'k1' })
     .setIssuer(`${url}/auth/v1`)
     .setAudience(audience)
-    .setSubject('user-1')
-    .setExpirationTime('1h')
-    .sign(privateKey)
+  if (subject !== null) jwt.setSubject(subject)
+  if (expiresAt !== null) jwt.setExpirationTime(expiresAt)
+  return jwt.sign(privateKey)
 }
 
 describe('supabase auth verify', () => {
@@ -47,11 +55,26 @@ describe('supabase auth verify', () => {
 
   it('rejects a token for another audience or garbage', async () => {
     const url = 'https://verify-bad.supabase.co'
-    const token = await signedToken(url, {}, 'anon')
+    const token = await signedToken(url, {}, { audience: 'anon' })
     const auth = createSupabaseAuth(config(url))
     expect(await auth.verify(token)).toBeNull()
     expect(await auth.verify('not-a-jwt')).toBeNull()
   })
+})
+
+describe('supabase auth verify (required claims)', () => {
+  const rejects = async (name: string, options: TokenOptions) => {
+    const url = `https://verify-${name}.supabase.co`
+    const token = await signedToken(url, {}, options)
+    expect(await createSupabaseAuth(config(url)).verify(token)).toBeNull()
+  }
+
+  it('rejects an expired token', () =>
+    rejects('expired', { expiresAt: Math.floor(Date.now() / 1000) - 60 }))
+
+  it('rejects a token without a subject', () => rejects('nosub', { subject: null }))
+
+  it('rejects a token without an expiry', () => rejects('noexp', { expiresAt: null }))
 })
 
 describe('supabase auth calls', () => {

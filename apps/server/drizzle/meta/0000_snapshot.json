@@ -1,5 +1,5 @@
 {
-  "id": "8b26991b-ea8c-4cb3-bf3d-ebcd869b68af",
+  "id": "46097281-b0f9-47ec-a78d-a32025fbb782",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -453,6 +453,40 @@
             }
           ],
           "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "games_daily_counted_idx": {
+          "name": "games_daily_counted_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "daily_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "len",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "zero",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"games\".\"kind\" = 'daily' and not \"games\".\"practice\"",
           "concurrently": false,
           "method": "btree",
           "with": {}

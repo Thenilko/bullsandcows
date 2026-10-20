@@ -1,6 +1,6 @@
 import { DEFAULT_RATING } from '@bc/game-core'
 import { beforeEach, describe, expect, it } from 'vitest'
-import type { GameRow, NewGame, Repo } from '../../../ports/repo'
+import type { NewGame, PublicGameRow, Repo } from '../../../ports/repo'
 import { createMemoryRepo } from './index'
 
 let now = 1_000
@@ -26,7 +26,10 @@ const newGame = (over: Partial<NewGame> = {}): NewGame => ({
   ...over,
 })
 
-async function finishedGame(over: Partial<NewGame>, result: Partial<GameRow>): Promise<GameRow> {
+async function finishedGame(
+  over: Partial<NewGame>,
+  result: Partial<PublicGameRow>,
+): Promise<PublicGameRow> {
   const game = await repo.games.create(newGame(over))
   return repo.games.update(game.id, { finishedAt: now, won: true, ...result })
 }
@@ -92,6 +95,20 @@ describe('memory profiles', () => {
 describe('memory games', () => {
   beforeEach(async () => {
     await member('u1', 'Mira')
+  })
+
+  it('never returns the secret except through getWithSecret', async () => {
+    const daily = { kind: 'daily' as const, dailyDate: '2026-10-20' }
+    const created = await repo.games.create(newGame(daily))
+    expect(created).not.toHaveProperty('secret')
+    expect(await repo.games.update(created.id, { attempts: 1 })).not.toHaveProperty('secret')
+    expect(await repo.games.get(created.id)).not.toHaveProperty('secret')
+    expect(await repo.games.dailyOf('u1', '2026-10-20', 4, false)).not.toHaveProperty('secret')
+    const [first] = await repo.games.history('u1', 5)
+    expect(first).toBeDefined()
+    expect(first).not.toHaveProperty('secret')
+    expect((await repo.games.getWithSecret(created.id))?.secret).toBe('1234')
+    expect(await repo.games.getWithSecret('missing')).toBeNull()
   })
 
   it('creates games with defaults and keeps guesses in order', async () => {
@@ -219,6 +236,16 @@ describe('memory leaderboard', () => {
       { userId: 'u2', username: 'Rada', attempts: 5, score: 700 },
       { userId: 'u1', username: 'Mira', attempts: 6, score: 700 },
     ])
+  })
+
+  it('breaks a full tie by user id', async () => {
+    const day = { kind: 'daily' as const, dailyDate: date }
+    now = 3_000
+    await finishedGame({ ...day, userId: 'u3' }, { attempts: 4, score: 900 })
+    await finishedGame({ ...day, userId: 'u1' }, { attempts: 4, score: 900 })
+    await finishedGame({ ...day, userId: 'u2' }, { attempts: 4, score: 900 })
+    const rows = await repo.games.leaderboard({ ...q, period: 'today' })
+    expect(rows.map((r) => r.userId)).toEqual(['u1', 'u2', 'u3'])
   })
 
   it('ranks the week by the best single solo game since the week start', async () => {

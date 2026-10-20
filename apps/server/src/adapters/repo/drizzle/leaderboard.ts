@@ -42,7 +42,7 @@ export async function drizzleLeaderboard(db: Db, q: LeaderboardQuery): Promise<L
       score: best.score,
     })
     .from(best)
-    .orderBy(desc(best.score), asc(best.finishedAt))
+    .orderBy(desc(best.score), asc(best.finishedAt), asc(best.userId))
     .limit(LEADERBOARD_LIMIT)
   return rows
 }

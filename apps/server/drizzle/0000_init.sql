@@ -94,5 +94,6 @@ CREATE INDEX "duels_invite_code_idx" ON "duels" USING btree ("invite_code");--> 
 CREATE INDEX "games_user_created_idx" ON "games" USING btree ("user_id","created_at");--> statement-breakpoint
 CREATE INDEX "games_daily_idx" ON "games" USING btree ("kind","len","zero","daily_date","won");--> statement-breakpoint
 CREATE INDEX "games_finished_idx" ON "games" USING btree ("kind","len","zero","finished_at","won");--> statement-breakpoint
+CREATE UNIQUE INDEX "games_daily_counted_idx" ON "games" USING btree ("user_id","daily_date","len","zero") WHERE "games"."kind" = 'daily' and not "games"."practice";--> statement-breakpoint
 CREATE INDEX "guesses_game_idx" ON "guesses" USING btree ("game_id","id");--> statement-breakpoint
 CREATE UNIQUE INDEX "profiles_username_lower_idx" ON "profiles" USING btree ("username_lower");

@@ -18,9 +18,11 @@ function inPeriod(g: Finished, q: LeaderboardQuery): boolean {
   return q.period === 'all' || g.finishedAt >= q.weekStartMs
 }
 
-/** Higher score first; on a tie, whoever finished earlier. */
+const compareIds = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0)
+
+/** Higher score first; then whoever finished earlier; then user id, so ties are stable. */
 const better = (a: Finished, b: Finished): number =>
-  b.score - a.score || a.finishedAt - b.finishedAt
+  b.score - a.score || a.finishedAt - b.finishedAt || compareIds(a.userId, b.userId)
 
 /**
  * Spec §10: "today" ranks the counted daily game; "week"/"all" rank each player's best

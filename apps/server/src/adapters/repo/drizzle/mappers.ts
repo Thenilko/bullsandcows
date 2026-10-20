@@ -1,4 +1,4 @@
-import type { DuelRow, GameRow, GuessRow, Profile } from '../../../ports/repo'
+import type { DuelRow, GameRow, GuessRow, Profile, PublicGameRow } from '../../../ports/repo'
 import type { duels, games, guesses, profiles } from './schema'
 
 const ms = (d: Date | null): number | null => (d ? d.getTime() : null)
@@ -14,7 +14,18 @@ export function toProfile(row: typeof profiles.$inferSelect): Profile {
   }
 }
 
-export function toGame(row: typeof games.$inferSelect): GameRow {
+type GameSelect = typeof games.$inferSelect
+
+export function toPublicGame(row: Omit<GameSelect, 'secret'>): PublicGameRow {
+  return {
+    ...row,
+    startedAt: ms(row.startedAt),
+    finishedAt: ms(row.finishedAt),
+    createdAt: row.createdAt.getTime(),
+  }
+}
+
+export function toGame(row: GameSelect): GameRow {
   return {
     ...row,
     startedAt: ms(row.startedAt),

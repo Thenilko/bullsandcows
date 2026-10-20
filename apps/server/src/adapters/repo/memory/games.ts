@@ -1,8 +1,14 @@
 import { AppError } from '../../../http/errors'
 import type { Clock } from '../../../ports/clock'
-import type { GameRow, GamesRepo, GuessRow, WonAttemptsQuery } from '../../../ports/repo'
+import type {
+  GameRow,
+  GamesRepo,
+  GuessRow,
+  PublicGameRow,
+  WonAttemptsQuery,
+} from '../../../ports/repo'
 import { rankLeaderboard } from './leaderboard'
-import { copy, defined, type MemoryStore } from './store'
+import { copy, defined, publicGame, type MemoryStore } from './store'
 
 function matchesWon(g: GameRow, q: WonAttemptsQuery): boolean {
   if (g.won !== true || g.practice || g.kind !== q.kind || g.len !== q.len || g.zero !== q.zero)
@@ -13,9 +19,9 @@ function matchesWon(g: GameRow, q: WonAttemptsQuery): boolean {
 }
 
 export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
-  const save = (game: GameRow): GameRow => {
+  const save = (game: GameRow): PublicGameRow => {
     store.games.set(game.id, copy(game))
-    return copy(game)
+    return publicGame(game)
   }
   const all = (): GameRow[] => [...store.games.values()]
 
@@ -34,6 +40,10 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
         createdAt: clock.now(),
       }),
     get: async (id) => {
+      const found = store.games.get(id)
+      return found ? publicGame(found) : null
+    },
+    getWithSecret: async (id) => {
       const found = store.games.get(id)
       return found ? copy(found) : null
     },
@@ -54,7 +64,7 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
         .filter((g) => g.userId === userId && g.kind === 'daily' && !g.practice)
         .filter((g) => g.dailyDate === date && g.len === len && g.zero === zero)
         .sort((a, b) => a.createdAt - b.createdAt)[0]
-      return found ? copy(found) : null
+      return found ? publicGame(found) : null
     },
     wonAttempts: async (q) =>
       all()
@@ -62,11 +72,10 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
         .map((g) => g.attempts),
     leaderboard: async (q) => rankLeaderboard(store.games.values(), store.profiles, q),
     history: async (userId, limit) =>
-      copy(
-        all()
-          .filter((g) => g.userId === userId)
-          .sort((a, b) => b.createdAt - a.createdAt)
-          .slice(0, limit),
-      ),
+      all()
+        .filter((g) => g.userId === userId)
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, limit)
+        .map(publicGame),
   }
 }

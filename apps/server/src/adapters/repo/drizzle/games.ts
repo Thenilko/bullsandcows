@@ -1,10 +1,14 @@
-import { and, asc, desc, eq, gte, type SQL } from 'drizzle-orm'
+import { and, asc, desc, eq, getTableColumns, gte, type SQL } from 'drizzle-orm'
 import type { GamePatch, GamesRepo, WonAttemptsQuery } from '../../../ports/repo'
 import type { Db } from './client'
 import { required } from './errors'
 import { drizzleLeaderboard } from './leaderboard'
-import { toDate, toGame, toGuess } from './mappers'
+import { toDate, toGame, toGuess, toPublicGame } from './mappers'
 import { games, guesses } from './schema'
+
+/** Every column except `secret`: the default projection for all game reads and writes. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const { secret: _secretColumn, ...publicColumns } = getTableColumns(games)
 
 function patchColumns(patch: GamePatch): Partial<typeof games.$inferInsert> {
   const { startedAt, finishedAt, ...rest } = patch
@@ -26,19 +30,23 @@ function wonFilter(q: WonAttemptsQuery): SQL | undefined {
 export function drizzleGames(db: Db): GamesRepo {
   return {
     create: async (input) => {
-      const [row] = await db.insert(games).values(input).returning()
-      return toGame(required(row))
+      const [row] = await db.insert(games).values(input).returning(publicColumns)
+      return toPublicGame(required(row))
     },
     get: async (id) => {
+      const [row] = await db.select(publicColumns).from(games).where(eq(games.id, id)).limit(1)
+      return row ? toPublicGame(row) : null
+    },
+    getWithSecret: async (id) => {
       const [row] = await db.select().from(games).where(eq(games.id, id)).limit(1)
       return row ? toGame(row) : null
     },
     update: async (id, patch) => {
       const columns = patchColumns(patch)
       const [row] = Object.values(columns).some((v) => v !== undefined)
-        ? await db.update(games).set(columns).where(eq(games.id, id)).returning()
-        : await db.select().from(games).where(eq(games.id, id)).limit(1)
-      return toGame(required(row))
+        ? await db.update(games).set(columns).where(eq(games.id, id)).returning(publicColumns)
+        : await db.select(publicColumns).from(games).where(eq(games.id, id)).limit(1)
+      return toPublicGame(required(row))
     },
     addGuess: async (input) => {
       const [row] = await db
@@ -57,7 +65,7 @@ export function drizzleGames(db: Db): GamesRepo {
     },
     dailyOf: async (userId, date, len, zero) => {
       const [row] = await db
-        .select()
+        .select(publicColumns)
         .from(games)
         .where(
           and(
@@ -71,7 +79,7 @@ export function drizzleGames(db: Db): GamesRepo {
         )
         .orderBy(asc(games.createdAt))
         .limit(1)
-      return row ? toGame(row) : null
+      return row ? toPublicGame(row) : null
     },
     wonAttempts: async (q) => {
       const rows = await db.select({ attempts: games.attempts }).from(games).where(wonFilter(q))
@@ -80,12 +88,12 @@ export function drizzleGames(db: Db): GamesRepo {
     leaderboard: (q) => drizzleLeaderboard(db, q),
     history: async (userId, limit) => {
       const rows = await db
-        .select()
+        .select(publicColumns)
         .from(games)
         .where(eq(games.userId, userId))
         .orderBy(desc(games.createdAt))
         .limit(limit)
-      return rows.map(toGame)
+      return rows.map(toPublicGame)
     },
   }
 }

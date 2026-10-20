@@ -11,6 +11,9 @@ export interface SupabaseAuthConfig {
 
 type Fetch = typeof fetch
 
+/** Supabase asymmetric signing keys; anything else (incl. HS256 and `none`) is refused. */
+const JWT_ALGORITHMS = ['ES256', 'RS256']
+
 const SessionResponse = z.object({
   access_token: z.string().min(1),
   refresh_token: z.string(),
@@ -84,6 +87,8 @@ export function createSupabaseAuth(config: SupabaseAuthConfig, fetchImpl: Fetch 
         const { payload } = await jwtVerify(token, jwksFor(config.url), {
           issuer,
           audience: 'authenticated',
+          algorithms: JWT_ALGORITHMS,
+          requiredClaims: ['exp', 'sub'],
         })
         return payload.sub ? { id: payload.sub, isGuest: payload.is_anonymous === true } : null
       } catch {
