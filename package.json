@@ -11,6 +11,7 @@
     "dev": "concurrently -n web,server \"pnpm --filter web dev\" \"pnpm --filter server dev\"",
     "build": "pnpm --filter web build && pnpm --filter server build",
     "test": "vitest run",
+    "e2e": "pnpm --filter web exec playwright test",
     "typecheck": "tsc -b && tsc -p packages/game-core/tsconfig.test.json && tsc -p packages/i18n/tsconfig.test.json && tsc -p packages/protocol/tsconfig.test.json && tsc -p apps/web/tsconfig.test.json && tsc -p apps/server/tsconfig.test.json",
     "lint": "eslint ."
   },

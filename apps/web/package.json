@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "icons": "node scripts/icons.mjs"
   },
   "dependencies": {
     "@bc/game-core": "workspace:*",
@@ -23,6 +24,7 @@
     "zustand": "5.0.15"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
@@ -31,6 +33,8 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "5.2.0",
     "jsdom": "26.1.0",
-    "vite": "6.4.4"
+    "sharp": "0.35.5",
+    "vite": "6.4.4",
+    "vite-plugin-pwa": "2.0.0"
   }
 }

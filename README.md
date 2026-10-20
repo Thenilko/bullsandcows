@@ -25,7 +25,11 @@ pnpm test         # vitest (workspace)
 pnpm typecheck    # tsc -b през project references
 pnpm lint         # eslint
 pnpm build        # pnpm -r build
+pnpm e2e          # Playwright (билдва web, вдига wrangler dev + preview)
 ```
+
+E2E: първия път `pnpm --filter web exec playwright install chromium`. Иконите на PWA се
+генерират с `pnpm --filter web icons` (резултатът е в `apps/web/public/icons`).
 
 ## Променливи на средата
 
