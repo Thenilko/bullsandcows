@@ -13,6 +13,8 @@ import { useAverageAttempts } from '../features/solo/useDistribution'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { ApiError } from '../lib/api'
 import { sfx } from '../lib/sound'
+import { ModeSwitch } from './duel/parts/SetupFields'
+import { modePath } from './duel/useSetupForm'
 import { IDLE_SCENE } from './idleScene'
 
 const LENS: readonly Len[] = [3, 4, 5]
@@ -106,6 +108,13 @@ export function NewGame({ initial }: { initial?: NewGameInitial }) {
         <h1 className="rise" style={{ margin: 0, fontSize: desktop ? 40 : 30, fontWeight: 900 }}>
           {t('newGame.title')}
         </h1>
+        <ModeSwitch
+          mode="solo"
+          onPick={(m) => {
+            sfx.play('tap')
+            void navigate(modePath(m))
+          }}
+        />
         <Settings len={len} zero={zero} kind={kind} onLen={setLen} onZero={setZero} onKind={setKind} />
         <span style={{ fontSize: 13, fontWeight: 800, color: '#6B7560' }}>{info}</span>
         <p role="status" style={{ margin: 0, minHeight: 18, fontWeight: 800, fontSize: 14, color: '#8A1F0B' }}>

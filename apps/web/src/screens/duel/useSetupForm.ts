@@ -16,6 +16,11 @@ export type PickedMode = 'solo' | SetupMode
 
 const DEFAULT_BOT_LEVEL: BotLevel = 2
 
+/** Route of each setup screen in the „Соло · Дуел · Бот“ switch. */
+export function modePath(m: PickedMode): string {
+  return m === 'solo' ? '/new' : m === 'bot' ? '/bot/new' : '/duel/new'
+}
+
 export interface SetupForm {
   len: Len
   zero: boolean
@@ -51,7 +56,7 @@ export function useSetupForm(mode: SetupMode): SetupForm {
 
   function switchMode(m: PickedMode) {
     sfx.play('tap')
-    void navigate(m === 'solo' ? '/' : m === 'bot' ? '/bot/new' : '/duel/new')
+    void navigate(modePath(m))
   }
 
   async function create(settings: { len: Len; zero: boolean; format: DuelFormat }) {

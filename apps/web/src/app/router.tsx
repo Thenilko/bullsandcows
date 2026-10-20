@@ -5,6 +5,7 @@ import { Play } from '../screens/Play'
 import { Leaderboard } from '../screens/Leaderboard'
 import { Login } from '../screens/Login'
 import { Profile } from '../screens/Profile'
+import { ResetPassword } from '../screens/ResetPassword'
 import { Result } from '../screens/Result'
 import { Rules } from '../screens/Rules'
 import { DuelRoom } from '../screens/duel/DuelRoom'
@@ -23,6 +24,7 @@ const devRoutes: RouteObject[] =
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/rules', element: <Rules /> },
+  { path: '/reset', element: <ResetPassword /> },
   {
     element: <RequireAuth />,
     children: [

@@ -11,7 +11,7 @@ export function isSupabaseMode(): boolean {
 let client: SupabaseClient | null = null
 
 /** Loaded lazily so fake-auth and signed-out visits never download supabase-js. */
-async function getClient(): Promise<SupabaseClient | null> {
+export async function getSupabaseClient(): Promise<SupabaseClient | null> {
   if (!isSupabaseMode()) return null
   const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
   const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
@@ -25,7 +25,7 @@ async function getClient(): Promise<SupabaseClient | null> {
 
 /** Hands the server-issued tokens to supabase-js so it refreshes them before they expire. */
 export async function adoptSession(session: SessionDto): Promise<void> {
-  const supabase = await getClient()
+  const supabase = await getSupabaseClient()
   if (!supabase) return
   try {
     await supabase.auth.setSession({ access_token: session.accessToken, refresh_token: session.refreshToken })
@@ -35,7 +35,7 @@ export async function adoptSession(session: SessionDto): Promise<void> {
 }
 
 export async function signOutSupabase(): Promise<void> {
-  const supabase = await getClient()
+  const supabase = await getSupabaseClient()
   if (!supabase) return
   try {
     await supabase.auth.signOut({ scope: 'local' })
@@ -46,25 +46,34 @@ export async function signOutSupabase(): Promise<void> {
 
 let started = false
 
-/** Subscribes once: keeps the store in step with supabase-js token refreshes. */
+type SyncEvent = Parameters<Parameters<SupabaseClient['auth']['onAuthStateChange']>[0]>
+const TOKEN_EVENTS: readonly string[] = ['TOKEN_REFRESHED', 'SIGNED_IN', 'USER_UPDATED']
+
+/** Applies one supabase-js auth event to the store. */
+function onAuthEvent(event: SyncEvent[0], next: SyncEvent[1]): void {
+  const store = useSession.getState()
+  if (event === 'SIGNED_OUT') {
+    store.clear()
+    return
+  }
+  if (event === 'PASSWORD_RECOVERY') {
+    store.setRecoverySession(true)
+    return
+  }
+  if (!TOKEN_EVENTS.includes(event) || !next) return
+  // Never graft another account's tokens onto the stored session.
+  const ownerId = (next as { user?: { id?: string } }).user?.id
+  if (ownerId && store.session && ownerId !== store.session.user.id) return
+  store.setTokens({ accessToken: next.access_token, refreshToken: next.refresh_token, expiresAt: next.expires_at ?? 0 })
+}
+
+/** Subscribes once: keeps the store in step with supabase-js token refreshes and recovery links. */
 export async function startSupabaseSync(): Promise<void> {
   if (started) return
-  const supabase = await getClient()
+  const supabase = await getSupabaseClient()
   if (!supabase || started) return
   started = true
-  supabase.auth.onAuthStateChange((event, next) => {
-    if (event === 'SIGNED_OUT') {
-      useSession.getState().clear()
-      return
-    }
-    if ((event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN' || event === 'USER_UPDATED') && next) {
-      useSession.getState().setTokens({
-        accessToken: next.access_token,
-        refreshToken: next.refresh_token,
-        expiresAt: next.expires_at ?? 0,
-      })
-    }
-  })
+  supabase.auth.onAuthStateChange(onAuthEvent)
   const current = useSession.getState().session
   if (current) await adoptSession(current)
 }
