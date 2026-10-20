@@ -29,7 +29,7 @@ crons = ["0 6 * * *"]
 
 [[hyperdrive]]
 binding = "HYPERDRIVE"
-id = "REPLACE_ME"
+id = "6660123b9e744a6db01bf27c1924a467"
 
 [vars]
 AUTH_MODE = "supabase"

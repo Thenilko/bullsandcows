@@ -19,6 +19,7 @@ const clock = { now: () => Date.parse('2026-10-20T09:00:00Z') }
 interface FakeState {
   opts?: RoomOpts
   host?: PlayerInfo
+  inviteCode?: string
   joined: PlayerInfo[]
   status: RoomInfo['status']
 }
@@ -29,8 +30,8 @@ function fakeRooms() {
   let seq = 0
   const make = (key: string): Room => ({
     id: `room-${key}`,
-    async create({ opts, host }) {
-      rooms.set(key, { opts, host, joined: [], status: 'waiting' })
+    async create({ opts, host, inviteCode }) {
+      rooms.set(key, { opts, host, inviteCode, joined: [], status: 'waiting' })
       return { token: `tok-host-${key}` }
     },
     async join({ info }) {
@@ -115,6 +116,7 @@ describe('invites', () => {
     expect(body.data.roomId).toBe(`room-invite:${body.data.code}`)
     expect(body.data.token).toMatch(/^tok-host-/)
     expect([...ctx.rooms.values()][0]?.opts?.opponentKind).toBe('human')
+    expect([...ctx.rooms.values()][0]?.inviteCode).toBe(body.data.code)
   })
 
   it('rejects bad settings with ERR_INPUT and no auth with 401', async () => {

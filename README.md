@@ -11,7 +11,7 @@ apps/
 packages/
   game-core/      чиста игрова логика (споделена от клиента и сървъра)
   i18n/           преводи BG (референтен) и EN
-  protocol/       (предстои) споделени схеми и типове на съобщенията
+  protocol/       споделени схеми и типове на съобщенията
 design/pasishte/  референтни прототипи от Claude Design (не се шипват)
 docs/superpowers/ спецификация и план
 ```
@@ -19,27 +19,31 @@ docs/superpowers/ спецификация и план
 ## Команди
 
 ```sh
-pnpm install      # зависимости (Node 22, pnpm 10)
-pnpm dev          # web + server паралелно
-pnpm test         # vitest (workspace)
-pnpm typecheck    # tsc -b през project references
-pnpm lint         # eslint
-pnpm build        # pnpm -r build
-pnpm e2e          # Playwright (билдва web, вдига wrangler dev + preview)
+pnpm install        # зависимости (Node 22, pnpm 10)
+pnpm dev            # web (:5173) + server (:8787, фалшива автентикация)
+pnpm test           # vitest (всички проекти)
+pnpm test:coverage  # покритие без server (game-core >= 95%, общо >= 80%)
+pnpm typecheck      # tsc -b + тестовите конфигурации
+pnpm lint           # eslint
+pnpm build          # web build + dry-run на Worker-а
+pnpm e2e            # Playwright (вдига wrangler dev + vite preview)
 ```
 
 E2E: първия път `pnpm --filter web exec playwright install chromium`. Иконите на PWA се
 генерират с `pnpm --filter web icons` (резултатът е в `apps/web/public/icons`).
 
+CI (`.github/workflows/ci.yml`): lint, typecheck, тестове с покритие, build, e2e. Деплой
+(`deploy.yml`) върви при push в `main`. Стъпките за Supabase, Hyperdrive и тайните са в
+[`docs/DEPLOY.md`](docs/DEPLOY.md).
+
 ## Променливи на средата
 
-Само имената; стойностите са в `.env.local` / `.dev.vars` и не се комитват.
+Само имената; стойностите са в `.env.local` / `.dev.vars` / GitHub и Wrangler secrets и не се комитват.
+Шаблони: `.env.example`, `apps/web/.env.example`, `apps/server/.dev.vars.example`.
 
-- `CLOUDFLARE_API_TOKEN`
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `DAILY_SALT`
+- Worker: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DAILY_SALT`
+- Клиент (build): `VITE_AUTH_MODE`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_DEV_SCREENS`
+- Само за деплой: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `DATABASE_URL`
 
 ## Документи
 

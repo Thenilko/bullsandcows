@@ -15,7 +15,16 @@ export type Seat = z.infer<typeof SeatSchema>
 export const PhaseSchema = z.enum(['lobby', 'secrets', 'countdown', 'playing', 'ended'])
 export type Phase = z.infer<typeof PhaseSchema>
 export const OutcomeSchema = z.enum(['win', 'draw', 'lose'])
-export const EndReasonSchema = z.enum(['solved', 'giveUp', 'timeout', 'disconnect', 'cap', 'draw'])
+/** `abandoned`: the room gave up before play (not both ready in time); no rating, no XP. */
+export const EndReasonSchema = z.enum([
+  'solved',
+  'giveUp',
+  'timeout',
+  'disconnect',
+  'cap',
+  'draw',
+  'abandoned',
+])
 export type EndReason = z.infer<typeof EndReasonSchema>
 
 /**
@@ -88,6 +97,12 @@ export const RevealedSecrets = z.object({
 })
 export type RevealedSecrets = z.infer<typeof RevealedSecrets>
 
+export const RatingChangeDto = z.object({ from: Int, to: Int, delta: Int })
+export type RatingChangeDto = z.infer<typeof RatingChangeDto>
+
+export const RematchOfferDto = z.object({ from: z.enum(['me', 'opp']), expiresAt: z.number() })
+export type RematchOfferDto = z.infer<typeof RematchOfferDto>
+
 export const PublicState = z.object({
   format: FormatSchema,
   len: LenSchema,
@@ -106,11 +121,14 @@ export const PublicState = z.object({
   turnDeadline: z.number().nullable(),
   outcome: MatchOutcomeDto.nullable(),
   secrets: RevealedSecrets.optional(),
+  /** Once ended: this seat's rating change (null: unrated), as its `ended` event carried. */
+  rating: RatingChangeDto.nullable().optional(),
+  /** Once ended: this seat's XP, as its `ended` event carried. */
+  xp: Int.optional(),
+  /** Once ended: the pending rematch offer, if any (the same as the `rematchOffer` event). */
+  rematchOffer: RematchOfferDto.nullable().optional(),
 })
 export type PublicState = z.infer<typeof PublicState>
-
-export const RatingChangeDto = z.object({ from: Int, to: Int, delta: Int })
-export type RatingChangeDto = z.infer<typeof RatingChangeDto>
 
 export const ServerMsg = z.discriminatedUnion('t', [
   z.object({ t: z.literal('state'), state: PublicState }),
@@ -135,7 +153,7 @@ export const ServerMsg = z.discriminatedUnion('t', [
     rating: RatingChangeDto.nullable(),
     xp: Int,
   }),
-  z.object({ t: z.literal('rematchOffer'), from: z.enum(['me', 'opp']), expiresAt: z.number() }),
+  RematchOfferDto.extend({ t: z.literal('rematchOffer') }),
   z.object({ t: z.literal('error'), code: ErrorCodeSchema }),
 ])
 export type ServerMsg = z.infer<typeof ServerMsg>

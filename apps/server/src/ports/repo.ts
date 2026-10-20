@@ -52,10 +52,12 @@ export interface GameRow {
 /** A game as every repo method except `getWithSecret` returns it: no `secret` key at all. */
 export type PublicGameRow = Omit<GameRow, 'secret'>
 
+/** `id` (optional): a caller-chosen id makes `create` idempotent (an existing row is returned). */
 export type NewGame = Pick<
   GameRow,
   'userId' | 'kind' | 'len' | 'zero' | 'secret' | 'dailyDate' | 'practice'
->
+> &
+  Partial<Pick<GameRow, 'id'>>
 
 export type GamePatch = Partial<
   Pick<
@@ -94,21 +96,25 @@ export interface DuelRow {
   readonly ratingDeltaB: number | null
   readonly createdAt: number
   readonly finishedAt: number | null
+  /** XP (and quick-match ratings) of this duel have been credited; set exactly once. */
+  readonly rewardsApplied: boolean
 }
 
-export type NewDuel = Pick<
-  DuelRow,
-  | 'format'
-  | 'len'
-  | 'zero'
-  | 'opponentKind'
-  | 'botLevel'
-  | 'inviteCode'
-  | 'playerA'
-  | 'playerB'
-  | 'gameA'
-  | 'gameB'
->
+/** `id` (optional): a caller-chosen id makes `create` idempotent (an existing row is returned). */
+export type NewDuel = Partial<Pick<DuelRow, 'id'>> &
+  Pick<
+    DuelRow,
+    | 'format'
+    | 'len'
+    | 'zero'
+    | 'opponentKind'
+    | 'botLevel'
+    | 'inviteCode'
+    | 'playerA'
+    | 'playerB'
+    | 'gameA'
+    | 'gameB'
+  >
 
 export type DuelFinish = Pick<DuelRow, 'winner' | 'outcome' | 'ratingDeltaA' | 'ratingDeltaB'> &
   Partial<Pick<DuelRow, 'playerB' | 'gameA' | 'gameB' | 'finishedAt'>>
@@ -193,10 +199,24 @@ export interface GamesRepo {
   history(userId: string, limit: number): Promise<PublicGameRow[]>
 }
 
+/** What one player gets from a finished duel. */
+export interface DuelReward {
+  readonly userId: string
+  readonly xp: number
+  /** The new rating (quick matches only), else null. */
+  readonly rating: Rating | null
+}
+
 export interface DuelsRepo {
+  /** With an `id` that already exists, returns that row unchanged. */
   create(duel: NewDuel): Promise<DuelRow>
   finish(id: string, patch: DuelFinish): Promise<DuelRow>
   get(id: string): Promise<DuelRow | null>
+  /**
+   * Credits the rewards and sets `rewardsApplied`, atomically and only once: returns false
+   * (and changes nothing) when they were already applied. Throws when the duel is missing.
+   */
+  applyRewards(id: string, rewards: readonly DuelReward[]): Promise<boolean>
 }
 
 export interface Repo {

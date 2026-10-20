@@ -359,4 +359,52 @@ describe('memory duels', () => {
     expect(await repo.duels.get(duel.id)).toEqual(done)
     expect(await repo.duels.get('missing')).toBeNull()
   })
+
+  const newDuel = {
+    format: 'race',
+    len: 4,
+    zero: false,
+    opponentKind: 'quick',
+    botLevel: null,
+    inviteCode: null,
+    playerA: 'u1',
+    playerB: 'u2',
+    gameA: null,
+    gameB: null,
+  } as const
+
+  it('creates a duel with a given id only once', async () => {
+    const first = await repo.duels.create({ ...newDuel, id: 'd1' })
+    now = 5_000
+    const again = await repo.duels.create({ ...newDuel, id: 'd1', inviteCode: 'ZZZZZ' })
+    expect(first).toMatchObject({ id: 'd1', rewardsApplied: false })
+    expect(again).toEqual(first)
+  })
+
+  it('applies the rewards exactly once', async () => {
+    await member('u1', 'anna')
+    await member('u2', 'boris')
+    const rating = { rating: 1600, rd: 200, vol: 0.06 }
+    await repo.duels.create({ ...newDuel, id: 'd2' })
+    const rewards = [
+      { userId: 'u1', xp: 120, rating },
+      { userId: 'u2', xp: 40, rating: null },
+    ]
+    expect(await repo.duels.applyRewards('d2', rewards)).toBe(true)
+    expect(await repo.duels.applyRewards('d2', rewards)).toBe(false)
+    expect(await repo.profiles.get('u1')).toMatchObject({ xp: 120, rating })
+    expect(await repo.profiles.get('u2')).toMatchObject({ xp: 40, rating: DEFAULT_RATING })
+    expect((await repo.duels.get('d2'))?.rewardsApplied).toBe(true)
+    await expect(repo.duels.applyRewards('missing', rewards)).rejects.toThrow()
+  })
+})
+
+describe('memory games with a given id', () => {
+  it('creates the game once and returns the stored row on a retry', async () => {
+    const first = await repo.games.create(newGame({ id: 'g-fixed', kind: 'duel_race' }))
+    const again = await repo.games.create(newGame({ id: 'g-fixed', kind: 'duel_race' }))
+    expect(first.id).toBe('g-fixed')
+    expect(again).toEqual(first)
+    expect(await repo.games.history('u1', 10)).toHaveLength(1)
+  })
 })

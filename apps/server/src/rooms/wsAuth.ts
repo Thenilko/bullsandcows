@@ -25,19 +25,25 @@ const H = {
 const reject = (code: ErrorCode, status: number): Response =>
   Response.json(apiErr(code), { status, headers: SECURITY_HEADERS })
 
+export interface WsAuthOptions {
+  /** Queue: false (members only). Duel rooms: true (friend invites and bots admit guests). */
+  readonly allowGuests: boolean
+}
+
 /**
  * Verifies the `?auth=` access token and loads the profile, BEFORE any WebSocket upgrade.
- * Missing/invalid token: 401 ERR_AUTH. Guest: 403 ERR_GUEST (for queue-only use).
+ * Missing/invalid token: 401 ERR_AUTH. Guest without `allowGuests`: 403 ERR_GUEST.
  */
 export async function authenticateWs(
   req: Request,
   env: Env,
+  opts: WsAuthOptions,
 ): Promise<{ info: PlayerInfo } | Response> {
   const token = new URL(req.url).searchParams.get('auth')
   if (!token) return reject('ERR_AUTH', 401)
   const user = await makeAuth(env).verify(token)
   if (!user) return reject('ERR_AUTH', 401)
-  if (user.isGuest) return reject('ERR_GUEST', 403)
+  if (user.isGuest && !opts.allowGuests) return reject('ERR_GUEST', 403)
   const repo = makeRepo(env)
   try {
     const profile = await ensureProfile(repo, user)
@@ -47,7 +53,7 @@ export async function authenticateWs(
         username: profile.username,
         level: levelFromXp(profile.xp),
         rating: profile.rating,
-        isGuest: false,
+        isGuest: user.isGuest,
       },
     }
   } finally {

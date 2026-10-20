@@ -25,6 +25,16 @@ const page = <K extends string>(load: () => Promise<Record<K, React.ComponentTyp
   Component: (await load())[name],
 })
 
+/** Lazy duel routes whose component needs a fixed prop (the route itself decides the mode/view). */
+const duelSetup = (mode: 'duel' | 'bot') => async () => {
+  const { DuelSetup } = await import('../screens/duel/DuelSetup')
+  return { element: <DuelSetup mode={mode} /> }
+}
+const duelRoom = (view: 'play' | 'result') => async () => {
+  const { DuelRoom } = await import('../screens/duel/DuelRoom')
+  return { element: <DuelRoom view={view} /> }
+}
+
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/rules', HydrateFallback: RouteFallback, lazy: page(() => import('../screens/Rules'), 'Rules') },
@@ -38,6 +48,13 @@ export const router = createBrowserRouter([
       { path: '/result/:gameId', lazy: page(() => import('../screens/Result'), 'Result') },
       { path: '/board', lazy: page(() => import('../screens/Leaderboard'), 'Leaderboard') },
       { path: '/profile', lazy: page(() => import('../screens/Profile'), 'Profile') },
+      { path: '/duel/new', lazy: duelSetup('duel') },
+      { path: '/bot/new', lazy: duelSetup('bot') },
+      { path: '/duel/queue', lazy: page(() => import('../screens/duel/Queue'), 'Queue') },
+      { path: '/duel/invite/:code', lazy: page(() => import('../screens/duel/Invite'), 'Invite') },
+      { path: '/d/:code', lazy: page(() => import('../screens/duel/JoinInvite'), 'JoinInvite') },
+      { path: '/duel/:roomId', lazy: duelRoom('play') },
+      { path: '/duel/:roomId/result', lazy: duelRoom('result') },
     ],
   },
   ...devRoutes,

@@ -86,6 +86,20 @@ describe('server messages', () => {
     expect(PublicState.parse(noConsistent).opp?.guesses[0]).not.toHaveProperty('consistent')
   })
 
+  it('accepts an ended snapshot with rating, xp and a pending rematch offer', () => {
+    const ended = {
+      ...state,
+      phase: 'ended',
+      rating: { from: 1500, to: 1512, delta: 12 },
+      xp: 120,
+      rematchOffer: { from: 'opp', expiresAt: 30000 },
+    }
+    expect(PublicState.parse(ended)).toEqual(ended)
+    expect(PublicState.parse({ ...ended, rematchOffer: null }).rematchOffer).toBeNull()
+    expect(PublicState.parse({ ...ended, rating: null }).rating).toBeNull()
+    expect(PublicState.safeParse({ ...ended, xp: 'lots' }).success).toBe(false)
+  })
+
   it('accepts every room message', () => {
     const msgs = [
       { t: 'state', state },
@@ -102,6 +116,14 @@ describe('server messages', () => {
         secrets: { mine: '1234', theirs: '5678' },
         rating: { from: 1500, to: 1662, delta: 162 },
         xp: 120,
+      },
+      {
+        t: 'ended',
+        outcome: 'draw',
+        reason: 'abandoned',
+        secrets: { mine: null, theirs: null },
+        rating: null,
+        xp: 0,
       },
       { t: 'rematchOffer', from: 'opp', expiresAt: 30000 },
       { t: 'error', code: 'ERR_NOT_YOUR_TURN' },
