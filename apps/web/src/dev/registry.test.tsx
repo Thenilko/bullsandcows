@@ -1,4 +1,5 @@
 import { MemoryRouter } from 'react-router'
+import { waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { renderWithI18n } from '../test/render'
 import { devScreens } from './registry'
@@ -9,13 +10,15 @@ describe('devScreens', () => {
     expect([...DEV_SCREEN_KEYS].sort()).toEqual(Object.keys(devScreens).sort())
   })
 
-  it.each(Object.entries(devScreens))('renders %s without console errors', (_name, Screen) => {
+  it.each(Object.entries(devScreens))('renders %s without console errors', async (_name, Screen) => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     const { container } = renderWithI18n(
       <MemoryRouter>
         <Screen />
       </MemoryRouter>,
     )
+    // Lazy (duel) screens first show a loading marker; wait until the real screen has replaced it.
+    await waitFor(() => expect(container.querySelector('[data-gallery-loading]')).toBeNull())
     expect(container).not.toBeEmptyDOMElement()
     expect(error).not.toHaveBeenCalled()
     error.mockRestore()

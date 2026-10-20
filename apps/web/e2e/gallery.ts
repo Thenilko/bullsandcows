@@ -14,5 +14,7 @@ export async function openScreen(page: Page, screen: string, lang: string, w?: n
   await page.clock.setFixedTime(FROZEN_NOW)
   await page.goto(`/dev/screens?screen=${screen}&lang=${lang}${width}`)
   await page.locator('#root > *').first().waitFor()
+  // Lazy gallery screens (duel) render a loading marker until their chunk arrives.
+  await page.locator('[data-gallery-loading]').waitFor({ state: 'detached' })
   await page.evaluate(() => document.fonts.ready)
 }
