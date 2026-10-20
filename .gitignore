@@ -13,3 +13,5 @@ supabase/.temp/
 *.log
 *.tsbuildinfo
 /local
+
+.worktrees/
