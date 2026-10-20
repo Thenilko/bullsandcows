@@ -32,10 +32,14 @@ function jwksFor(baseUrl: string): JWTVerifyGetKey {
   return jwks
 }
 
+const REQUEST_TIMEOUT_MS = 8_000
+
+const upstream = () => new AppError('ERR_INTERNAL', 502)
+
 const toSession = (body: unknown): Session => {
   const parsed = SessionResponse.safeParse(body)
   // A sign-up without a session means "Confirm email" is on in the project; we require it off.
-  if (!parsed.success) throw new AppError('ERR_INTERNAL', 502)
+  if (!parsed.success) throw upstream()
   const { access_token, refresh_token, expires_at, user } = parsed.data
   const authUser: AuthUser = { id: user.id, isGuest: user.is_anonymous === true }
   return {
@@ -46,11 +50,26 @@ const toSession = (body: unknown): Session => {
   }
 }
 
-/** Maps a failed Supabase response to an API error; bodies are never read or logged. */
+/**
+ * Maps a failed Supabase response to an API error; bodies are never read or logged.
+ * 401/403 mean our key is wrong (a misconfiguration), never the user's fault.
+ */
 function failure(status: number, clientError: AppError): AppError {
   if (status === 429) return new AppError('ERR_RATE_LIMIT', 429)
+  if (status === 401 || status === 403) return upstream()
   if (status >= 400 && status < 500) return clientError
-  return new AppError('ERR_INTERNAL', 502)
+  return upstream()
+}
+
+/** Some endpoints answer 2xx with no body; that is `null`, not an error. */
+async function readJson(res: Response): Promise<unknown> {
+  const text = await res.text()
+  if (!text) return null
+  try {
+    return JSON.parse(text) as unknown
+  } catch {
+    throw upstream()
+  }
 }
 
 /**
@@ -70,12 +89,16 @@ export function createSupabaseAuth(config: SupabaseAuthConfig, fetchImpl: Fetch 
     const res = await fetchImpl(endpoint(path), {
       ...init,
       headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    }).catch(() => {
+      // Timeout or network failure; the cause is not exposed to the client.
+      throw upstream()
     })
     if (!res.ok) {
       await res.body?.cancel()
       throw failure(res.status, clientError)
     }
-    return res.json()
+    return readJson(res)
   }
 
   const post = (path: string, body: object, clientError: AppError) =>

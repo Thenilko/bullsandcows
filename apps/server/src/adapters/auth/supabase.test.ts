@@ -137,3 +137,51 @@ describe('supabase auth calls', () => {
     )
   })
 })
+
+describe('supabase auth hardening', () => {
+  const url = 'https://p.supabase.co'
+
+  it('puts a timeout signal on every call and maps a timeout to ERR_INTERNAL', async () => {
+    const fetchImpl = vi.fn(async (_url: URL, init?: RequestInit) => {
+      expect(init?.signal).toBeInstanceOf(AbortSignal)
+      return json(sessionBody(false))
+    })
+    await createSupabaseAuth(config(url), fetchImpl as never).signIn('a@b.cd', 'pw')
+    expect(fetchImpl).toHaveBeenCalledOnce()
+    const slow = createSupabaseAuth(config(url), async () => {
+      throw new DOMException('The operation timed out.', 'TimeoutError')
+    })
+    await expect(slow.signIn('a@b.cd', 'pw')).rejects.toMatchObject({
+      code: 'ERR_INTERNAL',
+      status: 502,
+    })
+  })
+
+  it('accepts empty 2xx bodies for upgrade and reset', async () => {
+    const auth = createSupabaseAuth(config(url), async () => new Response(null, { status: 204 }))
+    await expect(auth.upgrade('user-1', 'g@example.com', 'pw')).resolves.toBeUndefined()
+    await expect(auth.requestReset('g@example.com', 'https://a.example/reset')).resolves.toBe(
+      undefined,
+    )
+    const blank = createSupabaseAuth(config(url), async () => new Response('', { status: 200 }))
+    await expect(blank.requestReset('g@example.com', 'https://a.example/reset')).resolves.toBe(
+      undefined,
+    )
+  })
+
+  it('treats 401/403 from Supabase as a server misconfiguration, not a user error', async () => {
+    for (const status of [401, 403]) {
+      const auth = createSupabaseAuth(config(url), async () => json({ msg: 'bad key' }, status))
+      await expect(auth.signIn('a@b.cd', 'pw')).rejects.toMatchObject({
+        code: 'ERR_INTERNAL',
+        status: 502,
+      })
+      await expect(auth.signUp('a@b.cd', 'pw')).rejects.toMatchObject({ code: 'ERR_INTERNAL' })
+    }
+    const taken = createSupabaseAuth(config(url), async () => json({ msg: 'exists' }, 422))
+    await expect(taken.signUp('a@b.cd', 'pw')).rejects.toMatchObject({
+      code: 'ERR_INPUT',
+      status: 400,
+    })
+  })
+})
