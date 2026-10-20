@@ -1,4 +1,4 @@
-import { createRemoteJWKSet, jwtVerify, type JWTVerifyGetKey } from 'jose'
+import { createRemoteJWKSet, errors, jwtVerify, type JWTVerifyGetKey } from 'jose'
 import { z } from 'zod'
 import { AppError } from '../../http/errors'
 import type { AuthPort, AuthUser, Session } from '../../ports/auth'
@@ -33,6 +33,13 @@ function jwksFor(baseUrl: string): JWTVerifyGetKey {
 }
 
 const REQUEST_TIMEOUT_MS = 8_000
+
+/** jose codes that mean the key set could not be loaded, not that the token is bad. */
+const JWKS_UNAVAILABLE = new Set(['ERR_JWKS_TIMEOUT', 'ERR_JWKS_INVALID', 'ERR_JOSE_GENERIC'])
+
+/** True for a rejected token; false for a network or key-set failure (the token may be fine). */
+const isTokenRejection = (err: unknown): boolean =>
+  err instanceof errors.JOSEError && !JWKS_UNAVAILABLE.has(err.code)
 
 const upstream = () => new AppError('ERR_INTERNAL', 502)
 
@@ -114,8 +121,10 @@ export function createSupabaseAuth(config: SupabaseAuthConfig, fetchImpl: Fetch 
           requiredClaims: ['exp', 'sub'],
         })
         return payload.sub ? { id: payload.sub, isGuest: payload.is_anonymous === true } : null
-      } catch {
-        return null
+      } catch (err) {
+        // A JWKS outage must not look like a bad token: clients drop their session on 401.
+        if (isTokenRejection(err)) return null
+        throw upstream()
       }
     },
     signUp: async (email, password) =>

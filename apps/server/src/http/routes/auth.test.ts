@@ -5,6 +5,7 @@ import { createFakeAuth } from '../../adapters/auth/fake'
 import { createMemoryRepo } from '../../adapters/repo/memory'
 import { parseEnv } from '../../env'
 import { createApp } from '../app'
+import { AppError } from '../errors'
 
 const clock = { now: () => Date.parse('2026-10-20T09:00:00Z') }
 let seq = 0
@@ -108,6 +109,41 @@ describe('auth routes', () => {
     const replay = await post(app, ip, 'upgrade', account(unique()), g.session.accessToken)
     expect(replay.status).toBe(400)
     expect(await json(replay)).toEqual({ ok: false, error: { code: 'ERR_INPUT' } })
+  })
+
+  it('only ensures the profile when a guest signed in on the client (Bearer of an anonymous user)', async () => {
+    const app = makeApp()
+    const ip = `10.0.6.${unique()}`
+    const id = crypto.randomUUID()
+    const token = `fake:${id}:anon:guest`
+    const first = await post(app, ip, 'guest', {}, token)
+    expect(first.status).toBe(200)
+    const body = (await json(first)).data
+    expect(body.session).toBeNull()
+    expect(body.me.profile).toMatchObject({ id, isGuest: true })
+    expect(body.me.profile.username).toMatch(/^guest-[A-HJ-NP-Z2-9]{4}$/)
+    const again = (await json(await post(app, ip, 'guest', {}, token))).data
+    expect(again.me.profile.username).toBe(body.me.profile.username)
+  })
+
+  it('refuses a guest call with a member or invalid Bearer', async () => {
+    const app = makeApp()
+    const ip = `10.0.7.${unique()}`
+    const member = await post(app, ip, 'guest', {}, `fake:${crypto.randomUUID()}:mira`)
+    expect(await json(member)).toEqual({ ok: false, error: { code: 'ERR_INPUT' } })
+    expect((await post(app, ip, 'guest', {}, 'garbage')).status).toBe(401)
+  })
+
+  it('answers 502, not 401, when the token cannot be checked', async () => {
+    const app = createApp({
+      env: parseEnv(workerEnv),
+      repo: createMemoryRepo(clock),
+      auth: { ...createFakeAuth(clock), verify: async () => Promise.reject(new AppError('ERR_INTERNAL', 502)) },
+      clock,
+    })
+    const res = await app.request('/api/me', { headers: { Authorization: 'Bearer x' } })
+    expect(res.status).toBe(502)
+    expect(await json(res)).toEqual({ ok: false, error: { code: 'ERR_INTERNAL' } })
   })
 
   it('always answers sent for a reset', async () => {

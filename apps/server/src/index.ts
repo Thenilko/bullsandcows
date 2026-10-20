@@ -61,7 +61,14 @@ async function handleQueueWs(request: Request, raw: CloudflareBindings): Promise
     console.error(errorText(err))
     return reject('ERR_INTERNAL', 500)
   }
-  const auth = await authenticateWs(request, env, { allowGuests: false })
+  let auth: Awaited<ReturnType<typeof authenticateWs>>
+  try {
+    auth = await authenticateWs(request, env, { allowGuests: false })
+  } catch (err) {
+    // Key set or database unavailable: an envelope, never a 401 that would end the session.
+    console.error(`ws auth failed: ${errorText(err)}`)
+    return reject('ERR_INTERNAL', 502)
+  }
   if (auth instanceof Response) return auth
   return env.QUEUE.get(env.QUEUE.idFromName('lobby')).fetch(forwardWithIdentity(request, auth.info))
 }

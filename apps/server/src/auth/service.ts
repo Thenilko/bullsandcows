@@ -1,5 +1,5 @@
 import type { Lang } from '@bc/i18n'
-import type { AuthResponseDto, LoginBody, ResetBody, UpgradeBody } from '@bc/protocol'
+import type { AuthResponseDto, GuestProfileResponseDto, LoginBody, ResetBody, UpgradeBody } from '@bc/protocol'
 import { AppError } from '../http/errors'
 import type { AuthPort, AuthUser, Session } from '../ports/auth'
 import type { Repo } from '../ports/repo'
@@ -66,6 +66,16 @@ export class AuthService {
     const { id } = session.user
     await createWithGeneratedName(this.deps.repo, { id, email: null, isGuest: true }, 'guest')
     return this.respond(session)
+  }
+
+  /**
+   * The client signed in anonymously with Supabase itself (so Supabase's per-IP limits see the
+   * player's IP, not the Worker's): only the `guest-XXXX` profile is ensured here.
+   */
+  async ensureGuest(user: AuthUser): Promise<GuestProfileResponseDto> {
+    if (!user.isGuest) throw new AppError('ERR_INPUT', 400)
+    await ensureProfile(this.deps.repo, user)
+    return { session: null, me: await this.deps.stats.me(user) }
   }
 
   /** Guest → member, keeping the id (and so the games and XP); returns a member session. */

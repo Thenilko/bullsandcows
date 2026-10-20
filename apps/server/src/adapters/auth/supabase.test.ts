@@ -77,6 +77,25 @@ describe('supabase auth verify (required claims)', () => {
   it('rejects a token without an expiry', () => rejects('noexp', { expiresAt: null }))
 })
 
+describe('supabase auth verify (key set unavailable)', () => {
+  const upstreamFailure = async (name: string, jwksReply: () => Promise<Response>) => {
+    const url = `https://verify-${name}.supabase.co`
+    const token = await signedToken(url, {})
+    vi.spyOn(globalThis, 'fetch').mockImplementation(jwksReply)
+    const err = await createSupabaseAuth(config(url)).verify(token).catch((e: unknown) => e)
+    expect(err).toMatchObject({ code: 'ERR_INTERNAL', status: 502 })
+  }
+
+  it('throws a 502 instead of reporting the token invalid when the key set cannot be fetched', () =>
+    upstreamFailure('netdown', async () => Promise.reject(new TypeError('network down'))))
+
+  it('throws a 502 when the key set endpoint answers with an error', () =>
+    upstreamFailure('jwks500', async () => new Response('oops', { status: 500 })))
+
+  it('throws a 502 when the key set is not valid JSON', () =>
+    upstreamFailure('jwksjunk', async () => new Response('<html>', { status: 200 })))
+})
+
 describe('supabase auth calls', () => {
   it('signs in with the anon key and maps the session', async () => {
     const fetchImpl = vi.fn(async () => json(sessionBody(false)))

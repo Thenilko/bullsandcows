@@ -1,8 +1,8 @@
 import { LoginBody, RegisterBody, ResetBody, UpgradeBody } from '@bc/protocol'
 import { Hono, type Context } from 'hono'
-import { requireUser } from '../middleware/auth'
+import { bearerUser, requireUser } from '../middleware/auth'
 import { clientIp, rateLimit } from '../middleware/rateLimit'
-import { ok } from '../respond'
+import { fail, ok } from '../respond'
 import { authService } from '../services'
 import type { AppEnv } from '../types'
 import { validate } from '../validate'
@@ -36,9 +36,13 @@ export function authRoutes(): Hono<AppEnv> {
   routes.post('/login', validate('json', LoginBody), ...limitAccount('identifier'), async (c) =>
     ok(c, await authService(c).login(c.req.valid('json'))),
   )
-  routes.post('/guest', rateLimit({ ...GUEST_LIMIT, key: clientIp }), async (c) =>
-    ok(c, await authService(c).guest(), 201),
-  )
+  routes.post('/guest', rateLimit({ ...GUEST_LIMIT, key: clientIp }), async (c) => {
+    // With a Bearer the client already signed in anonymously; without one (fake auth) we do it.
+    if (!c.req.header('Authorization')) return ok(c, await authService(c).guest(), 201)
+    const user = await bearerUser(c)
+    if (!user) return fail(c, 'ERR_AUTH', 401)
+    return ok(c, await authService(c).ensureGuest(user))
+  })
   routes.post(
     '/upgrade',
     requireUser(),

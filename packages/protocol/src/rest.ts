@@ -215,6 +215,10 @@ export type ResetBody = z.infer<typeof ResetBody>
 export const AuthResponseDto = z.object({ session: SessionDto, me: MeDto })
 export type AuthResponseDto = z.infer<typeof AuthResponseDto>
 
+/** `POST /api/auth/guest` with the Bearer of a client-side anonymous sign-in: the client keeps its own session. */
+export const GuestProfileResponseDto = z.object({ session: z.null(), me: MeDto })
+export type GuestProfileResponseDto = z.infer<typeof GuestProfileResponseDto>
+
 export const ResetResponseDto = z.object({ sent: z.literal(true) })
 export type ResetResponseDto = z.infer<typeof ResetResponseDto>
 

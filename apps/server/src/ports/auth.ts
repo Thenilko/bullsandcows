@@ -12,7 +12,7 @@ export interface Session {
 }
 
 export interface AuthPort {
-  /** Returns the user behind an access token, or null when it is not valid. */
+  /** Returns the user behind an access token, or null when it is not valid. Throws (502) when the token cannot be checked (key set unavailable). */
   verify(token: string): Promise<AuthUser | null>
   signUp(email: string, password: string): Promise<Session>
   signIn(email: string, password: string): Promise<Session>
