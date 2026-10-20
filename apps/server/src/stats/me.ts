@@ -21,7 +21,7 @@ export const toProfileDto = (p: Profile): ProfileDto => ({
   defaultLen: p.defaultLen,
 })
 
-/** Level 1 is the first title ("calf"); the titles run out at "chiefBull". */
+/** Title as in the prototype: RANK_KEYS[min(5, level)], so level 1 is "herdsman". */
 export function levelInfo(
   profile: Profile,
 ): Pick<MeDto, 'xp' | 'level' | 'xpIntoLevel' | 'rankKey' | 'rating'> {
@@ -30,7 +30,7 @@ export function levelInfo(
     xp: profile.xp,
     level,
     xpIntoLevel: xpIntoLevel(profile.xp),
-    rankKey: rankKeyForLevel(level - 1),
+    rankKey: rankKeyForLevel(level),
     rating: displayRating(profile.rating),
   }
 }

@@ -38,7 +38,7 @@ describe('me routes', () => {
     const res = await req(app, 'fake:m1:Mira', 'GET', '/api/me')
     expect(res.status).toBe(200)
     const me = MeDto.parse((await json(res)).data)
-    expect(me).toMatchObject({ level: 2, xpIntoLevel: 200, rankKey: 'herdsman', rating: 1500 })
+    expect(me).toMatchObject({ level: 2, xpIntoLevel: 200, rankKey: 'shepherd', rating: 1500 })
     expect(JSON.stringify(me)).not.toContain('m@x.bg')
   })
 

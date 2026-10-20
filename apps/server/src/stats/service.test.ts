@@ -168,7 +168,7 @@ describe('me', () => {
   it('derives level, xp into level and rank title from xp', async () => {
     await repo.profiles.addXp(mira.id, 1700)
     const me = await stats.me(mira)
-    expect(me).toMatchObject({ xp: 1700, level: 2, xpIntoLevel: 200, rankKey: 'herdsman' })
+    expect(me).toMatchObject({ xp: 1700, level: 2, xpIntoLevel: 200, rankKey: 'shepherd' })
     expect(me.rating).toBe(1500)
     expect(me.profile).toEqual({
       id: 'mira',
@@ -181,9 +181,9 @@ describe('me', () => {
     })
   })
 
-  it('starts a new player at level 1 as a calf with empty stats', async () => {
+  it('starts a new player at level 1 as a herdsman with empty stats', async () => {
     const me = await stats.me(mira)
-    expect(me).toMatchObject({ level: 1, rankKey: 'calf', currentGameId: null, recent: [] })
+    expect(me).toMatchObject({ level: 1, rankKey: 'herdsman', currentGameId: null, recent: [] })
     expect(me.stats).toEqual({ played: 0, winRate: 0, streak: 0, best: null })
     expect(me.buckets.map((b) => b.attempts)).toEqual([3, 4, 5, 6, 7, 8, 9, 10])
     expect(Object.values(me.badges).some(Boolean)).toBe(false)
