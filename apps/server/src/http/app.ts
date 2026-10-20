@@ -5,6 +5,7 @@ import { AppError } from './errors'
 import { requireUser } from './middleware/auth'
 import { securityHeaders } from './middleware/headers'
 import { fail, ok } from './respond'
+import { gamesRoutes } from './routes/games'
 import type { AppDeps, AppEnv } from './types'
 
 export type { AppDeps, AppEnv } from './types'
@@ -28,6 +29,7 @@ export function createApp(deps: AppDeps): Hono<AppEnv> {
   })
   app.get('/api/health', (c) => ok(c, { status: 'ok' as const }))
   app.get('/api/me', requireUser(), (c) => ok(c, c.get('user')))
+  app.route('/api/games', gamesRoutes())
   app.notFound((c) => fail(c, 'ERR_NOT_FOUND', 404))
   app.onError(handleError)
   return app
