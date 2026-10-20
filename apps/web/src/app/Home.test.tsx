@@ -12,8 +12,7 @@ vi.mock('../features/auth/client', () => ({
 
 const { Home } = await import('./Home')
 
-function show() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+function show(client = new QueryClient({ defaultOptions: { queries: { retry: false } } })) {
   return renderWithI18n(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={['/']}>
@@ -32,6 +31,17 @@ beforeEach(() => {
 })
 
 describe('Home', () => {
+  it('ignores a stale cached profile and waits for the refetch', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    client.setQueryData(['me'], { ...meFixture, currentGameId: null })
+    let resolve: (v: unknown) => void = () => undefined
+    get.mockReturnValue(new Promise((r) => (resolve = r)))
+    show(client)
+    expect(screen.queryByText('new game page')).toBeNull()
+    resolve({ ...meFixture, currentGameId: 'g9' })
+    expect(await screen.findByText('play page')).toBeInTheDocument()
+  })
+
   it('sends a player with an unfinished game back to it', async () => {
     get.mockResolvedValue({ ...meFixture, currentGameId: 'g7' })
     show()

@@ -44,7 +44,9 @@ test('solo game: guest login, play to the win, restore after reload', async ({ p
   await page.reload()
   await expect(page).toHaveURL(playUrl)
   await expect(page.getByRole('list', { name: 'Опити' }).getByText(WRONG)).toBeVisible()
-  if (await page.getByRole('button', { name: 'Старт', exact: true }).isVisible()) await startGame(page)
+  // The game was already started: no start overlay, the keypad is usable right away.
+  await expect(page.getByRole('button', { name: 'Старт', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Цифра 1', exact: true })).toBeEnabled()
 
   await typeGuess(page, SECRET)
   await expect(page).toHaveURL(/\/result\/[^/]+$/)
