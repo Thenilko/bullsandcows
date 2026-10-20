@@ -18,6 +18,10 @@ async function setup() {
   let listener: Listener = () => undefined
   const auth = {
     setSession: vi.fn(async () => ({})),
+    refreshSession: vi.fn(async (): Promise<unknown> => ({
+      data: { session: { access_token: 'a2', refresh_token: 'r2', expires_at: 5000, user: { id: 'u' } } },
+      error: null,
+    })),
     signOut: vi.fn(async () => ({})),
     onAuthStateChange: vi.fn((cb: Listener) => {
       listener = cb
@@ -90,5 +94,68 @@ describe('SupabaseSession', () => {
     const { mod, auth } = await setup()
     await mod.startSupabaseSync()
     expect(auth.onAuthStateChange).not.toHaveBeenCalled()
+  })
+
+  describe('token renewal', () => {
+    const NOW_S = 1_000_000
+
+    it('refreshes a token that expires within 60 s and stores the new tokens', async () => {
+      const { mod, useSession, auth } = await setup()
+      useSession.setState({ session: { ...SESSION, expiresAt: NOW_S + 30 } })
+      await mod.ensureFreshToken(NOW_S * 1000)
+      expect(auth.refreshSession).toHaveBeenCalledWith({ refresh_token: 'r' })
+      expect(useSession.getState().session).toMatchObject({ accessToken: 'a2', refreshToken: 'r2', expiresAt: 5000 })
+    })
+
+    it('leaves a token with more than 60 s left alone', async () => {
+      const { mod, useSession, auth } = await setup()
+      useSession.setState({ session: { ...SESSION, expiresAt: NOW_S + 600 } })
+      await mod.ensureFreshToken(NOW_S * 1000)
+      expect(auth.refreshSession).not.toHaveBeenCalled()
+    })
+
+    it('shares one refresh between concurrent callers', async () => {
+      const { mod, useSession, auth } = await setup()
+      useSession.setState({ session: SESSION })
+      const results = await Promise.all([mod.refreshTokens(), mod.refreshTokens()])
+      expect(results).toEqual(['refreshed', 'refreshed'])
+      expect(auth.refreshSession).toHaveBeenCalledOnce()
+    })
+
+    it('reports a rejected refresh token as invalid and a network failure as unavailable', async () => {
+      const { mod, useSession, auth } = await setup()
+      useSession.setState({ session: SESSION })
+      auth.refreshSession.mockResolvedValueOnce({
+        data: { session: null },
+        error: { name: 'AuthApiError', status: 400 },
+      })
+      expect(await mod.refreshTokens()).toBe('invalid')
+      auth.refreshSession.mockResolvedValueOnce({
+        data: { session: null },
+        error: { name: 'AuthRetryableFetchError', status: 0 },
+      })
+      expect(await mod.refreshTokens()).toBe('unavailable')
+      expect(useSession.getState().session?.accessToken).toBe('a')
+    })
+
+    it('does not graft another user\'s refreshed tokens onto the session', async () => {
+      const { mod, useSession, auth } = await setup()
+      useSession.setState({ session: SESSION })
+      auth.refreshSession.mockResolvedValueOnce({
+        data: { session: { access_token: 'x', refresh_token: 'y', expires_at: 1, user: { id: 'other' } } },
+        error: null,
+      })
+      expect(await mod.refreshTokens()).toBe('invalid')
+      expect(useSession.getState().session?.accessToken).toBe('a')
+    })
+
+    it('never refreshes in fake mode, where a 401 means invalid', async () => {
+      vi.stubEnv('VITE_AUTH_MODE', 'fake')
+      const { mod, useSession, auth } = await setup()
+      useSession.setState({ session: { ...SESSION, expiresAt: 0 } })
+      await mod.ensureFreshToken()
+      expect(await mod.refreshTokens()).toBe('invalid')
+      expect(auth.refreshSession).not.toHaveBeenCalled()
+    })
   })
 })

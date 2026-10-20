@@ -81,7 +81,8 @@ export default defineConfig({
       timeout: 120_000,
     },
     {
-      command: `pnpm --filter web build && pnpm --filter web preview --host 127.0.0.1 --port ${WEB_PORT} --strictPort`,
+      // A hermetic fake-auth build (the production build guard requires saying so).
+      command: `VITE_AUTH_MODE=fake pnpm --filter web build && pnpm --filter web preview --host 127.0.0.1 --port ${WEB_PORT} --strictPort`,
       cwd: '../..',
       port: WEB_PORT,
       reuseExistingServer: !process.env.CI,
@@ -89,7 +90,7 @@ export default defineConfig({
     },
     {
       // Separate output dir: the production build in dist/ stays free of the dev gallery.
-      command: `VITE_DEV_SCREENS=1 pnpm --filter web exec vite build --outDir dist-gallery --emptyOutDir && pnpm --filter web exec vite preview --outDir dist-gallery --host 127.0.0.1 --port ${GALLERY_PORT} --strictPort`,
+      command: `VITE_AUTH_MODE=fake VITE_DEV_SCREENS=1 pnpm --filter web exec vite build --outDir dist-gallery --emptyOutDir && pnpm --filter web exec vite preview --outDir dist-gallery --host 127.0.0.1 --port ${GALLERY_PORT} --strictPort`,
       cwd: '../..',
       port: GALLERY_PORT,
       reuseExistingServer: !process.env.CI,

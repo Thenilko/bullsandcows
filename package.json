@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "concurrently -n web,server \"pnpm --filter web dev\" \"pnpm --filter server dev\"",
-    "build": "pnpm --filter web build && pnpm --filter server build",
+    "build": "VITE_AUTH_MODE=${VITE_AUTH_MODE:-fake} pnpm --filter web build && pnpm --filter server build",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage --project '!server'",
     "e2e": "pnpm --filter web exec playwright test --project=mobile --project=desktop --project=gallery",

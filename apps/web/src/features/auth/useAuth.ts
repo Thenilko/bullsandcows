@@ -1,11 +1,11 @@
-import { isErrorCode, type AuthResponseDto, type ErrorCode } from '@bc/protocol'
+import { isErrorCode, type AuthResponseDto, type ErrorCode, type GuestProfileResponseDto } from '@bc/protocol'
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { ApiError } from '../../lib/api'
+import { ApiError, createApi } from '../../lib/api'
 import { RETURN_TO_KEY } from '../../app/RequireAuth'
 import { api } from './client'
 import { useSession } from './session'
-import { adoptSession, signOutSupabase } from './SupabaseSession'
+import { adoptSession, signInGuestOnClient, signOutSupabase } from './SupabaseSession'
 
 export interface AuthApi {
   me: ReturnType<typeof useSession.getState>['me']
@@ -32,6 +32,14 @@ function takeReturnTo(): string {
   } catch {
     return '/'
   }
+}
+
+/** Supabase mode signs the guest in on the client and only ensures the profile on the server. */
+async function startGuest(): Promise<AuthResponseDto> {
+  const session = await signInGuestOnClient()
+  if (!session) return api.post<AuthResponseDto>('/api/auth/guest', {})
+  const res = await createApi(() => session.accessToken).post<GuestProfileResponseDto>('/api/auth/guest', {})
+  return { session, me: res.me }
 }
 
 function toCode(e: unknown): ErrorCode {
@@ -63,18 +71,19 @@ export function useAuth(): AuthApi {
     }
   }, [])
 
-  const authenticate = useCallback(
-    async (path: string, body: unknown): Promise<void> => {
-      await run(
-        () => api.post<AuthResponseDto>(path, body),
-        (res) => {
-          useSession.getState().setAuth(res)
-          void adoptSession(res.session)
-          void navigate(takeReturnTo(), { replace: true })
-        },
-      )
+  const signIn = useCallback(
+    async (task: () => Promise<AuthResponseDto>): Promise<void> => {
+      await run(task, (res) => {
+        useSession.getState().setAuth(res)
+        void adoptSession(res.session)
+        void navigate(takeReturnTo(), { replace: true })
+      })
     },
     [navigate, run],
+  )
+  const authenticate = useCallback(
+    (path: string, body: unknown) => signIn(() => api.post<AuthResponseDto>(path, body)),
+    [signIn],
   )
 
   return {
@@ -86,7 +95,7 @@ export function useAuth(): AuthApi {
     offline,
     login: (identifier, password) => authenticate('/api/auth/login', { identifier, password }),
     register: (username, email, password) => authenticate('/api/auth/register', { username, email, password }),
-    guest: () => authenticate('/api/auth/guest', {}),
+    guest: () => signIn(startGuest),
     upgrade: (username, email, password) => authenticate('/api/auth/upgrade', { username, email, password }),
     reset: (email) => run(() => api.post('/api/auth/reset', { email }), () => undefined),
     logout: () => {

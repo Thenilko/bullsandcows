@@ -1,7 +1,9 @@
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { staticHeadersFile } from './build/headers'
+import { assertProdAuthEnv } from './build/prodEnv'
 
 const THEME = '#F6F2E6'
 
@@ -14,6 +16,8 @@ const proxy = {
 
 const pwa = VitePWA({
   registerType: 'autoUpdate',
+  // An external /registerSW.js, never an inline script: the CSP allows only 'self' scripts.
+  injectRegister: 'script',
   // The service worker only exists in production builds; dev and tests never register it.
   devOptions: { enabled: false },
   includeAssets: ['icons/apple-touch-icon.png'],
@@ -53,15 +57,29 @@ const pwa = VitePWA({
 
 const fromRoot = (p: string) => fileURLToPath(new URL(p, import.meta.url))
 
-export default defineConfig({
-  plugins: [react(), pwa],
-  resolve: {
-    alias: {
-      '@bc/game-core': fromRoot('../../packages/game-core/src/index.ts'),
-      '@bc/i18n': fromRoot('../../packages/i18n/src/index.ts'),
-      '@bc/protocol': fromRoot('../../packages/protocol/src/index.ts'),
-    },
+/** Writes Cloudflare's `_headers` (CSP and friends) into the build output. */
+const securityHeaders = (supabaseUrl: string | undefined): Plugin => ({
+  name: 'pasishte-security-headers',
+  apply: 'build',
+  generateBundle() {
+    this.emitFile({ type: 'asset', fileName: '_headers', source: staticHeadersFile(supabaseUrl) })
   },
-  server: { proxy },
-  preview: { proxy },
+})
+
+export default defineConfig(({ command, mode }) => {
+  // Files plus process.env (process.env wins), as the client bundle will see them.
+  const env = loadEnv(mode, fileURLToPath(new URL('.', import.meta.url)), 'VITE_')
+  if (command === 'build') assertProdAuthEnv(env, mode)
+  return {
+    plugins: [react(), pwa, securityHeaders(env.VITE_SUPABASE_URL)],
+    resolve: {
+      alias: {
+        '@bc/game-core': fromRoot('../../packages/game-core/src/index.ts'),
+        '@bc/i18n': fromRoot('../../packages/i18n/src/index.ts'),
+        '@bc/protocol': fromRoot('../../packages/protocol/src/index.ts'),
+      },
+    },
+    server: { proxy },
+    preview: { proxy },
+  }
 })

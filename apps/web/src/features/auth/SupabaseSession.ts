@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { SessionDto } from '@bc/protocol'
+import { ApiError, type RefreshResult } from '../../lib/api'
 import { useSession } from './session'
 
 export function isSupabaseMode(): boolean {
@@ -32,6 +33,79 @@ export async function adoptSession(session: SessionDto): Promise<void> {
   } catch {
     // refresh is best effort; a 401 will clear the session
   }
+}
+
+/**
+ * Supabase mode: an anonymous sign-in straight from the browser, so Supabase's per-IP limits
+ * count the player's address, not the Worker's. Null in fake mode (the server signs guests in).
+ */
+export async function signInGuestOnClient(): Promise<SessionDto | null> {
+  const supabase = await getSupabaseClient()
+  if (!supabase) return null
+  let result: Awaited<ReturnType<SupabaseClient['auth']['signInAnonymously']>>
+  try {
+    result = await supabase.auth.signInAnonymously()
+  } catch {
+    throw new ApiError('ERR_INTERNAL', 0)
+  }
+  const { data, error } = result
+  if (error || !data.session) {
+    const status = error?.status ?? 0
+    throw new ApiError(status === 429 ? 'ERR_RATE_LIMIT' : 'ERR_INTERNAL', status)
+  }
+  const s = data.session
+  return {
+    accessToken: s.access_token,
+    refreshToken: s.refresh_token,
+    expiresAt: s.expires_at ?? 0,
+    user: { id: s.user.id, isGuest: true },
+  }
+}
+
+/** Renew this long before `expiresAt`, so a request never leaves with a token about to lapse. */
+const EXPIRY_MARGIN_S = 60
+
+/** Supabase's own network and 5xx failures: the refresh token may still be good. */
+const isRetryable = (error: { name?: string; status?: number } | null): boolean =>
+  error?.name === 'AuthRetryableFetchError' || error?.status === 0 || (error?.status ?? 0) >= 500
+
+async function refreshOnce(): Promise<RefreshResult> {
+  const supabase = await getSupabaseClient()
+  const current = useSession.getState().session
+  if (!supabase || !current) return 'invalid'
+  try {
+    const { data, error } = await supabase.auth.refreshSession({ refresh_token: current.refreshToken })
+    const next = data.session
+    if (error || !next) return isRetryable(error) ? 'unavailable' : 'invalid'
+    // The answer must belong to the stored user; anything else ends nothing but is not used.
+    if (next.user.id !== current.user.id) return 'invalid'
+    useSession.getState().setTokens({
+      accessToken: next.access_token,
+      refreshToken: next.refresh_token,
+      expiresAt: next.expires_at ?? 0,
+    })
+    return 'refreshed'
+  } catch {
+    return 'unavailable'
+  }
+}
+
+let refreshing: Promise<RefreshResult> | null = null
+
+/** New tokens from the stored refresh token; concurrent callers share one call. Fake mode: `invalid`. */
+export function refreshTokens(): Promise<RefreshResult> {
+  refreshing ??= refreshOnce().finally(() => {
+    refreshing = null
+  })
+  return refreshing
+}
+
+/** Before a request: renews the access token when it expires within a minute (Supabase mode only). */
+export async function ensureFreshToken(nowMs: number = Date.now()): Promise<void> {
+  if (!isSupabaseMode()) return
+  const session = useSession.getState().session
+  if (!session || session.expiresAt - nowMs / 1000 > EXPIRY_MARGIN_S) return
+  await refreshTokens()
 }
 
 export async function signOutSupabase(): Promise<void> {
