@@ -15,7 +15,9 @@
   background: #a9d6f0;
 }
 
-.panelBody {
+/* `.root` raises specificity above the global `.panel { bottom: 0 }`, whose stylesheet can load
+   after this module in the production bundle; otherwise the panel runs under the tab bar. */
+.root .panelBody {
   top: 190px;
   bottom: 72px;
   padding: 18px 16px 16px;
