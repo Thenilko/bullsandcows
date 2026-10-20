@@ -12,6 +12,7 @@
   "dependencies": {
     "@bc/game-core": "workspace:*",
     "@bc/i18n": "workspace:*",
+    "@bc/protocol": "workspace:*",
     "@tanstack/react-query": "5.104.5",
     "i18next": "26.5.3",
     "react": "19.3.1",
