@@ -1,6 +1,15 @@
 import type { ReactElement } from 'react'
 import { LoginErrorScreen, LoginRegisterScreen, LoginScreen, RulesScreen } from './AuthScreens'
 import { PrimitivesScreen } from './PrimitivesScreen'
+import {
+  Board,
+  BoardGuest,
+  Profile,
+  ProfileGuest,
+  ResultLose,
+  ResultPractice,
+  ResultWin,
+} from './StatsScreens'
 import { SceneIdle, ScenePlay, SceneResult } from './SceneScreens'
 import { DesktopShellScreen, MobileShellScreen } from './ShellScreens'
 
@@ -16,4 +25,11 @@ export const devScreens: Record<string, () => ReactElement> = {
   'login-register': LoginRegisterScreen,
   'login-error': LoginErrorScreen,
   rules: RulesScreen,
+  'result-win': ResultWin,
+  'result-lose': ResultLose,
+  'result-practice': ResultPractice,
+  board: Board,
+  'board-guest': BoardGuest,
+  profile: Profile,
+  'profile-guest': ProfileGuest,
 }
