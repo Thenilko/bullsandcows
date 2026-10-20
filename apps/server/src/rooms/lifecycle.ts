@@ -11,6 +11,7 @@ import {
   type Seat,
   type Step,
 } from '../duel/types'
+import { botDueAt, botMove, botToMove } from './botDriver'
 import { READY_MS, SECRETS_MS, type RoomState } from './state'
 
 /** A room state together with the messages its change produced. */
@@ -106,7 +107,7 @@ const pickCode = (m: Match, rng: Rng): string => {
   return all[Math.min(all.length - 1, Math.floor(rng() * all.length))]!
 }
 
-/** The bot seat (b) is always ready and picks its classic secret at once. Moves: Task 27. */
+/** The bot seat (b) is always ready and picks its classic secret at once. Its moves: `botMoveRule`. */
 const botRule: Rule = (st, now, rng) => {
   const { match: m } = st
   const bot = m.opponentKind === 'bot' ? m.players.b : null
@@ -116,6 +117,33 @@ const botRule: Rule = (st, now, rng) => {
     return fromStep(st, setSecret(m, st.secrets, 'b', pickCode(m, rng), now, rng))
   }
   return null
+}
+
+/**
+ * The bot's moves. When it is the bot's time to move a think timer is set (`meta.botAt`);
+ * once due, the move is made and the timer cleared (the next round sets the following one).
+ * The timer is cleared whenever it does not apply, so it can never spin the alarm.
+ */
+const botMoveRule: Rule = (st, now, rng) => {
+  const { match: m, meta } = st
+  const level = m.botLevel
+  if (!botToMove(m) || level === null) {
+    return meta.botAt == null
+      ? null
+      : { state: { ...st, meta: { ...meta, botAt: null } }, events: [] }
+  }
+  if (meta.botAt == null) {
+    const botAt = botDueAt(m, level, now, rng)
+    return { state: { ...st, meta: { ...meta, botAt } }, events: [] }
+  }
+  if (meta.botAt > now) return null
+  const cleared = { ...st, meta: { ...meta, botAt: null } }
+  return (
+    fromStep(cleared, botMove(m, st.secrets, level, now, rng)) ?? {
+      state: cleared,
+      events: [],
+    }
+  )
 }
 
 /** Starts (or clears) the room deadlines that depend on the phase. */
@@ -138,6 +166,7 @@ const RULES: readonly Rule[] = [
   expireRule,
   rematchRule,
   botRule,
+  botMoveRule,
   deadlineRule,
 ]
 

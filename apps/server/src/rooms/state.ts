@@ -22,6 +22,8 @@ export interface RoomMeta {
   readonly inviteExpiresAt: number
   readonly readyDeadline: number | null
   readonly secretsDeadline: number | null
+  /** When the bot makes its next move; null when it is not its time to think. */
+  readonly botAt: number | null
   /** The invite ran out before a second player joined. */
   readonly expired: boolean
   /** The current match's result has been claimed for recording (set before the write). */
@@ -48,6 +50,7 @@ export function initialMeta(now: number): RoomMeta {
     inviteExpiresAt: now + INVITE_MS,
     readyDeadline: null,
     secretsDeadline: null,
+    botAt: null,
     expired: false,
     resultRecorded: false,
   }
