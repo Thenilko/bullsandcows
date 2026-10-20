@@ -37,7 +37,7 @@ function SettingRow({ label, hint, children }: { label: string; hint?: string; c
     <div className="setrow">
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <span className="setlab">{label}</span>
-        {hint ? <span style={{ fontSize: 12, fontWeight: 700, color: '#5C6651' }}>{hint}</span> : null}
+        {hint ? <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)' }}>{hint}</span> : null}
       </div>
       {children}
     </div>
@@ -107,7 +107,7 @@ export function NewGame({ initial }: { initial?: NewGameInitial }) {
           {t('newGame.title')}
         </h1>
         <Settings len={len} zero={zero} kind={kind} onLen={setLen} onZero={setZero} onKind={setKind} />
-        <span style={{ fontSize: 13, fontWeight: 800, color: '#5C6651' }}>{info}</span>
+        <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--c-muted-aa)' }}>{info}</span>
         <p role="status" style={{ margin: 0, minHeight: 18, fontWeight: 800, fontSize: 14, color: '#8A1F0B' }}>
           {create.isError ? t(errorKey(create.error)) : ''}
         </p>

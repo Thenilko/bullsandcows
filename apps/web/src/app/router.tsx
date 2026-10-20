@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { createBrowserRouter, type RouteObject } from 'react-router'
 import { DevScreens } from '../dev/DevScreens'
 import { Login } from '../screens/Login'
@@ -6,8 +7,18 @@ import { RequireAuth } from './RequireAuth'
 
 const devRoutes: RouteObject[] =
   import.meta.env.DEV || import.meta.env.VITE_DEV_SCREENS === '1'
-    ? [{ path: '/dev/screens', element: <DevScreens /> }]
+    ? [{ path: '/dev/screens', HydrateFallback: RouteFallback, element: <DevScreens /> }]
     : []
+
+/** Fixed-height placeholder while a lazy route loads, so deep links neither flash blank nor shift layout. */
+function RouteFallback() {
+  const { t } = useTranslation()
+  return (
+    <p role="status" style={{ minHeight: '100dvh', margin: 0, padding: 24, fontWeight: 800 }}>
+      {t('common.loading')}
+    </p>
+  )
+}
 
 /** Route modules load on demand so the login page ships only what it needs. */
 const page = <K extends string>(load: () => Promise<Record<K, React.ComponentType>>, name: K) => async () => ({
@@ -16,9 +27,10 @@ const page = <K extends string>(load: () => Promise<Record<K, React.ComponentTyp
 
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
-  { path: '/rules', lazy: page(() => import('../screens/Rules'), 'Rules') },
+  { path: '/rules', HydrateFallback: RouteFallback, lazy: page(() => import('../screens/Rules'), 'Rules') },
   {
     element: <RequireAuth />,
+    HydrateFallback: RouteFallback,
     children: [
       { path: '/', element: <Home /> },
       { path: '/new', lazy: page(() => import('../screens/NewGame'), 'NewGame') },

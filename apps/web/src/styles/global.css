@@ -64,9 +64,16 @@ body {
   top: 12px;
 }
 
-/* AA contrast overrides (design values failed WCAG AA): locked badges dim only the icon, struck-out notebook digits use a darker ink. */
+/*
+ * AA contrast overrides. Prototype pairs that fail: #6B7560 on #EFE9D7 (3.99:1), #8C9483 on #ECE7D8 (2.54:1, struck-out
+ * notebook digits), locked-badge text at opacity .45 (about 2.5:1). The rules below keep the grayscale and dimming look
+ * but raise the text ink to --c-muted-aa (>= 4.9:1 on those backgrounds).
+ * Untouched pasishte.css rules pass AA as designed: .tab #6B7560 on #FFFDF6 = 4.76:1, .mode small / .opt small on #FFFFFF = 4.84:1.
+ */
 .badge.locked {
   opacity: 1;
+  background: rgba(255, 255, 255, 0.45);
+  border-color: rgba(236, 229, 210, 0.45);
 }
 
 .badge.locked > span:first-child {
@@ -74,9 +81,9 @@ body {
 }
 
 .badge.locked > span:not(:first-child) {
-  color: #5c6651;
+  color: var(--c-muted-aa);
 }
 
 .note.nx {
-  color: #5c6651;
+  color: var(--c-muted-aa);
 }

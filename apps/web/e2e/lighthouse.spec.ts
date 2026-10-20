@@ -11,6 +11,8 @@ const PAGES = [
 ]
 
 test.describe('@slow lighthouse', () => {
+  test.describe.configure({ mode: 'serial' })
+
   for (const { name, url } of PAGES) {
     test(`lighthouse ${name}`, async () => {
       const browser = await chromium.launch({ args: [`--remote-debugging-port=${DEBUG_PORT}`] })

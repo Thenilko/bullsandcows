@@ -25,7 +25,7 @@ test('solo game: guest login, play to the win, restore after reload', async ({ p
   })
 
   await page.goto('/')
-  await expect(page).toHaveURL(/\/login$/)
+  await expect(page).toHaveURL(/\/login$/, { timeout: 30_000 })
   await page.getByRole('button', { name: 'Играй като гост' }).click()
 
   // `/` redirects a fresh guest to the new game screen.

@@ -40,7 +40,7 @@ export function Badge({
       </span>
       <span>{name}</span>
       {desc ? (
-        <span style={{ fontSize: 11, fontWeight: 700, color: '#5C6651' }}>{desc}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-muted-aa)' }}>{desc}</span>
       ) : null}
     </div>
   )

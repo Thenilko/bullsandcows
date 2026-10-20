@@ -167,7 +167,7 @@ export function DesktopPlay({ game, g }: Omit<PlayPanelProps, 'desktop'>) {
           {game.practice ? <Chip>{t('common.practice')}</Chip> : null}
         </div>
           <Input game={game} g={g} desktop />
-        <span style={{ fontSize: 13, fontWeight: 700, color: '#5C6651', textAlign: 'center' }}>{t('play.keyboardHint')}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c-muted-aa)', textAlign: 'center' }}>{t('play.keyboardHint')}</span>
         <Overlay game={game} g={g} desktop />
       </Card>
       <Card role="region" aria-label={t('notebook.title')} style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>

@@ -25,7 +25,7 @@ const AVATAR = {
 } as const
 
 const WIDE_COLUMNS = '50px 36px minmax(0, 1fr) 80px 90px'
-const HEAD = { fontSize: 12, fontWeight: 900, letterSpacing: '.06em', color: '#5C6651' } as const
+const HEAD = { fontSize: 12, fontWeight: 900, letterSpacing: '.06em', color: 'var(--c-muted-aa)' } as const
 
 function WideHeader() {
   const { t } = useTranslation()
@@ -82,7 +82,7 @@ export function BoardRows({
               ...(wide ? { gridTemplateColumns: cols, gap: 10 } : {}),
             }}
           >
-            <span style={{ fontWeight: 900, color: '#5C6651', textAlign: 'center' }}>{r.rank}</span>
+            <span style={{ fontWeight: 900, color: 'var(--c-muted-aa)', textAlign: 'center' }}>{r.rank}</span>
             <span
               aria-hidden="true"
               style={{ ...AVATAR, background: AVATAR_COLORS[i % AVATAR_COLORS.length] }}

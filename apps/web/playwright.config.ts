@@ -48,13 +48,20 @@ export default defineConfig({
       // Screenshot regression and axe over the dev gallery (a build with VITE_DEV_SCREENS=1).
       name: 'gallery',
       testMatch: /(screens|a11y)\.spec\.ts/,
-      use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${GALLERY_PORT}` },
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: `http://127.0.0.1:${GALLERY_PORT}`,
+        locale: 'bg-BG',
+        timezoneId: 'Europe/Sofia',
+      },
     },
     {
       // Lighthouse is slow; it only runs via `pnpm e2e:full`.
       name: 'slow',
       testMatch: /lighthouse\.spec\.ts/,
       timeout: 120_000,
+      // Fixed ports (9333, 4173, 4174): one worker, tests in file order (config-level `workers: 1`).
+      fullyParallel: false,
       use: { ...devices['Desktop Chrome'] },
     },
   ],

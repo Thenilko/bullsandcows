@@ -21,7 +21,7 @@ const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'] as const
 const STATE_KEYS = ['unknown', 'no', 'yes'] as const
 const SHORT_KEYS = [null, 'no', 'yes'] as const
 const HEADING = { margin: 0, fontWeight: 900 } as const
-const HINT = { fontWeight: 700, color: '#5C6651' } as const
+const HINT = { fontWeight: 700, color: 'var(--c-muted-aa)' } as const
 
 function DigitChips({ marks, cycle, desktop }: { marks: Readonly<Record<string, DigitMark>>; cycle(d: string): void; desktop: boolean }) {
   const { t } = useTranslation()

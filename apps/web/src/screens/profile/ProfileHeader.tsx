@@ -63,10 +63,10 @@ export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: bo
           style={{ height: '100%', width: `${width}%`, background: '#5E9E46', borderRadius: 6 }}
         />
       </div>
-      <span style={{ fontSize: desktop ? 13 : 12, fontWeight: 700, color: '#5C6651' }}>
+      <span style={{ fontSize: desktop ? 13 : 12, fontWeight: 700, color: 'var(--c-muted-aa)' }}>
         {t('profile.xp', { xp: me.xpIntoLevel, level: me.level + 1 })}
       </span>
-      <span style={{ fontSize: desktop ? 13 : 12, fontWeight: 700, color: '#5C6651' }}>
+      <span style={{ fontSize: desktop ? 13 : 12, fontWeight: 700, color: 'var(--c-muted-aa)' }}>
         {t('profile.rating', { rating: me.rating })}
       </span>
     </>

@@ -7,6 +7,8 @@
   --c-sun: #F2C230;
   --c-green: #5E9E46;
   --c-muted: #6B7560;
+  /* AA-safe muted ink for text on the panel (#6B7560 is 3.99:1 on #EFE9D7). */
+  --c-muted-aa: #5C6651;
   --c-line: #DCD4BF;
   --c-line-strong: #CFC6AE;
 
