@@ -1,15 +1,16 @@
 import { useTranslation } from 'react-i18next'
-import { NavLink } from 'react-router'
+import { NavLink, useLocation } from 'react-router'
 import { PastureScene } from '../../components/scene'
 import { HomeIcon, QuestionIcon, TrophyIcon, UserIcon } from '../../components/ui/icons'
 import { cx } from '../../components/ui/cx'
 import styles from './MobileShell.module.css'
-import { TABS, type ShellProps } from './shell.types'
+import { isTabActive, TABS, type ShellProps } from './shell.types'
 
 const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon, QuestionIcon] as const
 
 export function MobileShell({ scene, children, bare = false, panelTop, panelPadding, hud }: ShellProps) {
   const { t } = useTranslation()
+  const { pathname } = useLocation()
   return (
     <div className={styles.root}>
       <div className={styles.scene}>
@@ -26,7 +27,7 @@ export function MobileShell({ scene, children, bare = false, panelTop, panelPadd
                 key={tab.to}
                 to={tab.to}
                 end={tab.end}
-                className={({ isActive }) => cx('tab', isActive && 'on')}
+                className={({ isActive }) => cx('tab', isTabActive(tab, pathname, isActive) && 'on')}
               >
                 <Icon />
                 {t(tab.key)}
