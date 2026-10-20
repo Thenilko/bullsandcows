@@ -6,6 +6,8 @@ import { parseEnv, type Env } from './env'
 import { createApp } from './http/app'
 import { SECURITY_HEADERS } from './http/middleware/headers'
 import { systemClock } from './ports/clock'
+import { DuelRoom } from './rooms/DuelRoom'
+import { authenticateWs, forwardWithIdentity } from './rooms/wsAuth'
 
 /** Any id works: the cron only needs one cheap query so Supabase sees activity. */
 const KEEP_ALIVE_PROFILE_ID = '00000000-0000-0000-0000-000000000000'
@@ -47,6 +49,41 @@ async function handleApi(
   }
 }
 
+const DUEL_WS = /^\/ws\/duel\/([^/]+)$/
+
+const notFound = (): Response =>
+  Response.json(apiErr('ERR_NOT_FOUND'), { status: 404, headers: SECURITY_HEADERS })
+
+function duelId(ns: DurableObjectNamespace, roomId: string): DurableObjectId | null {
+  try {
+    return ns.idFromString(roomId)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * `/ws/duel/:roomId?token=&auth=`: verifies the access token (guests allowed: friend invites
+ * and bots) BEFORE the upgrade, then hands the socket to the room as `GET /ws?token=` with
+ * identity headers only the Worker sets. The seat token is checked by the room.
+ */
+async function handleDuelWs(request: Request, raw: CloudflareBindings, roomId: string) {
+  let env: Env
+  try {
+    env = loadEnv(raw)
+  } catch (err) {
+    console.error(errorText(err))
+    return Response.json(apiErr('ERR_INTERNAL'), { status: 500, headers: SECURITY_HEADERS })
+  }
+  const id = duelId(env.DUEL, roomId)
+  if (!id) return notFound()
+  const auth = await authenticateWs(request, env, { allowGuests: true })
+  if (auth instanceof Response) return auth
+  const token = new URL(request.url).searchParams.get('token') ?? ''
+  const inner = new Request(`https://room/ws?token=${encodeURIComponent(token)}`, request)
+  return env.DUEL.get(id).fetch(forwardWithIdentity(inner, auth.info))
+}
+
 async function keepAlive(raw: CloudflareBindings, ctx: ExecutionContext): Promise<void> {
   try {
     const repo = makeRepo(loadEnv(raw))
@@ -64,6 +101,8 @@ export default {
   async fetch(request, env, ctx) {
     const { pathname } = new URL(request.url)
     if (pathname === '/api' || pathname.startsWith('/api/')) return handleApi(request, env, ctx)
+    const duel = DUEL_WS.exec(pathname)
+    if (duel?.[1]) return handleDuelWs(request, env, decodeURIComponent(duel[1]))
     if (pathname === '/ws' || pathname.startsWith('/ws/')) return notImplemented()
     return env.ASSETS.fetch(request)
   },
@@ -79,9 +118,4 @@ export class QueueRoom extends DurableObject<CloudflareBindings> {
   }
 }
 
-/** A single duel (race, classic or bot); implemented by the duel tasks. */
-export class DuelRoom extends DurableObject<CloudflareBindings> {
-  async fetch(): Promise<Response> {
-    return notImplemented()
-  }
-}
+export { DuelRoom }

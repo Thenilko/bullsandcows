@@ -135,7 +135,7 @@ describe('worker entry', () => {
   })
 
   it('serves the stub durable objects with 501', async () => {
-    for (const ns of [workerEnv.QUEUE, workerEnv.DUEL]) {
+    for (const ns of [workerEnv.QUEUE]) {
       const res = await ns.get(ns.idFromName('t')).fetch('http://do/x')
       expect(res.status).toBe(501)
       await res.text()

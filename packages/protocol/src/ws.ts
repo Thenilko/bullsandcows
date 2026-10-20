@@ -15,7 +15,16 @@ export type Seat = z.infer<typeof SeatSchema>
 export const PhaseSchema = z.enum(['lobby', 'secrets', 'countdown', 'playing', 'ended'])
 export type Phase = z.infer<typeof PhaseSchema>
 export const OutcomeSchema = z.enum(['win', 'draw', 'lose'])
-export const EndReasonSchema = z.enum(['solved', 'giveUp', 'timeout', 'disconnect', 'cap', 'draw'])
+/** `abandoned`: the room gave up before play (not both ready in time); no rating, no XP. */
+export const EndReasonSchema = z.enum([
+  'solved',
+  'giveUp',
+  'timeout',
+  'disconnect',
+  'cap',
+  'draw',
+  'abandoned',
+])
 export type EndReason = z.infer<typeof EndReasonSchema>
 
 /**

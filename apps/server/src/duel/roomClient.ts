@@ -16,7 +16,7 @@ export interface RoomSettings {
 }
 
 export interface RoomOpts extends RoomSettings {
-  readonly opponentKind: 'human' | 'bot'
+  readonly opponentKind: 'human' | 'quick' | 'bot'
   readonly botLevel?: 1 | 2 | 3 | 4
 }
 

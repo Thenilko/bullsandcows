@@ -103,6 +103,14 @@ describe('server messages', () => {
         rating: { from: 1500, to: 1662, delta: 162 },
         xp: 120,
       },
+      {
+        t: 'ended',
+        outcome: 'draw',
+        reason: 'abandoned',
+        secrets: { mine: null, theirs: null },
+        rating: null,
+        xp: 0,
+      },
       { t: 'rematchOffer', from: 'opp', expiresAt: 30000 },
       { t: 'error', code: 'ERR_NOT_YOUR_TURN' },
     ]
