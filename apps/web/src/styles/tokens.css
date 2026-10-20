@@ -1,0 +1,20 @@
+:root {
+  --c-paper: #F6F2E6;
+  --c-card: #FFFDF6;
+  --c-ink: #2E3B24;
+  --c-red: #B5452F;
+  --c-red-dark: #8E3424;
+  --c-sun: #F2C230;
+  --c-green: #5E9E46;
+  --c-muted: #6B7560;
+  --c-line: #DCD4BF;
+  --c-line-strong: #CFC6AE;
+
+  --radius-sm: 12px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --shadow-key: 0 3px 0 #CFC6AE;
+  --shadow-card: 0 1px 0 #E7E0CC, 0 12px 30px rgba(30, 40, 20, 0.1);
+}
