@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Shell } from '../app/layouts/Shell'
 import { buildResult } from '../screens/result/resultModel'
 import { ResultView } from '../screens/result/ResultView'
@@ -10,10 +11,11 @@ const noop = () => undefined
 const FILTERS = { period: 'today', len: 4, zero: false } as const
 
 function Result({ game }: { game: typeof wonGame }) {
+  const { t } = useTranslation()
   const model = buildResult(game, fallbackDistribution)
   return (
     <Shell scene={model.scene}>
-      <ResultView model={model} shareLabel="Share" onAgain={noop} onShare={noop} onBoard={noop} />
+      <ResultView model={model} shareLabel={t('common.share')} onAgain={noop} onShare={noop} onBoard={noop} />
     </Shell>
   )
 }

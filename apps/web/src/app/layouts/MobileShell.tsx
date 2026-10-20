@@ -17,7 +17,7 @@ export function MobileShell({ scene, children, bare = false, panelTop, panelPadd
         <PastureScene {...scene} label={t('nav.play')} />
         {hud ? <div style={{ position: 'absolute', left: 12, right: 12, top: 12 }}>{hud}</div> : null}
       </div>
-      <main className={cx('panel', styles.panelBody)} style={{ ...(panelTop === undefined ? {} : { top: panelTop }), ...(panelPadding === undefined ? {} : { padding: panelPadding }) }}>{children}</main>
+      <main id="main" className={cx('panel', styles.panelBody)} style={{ ...(panelTop === undefined ? {} : { top: panelTop }), ...(panelPadding === undefined ? {} : { padding: panelPadding }) }}>{children}</main>
       {bare ? null : (
         <nav className="tabbar" aria-label={t('nav.main')}>
           {TABS.map((tab, i) => {

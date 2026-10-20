@@ -45,6 +45,7 @@
   },
   "nav": {
     "main": "Main navigation",
+    "skip": "Skip to content",
     "play": "Play",
     "board": "Leaderboard",
     "profile": "Profile",

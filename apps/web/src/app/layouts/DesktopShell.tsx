@@ -40,6 +40,9 @@ export function DesktopShell({ scene, children, sceneSide = false, bare = false,
 
   return (
     <div className={styles.root}>
+      <a className="skip-link" href="#main">
+        {t('nav.skip')}
+      </a>
       <header className={styles.header}>
         <div className={styles.brand}>
           <BullIcon size={40} ring />
@@ -82,7 +85,7 @@ export function DesktopShell({ scene, children, sceneSide = false, bare = false,
             {hud ? <div style={{ position: 'absolute', left: 16, right: 16, top: 16 }}>{hud}</div> : null}
           </div>
         </div>
-        <main className={styles.content}>{children}</main>
+        <main id="main" tabIndex={-1} className={styles.content}>{children}</main>
       </div>
     </div>
   )

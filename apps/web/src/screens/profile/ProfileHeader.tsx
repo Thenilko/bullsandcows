@@ -44,6 +44,7 @@ export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: bo
       </span>
       <div
         role="progressbar"
+        aria-label={t('profile.levelLine', { title: t(`rank.${me.rankKey}`), level: me.level })}
         aria-valuemin={0}
         aria-valuemax={XP_PER_LEVEL}
         aria-valuenow={me.xpIntoLevel}
@@ -62,10 +63,10 @@ export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: bo
           style={{ height: '100%', width: `${width}%`, background: '#5E9E46', borderRadius: 6 }}
         />
       </div>
-      <span style={{ fontSize: desktop ? 13 : 12, fontWeight: 700, color: '#6B7560' }}>
+      <span style={{ fontSize: desktop ? 13 : 12, fontWeight: 700, color: '#5C6651' }}>
         {t('profile.xp', { xp: me.xpIntoLevel, level: me.level + 1 })}
       </span>
-      <span style={{ fontSize: desktop ? 13 : 12, fontWeight: 700, color: '#6B7560' }}>
+      <span style={{ fontSize: desktop ? 13 : 12, fontWeight: 700, color: '#5C6651' }}>
         {t('profile.rating', { rating: me.rating })}
       </span>
     </>

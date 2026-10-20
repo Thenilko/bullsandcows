@@ -39,7 +39,7 @@ export function StartOverlay({ desktop, info, running, onBegin, onDone }: StartO
           <p style={{ margin: 0, fontSize: desktop ? 17 : undefined, fontWeight: 700, color: '#4A5640', lineHeight: 1.5 }}>
             {t('play.hiddenText')}
           </p>
-          <span style={{ fontSize: desktop ? 14 : 13, fontWeight: 800, color: '#6B7560' }}>{info}</span>
+          <span style={{ fontSize: desktop ? 14 : 13, fontWeight: 800, color: '#5C6651' }}>{info}</span>
           <Cta
             className="float"
             onClick={onBegin}
@@ -47,7 +47,7 @@ export function StartOverlay({ desktop, info, running, onBegin, onDone }: StartO
           >
             {t('common.start')}
           </Cta>
-          {desktop ? <span style={{ fontSize: 13, fontWeight: 700, color: '#6B7560' }}>{t('play.orEnter')}</span> : null}
+          {desktop ? <span style={{ fontSize: 13, fontWeight: 700, color: '#5C6651' }}>{t('play.orEnter')}</span> : null}
         </>
       )}
       <Countdown running={running} onDone={onDone} onTick={() => sfx.play('chirp')} />

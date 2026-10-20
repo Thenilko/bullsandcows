@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { MemoryRouter } from 'react-router'
@@ -22,7 +22,7 @@ describe.each([
 ] as const)('%s', (_n, Comp) => {
   it('shows the four nav links by default', () => {
     wrap(<Comp scene={IDLE_SCENE}>x</Comp>)
-    expect(screen.getAllByRole('link')).toHaveLength(4)
+    expect(within(screen.getByRole('navigation')).getAllByRole('link')).toHaveLength(4)
   })
 
   it.each(['/', '/new', '/play/g1', '/result/g1'])('highlights Игра on %s', (at) => {
@@ -45,7 +45,15 @@ describe.each([
         x
       </Comp>,
     )
-    expect(screen.queryAllByRole('link')).toHaveLength(0)
+    expect(screen.queryAllByRole('link').filter((a) => !a.classList.contains('skip-link'))).toHaveLength(0)
     expect(screen.queryByRole('navigation')).toBeNull()
+  })
+})
+
+describe('DesktopShell skip link', () => {
+  it('points to the main landmark', () => {
+    wrap(<DesktopShell scene={IDLE_SCENE}>x</DesktopShell>)
+    expect(screen.getByRole('link', { name: 'Към съдържанието' })).toHaveAttribute('href', '#main')
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'main')
   })
 })

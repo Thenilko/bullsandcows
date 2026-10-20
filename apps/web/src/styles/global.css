@@ -34,3 +34,49 @@ body {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Keyboard focus ring from the design tokens; mouse focus stays untouched. */
+:focus-visible {
+  outline: 3px solid var(--c-red);
+  outline-offset: 2px;
+}
+
+.field:focus-visible,
+.notes-area:focus-visible {
+  outline-offset: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -64px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--c-card);
+  color: var(--c-ink);
+  font-weight: 800;
+  box-shadow: var(--shadow-card);
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* AA contrast overrides (design values failed WCAG AA): locked badges dim only the icon, struck-out notebook digits use a darker ink. */
+.badge.locked {
+  opacity: 1;
+}
+
+.badge.locked > span:first-child {
+  opacity: 0.45;
+}
+
+.badge.locked > span:not(:first-child) {
+  color: #5c6651;
+}
+
+.note.nx {
+  color: #5c6651;
+}

@@ -9,7 +9,7 @@ const ITEM_STYLE = { fontVariantNumeric: 'tabular-nums' } as const
 
 export function Hud({ items, className, style, ...rest }: HudProps) {
   return (
-    <div className={className} style={{ ...ROW_STYLE, ...style }} {...rest}>
+    <div aria-live="polite" className={className} style={{ ...ROW_STYLE, ...style }} {...rest}>
       {items.map((it) => (
         <span key={it.label} className="ps-hud" style={ITEM_STYLE}>
           {it.label} <b>{it.value}</b>

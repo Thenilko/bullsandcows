@@ -28,7 +28,7 @@ export function Confetti({ active }: { active: boolean }) {
   if (!active) return null
   if (reduced) {
     return (
-      <div className="confetti-banner" style={BANNER_STYLE}>
+      <div role="status" className="confetti-banner" style={BANNER_STYLE}>
         {t('result.headline.win')}
       </div>
     )

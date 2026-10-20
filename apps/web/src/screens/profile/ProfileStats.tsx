@@ -17,7 +17,7 @@ function Tile({
   return (
     <Card style={{ padding: desktop ? 18 : '10px 4px' }}>
       <div style={{ fontSize: desktop ? 32 : 22, fontWeight: 900 }}>{value}</div>
-      <div style={{ fontSize: desktop ? undefined : 11, fontWeight: 700, color: '#6B7560' }}>
+      <div style={{ fontSize: desktop ? undefined : 11, fontWeight: 700, color: '#5C6651' }}>
         {label}
       </div>
     </Card>
@@ -105,7 +105,7 @@ export function BucketChart({
               gap: 2,
             }}
           >
-            <span style={{ fontSize: 10, fontWeight: 800, color: '#6B7560' }}>{b.count || ''}</span>
+            <span style={{ fontSize: 10, fontWeight: 800, color: '#5C6651' }}>{b.count || ''}</span>
             <Bar
               h={`${Math.max(MIN_BAR, Math.round((b.count / max) * 100))}%`}
               c="#86C462"
@@ -130,7 +130,7 @@ export function BucketChart({
           </span>
         ))}
       </div>
-      <span style={{ fontSize: 12, fontWeight: 700, color: '#6B7560', textAlign: 'center' }}>
+      <span style={{ fontSize: 12, fontWeight: 700, color: '#5C6651', textAlign: 'center' }}>
         {t('profile.chartCaption')}
       </span>
     </Card>

@@ -208,7 +208,7 @@ export function ResultView({ model, shareLabel, onAgain, onShare, onBoard }: Res
         aria-label={t('result.area')}
         style={desktop ? SHEET_DESKTOP : SHEET_MOBILE}
       >
-        <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: '.12em', color: '#6B7560' }}>
+        <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: '.12em', color: '#5C6651' }}>
           {t(model.won ? 'result.kicker.win' : 'result.kicker.lose', { secret: model.secret })}
         </span>
         <h2 style={{ margin: '-4px 0 0', fontSize: desktop ? 36 : 28, fontWeight: 900 }}>
