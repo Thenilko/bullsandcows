@@ -22,7 +22,8 @@ function Loading({ failed }: { failed: boolean }) {
   )
 }
 
-export function PlayGame({ gameId }: { gameId: string }) {
+/** `notesOpen` starts the mobile notebook sheet open (dev gallery). */
+export function PlayGame({ gameId, notesOpen = false }: { gameId: string; notesOpen?: boolean }) {
   const desktop = useIsDesktop()
   const navigate = useNavigate()
   const g = useGame(gameId)
@@ -50,7 +51,7 @@ export function PlayGame({ gameId }: { gameId: string }) {
       panelPadding={PANEL_PADDING}
       hud={<PlayHud game={game} g={g} desktop={desktop} />}
     >
-      {desktop ? <DesktopPlay game={game} g={g} /> : <MobilePlay game={game} g={g} />}
+      {desktop ? <DesktopPlay game={game} g={g} /> : <MobilePlay game={game} g={g} notesOpen={notesOpen} />}
     </Shell>
   )
 }

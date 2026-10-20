@@ -177,3 +177,20 @@ export function BadgeGlyph({ variant }: { variant: BadgeVariant }) {
     </svg>
   )
 }
+
+export function NotebookIcon({ size = 22, stroke = '#2E3B24', ...p }: IconProps & { stroke?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...p}>
+      <path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6z" />
+      <path d="M6 3v18M4 7h4M4 12h4M4 17h4M10 8h6M10 12h5" />
+    </svg>
+  )
+}
+
+export function CloseIcon({ size = 20, ...p }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#2E3B24" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true" {...p}>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  )
+}

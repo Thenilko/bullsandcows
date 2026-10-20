@@ -2,6 +2,7 @@ import { codes, filterCandidates, isConsistent } from '@bc/game-core'
 import type { DistributionDto, GameViewDto, GuessEntryDto } from '@bc/protocol'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect, useState, type ReactNode } from 'react'
+import { useNotebookStore } from '../features/notebook/store'
 import { INITIAL_UI, useSolo, type GameUi } from '../features/solo/store'
 import { NewGame } from '../screens/NewGame'
 import { PlayGame } from '../screens/Play'
@@ -67,6 +68,17 @@ function Seeded({ game, ui, children }: { game: GameViewDto | null; ui?: Partial
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>
 }
 
+/** Notes of the prototype's notebook screens, seeded once per mount. */
+const NOTEBOOK_SEED = {
+  marks: { '1': 1, '3': 1, '6': 1, '0': 1, '2': 2, '4': 2 },
+  text: '2 и 4 са вътре, но не там, където ги сложих.\nПробвай 5 отпред?',
+} as const
+
+function SeededNotebook({ children }: { children: ReactNode }) {
+  useState(() => useNotebookStore.setState((s) => ({ games: { ...s.games, [GAME_ID]: NOTEBOOK_SEED } })))
+  return <>{children}</>
+}
+
 const MID_UI = { cur: '5' }
 const WIN_UI = { solved: true, parity: false, lastVerdict: { bulls: 4, cows: 0 } }
 
@@ -88,5 +100,20 @@ export const PlayMidScreen = () => (
 export const PlayWinScreen = () => (
   <Seeded game={win()} ui={WIN_UI}>
     <PlayGame gameId={GAME_ID} />
+  </Seeded>
+)
+export const NotebookScreen = () => (
+  <Seeded game={mid()} ui={MID_UI}>
+    <SeededNotebook>
+      <PlayGame gameId={GAME_ID} notesOpen />
+    </SeededNotebook>
+  </Seeded>
+)
+/** Desktop layout (D4): shows the notebook card beside the scene on wide viewports. */
+export const PlayDesktopNotebookScreen = () => (
+  <Seeded game={mid()} ui={MID_UI}>
+    <SeededNotebook>
+      <PlayGame gameId={GAME_ID} />
+    </SeededNotebook>
   </Seeded>
 )

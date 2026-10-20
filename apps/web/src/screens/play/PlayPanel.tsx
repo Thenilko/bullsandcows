@@ -1,8 +1,13 @@
 import type { GameViewDto } from '@bc/protocol'
+import { useCallback, useRef, useState, type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Card, Chip, Hud, Keypad, Slots, Soft } from '../../components/ui'
+import { Card, Chip, Hud, Keypad, NotebookIcon, Slots, Soft } from '../../components/ui'
+import { Notebook } from '../../features/notebook/Notebook'
+import { NotebookSheet } from '../../features/notebook/NotebookSheet'
+import { countNotes, useNotebook } from '../../features/notebook/store'
 import type { GameApi } from '../../features/solo/useGame'
 import { useAverageAttempts } from '../../features/solo/useDistribution'
+import { sfx } from '../../lib/sound'
 import { errorText, formatClock } from './format'
 import { History } from './History'
 import { StartOverlay } from './StartOverlay'
@@ -45,6 +50,7 @@ function Status({ game }: { game: GameViewDto }) {
 function Input({ game, g, desktop }: PlayPanelProps) {
   const { t } = useTranslation()
   const { ui } = g
+  const { marks } = useNotebook(game.id)
   return (
     <>
       <Slots len={game.len} current={ui.cur} active={g.started} shake={ui.shake} big={desktop} />
@@ -55,7 +61,7 @@ function Input({ game, g, desktop }: PlayPanelProps) {
         len={game.len}
         zero={game.zero}
         current={ui.cur}
-        marks={{}}
+        marks={marks}
         disabled={!g.started || g.finished}
         onPress={g.press}
         onBack={g.back}
@@ -89,16 +95,63 @@ function GiveUp({ g }: { g: GameApi }) {
   )
 }
 
-/** Mobile (M3): one panel over the scene. */
-export function MobilePlay({ game, g }: Omit<PlayPanelProps, 'desktop'>) {
+const NOTES_BTN_STYLE = { position: 'relative', marginLeft: 'auto' } as const
+const NOTES_BADGE_STYLE = {
+  position: 'absolute',
+  top: -4,
+  right: -4,
+  minWidth: 18,
+  height: 18,
+  padding: '0 4px',
+  borderRadius: 9,
+  background: '#B5452F',
+  color: '#FFFFFF',
+  fontSize: 11,
+  fontWeight: 900,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+} as const
+
+function NotesButton({ gameId, onClick, buttonRef }: { gameId: string; onClick(): void; buttonRef: RefObject<HTMLButtonElement | null> }) {
   const { t } = useTranslation()
+  const count = countNotes(useNotebook(gameId))
+  return (
+    <button ref={buttonRef} type="button" className="iconbox icobtn" style={NOTES_BTN_STYLE} aria-label={t('notebook.title')} onClick={onClick}>
+      <NotebookIcon />
+      {count > 0 ? <span aria-hidden="true" style={NOTES_BADGE_STYLE}>{count}</span> : null}
+    </button>
+  )
+}
+
+/** Mobile (M3): one panel over the scene; the notebook (M4) opens as a bottom sheet. */
+export function MobilePlay({ game, g, notesOpen = false }: Omit<PlayPanelProps, 'desktop'> & { notesOpen?: boolean }) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(notesOpen)
+  const opener = useRef<HTMLButtonElement>(null)
+  const close = useCallback(() => {
+    sfx.play('page')
+    setOpen(false)
+    opener.current?.focus()
+  }, [])
   return (
     <section aria-label={t('play.inputArea')} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <Status game={game} />
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <Status game={game} />
+        <NotesButton
+          buttonRef={opener}
+          gameId={game.id}
+          onClick={() => {
+            sfx.play('page')
+            setOpen(true)
+          }}
+        />
+      </div>
       <Input game={game} g={g} desktop={false} />
       <History guesses={game.guesses} />
       <GiveUp g={g} />
       <Overlay game={game} g={g} desktop={false} />
+      {open ? <NotebookSheet gameId={game.id} guesses={game.guesses} left={g.left} onClose={close} footer={<GiveUp g={g} />} /> : null}
     </section>
   )
 }
@@ -117,10 +170,8 @@ export function DesktopPlay({ game, g }: Omit<PlayPanelProps, 'desktop'>) {
         <span style={{ fontSize: 13, fontWeight: 700, color: '#6B7560', textAlign: 'center' }}>{t('play.keyboardHint')}</span>
         <Overlay game={game} g={g} desktop />
       </Card>
-      <Card style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 900 }}>{t('notebook.attempts')}</h2>
-        <History guesses={game.guesses} />
-        <GiveUp g={g} />
+      <Card role="region" aria-label={t('notebook.title')} style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <Notebook gameId={game.id} guesses={game.guesses} left={g.left} layout="card" footer={<GiveUp g={g} />} />
       </Card>
     </>
   )
