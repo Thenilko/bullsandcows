@@ -8,6 +8,8 @@ export interface ShellProps {
   children: ReactNode
   /** Desktop only: puts the scene in the narrow second column (non-play screens). */
   sceneSide?: boolean
+  /** Hides the tab bar (mobile) and the nav items (desktop); used while signed out. */
+  bare?: boolean
 }
 
 export const TABS = [

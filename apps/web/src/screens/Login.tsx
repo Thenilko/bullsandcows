@@ -33,11 +33,11 @@ function ForgotPassword() {
         onClick={() => setOpen(true)}
         style={{ minHeight: 36, fontWeight: 800, color: '#8E3424', textDecoration: 'underline' }}
       >
-        {t('login.password')}?
+        {t('login.forgot')}
       </button>
     )
   }
-  const message = sent ? t('common.ok') : offline ? t('error.network') : error ? t(`error.${error}`) : ''
+  const message = sent ? t('login.resetSent') : offline ? t('error.network') : error ? t(`error.${error}`) : ''
   return (
     <div style={STACK}>
       <Field
@@ -176,7 +176,7 @@ function LoginBody({ initial }: { initial?: LoginInitial }) {
 export function Login({ initial }: { initial?: LoginInitial }) {
   const desktop = useIsDesktop()
   return (
-    <Shell scene={IDLE_SCENE}>
+    <Shell scene={IDLE_SCENE} bare>
       {desktop ? (
         <Card style={{ padding: 32 }}>
           <LoginBody initial={initial} />

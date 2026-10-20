@@ -80,6 +80,8 @@
     "guest": "Play as a guest",
     "guestName": "Guest {{number}}",
     "howTo": "How to play?",
+    "forgot": "Forgot your password?",
+    "resetSent": "If that email exists, we sent a reset link.",
     "validation": {
       "nameShort": "Enter a name (at least 2 characters)",
       "passwordShort": "The password must be at least 6 characters"

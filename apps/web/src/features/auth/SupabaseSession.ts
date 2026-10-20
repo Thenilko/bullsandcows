@@ -38,7 +38,7 @@ export async function signOutSupabase(): Promise<void> {
   const supabase = await getClient()
   if (!supabase) return
   try {
-    await supabase.auth.signOut()
+    await supabase.auth.signOut({ scope: 'local' })
   } catch {
     // already signed out locally
   }
@@ -57,7 +57,7 @@ export async function startSupabaseSync(): Promise<void> {
       useSession.getState().clear()
       return
     }
-    if (event === 'TOKEN_REFRESHED' && next) {
+    if ((event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN' || event === 'USER_UPDATED') && next) {
       useSession.getState().setTokens({
         accessToken: next.access_token,
         refreshToken: next.refresh_token,

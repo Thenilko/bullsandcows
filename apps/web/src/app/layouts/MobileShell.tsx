@@ -8,7 +8,7 @@ import { TABS, type ShellProps } from './shell.types'
 
 const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon, QuestionIcon] as const
 
-export function MobileShell({ scene, children }: ShellProps) {
+export function MobileShell({ scene, children, bare = false }: ShellProps) {
   const { t } = useTranslation()
   return (
     <div className={styles.root}>
@@ -16,17 +16,24 @@ export function MobileShell({ scene, children }: ShellProps) {
         <PastureScene {...scene} label={t('nav.play')} />
       </div>
       <main className={cx('panel', styles.panelBody)}>{children}</main>
-      <nav className="tabbar" aria-label={t('nav.main')}>
-        {TABS.map((tab, i) => {
-          const Icon = TAB_ICONS[i] ?? HomeIcon
-          return (
-            <NavLink key={tab.to} to={tab.to} end={tab.end} className={({ isActive }) => cx('tab', isActive && 'on')}>
-              <Icon />
-              {t(tab.key)}
-            </NavLink>
-          )
-        })}
-      </nav>
+      {bare ? null : (
+        <nav className="tabbar" aria-label={t('nav.main')}>
+          {TABS.map((tab, i) => {
+            const Icon = TAB_ICONS[i] ?? HomeIcon
+            return (
+              <NavLink
+                key={tab.to}
+                to={tab.to}
+                end={tab.end}
+                className={({ isActive }) => cx('tab', isActive && 'on')}
+              >
+                <Icon />
+                {t(tab.key)}
+              </NavLink>
+            )
+          })}
+        </nav>
+      )}
     </div>
   )
 }
