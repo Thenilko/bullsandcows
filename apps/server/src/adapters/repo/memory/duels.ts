@@ -1,3 +1,4 @@
+import { updateRating } from '@bc/game-core'
 import { AppError } from '../../../http/errors'
 import type { Clock } from '../../../ports/clock'
 import type { DuelRow, DuelsRepo } from '../../../ports/repo'
@@ -42,7 +43,8 @@ export function memoryDuels(store: MemoryStore, clock: Clock): DuelsRepo {
       for (const r of rewards) {
         const profile = store.profiles.get(r.userId)
         if (!profile) continue
-        const rating = r.rating ? { ...r.rating } : profile.rating
+        const u = r.ratingUpdate
+        const rating = u ? updateRating(profile.rating, u.opponent, u.outcome).me : profile.rating
         store.profiles.set(r.userId, copy({ ...profile, xp: profile.xp + r.xp, rating }))
       }
       save({ ...current, rewardsApplied: true })

@@ -1,4 +1,4 @@
-import type { Len, Rating } from '@bc/game-core'
+import type { Len, Outcome, Rating } from '@bc/game-core'
 import type { Lang } from '@bc/i18n'
 
 export type GameKind = 'daily' | 'free' | 'duel_race' | 'duel_classic' | 'bot'
@@ -203,8 +203,17 @@ export interface GamesRepo {
 export interface DuelReward {
   readonly userId: string
   readonly xp: number
-  /** The new rating (quick matches only), else null. */
-  readonly rating: Rating | null
+  /**
+   * Quick matches only, else null: the opponent's start-of-match rating and this player's
+   * outcome. The repo applies it to the player's CURRENT rating inside the rewards
+   * transaction, so a concurrent match that ended first is not overwritten.
+   */
+  readonly ratingUpdate: RatingUpdate | null
+}
+
+export interface RatingUpdate {
+  readonly opponent: Rating
+  readonly outcome: Outcome
 }
 
 export interface DuelsRepo {

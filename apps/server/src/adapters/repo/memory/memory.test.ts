@@ -1,4 +1,4 @@
-import { DEFAULT_RATING } from '@bc/game-core'
+import { DEFAULT_RATING, updateRating } from '@bc/game-core'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { NewGame, PublicGameRow, Repo } from '../../../ports/repo'
 import { createMemoryRepo } from './index'
@@ -384,11 +384,12 @@ describe('memory duels', () => {
   it('applies the rewards exactly once', async () => {
     await member('u1', 'anna')
     await member('u2', 'boris')
-    const rating = { rating: 1600, rd: 200, vol: 0.06 }
+    const opponent = { rating: 1600, rd: 200, vol: 0.06 }
+    const rating = updateRating(DEFAULT_RATING, opponent, 'win').me
     await repo.duels.create({ ...newDuel, id: 'd2' })
     const rewards = [
-      { userId: 'u1', xp: 120, rating },
-      { userId: 'u2', xp: 40, rating: null },
+      { userId: 'u1', xp: 120, ratingUpdate: { opponent, outcome: 'win' as const } },
+      { userId: 'u2', xp: 40, ratingUpdate: null },
     ]
     expect(await repo.duels.applyRewards('d2', rewards)).toBe(true)
     expect(await repo.duels.applyRewards('d2', rewards)).toBe(false)
@@ -396,6 +397,27 @@ describe('memory duels', () => {
     expect(await repo.profiles.get('u2')).toMatchObject({ xp: 40, rating: DEFAULT_RATING })
     expect((await repo.duels.get('d2'))?.rewardsApplied).toBe(true)
     await expect(repo.duels.applyRewards('missing', rewards)).rejects.toThrow()
+  })
+
+  it('recomputes ratings from the current values, so matches ending out of order both count', async () => {
+    await member('u1', 'anna')
+    await member('u2', 'boris')
+    await member('u3', 'vera')
+    const boris = { rating: 1700, rd: 120, vol: 0.06 }
+    const vera = { rating: 1400, rd: 150, vol: 0.06 }
+    await repo.duels.create({ ...newDuel, id: 'd3' })
+    await repo.duels.create({ ...newDuel, id: 'd4', playerB: 'u3' })
+    // Both matches started from u1's default rating; d4 (a loss) is written first.
+    await repo.duels.applyRewards('d4', [
+      { userId: 'u1', xp: 40, ratingUpdate: { opponent: vera, outcome: 'lose' } },
+    ])
+    await repo.duels.applyRewards('d3', [
+      { userId: 'u1', xp: 120, ratingUpdate: { opponent: boris, outcome: 'win' } },
+    ])
+    const afterLoss = updateRating(DEFAULT_RATING, vera, 'lose').me
+    const expected = updateRating(afterLoss, boris, 'win').me
+    expect((await repo.profiles.get('u1'))?.rating).toEqual(expected)
+    expect((await repo.profiles.get('u1'))?.xp).toBe(160)
   })
 })
 

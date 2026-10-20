@@ -7,7 +7,8 @@ export interface Settlement {
   readonly xp: Readonly<Record<Seat, number>>
   /** Rounded display values; null unless a quick match ended with a result (not the cap). */
   readonly ratingDelta: Readonly<Record<Seat, RatingChangeDto>> | null
-  /** New ratings to persist; null exactly when `ratingDelta` is null. */
+  /** Ratings computed from the start-of-match values (shown in `ended`); the repo recomputes
+   * them from the current values when crediting. Null exactly when `ratingDelta` is null. */
   readonly ratings: Readonly<Record<Seat, Rating>> | null
 }
 

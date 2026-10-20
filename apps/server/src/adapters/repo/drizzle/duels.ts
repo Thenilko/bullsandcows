@@ -1,15 +1,28 @@
+import { updateRating } from '@bc/game-core'
 import { and, eq, sql } from 'drizzle-orm'
-import type { DuelReward, DuelsRepo } from '../../../ports/repo'
+import type { DuelReward, DuelsRepo, RatingUpdate } from '../../../ports/repo'
 import type { Db } from './client'
 import { required } from './errors'
 import { toDate, toDuel } from './mappers'
 import { duels, profiles } from './schema'
 
+type Tx = Parameters<Parameters<Db['transaction']>[0]>[0]
+
+/** The player's rating after `u`, computed from the row locked for this transaction. */
+async function nextRating(tx: Tx, userId: string, u: RatingUpdate) {
+  const [row] = await tx
+    .select({ rating: profiles.rating, rd: profiles.ratingDev, vol: profiles.volatility })
+    .from(profiles)
+    .where(eq(profiles.id, userId))
+    .for('update')
+  if (!row) return {}
+  const next = updateRating(row, u.opponent, u.outcome).me
+  return { rating: next.rating, ratingDev: next.rd, volatility: next.vol }
+}
+
 /** Credits one player inside the rewards transaction. */
-async function credit(tx: Parameters<Parameters<Db['transaction']>[0]>[0], r: DuelReward) {
-  const rating = r.rating
-    ? { rating: r.rating.rating, ratingDev: r.rating.rd, volatility: r.rating.vol }
-    : {}
+async function credit(tx: Tx, r: DuelReward) {
+  const rating = r.ratingUpdate ? await nextRating(tx, r.userId, r.ratingUpdate) : {}
   await tx
     .update(profiles)
     .set({ xp: sql`${profiles.xp} + ${r.xp}`, ...rating })

@@ -65,7 +65,10 @@ function rewardsOf(m: Match, result: Settlement): DuelReward[] {
   return SEATS.flatMap((seat) => {
     const p = m.players[seat]
     if (!isHuman(p)) return []
-    return [{ userId: p.id, xp: result.xp[seat], rating: result.ratings?.[seat] ?? null }]
+    const opponent = m.players[seat === 'a' ? 'b' : 'a']
+    const ratingUpdate =
+      result.ratings && opponent ? { opponent: opponent.rating, outcome: result.outcome[seat] } : null
+    return [{ userId: p.id, xp: result.xp[seat], ratingUpdate }]
   })
 }
 
