@@ -319,6 +319,7 @@
       "result": "Result"
     },
     "toSetup": "Back to new game",
+    "join": { "title": "Duel invite", "hostLevel": "level {{level}}", "cta": "Join" },
     "invite": {
       "title": "Invite a friend",
       "text": "Send the code or the link. The duel starts as soon as your friend joins.",

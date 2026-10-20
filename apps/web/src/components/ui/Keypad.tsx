@@ -19,6 +19,8 @@ export interface KeypadProps {
   onSubmit(): void
   /** Mobile: 8px gap, default key height. Desktop: 10px gap, 56px keys (PasDesktop). */
   layout?: 'mobile' | 'desktop'
+  /** Overrides the submit label (default: `play.submit`). */
+  submitLabel?: string
 }
 
 const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'] as const
@@ -26,7 +28,7 @@ const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'] as const
 const FOOT_STYLE = { display: 'grid', gridTemplateColumns: '1fr 2.2fr', gap: 10 } as const
 const ICON_BTN_STYLE = { padding: 0 } as const
 
-export function Keypad({ len, zero, current, marks, disabled, onPress, onBack, onSubmit, layout = 'mobile' }: KeypadProps) {
+export function Keypad({ len, zero, current, marks, disabled, onPress, onBack, onSubmit, layout = 'mobile', submitLabel }: KeypadProps) {
   const { t } = useTranslation()
   const full = current.length >= len
 
@@ -54,7 +56,7 @@ export function Keypad({ len, zero, current, marks, disabled, onPress, onBack, o
           <BackspaceIcon size={layout === 'desktop' ? 20 : 22} />
         </Soft>
         <Cta disabled={disabled || current.length !== len} onClick={onSubmit}>
-          {t('play.submit')}
+          {submitLabel ?? t('play.submit')}
         </Cta>
       </div>
     </div>
