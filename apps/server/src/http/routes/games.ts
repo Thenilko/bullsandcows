@@ -1,4 +1,3 @@
-import { isValidCode } from '@bc/game-core'
 import { CreateGameBody, GuessBody, type ErrorCode } from '@bc/protocol'
 import { Hono, type Context } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
@@ -6,12 +5,12 @@ import { SoloError, SoloService } from '../../solo/service'
 import { AppError } from '../errors'
 import { requireUser } from '../middleware/auth'
 import { rateLimit } from '../middleware/rateLimit'
+import { testSecret } from '../testSecret'
 import { ok } from '../respond'
 import type { AppEnv } from '../types'
 import { validate } from '../validate'
 
 const GUESS_LIMIT = { max: 20, windowMs: 10_000 } as const
-const TEST_SECRET_HEADER = 'x-test-secret'
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const STATUS: Partial<Record<ErrorCode, ContentfulStatusCode>> = {
@@ -34,13 +33,6 @@ async function run<T>(action: () => Promise<T>): Promise<T> {
   }
 }
 
-/** The E2E secret override exists only in dev and test; elsewhere the header is never read. */
-function testSecret(c: Context<AppEnv>): string | undefined {
-  const { ENVIRONMENT } = c.get('deps').env
-  if (ENVIRONMENT !== 'dev' && ENVIRONMENT !== 'test') return undefined
-  return c.req.header(TEST_SECRET_HEADER)
-}
-
 function service(c: Context<AppEnv>): SoloService {
   const { repo, clock, env } = c.get('deps')
   return new SoloService({ repo, clock, dailySalt: env.DAILY_SALT })
@@ -59,10 +51,7 @@ export function gamesRoutes(): Hono<AppEnv> {
 
   routes.post('/', validate('json', CreateGameBody), async (c) => {
     const body = c.req.valid('json')
-    const secretOverride = body.kind === 'free' ? testSecret(c) : undefined
-    if (secretOverride !== undefined && !isValidCode(secretOverride, body.len, body.zero)) {
-      throw new AppError('ERR_CODE', 400)
-    }
+    const secretOverride = body.kind === 'free' ? testSecret(c, body.len, body.zero) : undefined
     const view = await run(() => service(c).create(c.get('user'), { ...body, secretOverride }))
     return ok(c, view, 201)
   })

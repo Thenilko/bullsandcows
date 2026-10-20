@@ -21,6 +21,7 @@ import { AppError } from '../errors'
 import { requireUser } from '../middleware/auth'
 import { rateLimit } from '../middleware/rateLimit'
 import { ok } from '../respond'
+import { testSecret } from '../testSecret'
 import type { AppEnv } from '../types'
 import { validate } from '../validate'
 
@@ -61,6 +62,10 @@ async function freeInviteRoom(client: RoomClient): Promise<{ code: string; room:
   throw new Error('no free invite code')
 }
 
+/** Dev/test E2E only: the room's race secret (and the bot's classic secret). */
+const withTestSecret = (secret: string | undefined): { testSecret?: string } =>
+  secret === undefined ? {} : { testSecret: secret }
+
 function codeParam(c: Context<AppEnv>): string {
   const code = (c.req.param('code') ?? '').toUpperCase()
   if (!isInviteCode(code)) throw new AppError('ERR_NOT_FOUND', 404)
@@ -100,10 +105,11 @@ export function duelsRoutes(): Hono<AppEnv> {
 
   routes.post('/invites', limitCreation(), validate('json', CreateInviteBody), async (c) => {
     const { len, zero, format } = c.req.valid('json')
+    const secret = testSecret(c, len, zero)
     const host = await playerInfo(c)
     const { code, room } = await freeInviteRoom(rooms(c))
     const { token } = await room.create({
-      opts: { format, len, zero, opponentKind: 'human' },
+      opts: { format, len, zero, opponentKind: 'human', ...withTestSecret(secret) },
       host,
       inviteCode: code,
     })
@@ -141,9 +147,10 @@ export function botsRoutes(): Hono<AppEnv> {
 
   routes.post('/', limitCreation(), validate('json', CreateBotBody), async (c) => {
     const { len, zero, format, level } = c.req.valid('json')
+    const secret = testSecret(c, len, zero)
     const host = await playerInfo(c)
     const room = rooms(c).fresh()
-    const opts = { format, len, zero, opponentKind: 'bot', botLevel: level } as const
+    const opts = { format, len, zero, opponentKind: 'bot', botLevel: level, ...withTestSecret(secret) } as const
     const { token } = await room.create({ opts, host })
     const dto: BotRoomDto = { roomId: room.id, token }
     return ok(c, dto, 201)

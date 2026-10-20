@@ -67,7 +67,7 @@ function seatFor(st: RoomState, token: string | null, userId: string): Seat | nu
  * after it verified the access token (`wsAuth.ts`); the client cannot reach this object
  * directly, and every time used here is the room's own clock, never the client's.
  *
- * Test seams: `now()` and `rng()` are instance methods.
+ * Test seams: `now()`, `rng()` and `acceptsTestSecret()` are instance methods.
  */
 export class DuelRoom extends DurableObject<CloudflareBindings> {
   private parsedEnv: Env | null = null
@@ -78,6 +78,12 @@ export class DuelRoom extends DurableObject<CloudflareBindings> {
 
   rng(): number {
     return crypto.getRandomValues(new Uint32Array(1))[0]! / 2 ** 32
+  }
+
+  /** `opts.testSecret` of `/create` is honoured only in dev and test. */
+  acceptsTestSecret(): boolean {
+    const { ENVIRONMENT } = this.env_()
+    return ENVIRONMENT === 'dev' || ENVIRONMENT === 'test'
   }
 
   async fetch(req: Request): Promise<Response> {
@@ -164,7 +170,7 @@ export class DuelRoom extends DurableObject<CloudflareBindings> {
     if (!body.success) return json({ code: 'ERR_INPUT' }, 400)
     const now = this.now()
     const prev = await this.current(now)
-    const created = createRoom(prev, body.data, now, crypto.randomUUID())
+    const created = createRoom(prev, body.data, now, crypto.randomUUID(), this.acceptsTestSecret())
     if (isRefusal(created)) return refusal(created)
     if (prev) closeAll(this.ctx, CLOSE.reset, 'reset')
     await this.commit(

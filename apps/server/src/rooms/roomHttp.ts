@@ -1,4 +1,4 @@
-import { DEFAULT_RATING, isInviteCode } from '@bc/game-core'
+import { DEFAULT_RATING, isInviteCode, isValidCode } from '@bc/game-core'
 import { BotLevelSchema, FormatSchema, LenSchema, type ErrorCode } from '@bc/protocol'
 import { z } from 'zod'
 import { createMatch, join } from '../duel/match'
@@ -35,9 +35,14 @@ export const CreateBody = z.object({
       zero: z.boolean(),
       opponentKind: z.enum(['human', 'quick', 'bot']),
       botLevel: BotLevelSchema.optional(),
+      /** Dev/test E2E only; ignored unless the room's environment allows it. */
+      testSecret: z.string().max(8).optional(),
     })
     .refine((o) => (o.opponentKind === 'bot') === (o.botLevel !== undefined), {
       message: 'botLevel is required for bot rooms and only for them',
+    })
+    .refine((o) => o.testSecret === undefined || isValidCode(o.testSecret, o.len, o.zero), {
+      message: 'testSecret is not a valid code for these settings',
     }),
   host: PlayerInfoSchema.refine((p) => p.id !== BOT_ID, { message: 'reserved id' }),
   /** Invite rooms: the code (written to the duel row). */
@@ -65,21 +70,25 @@ const botInfo = (level: number): PlayerInfo => ({
 /**
  * A new match in this room. Allowed for an empty room and to reset one whose previous match
  * ended or expired; a live room is never replaced. Bot rooms seat the bot as b at once.
+ * `opts.testSecret` is kept only when `allowTestSecret` (dev/test); it lives in `meta`, which
+ * no client view or `/info` reads.
  */
 export function createRoom(
   prev: RoomState | null,
   body: CreateBody,
   now: number,
   token: string,
+  allowTestSecret = false,
 ): RoomState | Refusal {
   if (prev && isLive(prev)) return refuse(409, 'ERR_ROOM_FULL')
   const { opts, host } = body
   const created = createMatch({ ...opts, opponentKind: kindOf(opts.opponentKind) }, host, now)
+  const testSecret = allowTestSecret ? (opts.testSecret ?? null) : null
   const base: RoomState = {
     match: created.match,
     secrets: created.secrets,
     tokens: { a: token, b: null },
-    meta: initialMeta(now, body.inviteCode ?? null),
+    meta: initialMeta(now, body.inviteCode ?? null, testSecret),
   }
   if (opts.botLevel === undefined) return base
   const joined = join(base.match, base.secrets, botInfo(opts.botLevel))

@@ -44,7 +44,7 @@ export function applyClient(
   const { match: m, secrets: s } = st
   switch (msg.t) {
     case 'ready':
-      return setReady(m, s, seat, now, rng)
+      return setReady(m, s, seat, now, rng, st.meta.testSecret ?? undefined)
     case 'secret':
       return setSecret(m, s, seat, msg.code, now, rng)
     case 'guess':
