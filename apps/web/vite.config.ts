@@ -5,9 +5,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 const THEME = '#F6F2E6'
 
+// E2E_API_PORT lets parallel checkouts run their own Worker for the E2E suite.
+const API_ORIGIN = `http://127.0.0.1:${process.env.E2E_API_PORT ?? '8787'}`
 const proxy = {
-  '/api': { target: 'http://127.0.0.1:8787', changeOrigin: true },
-  '/ws': { target: 'http://127.0.0.1:8787', ws: true },
+  '/api': { target: API_ORIGIN, changeOrigin: true },
+  '/ws': { target: API_ORIGIN, ws: true },
 }
 
 const pwa = VitePWA({

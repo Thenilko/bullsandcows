@@ -1,7 +1,9 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const WEB_PORT = 4173
-const SERVER_PORT = 8787
+// Override both (E2E_WEB_PORT, E2E_API_PORT) to run next to another checkout's servers;
+// the web preview proxies to E2E_API_PORT (see vite.config.ts).
+const WEB_PORT = Number(process.env.E2E_WEB_PORT ?? 4173)
+const SERVER_PORT = Number(process.env.E2E_API_PORT ?? 8787)
 
 // Hermetic worker vars: fake auth + memory repo come from `[env.dev]`; these satisfy the env schema
 // without needing a local `.dev.vars` (nothing here is a real secret).
@@ -42,7 +44,7 @@ export default defineConfig({
   webServer: [
     {
       // Local Worker with fake auth and an in-memory repo .
-      command: `pnpm --filter server dev ${SERVER_VARS}`,
+      command: `pnpm --filter server exec wrangler dev --env dev --port ${SERVER_PORT} --inspector-port 0 ${SERVER_VARS}`,
       cwd: '../..',
       port: SERVER_PORT,
       reuseExistingServer: !process.env.CI,
