@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react'
+import { LoginErrorScreen, LoginRegisterScreen, LoginScreen, RulesScreen } from './AuthScreens'
 import { PrimitivesScreen } from './PrimitivesScreen'
 import { SceneIdle, ScenePlay, SceneResult } from './SceneScreens'
 import { DesktopShellScreen, MobileShellScreen } from './ShellScreens'
@@ -11,4 +12,8 @@ export const devScreens: Record<string, () => ReactElement> = {
   primitives: PrimitivesScreen,
   'mobile-shell': MobileShellScreen,
   'desktop-shell': DesktopShellScreen,
+  login: LoginScreen,
+  'login-register': LoginRegisterScreen,
+  'login-error': LoginErrorScreen,
+  rules: RulesScreen,
 }
