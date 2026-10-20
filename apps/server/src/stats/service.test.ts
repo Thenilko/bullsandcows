@@ -156,6 +156,35 @@ describe('leaderboard', () => {
     expect(all.rows.map((r) => r.username)).toEqual(['Rada', 'Mira'])
   })
 
+  it('finds my place below the ranked list', async () => {
+    for (let i = 1; i <= 120; i += 1) {
+      const id = i === 110 ? mira.id : `r${i}`
+      if (id !== mira.id) {
+        await repo.profiles.create({ id, username: `R${i}`, email: null, isGuest: false })
+      }
+      await played({ ...daily, userId: id }, { score: 2000 - i, attempts: 5 })
+    }
+    const board = await stats.leaderboard(mira, q)
+    expect(board.rows).toHaveLength(50)
+    expect(board.me).toMatchObject({ rank: 110, score: 1890 })
+    expect(board.me?.top).toBeGreaterThan(0)
+    const near = await stats.leaderboard({ id: 'r60', isGuest: false }, q)
+    expect(near.me).toMatchObject({ rank: 60, score: 1940 })
+  })
+
+  it('breaks score ties by earlier finish when ranking me separately', async () => {
+    for (let i = 1; i <= 101; i += 1) {
+      await repo.profiles.create({ id: `t${i}`, username: `T${i}`, email: null, isGuest: false })
+      await played({ ...daily, userId: `t${i}` }, { score: 900 })
+    }
+    now += 1_000
+    await played({ ...daily, userId: rada.id }, { score: 900 })
+    now -= 2_000
+    await played({ ...daily, userId: ivo.id }, { score: 100 })
+    expect((await stats.leaderboard(rada, q)).me?.rank).toBe(102)
+    expect((await stats.leaderboard(ivo, q)).me?.rank).toBe(103)
+  })
+
   it('refuses guests', async () => {
     await expect(stats.leaderboard(guest, q)).rejects.toMatchObject({
       code: 'ERR_GUEST',
@@ -238,6 +267,39 @@ describe('me', () => {
       chiefBull: true,
       fiveDigits: true,
     })
+  })
+
+  it("measures daily wins against that day's real sample, with one grouped query", async () => {
+    // 30 other players needed 8 attempts on day D; Mira's 5 is then top 2% (fallback: 8%).
+    const D = '2026-09-01'
+    for (let i = 0; i < 30; i += 1) {
+      await played({ kind: 'daily', dailyDate: D, userId: `d${i}` }, { attempts: 8 })
+    }
+    for (let k = 1; k <= 39; k += 1) {
+      const date = new Date(Date.UTC(2026, 6, k)).toISOString().slice(0, 10)
+      await played({ kind: 'daily', dailyDate: date }, { attempts: 9 })
+    }
+    await played({ kind: 'daily', dailyDate: D }, { attempts: 5, wasted: 1 })
+    const calls = { byDate: 0, single: 0 }
+    const counting: Repo = {
+      ...repo,
+      games: {
+        ...repo.games,
+        wonAttemptsByDate: (q) => {
+          calls.byDate += 1
+          return repo.games.wonAttemptsByDate(q)
+        },
+        wonAttempts: (q) => {
+          calls.single += 1
+          return repo.games.wonAttempts(q)
+        },
+      },
+    }
+    const me = await new StatsService({ repo: counting, clock, cache: new DistributionCache() }).me(
+      mira,
+    )
+    expect(me.badges.chiefBull).toBe(true)
+    expect(calls).toEqual({ byDate: 1, single: 0 })
   })
 
   it('creates a missing profile on first read', async () => {

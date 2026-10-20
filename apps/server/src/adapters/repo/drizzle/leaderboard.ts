@@ -1,5 +1,23 @@
-import { and, asc, desc, eq, gte, inArray, isNotNull, type SQL } from 'drizzle-orm'
-import { LEADERBOARD_LIMIT, type LeaderboardQuery, type LeaderboardRow } from '../../../ports/repo'
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gt,
+  gte,
+  inArray,
+  isNotNull,
+  lt,
+  or,
+  type SQL,
+} from 'drizzle-orm'
+import {
+  LEADERBOARD_LIMIT,
+  type LeaderboardPlace,
+  type LeaderboardQuery,
+  type LeaderboardRow,
+} from '../../../ports/repo'
 import type { Db } from './client'
 import { games, profiles } from './schema'
 
@@ -9,9 +27,9 @@ function periodFilter(q: LeaderboardQuery): SQL | undefined {
   return q.period === 'all' ? solo : and(solo, gte(games.finishedAt, new Date(q.weekStartMs)))
 }
 
-/** Same semantics as the memory repo: best won counted solo game per member, guests excluded. */
-export async function drizzleLeaderboard(db: Db, q: LeaderboardQuery): Promise<LeaderboardRow[]> {
-  const best = db
+/** Each member's best won counted solo game in the period; guests excluded. */
+function bestPerPlayer(db: Db, q: LeaderboardQuery) {
+  return db
     .selectDistinctOn([games.userId], {
       userId: games.userId,
       username: profiles.username,
@@ -34,7 +52,12 @@ export async function drizzleLeaderboard(db: Db, q: LeaderboardQuery): Promise<L
     )
     .orderBy(games.userId, desc(games.score), asc(games.finishedAt))
     .as('best')
-  const rows = await db
+}
+
+/** Same semantics as the memory repo: score desc, earlier finish, then user id. */
+export async function drizzleLeaderboard(db: Db, q: LeaderboardQuery): Promise<LeaderboardRow[]> {
+  const best = bestPerPlayer(db, q)
+  return db
     .select({
       userId: best.userId,
       username: best.username,
@@ -44,5 +67,31 @@ export async function drizzleLeaderboard(db: Db, q: LeaderboardQuery): Promise<L
     .from(best)
     .orderBy(desc(best.score), asc(best.finishedAt), asc(best.userId))
     .limit(LEADERBOARD_LIMIT)
-  return rows
+}
+
+/** The player's place: 1 + the number of players ahead of them in the same order. */
+export async function drizzleRankOf(
+  db: Db,
+  q: LeaderboardQuery,
+  userId: string,
+): Promise<LeaderboardPlace | null> {
+  const best = bestPerPlayer(db, q)
+  const [mine] = await db
+    .select({ attempts: best.attempts, score: best.score, finishedAt: best.finishedAt })
+    .from(best)
+    .where(eq(best.userId, userId))
+    .limit(1)
+  if (!mine?.finishedAt) return null
+  const sameScore = eq(best.score, mine.score)
+  const [ahead] = await db
+    .select({ n: count() })
+    .from(best)
+    .where(
+      or(
+        gt(best.score, mine.score),
+        and(sameScore, lt(best.finishedAt, mine.finishedAt)),
+        and(sameScore, eq(best.finishedAt, mine.finishedAt), lt(best.userId, userId)),
+      ),
+    )
+  return { attempts: mine.attempts, score: mine.score, rank: (ahead?.n ?? 0) + 1 }
 }

@@ -4,7 +4,14 @@ import { ensureProfile } from '../auth/profiles'
 import { AppError } from '../http/errors'
 import type { AuthUser } from '../ports/auth'
 import type { Clock } from '../ports/clock'
-import type { LeaderboardQuery, PublicGameRow, Repo, SoloKind } from '../ports/repo'
+import {
+  LEADERBOARD_LIMIT,
+  type LeaderboardPlace,
+  type LeaderboardQuery,
+  type PublicGameRow,
+  type Repo,
+  type SoloKind,
+} from '../ports/repo'
 import { badgesFor, streakOf } from './badges'
 import {
   bucketsOf,
@@ -52,6 +59,21 @@ export class DistributionCache {
 
 const sharedCache = new DistributionCache()
 
+const cacheKey = (q: DistributionQuery) => `${q.kind}|${q.len}|${q.zero ? 1 : 0}|${q.date}`
+
+function toDistribution(sample: readonly number[], len: Len): DistributionDto {
+  const picked = pickHistogram(sample, len)
+  return { histogram: [...picked.histogram], sample: picked.sample, fallback: picked.fallback }
+}
+
+/** The won daily games' date-specific query, or the free one (last 30 days), or none. */
+function queryOf(g: PublicGameRow, today: string): DistributionQuery | null {
+  if (g.kind === 'daily' && g.dailyDate !== null) {
+    return { kind: 'daily', len: g.len, zero: g.zero, date: g.dailyDate }
+  }
+  return g.kind === 'free' ? { kind: 'free', len: g.len, zero: g.zero, date: today } : null
+}
+
 export interface StatsDeps {
   readonly repo: Repo
   readonly clock: Clock
@@ -73,7 +95,7 @@ export class StatsService {
 
   async distribution(q: DistributionQuery): Promise<DistributionDto> {
     const now = this.deps.clock.now()
-    const key = `${q.kind}|${q.len}|${q.zero ? 1 : 0}|${q.date}`
+    const key = cacheKey(q)
     const cached = this.cache.get(key, now)
     if (cached) return cached
     const { kind, len, zero } = q
@@ -82,41 +104,40 @@ export class StatsService {
         ? { kind, len, zero, date: q.date }
         : { kind, len, zero, sinceMs: now - FREE_WINDOW_MS },
     )
-    const picked = pickHistogram(sample, len)
-    const value = {
-      histogram: [...picked.histogram],
-      sample: picked.sample,
-      fallback: picked.fallback,
-    }
+    const value = toDistribution(sample, len)
     this.cache.set(key, value, now)
     return value
   }
 
   async leaderboard(user: AuthUser, q: LeaderboardInput): Promise<LeaderboardDto> {
     if (user.isGuest) throw new AppError('ERR_GUEST', 403)
-    const now = this.deps.clock.now()
     const date = this.today()
-    const ranked = (
-      await this.deps.repo.games.leaderboard({ ...q, date, weekStartMs: sofiaWeekStart(now) })
-    ).map((r, i) => ({
+    const query = { ...q, date, weekStartMs: sofiaWeekStart(this.deps.clock.now()) }
+    const rows = await this.deps.repo.games.leaderboard(query)
+    const ranked = rows.map((r, i) => ({
       rank: i + 1,
       username: r.username,
       attempts: r.attempts,
       score: r.score,
       you: r.userId === user.id,
     }))
-    const mine = ranked.find((r) => r.you)
-    // "Today" ranks daily games; week/all mix daily and free, measured against free play.
-    const kind: SoloKind = q.period === 'today' ? 'daily' : 'free'
-    const histogram = mine
-      ? (await this.distribution({ kind, len: q.len, zero: q.zero, date })).histogram
-      : []
+    // Below the repo's list the caller's place is counted separately.
+    const place: LeaderboardPlace | null =
+      ranked.find((r) => r.you) ??
+      (rows.length >= LEADERBOARD_LIMIT
+        ? await this.deps.repo.games.leaderboardRankOf(query, user.id)
+        : null)
     return {
       rows: ranked.slice(0, LEADERBOARD_ROWS),
-      me: mine
-        ? { rank: mine.rank, score: mine.score, top: topOf(mine.attempts, histogram).top }
-        : null,
+      me: place && (await this.placeOf(place, q, date)),
     }
+  }
+
+  /** "Today" ranks daily games; week/all mix daily and free, measured against free play. */
+  private async placeOf(place: LeaderboardPlace, q: LeaderboardInput, date: string) {
+    const kind: SoloKind = q.period === 'today' ? 'daily' : 'free'
+    const { histogram } = await this.distribution({ kind, len: q.len, zero: q.zero, date })
+    return { rank: place.rank, score: place.score, top: topOf(place.attempts, histogram).top }
   }
 
   async me(user: AuthUser): Promise<MeDto> {
@@ -148,29 +169,52 @@ export class StatsService {
   /** "Top X%" of each won game against the distribution its mode would show (fallback for bots/duels). */
   private async topOfGames(wins: readonly PublicGameRow[]): Promise<(g: PublicGameRow) => number> {
     const today = this.today()
-    const queryOf = (g: PublicGameRow): DistributionQuery | null =>
-      g.kind === 'daily' && g.dailyDate !== null
-        ? { kind: 'daily', len: g.len, zero: g.zero, date: g.dailyDate }
-        : g.kind === 'free'
-          ? { kind: 'free', len: g.len, zero: g.zero, date: today }
-          : null
-    const keyOf = (q: DistributionQuery) => `${q.kind}|${q.len}|${q.zero}|${q.date}`
     const queries = new Map<string, DistributionQuery>()
     for (const g of wins) {
-      const q = queryOf(g)
-      if (q) queries.set(keyOf(q), q)
+      const q = queryOf(g, today)
+      if (q) queries.set(cacheKey(q), q)
     }
-    const histograms = new Map(
-      await Promise.all(
-        [...queries].map(
-          async ([key, q]) => [key, (await this.distribution(q)).histogram] as const,
-        ),
-      ),
+    const all = [...queries.values()]
+    const daily = await this.dailyDistributions(all.filter((q) => q.kind === 'daily'))
+    const free = await Promise.all(
+      all
+        .filter((q) => q.kind === 'free')
+        .map(async (q) => [cacheKey(q), await this.distribution(q)] as const),
     )
+    const histograms = new Map([...daily, ...free])
     return (g) => {
-      const q = queryOf(g)
-      const histogram = (q && histograms.get(keyOf(q))) ?? FALLBACK_HISTOGRAM[g.len]
+      const q = queryOf(g, today)
+      const histogram = (q && histograms.get(cacheKey(q))?.histogram) ?? FALLBACK_HISTOGRAM[g.len]
       return topOf(g.attempts, histogram).top
     }
+  }
+
+  /** Past days' distributions: cached ones, plus one grouped query per (len, zero) for the rest. */
+  private async dailyDistributions(
+    queries: readonly DistributionQuery[],
+  ): Promise<[string, DistributionDto][]> {
+    const now = this.deps.clock.now()
+    const cached = queries.flatMap((q) => {
+      const hit = this.cache.get(cacheKey(q), now)
+      return hit ? [[cacheKey(q), hit] as [string, DistributionDto]] : []
+    })
+    const missing = queries.filter((q) => !this.cache.get(cacheKey(q), now))
+    const groups = new Map<string, DistributionQuery[]>()
+    for (const q of missing) {
+      const group = `${q.len}|${q.zero}`
+      groups.set(group, [...(groups.get(group) ?? []), q])
+    }
+    const fetched: [string, DistributionDto][] = []
+    for (const group of groups.values()) {
+      const [{ len, zero }] = group as [DistributionQuery]
+      const dates = group.map((q) => q.date)
+      const byDate = await this.deps.repo.games.wonAttemptsByDate({ len, zero, dates })
+      for (const q of group) {
+        const value = toDistribution(byDate[q.date] ?? [], len)
+        this.cache.set(cacheKey(q), value, now)
+        fetched.push([cacheKey(q), value])
+      }
+    }
+    return [...cached, ...fetched]
   }
 }

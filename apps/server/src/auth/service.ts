@@ -23,9 +23,13 @@ export interface RegisterInput {
 
 const credentials = () => new AppError('ERR_CREDENTIALS', 401)
 
-/** Supabase answers 4xx for unknown addresses on some setups; that must not leak. */
-const isClientError = (err: unknown) =>
-  err instanceof AppError && (err.code === 'ERR_INPUT' || err.code === 'ERR_CREDENTIALS')
+/**
+ * Errors that could tell whether an address has an account: 4xx on some setups, and 429
+ * (Supabase throttles resends per existing user only). Our IP limiter guards the route.
+ */
+const mayRevealAccount = (err: unknown) =>
+  err instanceof AppError &&
+  (err.code === 'ERR_INPUT' || err.code === 'ERR_CREDENTIALS' || err.code === 'ERR_RATE_LIMIT')
 
 export class AuthService {
   constructor(private readonly deps: AuthDeps) {}
@@ -67,10 +71,11 @@ export class AuthService {
   /** Guest → member, keeping the id (and so the games and XP); returns a member session. */
   async upgrade(user: AuthUser, input: UpgradeBody): Promise<AuthResponseDto> {
     const { repo, auth } = this.deps
-    if (!user.isGuest) throw new AppError('ERR_INPUT', 400)
+    // The token's `is_anonymous` outlives an upgrade (until it expires): the database decides.
+    const profile = user.isGuest ? await ensureProfile(repo, user) : null
+    if (!profile?.isGuest) throw new AppError('ERR_INPUT', 400)
     await this.assertNameFree(input.username, user.id)
     const email = input.email.toLowerCase()
-    await ensureProfile(repo, user)
     await auth.upgrade(user.id, email, input.password)
     await repo.profiles.update(user.id, { username: input.username, email, isGuest: false })
     // The guest's token still says `is_anonymous`; sign in again for one that does not.
@@ -83,7 +88,7 @@ export class AuthService {
     try {
       await this.deps.auth.requestReset(email.toLowerCase(), redirectTo)
     } catch (err) {
-      if (!isClientError(err)) throw err
+      if (!mayRevealAccount(err)) throw err
     }
     return { sent: true }
   }

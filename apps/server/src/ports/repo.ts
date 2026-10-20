@@ -136,6 +136,20 @@ export interface LeaderboardRow {
   readonly score: number
 }
 
+/** Won counted daily games of several days at once (for "top X%" of past days). */
+export interface DailyAttemptsQuery {
+  readonly len: Len
+  readonly zero: boolean
+  readonly dates: readonly string[]
+}
+
+/** One player's place in a leaderboard, also when it is beyond `LEADERBOARD_LIMIT`. */
+export interface LeaderboardPlace {
+  readonly attempts: number
+  readonly score: number
+  readonly rank: number
+}
+
 /** Upper bound for leaderboard rows returned by any repo. */
 export const LEADERBOARD_LIMIT = 100
 
@@ -167,8 +181,12 @@ export interface GamesRepo {
   /** The counted (non-practice) daily game of a user for a date and settings. */
   dailyOf(userId: string, date: string, len: Len, zero: boolean): Promise<PublicGameRow | null>
   wonAttempts(query: WonAttemptsQuery): Promise<number[]>
+  /** Attempts of won counted daily games per date; dates without wins are absent. */
+  wonAttemptsByDate(query: DailyAttemptsQuery): Promise<Readonly<Record<string, number[]>>>
   /** Score desc, then earlier finish, then user id asc. */
   leaderboard(query: LeaderboardQuery): Promise<LeaderboardRow[]>
+  /** The player's best game and rank in the same order; null when not ranked (or a guest). */
+  leaderboardRankOf(query: LeaderboardQuery, userId: string): Promise<LeaderboardPlace | null>
   /** Audit row for the day's number; idempotent. */
   recordDailyNumber(date: string, len: Len, zero: boolean, idx: number): Promise<void>
   /** Newest first. */

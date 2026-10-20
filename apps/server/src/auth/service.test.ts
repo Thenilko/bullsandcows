@@ -82,6 +82,20 @@ describe('login', () => {
     }
   })
 
+  it('fills a missing email so that the name works for the next login', async () => {
+    const outside = await auth.signUp('late@example.com', 'secret1')
+    const stats = new StatsService({ repo, clock, cache: new DistributionCache() })
+    const created = await stats.me(outside.user)
+    expect((await repo.profiles.get(outside.user.id))?.email).toBeNull()
+    await service.login({ identifier: 'late@example.com', password: 'secret1' })
+    expect((await repo.profiles.get(outside.user.id))?.email).toBe('late@example.com')
+    const byName = await service.login({
+      identifier: created.profile.username,
+      password: 'secret1',
+    })
+    expect(byName.me.profile.id).toBe(outside.user.id)
+  })
+
   it('creates the profile of an account made outside the app', async () => {
     await auth.signUp('outside@example.com', 'secret1')
     const { me } = await service.login({ identifier: 'outside@example.com', password: 'secret1' })
@@ -129,6 +143,19 @@ describe('upgrade', () => {
     expect((await repo.profiles.get(session.user.id))?.email).toBe('mira@example.com')
   })
 
+  it('refuses a second upgrade with the old guest token', async () => {
+    const { session } = await service.guest()
+    await service.upgrade(session.user, mira)
+    const upgrade = vi.spyOn(auth, 'upgrade')
+    const takeover = { username: 'Thief', email: 'thief@example.com', password: 'stolen1' }
+    await expect(service.upgrade(session.user, takeover)).rejects.toMatchObject({
+      code: 'ERR_INPUT',
+      status: 400,
+    })
+    expect(upgrade).not.toHaveBeenCalled()
+    expect((await repo.profiles.get(session.user.id))?.email).toBe('mira@example.com')
+  })
+
   it('is only for guests', async () => {
     const { session } = await service.register(mira)
     await expect(service.upgrade(session.user, mira)).rejects.toMatchObject({
@@ -155,18 +182,18 @@ describe('reset', () => {
     expect(requestReset).toHaveBeenCalledWith('nobody@example.com', `${ORIGIN}/reset`)
   })
 
-  it('hides client errors from Supabase but not throttling', async () => {
-    const failing = (code: 'ERR_INPUT' | 'ERR_RATE_LIMIT', status: 400 | 429): AuthPort => ({
+  it('hides client errors and throttling (both could reveal an account), not outages', async () => {
+    const failing = (code: 'ERR_INPUT' | 'ERR_RATE_LIMIT' | 'ERR_INTERNAL'): AuthPort => ({
       ...auth,
       requestReset: async () => {
-        throw new AppError(code, status)
+        throw new AppError(code, code === 'ERR_INTERNAL' ? 502 : 400)
       },
     })
-    expect(await build(repo, failing('ERR_INPUT', 400)).reset({ email: 'a@b.cd' })).toEqual({
-      sent: true,
-    })
+    for (const code of ['ERR_INPUT', 'ERR_RATE_LIMIT'] as const) {
+      expect(await build(repo, failing(code)).reset({ email: 'a@b.cd' })).toEqual({ sent: true })
+    }
     await expect(
-      build(repo, failing('ERR_RATE_LIMIT', 429)).reset({ email: 'a@b.cd' }),
-    ).rejects.toMatchObject({ code: 'ERR_RATE_LIMIT' })
+      build(repo, failing('ERR_INTERNAL')).reset({ email: 'a@b.cd' }),
+    ).rejects.toMatchObject({ code: 'ERR_INTERNAL' })
   })
 })

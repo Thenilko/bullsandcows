@@ -105,6 +105,9 @@ describe('auth routes', () => {
     expect(u.me.profile).toMatchObject({ username: acc.username, isGuest: false })
     const again = await post(app, ip, 'upgrade', account(unique()), u.session.accessToken)
     expect(await json(again)).toEqual({ ok: false, error: { code: 'ERR_INPUT' } })
+    const replay = await post(app, ip, 'upgrade', account(unique()), g.session.accessToken)
+    expect(replay.status).toBe(400)
+    expect(await json(replay)).toEqual({ ok: false, error: { code: 'ERR_INPUT' } })
   })
 
   it('always answers sent for a reset', async () => {

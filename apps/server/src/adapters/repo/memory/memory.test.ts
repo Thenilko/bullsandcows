@@ -208,6 +208,26 @@ describe('memory games', () => {
     await repo.games.addGuess({ ...guess, gameId: 'other' })
   })
 
+  it('groups won daily attempts by date in one call', async () => {
+    const day = (d: string) => ({ kind: 'daily' as const, dailyDate: d })
+    await finishedGame(day('2026-10-19'), { attempts: 5 })
+    await finishedGame({ ...day('2026-10-19'), userId: 'u2' }, { attempts: 6 })
+    await finishedGame({ ...day('2026-10-20'), userId: 'u2' }, { attempts: 4 })
+    await finishedGame({ ...day('2026-10-20'), practice: true }, { attempts: 3 })
+    await finishedGame({ ...day('2026-10-21'), userId: 'u3' }, { attempts: 4 })
+    await finishedGame({ ...day('2026-10-18'), len: 5 }, { attempts: 4 })
+    const byDate = await repo.games.wonAttemptsByDate({
+      len: 4,
+      zero: false,
+      dates: ['2026-10-19', '2026-10-20', '2026-10-18'],
+    })
+    expect({ ...byDate, '2026-10-19': [...(byDate['2026-10-19'] ?? [])].sort() }).toEqual({
+      '2026-10-19': [5, 6],
+      '2026-10-20': [4],
+    })
+    expect(await repo.games.wonAttemptsByDate({ len: 4, zero: false, dates: [] })).toEqual({})
+  })
+
   it('lists history newest first with a limit', async () => {
     const ids: string[] = []
     for (let i = 0; i < 3; i += 1) {
@@ -228,6 +248,30 @@ describe('memory leaderboard', () => {
     await member('u2', 'Rada')
     await member('u3', 'Ivo')
     await repo.profiles.create({ id: 'g1', username: 'guest-ABCD', email: null, isGuest: true })
+  })
+
+  it('ranks one player beyond the list limit with the same order', async () => {
+    const day = { kind: 'daily' as const, dailyDate: date }
+    now = 3_000
+    await finishedGame({ ...day, userId: 'u1' }, { attempts: 6, score: 700 })
+    await finishedGame({ ...day, userId: 'u1', practice: true }, { attempts: 2, score: 1100 })
+    now = 2_500
+    await finishedGame({ ...day, userId: 'u2' }, { attempts: 5, score: 700 })
+    await finishedGame({ ...day, userId: 'u3' }, { attempts: 4, score: 900 })
+    await finishedGame({ ...day, userId: 'g1' }, { attempts: 1, score: 1200 })
+    const today = { ...q, period: 'today' as const }
+    expect(await repo.games.leaderboardRankOf(today, 'u1')).toEqual({
+      attempts: 6,
+      score: 700,
+      rank: 3,
+    })
+    expect(await repo.games.leaderboardRankOf(today, 'u3')).toEqual({
+      attempts: 4,
+      score: 900,
+      rank: 1,
+    })
+    expect(await repo.games.leaderboardRankOf(today, 'g1')).toBeNull()
+    expect(await repo.games.leaderboardRankOf(today, 'nobody')).toBeNull()
   })
 
   it('ranks today by score, ties by earlier finish, only won counted daily games', async () => {

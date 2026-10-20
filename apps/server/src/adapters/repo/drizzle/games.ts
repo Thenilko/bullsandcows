@@ -1,8 +1,8 @@
-import { and, asc, count, desc, eq, getTableColumns, gte, type SQL } from 'drizzle-orm'
+import { and, asc, count, desc, eq, getTableColumns, gte, inArray, type SQL } from 'drizzle-orm'
 import type { GamePatch, GamesRepo, WonAttemptsQuery } from '../../../ports/repo'
 import type { Db } from './client'
 import { required } from './errors'
-import { drizzleLeaderboard } from './leaderboard'
+import { drizzleLeaderboard, drizzleRankOf } from './leaderboard'
 import { toDate, toGame, toGuess, toPublicGame } from './mappers'
 import { dailyNumbers, games, guesses } from './schema'
 
@@ -90,7 +90,23 @@ export function drizzleGames(db: Db): GamesRepo {
         .groupBy(games.attempts)
       return rows.flatMap((r) => Array<number>(r.n).fill(r.attempts))
     },
+    wonAttemptsByDate: async ({ len, zero, dates }) => {
+      if (dates.length === 0) return {}
+      const rows = await db
+        .select({ date: games.dailyDate, attempts: games.attempts, n: count() })
+        .from(games)
+        .where(and(wonFilter({ kind: 'daily', len, zero }), inArray(games.dailyDate, [...dates])))
+        .groupBy(games.dailyDate, games.attempts)
+      return rows.reduce<Record<string, number[]>>((acc, r) => {
+        if (r.date === null) return acc
+        return {
+          ...acc,
+          [r.date]: [...(acc[r.date] ?? []), ...Array<number>(r.n).fill(r.attempts)],
+        }
+      }, {})
+    },
     leaderboard: (q) => drizzleLeaderboard(db, q),
+    leaderboardRankOf: (q, userId) => drizzleRankOf(db, q, userId),
     recordDailyNumber: async (date, len, zero, idx) => {
       await db.insert(dailyNumbers).values({ date, len, zero, idx }).onConflictDoNothing()
     },

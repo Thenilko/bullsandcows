@@ -42,6 +42,10 @@ export async function ensureProfile(
   email: string | null = null,
 ): Promise<Profile> {
   const existing = await repo.profiles.get(user.id)
+  // A profile created on read has no email yet; without it the name cannot be used to log in.
+  if (existing && email !== null && existing.email === null) {
+    return repo.profiles.update(user.id, { email })
+  }
   if (existing) return existing
   try {
     return await createWithGeneratedName(

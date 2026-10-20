@@ -9,7 +9,7 @@ import type {
   PublicGameRow,
   WonAttemptsQuery,
 } from '../../../ports/repo'
-import { rankLeaderboard } from './leaderboard'
+import { rankLeaderboard, rankOf } from './leaderboard'
 import { copy, defined, publicGame, type MemoryStore } from './store'
 
 function matchesWon(g: GameRow, q: WonAttemptsQuery): boolean {
@@ -87,7 +87,17 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
       all()
         .filter((g) => matchesWon(g, q))
         .map((g) => g.attempts),
+    wonAttemptsByDate: async ({ len, zero, dates }) => {
+      const byDate = new Map<string, number[]>()
+      for (const g of all()) {
+        if (g.dailyDate === null || !dates.includes(g.dailyDate)) continue
+        if (!matchesWon(g, { kind: 'daily', len, zero })) continue
+        byDate.set(g.dailyDate, [...(byDate.get(g.dailyDate) ?? []), g.attempts])
+      }
+      return Object.fromEntries(byDate)
+    },
     leaderboard: async (q) => rankLeaderboard(store.games.values(), store.profiles, q),
+    leaderboardRankOf: async (q, userId) => rankOf(store.games.values(), store.profiles, q, userId),
     recordDailyNumber: async (date, len, zero, idx) => {
       const key = `${date}|${len}|${zero ? 1 : 0}`
       if (!store.dailyNumbers.has(key)) store.dailyNumbers.set(key, idx)

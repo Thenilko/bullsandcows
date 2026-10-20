@@ -1,6 +1,7 @@
 import {
   LEADERBOARD_LIMIT,
   type GameRow,
+  type LeaderboardPlace,
   type LeaderboardQuery,
   type LeaderboardRow,
   type Profile,
@@ -24,15 +25,12 @@ const compareIds = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0
 const better = (a: Finished, b: Finished): number =>
   b.score - a.score || a.finishedAt - b.finishedAt || compareIds(a.userId, b.userId)
 
-/**
- * Spec §10: "today" ranks the counted daily game; "week"/"all" rank each player's best
- * single won solo game (daily or free, no practice). Guests are never ranked.
- */
-export function rankLeaderboard(
+/** Each member's best ranked game in the period, best first. Guests are never ranked. */
+function bestPerPlayer(
   games: Iterable<GameRow>,
   profiles: ReadonlyMap<string, Profile>,
   q: LeaderboardQuery,
-): LeaderboardRow[] {
+): Finished[] {
   const best = new Map<string, Finished>()
   for (const g of games) {
     if (!isRanked(g) || !inPeriod(g, q)) continue
@@ -41,8 +39,19 @@ export function rankLeaderboard(
     const current = best.get(g.userId)
     if (!current || better(g, current) < 0) best.set(g.userId, g)
   }
-  return [...best.values()]
-    .sort(better)
+  return [...best.values()].sort(better)
+}
+
+/**
+ * Spec §10: "today" ranks the counted daily game; "week"/"all" rank each player's best
+ * single won solo game (daily or free, no practice).
+ */
+export function rankLeaderboard(
+  games: Iterable<GameRow>,
+  profiles: ReadonlyMap<string, Profile>,
+  q: LeaderboardQuery,
+): LeaderboardRow[] {
+  return bestPerPlayer(games, profiles, q)
     .slice(0, LEADERBOARD_LIMIT)
     .map((g) => ({
       userId: g.userId,
@@ -50,4 +59,16 @@ export function rankLeaderboard(
       attempts: g.attempts,
       score: g.score,
     }))
+}
+
+export function rankOf(
+  games: Iterable<GameRow>,
+  profiles: ReadonlyMap<string, Profile>,
+  q: LeaderboardQuery,
+  userId: string,
+): LeaderboardPlace | null {
+  const ranked = bestPerPlayer(games, profiles, q)
+  const index = ranked.findIndex((g) => g.userId === userId)
+  const game = ranked[index]
+  return game ? { attempts: game.attempts, score: game.score, rank: index + 1 } : null
 }
