@@ -35,6 +35,9 @@ const COMPACT: readonly [key: string, screen: string, w: number, h: number][] = 
   ['mk10', 'hide-secret', 390, 660],
   ['mk11', 'duel-play-race', 390, 660],
   ['mk12', 'duel-play-classic', 375, 667],
+  // Danail's 390x630 check: the fence and the animals plus the whole keypad, no scroll.
+  ['mk12-630', 'duel-play-classic', 390, 630],
+  ['mk11-630', 'duel-play-race', 390, 630],
 ]
 
 for (const [key, screen, w, h] of COMPACT) {

@@ -10,15 +10,13 @@ import {
   NotebookIcon,
   Slots,
   Soft,
-  SoundOffIcon,
-  SoundOnIcon,
 } from '../../components/ui'
+import { SoundIconButton } from '../../components/ui/SoundIconButton'
 import { Notebook } from '../../features/notebook/Notebook'
 import { NotebookSheet } from '../../features/notebook/NotebookSheet'
 import { countNotes, useNotebook } from '../../features/notebook/store'
 import type { GameApi } from '../../features/solo/useGame'
 import { useAverageAttempts } from '../../features/solo/useDistribution'
-import { useSoundToggle } from '../../features/stats/useSoundToggle'
 import { sfx } from '../../lib/sound'
 import { errorText, formatClock } from './format'
 import { StartOverlay } from './StartOverlay'
@@ -176,22 +174,6 @@ function NotesButton({
   )
 }
 
-function SoundButton() {
-  const { t } = useTranslation()
-  const { muted, toggle } = useSoundToggle()
-  return (
-    <button
-      type="button"
-      className="iconbox icobtn"
-      aria-label={muted ? t('settings.muteOff') : t('settings.muteOn')}
-      aria-pressed={!muted}
-      onClick={toggle}
-    >
-      {muted ? <SoundOffIcon /> : <SoundOnIcon />}
-    </button>
-  )
-}
-
 /**
  * Mobile (M3 / MK3): status row, signs, keypad. The attempts, the notes and „Предавам се“ live in the notebook
  * sheet (M4 / MK6), so the panel keeps the keypad fully visible on every phone.
@@ -224,7 +206,7 @@ export function MobilePlay({
             setOpen(true)
           }}
         />
-        <SoundButton />
+        <SoundIconButton />
       </div>
       <Input game={game} g={g} desktop={false} />
       <Overlay game={game} g={g} desktop={false} />

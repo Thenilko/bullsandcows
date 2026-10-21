@@ -14,16 +14,18 @@ describe('PastureScene', () => {
     reduced.value = false
   })
 
-  it('renders an accessible image of two svgs on the design viewBox: sky at the top, meadow at the bottom', () => {
+  it('renders an accessible image: one svg on the design viewBox, centred slice as PasScene', () => {
     const { container } = render(<PastureScene {...base} label="Pasture" />)
     const img = container.querySelector('[role="img"]')!
     expect(img.getAttribute('aria-label')).toBe('Pasture')
     const svgs = container.querySelectorAll('svg')
-    expect(svgs).toHaveLength(2)
-    expect([...svgs].map((s) => s.getAttribute('viewBox'))).toEqual(['0 0 390 380', '0 0 390 380'])
-    expect([...svgs].map((s) => s.getAttribute('preserveAspectRatio'))).toEqual(['xMidYMin slice', 'xMidYMax slice'])
-    expect(svgs[0]!.querySelector('[data-layer="sun"]')).not.toBeNull()
-    expect(svgs[1]!.querySelector('[data-layer="fog"]')).not.toBeNull()
+    expect(svgs).toHaveLength(1)
+    expect(svgs[0]!.getAttribute('viewBox')).toBe('0 0 390 380')
+    expect(svgs[0]!.getAttribute('preserveAspectRatio')).toBe('xMidYMid slice')
+    // Paint order: sky and sun first, fog last.
+    const layers = [...svgs[0]!.querySelectorAll('[data-layer]')].map((e) => e.getAttribute('data-layer'))
+    expect(layers.indexOf('sun')).toBeLessThan(layers.indexOf('animals-A'))
+    expect(layers.at(-1)).toBe('fog')
   })
 
   it('wires fog opacity, sun position and dawn opacity', () => {

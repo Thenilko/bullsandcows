@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { NavLink, useLocation } from 'react-router'
+import { NavLink, useLocation, useNavigate } from 'react-router'
 import { PastureScene } from '../../components/scene'
 import { cx } from '../../components/ui/cx'
 import {
@@ -12,6 +12,7 @@ import {
   QuestionIcon,
 } from '../../components/ui/icons'
 import { LangSwitch } from '../../components/ui/LangSwitch'
+import { Soft } from '../../components/ui/Soft'
 import { useSoundToggle } from '../../features/stats/useSoundToggle'
 import styles from './DesktopShell.module.css'
 import { HUD_BOTTOM_DESKTOP, isTabActive, TABS, type ShellProps } from './shell.types'
@@ -21,7 +22,11 @@ const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon, QuestionIcon] as const
 export function DesktopShell({ scene, children, sceneSide = false, bare = false, hud, hudAt = 'top' }: ShellProps) {
   const { t } = useTranslation()
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const { muted, toggle: toggleSound } = useSoundToggle()
+  // PasDuel desktop header: „Нова игра“ next to the sound button. „Игра“ in the nav resumes a running game, so
+  // this is how the mode cards (solo / duel / bot) stay reachable from any screen.
+  const showNewGame = !bare && pathname !== '/new'
 
   return (
     <div className={styles.root}>
@@ -52,6 +57,7 @@ export function DesktopShell({ scene, children, sceneSide = false, bare = false,
           </nav>
         )}
         <div className={styles.tools}>
+          {showNewGame ? <Soft small onClick={() => void navigate('/new')}>{t('common.newGame')}</Soft> : null}
           <LangSwitch />
           <button
             type="button"

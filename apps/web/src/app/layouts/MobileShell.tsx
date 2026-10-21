@@ -9,12 +9,6 @@ import { isTabActive, TABS, type ShellProps } from './shell.types'
 
 const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon, QuestionIcon] as const
 
-/** Top chips sit in the scene's corner; the bottom strip ends just above the panel's edge (MobileShell.module.css). */
-function hudStyle(at: 'top' | 'bottom'): CSSProperties {
-  if (at === 'top') return { position: 'absolute', left: 12, right: 12, top: 12, zIndex: 2 }
-  return { position: 'absolute', left: 12, right: 12, bottom: 'var(--hud-bottom)', zIndex: 2 }
-}
-
 export function MobileShell({
   scene,
   children,
@@ -23,6 +17,7 @@ export function MobileShell({
   fit = false,
   hud,
   hudAt = 'top',
+  topHud,
 }: ShellProps) {
   const { t } = useTranslation()
   const { pathname } = useLocation()
@@ -39,18 +34,12 @@ export function MobileShell({
         )}
         style={vars}
       >
-        <div className={styles.scene}>
+        <div className={styles.scene} data-testid="scene">
           <div className={styles.art}>
             <PastureScene {...scene} label={t('nav.play')} />
           </div>
-          {hud ? (
-            <div
-              className={hudAt === 'bottom' ? styles.hudBottom : undefined}
-              style={hudStyle(hudAt)}
-            >
-              {hud}
-            </div>
-          ) : null}
+          {topHud ? <div className={styles.hudTop}>{topHud}</div> : null}
+          {hud ? <div className={hudAt === 'bottom' ? styles.hudBottom : styles.hudTop}>{hud}</div> : null}
         </div>
         <main id="main" className={cx('panel', styles.panelBody)}>
           {children}

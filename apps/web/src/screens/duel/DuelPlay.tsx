@@ -13,6 +13,7 @@ import { OppStrip } from './parts/OppStrip'
 import { Overlay } from './parts/Overlay'
 import { PlayHeader } from './parts/PlayHeader'
 import { PlayPad } from './parts/PlayPad'
+import { DuelTopRow } from './parts/TopRow'
 import { playModel } from './playModel'
 import { playScene } from './scenes'
 import { useEndFlow } from './useEndFlow'
@@ -56,6 +57,7 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
 
   const m = playModel(state, store, now, ended)
   const oppName = m.bot ? t('bot.name') : (state.opp?.username ?? '')
+  const title = m.bot ? t('duel.title.playBot') : t('duel.title.play', { format: t(`newGame.format.${state.format}.name`) })
   const mySecret = readMySecret(roomId)
   const waitOverlay =
     m.classic && m.playing && !m.myTurn
@@ -72,11 +74,9 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
       panelTop={PANEL_TOP}
       hudAt="bottom"
       hud={<OppStrip state={state} oppName={oppName} status={m.oppStatus} thinking={m.botTurn} />}
+      topHud={<DuelTopRow title={title} />}
     >
-      <section
-        aria-label={t('duel.title.play', { format: t(`newGame.format.${state.format}.name`) })}
-        style={SECTION}
-      >
+      <section aria-label={title} style={SECTION}>
         <div style={HEAD}>
           <PlayHeader
             attempt={state.me.guesses.length + 1}

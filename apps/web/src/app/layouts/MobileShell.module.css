@@ -55,21 +55,38 @@
   height: var(--scene-h);
   overflow: hidden;
   background: #a9d6f0;
+  container: scene / size;
 }
 
-/* Band screens show the top of the 380px artboard (sky, sun, mountains), as the M-series artboards do. */
+/*
+ * The artboard box: PasScene's `xMidYMid slice` done in CSS, so the alignment can follow the container query.
+ * The 390x380 drawing covers the scene (never smaller than it in either direction) and sits centred; a band
+ * therefore shows the middle of the artboard (mountains, barn, meadow), a 380px play scene shows all of it.
+ */
 .art {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 380px;
+  left: 50%;
+  top: 50%;
+  width: max(100cqw, calc(100cqh * 390 / 380));
+  aspect-ratio: 390 / 380;
+  translate: -50% -50%;
 }
 
-/* Play screens show the whole scene; in a shorter box the meadow stays anchored to the panel's edge. */
-.play .art {
-  height: auto;
-  bottom: 0;
+/* HUD rows over the scene: chips / PasDuel top row at the top, the opponent strip just above the panel's edge. */
+.hudTop,
+.hudBottom {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  z-index: 2;
+}
+
+.hudTop {
+  top: 12px;
+}
+
+.hudBottom {
+  bottom: var(--hud-bottom);
 }
 
 .panelBody {
@@ -119,15 +136,29 @@
     --hud-bottom: 30px;
   }
 
+  /* Never below 230px (200px under 640), so the fence and the animals of the bottom-aligned scene stay in view. */
   .play .scene {
-    flex: 1 1 0;
+    flex: 1 0 230px;
     height: auto;
-    min-height: 130px;
+    min-height: 230px;
     max-height: 380px;
+  }
+
+  /* PasDuel: the opponent strip moves under the top row instead of covering the meadow. */
+  .play .hudBottom {
+    top: 60px;
+    bottom: auto;
   }
 
   .play .panelBody {
     flex: 0 1 auto;
+  }
+
+  /* `xMidYMax slice`: the meadow and the animals stay above the panel, the sky is what gets cut. */
+  .art {
+    top: auto;
+    bottom: 0;
+    translate: -50% 0;
   }
 
   /* Solo play: the panel keeps its natural height (about 312px) and never scrolls. */
@@ -166,6 +197,11 @@
 @container shell (max-height: 639px) {
   .play {
     --panel-gap: 6px;
+  }
+
+  .play .scene {
+    flex-basis: 200px;
+    min-height: 200px;
   }
 
   .play :global(.sign) {

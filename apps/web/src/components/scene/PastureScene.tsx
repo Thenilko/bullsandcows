@@ -45,19 +45,17 @@ function Puffs() {
 const SVG_STYLE = { display: 'block', position: 'absolute', inset: 0 } as const
 
 /**
- * Two stacked SVGs on the design viewBox: the sky anchors to the top, the meadow (hills, barn, animals, fog)
- * to the bottom. In a 390x380 box they compose exactly as the artboard; a shorter box keeps the sun and the
- * animals and loses the middle.
+ * One SVG on the 390x380 design viewBox, `xMidYMid slice` as in PasScene: a box of another ratio shows the
+ * middle of the artboard. The mobile shell sizes the box itself (MobileShell.module.css `.art`), so compact
+ * phones get the design's `xMidYMax slice` (meadow and animals kept, sky cut) without a second render.
  */
 export function PastureScene({ fog, sunY, dawn, animals, parity, miss, label = 'Пасището', className }: PastureSceneProps) {
   const reduced = useReducedMotion()
   return (
     <div className={className} role="img" aria-label={label} style={SVG_STYLE}>
-      <svg aria-hidden="true" width="100%" height="100%" viewBox="0 0 390 380" preserveAspectRatio="xMidYMin slice" style={SVG_STYLE}>
+      <svg aria-hidden="true" width="100%" height="100%" viewBox="0 0 390 380" preserveAspectRatio="xMidYMid slice" style={SVG_STYLE}>
         <Defs />
         <Sky dawn={dawn} sunY={sunY} reduced={reduced} />
-      </svg>
-      <svg aria-hidden="true" width="100%" height="100%" viewBox="0 0 390 380" preserveAspectRatio="xMidYMax slice" style={SVG_STYLE}>
         <Landscape />
         {parity ? <AnimalLayer layer="A" animals={animals} /> : <AnimalLayer layer="B" animals={animals} />}
         {miss ? <Puffs /> : null}

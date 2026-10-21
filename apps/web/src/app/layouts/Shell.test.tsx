@@ -57,3 +57,25 @@ describe('DesktopShell skip link', () => {
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main')
   })
 })
+
+describe('DesktopShell „Нова игра“ (PasDuel desktop header)', () => {
+  it('offers the new game screen from a running game, since „Игра“ resumes it', () => {
+    wrap(<DesktopShell scene={IDLE_SCENE}>x</DesktopShell>, '/play/g1')
+    expect(screen.getByRole('button', { name: 'Нова игра' })).toBeInTheDocument()
+  })
+
+  it.each(['/new'])('is not shown on %s', (at) => {
+    wrap(<DesktopShell scene={IDLE_SCENE}>x</DesktopShell>, at)
+    expect(screen.queryByRole('button', { name: 'Нова игра' })).toBeNull()
+  })
+
+  it('is not shown while signed out', () => {
+    wrap(
+      <DesktopShell scene={IDLE_SCENE} bare>
+        x
+      </DesktopShell>,
+      '/login',
+    )
+    expect(screen.queryByRole('button', { name: 'Нова игра' })).toBeNull()
+  })
+})

@@ -21,6 +21,8 @@ export interface ShellProps {
   hud?: ReactNode
   /** Where the hud sits: `top` (solo chips) or `bottom`, just above the panel (PasDuel opponent strip). */
   hudAt?: 'top' | 'bottom'
+  /** Mobile only: PasDuel's row at the top of the scene (back to the setup, title, sound), at every height. */
+  topHud?: ReactNode
 }
 
 /** PasDuel desktop: the strip ends 34px above the scene card's lower edge. */

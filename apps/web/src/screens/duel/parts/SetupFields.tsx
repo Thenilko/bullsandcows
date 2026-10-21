@@ -2,6 +2,7 @@ import { totalCodes, type Len } from '@bc/game-core'
 import type { DuelFormat } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
 import { Pill, Toggle } from '../../../components/ui'
+import { BullIcon, CowIcon, ScarecrowIcon } from '../../../components/ui/icons'
 import type { BotLevel, Opponent, PickedMode, SetupForm } from '../useSetupForm'
 import { OptionGrid } from './OptionGrid'
 
@@ -15,12 +16,27 @@ const LEVELS = [
 ] as const satisfies readonly { level: BotLevel; key: string }[]
 export const SETUP_NOTE = { margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)', textAlign: 'center', lineHeight: 1.45 } as const
 
+/** The prototype's mode pictures: a bull for solo, a bull next to a cow for a duel, the scarecrow for the bot. */
+function ModeIcon({ mode }: { mode: PickedMode }) {
+  if (mode === 'solo') return <BullIcon size={40} />
+  if (mode === 'bot') return <ScarecrowIcon size={40} />
+  return (
+    <span style={{ display: 'flex' }} data-icon="duel">
+      <BullIcon size={32} />
+      <span style={{ display: 'flex', marginLeft: -10, marginTop: 6 }}>
+        <CowIcon size={32} />
+      </span>
+    </span>
+  )
+}
+
 export function ModeSwitch({ mode, onPick }: { mode: PickedMode; onPick(m: PickedMode): void }) {
   const { t } = useTranslation()
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }} role="group" aria-label={t('newGame.modeGroup')}>
       {MODES.map((m) => (
         <button key={m} type="button" className={`mode${m === mode ? ' on' : ''}`} aria-pressed={m === mode} onClick={() => onPick(m)}>
+          <ModeIcon mode={m} />
           {t(`newGame.mode.${m}.name`)}
           <small>{t(`newGame.mode.${m}.desc`)}</small>
         </button>

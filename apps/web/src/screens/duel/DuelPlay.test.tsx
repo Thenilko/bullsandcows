@@ -41,6 +41,14 @@ describe('DuelPlay', () => {
     expect(screen.getByTestId('opp-progress')).toBeInTheDocument()
   })
 
+  it('shows the PasDuel top row over the scene: back to the setup, the title, the sound toggle', () => {
+    show()
+    const back = screen.getByRole('button', { name: 'Към нова игра' })
+    expect(back.closest('main')).toBeNull()
+    expect(screen.getByText(/^Дуел · /)).toHaveClass('ps-hud')
+    expect(screen.getByRole('button', { name: /звука/ })).toBeInTheDocument()
+  })
+
   it('enables the keypad on my turn', () => {
     show()
     expect(digit('1')).toBeEnabled()

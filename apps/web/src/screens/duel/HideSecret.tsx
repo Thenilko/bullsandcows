@@ -3,6 +3,7 @@ import type { ClientMsg, PublicState } from '@bc/protocol'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Shell } from '../../app/layouts/Shell'
+import { DuelTopRow } from './parts/TopRow'
 import { Keypad, Slots } from '../../components/ui'
 import { useDuelStore } from '../../features/duel/store'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
@@ -33,7 +34,7 @@ export function HideSecret({ roomId, state, send }: HideSecretProps) {
 
   const display = showDigits ? cur : MASK.repeat(cur.length)
   return (
-    <Shell scene={IDLE_SCENE} sceneSide panelTop={PANEL_TOP}>
+    <Shell scene={IDLE_SCENE} sceneSide panelTop={PANEL_TOP} topHud={<DuelTopRow title={t('duel.title.secret')} />}>
       <section aria-label={t('duel.title.secret')} style={COL}>
         <h1 className="rise" style={{ margin: 0, fontSize: 26, fontWeight: 900 }}>
           {t('duel.secret.title')}

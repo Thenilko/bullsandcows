@@ -46,8 +46,30 @@ async function expectCountdownCoversViewport(page: Page, layer: Locator) {
   expect([Math.round(box.x), Math.round(box.y), Math.round(box.width), Math.round(box.height)]).toEqual([0, 0, vp.width, vp.height])
 }
 
+/** Scrolls the panel and every scrolling block inside it (the duel tail under the keypad) to the end. */
 async function scrollPanelToEnd(page: Page) {
-  await page.locator('main').evaluate((el) => el.scrollTo(0, el.scrollHeight))
+  await page.locator('main').evaluate((main) => {
+    for (const el of [main, ...main.querySelectorAll<HTMLElement>('*')]) {
+      const { overflowY } = getComputedStyle(el)
+      if (overflowY === 'auto' || overflowY === 'scroll') el.scrollTo(0, el.scrollHeight)
+    }
+  })
+}
+
+/**
+ * PasDuel compact play: the scene keeps at least 230px (200px under 640px), so the fence and the animals of
+ * the bottom-aligned meadow stay in view; the opponent strip sits under the top row (back, title, sound).
+ */
+async function expectDuelScene(page: Page) {
+  const vp = page.viewportSize()!
+  const scene = (await page.getByTestId('scene').boundingBox())!
+  const minScene = vp.height < 640 ? 200 : 230
+  expect(scene.height, `scene height ${scene.height} within [${minScene}, 380]`).toBeGreaterThanOrEqual(minScene)
+  expect(scene.height).toBeLessThanOrEqual(380)
+  const strip = page.locator('.ostrip')
+  await expectInViewport(page, strip)
+  expect(Math.round((await strip.boundingBox())!.y)).toBe(60)
+  await expectInViewport(page, page.getByRole('button', { name: 'Към нова игра' }))
 }
 
 test('solo: new game, start card, full-screen countdown, focus mode, „Меню“', async ({ page }) => {
@@ -135,8 +157,10 @@ test('bot race: setup button, „Готов!“, countdown and the race panel fi
 
   // MK11: the race panel.
   await expectFocusMode(page)
+  await expectDuelScene(page)
   await typeGuess(page, '5678')
   await expectFocusMode(page)
+  await expectDuelScene(page)
   await expect(page.getByRole('button', { name: 'Предавам се' })).toBeEnabled()
 })
 
@@ -167,5 +191,8 @@ test('bot classic: hide the secret, then the classic panel with the opponent car
 
   // MK12: the keypad stays whole, the opponent card may scroll below it.
   await expectFocusMode(page)
+  await expectDuelScene(page)
   await expect(page.getByText('срещу твоето 9876')).toBeAttached()
+  await scrollPanelToEnd(page)
+  await expectInViewport(page, page.getByRole('button', { name: 'Предавам се' }))
 })

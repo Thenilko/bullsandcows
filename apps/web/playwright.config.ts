@@ -59,6 +59,7 @@ export default defineConfig({
     compact('mk-660', 390, 660),
     compact('mk-667', 375, 667),
     compact('mk-600', 390, 600),
+    compact('mk-630', 390, 630),
     {
       // Screenshot regression and axe over the dev gallery (a build with VITE_DEV_SCREENS=1).
       name: 'gallery',

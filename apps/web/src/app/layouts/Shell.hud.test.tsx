@@ -33,8 +33,8 @@ describe.each([
     )
     const wrapper = getByText('strip').parentElement as HTMLElement
     expect(wrapper.style.top).toBe('')
-    expect(wrapper.style.bottom).not.toBe('')
-    expect(wrapper.style.position).toBe('absolute')
+    const pinned = wrapper.style.bottom !== '' || /hudBottom/.test(wrapper.className)
+    expect(pinned, 'bottom hud wrapper is pinned (inline on desktop, `.hudBottom` on mobile)').toBe(true)
   })
 })
 
