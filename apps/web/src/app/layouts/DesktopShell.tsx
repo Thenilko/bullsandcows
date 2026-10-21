@@ -3,7 +3,6 @@ import { NavLink, useLocation, useNavigate } from 'react-router'
 import { PastureScene } from '../../components/scene'
 import { cx } from '../../components/ui/cx'
 import {
-  BullIcon,
   HomeIcon,
   SoundOffIcon,
   SoundOnIcon,
@@ -35,8 +34,7 @@ export function DesktopShell({ scene, children, sceneSide = false, bare = false,
       </a>
       <header className={styles.header}>
         <div className={styles.brand}>
-          <BullIcon size={40} ring />
-          <span>{t('login.title')}</span>
+          <img src="/logo-horizontal.svg" alt={t('login.title')} width={167} height={56} />
         </div>
         {bare ? null : (
           <nav className={styles.navbar} aria-label={t('nav.main')}>

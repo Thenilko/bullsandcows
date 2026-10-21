@@ -100,7 +100,17 @@ pnpm --filter server exec wrangler rollback            # предишната в
 
 Миграциите на базата не се връщат автоматично; пиши обратна миграция, ако е нужно.
 
-## 9. GitHub secrets и variables за `deploy.yml`
+## 9. Обновяване при клиентите (PWA)
+
+Клиентът е PWA със service worker (`vite-plugin-pwa`, `registerType: 'autoUpdate'`). Новият worker се
+инсталира при следващото отваряне и веднага поема контрола (`skipWaiting` + `clientsClaim` във `vite.config.ts`),
+а `virtual:pwa-register` в `main.tsx` презарежда страницата. Без тези две опции плъгинът оставя новия worker
+„waiting“, докато не се затворят всички табове, и телефонът продължава да показва стария билд.
+
+Ако някой клиент все пак е на стара версия: DevTools → Application → Service workers → „skipWaiting“, или
+затваряне на всички табове на сайта (на iPhone — затваряне на добавеното на началния екран приложение).
+
+## 10. GitHub secrets и variables за `deploy.yml`
 
 В GitHub → Settings → Environments → `production`:
 

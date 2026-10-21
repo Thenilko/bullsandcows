@@ -16,11 +16,12 @@ const proxy = {
 
 const pwa = VitePWA({
   registerType: 'autoUpdate',
-  // An external /registerSW.js, never an inline script: the CSP allows only 'self' scripts.
-  injectRegister: 'script',
+  // Registered from main.tsx through `virtual:pwa-register` (bundled, so the 'self'-only CSP is kept): it also
+  // reloads the page once a new worker takes control, which the plugin's plain register script does not.
+  injectRegister: null,
   // The service worker only exists in production builds; dev and tests never register it.
   devOptions: { enabled: false },
-  includeAssets: ['icons/apple-touch-icon.png'],
+  includeAssets: ['favicon.ico', 'favicon.svg', 'icons/apple-touch-icon.png'],
   manifest: {
     name: 'Бикове и крави',
     short_name: 'Пасището',
@@ -37,10 +38,17 @@ const pwa = VitePWA({
     ],
   },
   workbox: {
+    // A new worker takes over at once; without these it waits until every tab of the old one is closed, so a
+    // phone kept showing the previous deploy (the plugin does not set them for `autoUpdate` on its own).
+    skipWaiting: true,
+    clientsClaim: true,
+    cleanupOutdatedCaches: true,
     navigateFallback: '/index.html',
     // API, WebSocket and dev pages are never served from the shell cache.
     navigateFallbackDenylist: [/^\/api\//, /^\/ws\//, /^\/dev\//],
     globPatterns: ['**/*.{js,css,html,png,svg,webmanifest}'],
+    // The share image is for link previews only, never part of the offline shell.
+    globIgnores: ['**/og-image.png'],
     runtimeCaching: [
       {
         urlPattern: ({ url }) => url.pathname.startsWith('/fonts/'),

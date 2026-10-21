@@ -115,11 +115,11 @@ function Header({ desktop }: { desktop: boolean }) {
       </>
     )
   }
+  // M1: the horizontal logo (emblem, wordmark and the tagline) stands in for the title and the subtitle.
   return (
-    <div className="rise">
-      <h1 style={{ margin: 0, fontSize: 34, fontWeight: 900, lineHeight: 1 }}>{t('login.title')}</h1>
-      <p style={{ margin: '6px 0 0', fontSize: 15, fontWeight: 700, color: '#4A5640' }}>{t('login.subtitle')}</p>
-    </div>
+    <h1 className="rise" style={{ margin: 0, lineHeight: 0 }}>
+      <img src="/logo-horizontal.svg" alt={t('login.title')} width={1016} height={340} style={{ width: '100%', maxWidth: 300, height: 'auto' }} />
+    </h1>
   )
 }
 
