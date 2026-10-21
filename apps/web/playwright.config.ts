@@ -21,6 +21,13 @@ const SERVER_VARS = [
   .map((v) => `--var ${v}`)
   .join(' ')
 
+/** Compact phone projects (the MK1–MK12 row): touch + mobile emulation at the heights real browsers leave. */
+const compact = (name: string, width: number, height: number) => ({
+  name,
+  testMatch: /compact\.spec\.ts/,
+  use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium' as const, viewport: { width, height } },
+})
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
@@ -49,6 +56,9 @@ export default defineConfig({
       testMatch: /(solo|duel|bot)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
     },
+    compact('mk-660', 390, 660),
+    compact('mk-667', 375, 667),
+    compact('mk-600', 390, 600),
     {
       // Screenshot regression and axe over the dev gallery (a build with VITE_DEV_SCREENS=1).
       name: 'gallery',
