@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, useLocation } from 'react-router'
 import { PastureScene } from '../../components/scene'
@@ -13,9 +12,7 @@ import {
   QuestionIcon,
 } from '../../components/ui/icons'
 import { LangSwitch } from '../../components/ui/LangSwitch'
-import { useSession } from '../../features/auth/session'
-import { useUpdateSettings } from '../../features/stats/useUpdateSettings'
-import { sfx } from '../../lib/sfx'
+import { useSoundToggle } from '../../features/stats/useSoundToggle'
 import styles from './DesktopShell.module.css'
 import { HUD_BOTTOM_DESKTOP, isTabActive, TABS, type ShellProps } from './shell.types'
 
@@ -24,19 +21,7 @@ const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon, QuestionIcon] as const
 export function DesktopShell({ scene, children, sceneSide = false, bare = false, hud, hudAt = 'top' }: ShellProps) {
   const { t } = useTranslation()
   const { pathname } = useLocation()
-  const [localMuted, setLocalMuted] = useState(() => sfx.isMuted())
-  const me = useSession((s) => s.me)
-  const update = useUpdateSettings()
-  const muted = me ? !me.profile.sound : localMuted
-
-  function toggleSound() {
-    if (me) {
-      update.mutate({ sound: muted })
-      return
-    }
-    sfx.setMuted(!muted)
-    setLocalMuted(!muted)
-  }
+  const { muted, toggle: toggleSound } = useSoundToggle()
 
   return (
     <div className={styles.root}>

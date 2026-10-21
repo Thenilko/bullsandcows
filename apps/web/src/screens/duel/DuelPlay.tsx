@@ -28,11 +28,19 @@ export interface DuelPlayProps {
 }
 
 const COL = { display: 'flex', flexDirection: 'column', gap: 'var(--panel-gap, 10px)' } as const
+// The keypad block never scrolls away; only the chips, the opponent card and „Предавам се“ below it do.
+const SECTION = { ...COL, flex: '1 1 auto', minHeight: 0 } as const
+const HEAD = { ...COL, flex: 'none' } as const
+const TAIL = { ...COL, flex: '0 1 auto', minHeight: 0, overflowY: 'auto' } as const
 /** PasDuel mobile: a 290px scene that the panel overlaps by 24px. */
 const PANEL_TOP = 266
-/** Compact phones: the classic panel (chips, opponent card, give up) fits without scrolling; the scene keeps >= 130px. */
-const COMPACT_PANEL_H = 450
-const GIVE_UP = { minHeight: 32, fontSize: 13, fontWeight: 800, color: 'var(--c-muted-aa)', textDecoration: 'underline' } as const
+const GIVE_UP = {
+  minHeight: 32,
+  fontSize: 13,
+  fontWeight: 800,
+  color: 'var(--c-muted-aa)',
+  textDecoration: 'underline',
+} as const
 
 export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
   const { t } = useTranslation()
@@ -49,48 +57,74 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
   const m = playModel(state, store, now, ended)
   const oppName = m.bot ? t('bot.name') : (state.opp?.username ?? '')
   const mySecret = readMySecret(roomId)
-  const waitOverlay = m.classic && m.playing && !m.myTurn ? { title: m.bot ? t('duel.play.botThinking') : t('duel.play.oppThinking', { name: oppName }), secret: mySecret } : null
+  const waitOverlay =
+    m.classic && m.playing && !m.myTurn
+      ? {
+          title: m.bot ? t('duel.play.botThinking') : t('duel.play.oppThinking', { name: oppName }),
+          secret: mySecret,
+        }
+      : null
 
   return (
     <Shell
       scene={playScene(state, store.parity, store.miss)}
       sceneSide
       panelTop={PANEL_TOP}
-      compactPanelHeight={COMPACT_PANEL_H}
       hudAt="bottom"
       hud={<OppStrip state={state} oppName={oppName} status={m.oppStatus} thinking={m.botTurn} />}
     >
-      <section aria-label={t('duel.title.play', { format: t(`newGame.format.${state.format}.name`) })} style={COL}>
-        <PlayHeader
-          attempt={state.me.guesses.length + 1}
-          turn={m.classic ? (m.myTurn ? 'me' : 'opp') : null}
-          msLeft={m.msLeft}
-          warn={m.warn}
-          clockMs={state.startedAt ? (state.endedAt ?? now) - state.startedAt : 0}
-        />
-        <PlayPad
-          state={state}
-          cur={store.cur}
-          shake={store.shake}
-          errCode={store.errCode}
-          disabled={!m.playing || (m.classic && !m.myTurn)}
-          desktop={desktop}
-          overlay={waitOverlay}
-          onPress={input.press}
-          onBack={input.back}
-          onSubmit={input.submit}
-        />
-        <GuessChips guesses={state.me.guesses} label={t('duel.play.myGuesses')} />
-        {m.classic ? (
-          <OppGuessesCard state={state} oppName={oppName} mySecret={mySecret} />
-        ) : (
-          <p className="cmp-hide" style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)', textAlign: 'center' }}>
-            {m.botTurn ? t('duel.play.botThinking') : t('duel.play.raceNote', { name: oppName })}
-          </p>
-        )}
-        <button type="button" disabled={!m.playing} style={GIVE_UP} onClick={() => send({ t: 'giveUp' })}>
-          {t('duel.play.giveUp')}
-        </button>
+      <section
+        aria-label={t('duel.title.play', { format: t(`newGame.format.${state.format}.name`) })}
+        style={SECTION}
+      >
+        <div style={HEAD}>
+          <PlayHeader
+            attempt={state.me.guesses.length + 1}
+            turn={m.classic ? (m.myTurn ? 'me' : 'opp') : null}
+            msLeft={m.msLeft}
+            warn={m.warn}
+            clockMs={state.startedAt ? (state.endedAt ?? now) - state.startedAt : 0}
+          />
+          <PlayPad
+            state={state}
+            cur={store.cur}
+            shake={store.shake}
+            errCode={store.errCode}
+            disabled={!m.playing || (m.classic && !m.myTurn)}
+            desktop={desktop}
+            overlay={waitOverlay}
+            onPress={input.press}
+            onBack={input.back}
+            onSubmit={input.submit}
+          />
+        </div>
+        <div style={TAIL}>
+          <GuessChips guesses={state.me.guesses} label={t('duel.play.myGuesses')} />
+          {m.classic ? (
+            <OppGuessesCard state={state} oppName={oppName} mySecret={mySecret} />
+          ) : (
+            <p
+              className="cmp-hide"
+              style={{
+                margin: 0,
+                fontSize: 12,
+                fontWeight: 700,
+                color: 'var(--c-muted-aa)',
+                textAlign: 'center',
+              }}
+            >
+              {m.botTurn ? t('duel.play.botThinking') : t('duel.play.raceNote', { name: oppName })}
+            </p>
+          )}
+          <button
+            type="button"
+            disabled={!m.playing}
+            style={GIVE_UP}
+            onClick={() => send({ t: 'giveUp' })}
+          >
+            {t('duel.play.giveUp')}
+          </button>
+        </div>
       </section>
       <OppToast toast={store.toast} name={oppName} />
     </Shell>
@@ -104,7 +138,12 @@ function OppToast({ toast, name }: { toast: ToastInfo | null; name: string }) {
     toast.kind === 'solved'
       ? t('duel.play.toast.solved', { name })
       : toast.kind === 'classic'
-        ? t('duel.play.toast.classic', { name, guess: toast.guess, bulls: toast.bulls, cows: toast.cows })
+        ? t('duel.play.toast.classic', {
+            name,
+            guess: toast.guess,
+            bulls: toast.bulls,
+            cows: toast.cows,
+          })
         : t('duel.play.toast.race', { name, attempt: toast.attempt })
   return (
     <Overlay>

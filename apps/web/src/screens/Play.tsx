@@ -13,7 +13,7 @@ const PANEL_TOP = 356
 function Loading({ failed }: { failed: boolean }) {
   const { t } = useTranslation()
   return (
-    <Shell scene={IDLE_SCENE} panelTop={PANEL_TOP}>
+    <Shell scene={IDLE_SCENE} panelTop={PANEL_TOP} fit>
       <p role="status" style={{ margin: 0, fontWeight: 800 }}>
         {failed ? t('error.ERR_NOT_FOUND') : t('common.loading')}
       </p>
@@ -44,11 +44,7 @@ export function PlayGame({ gameId, notesOpen = false }: { gameId: string; notesO
 
   if (!game || leaving) return <Loading failed={g.loadFailed} />
   return (
-    <Shell
-      scene={g.scene}
-      panelTop={PANEL_TOP}
-      hud={<PlayHud game={game} g={g} desktop={desktop} />}
-    >
+    <Shell scene={g.scene} panelTop={PANEL_TOP} fit hud={<PlayHud game={game} g={g} desktop={desktop} />}>
       {desktop ? <DesktopPlay game={game} g={g} /> : <MobilePlay game={game} g={g} notesOpen={notesOpen} />}
     </Shell>
   )

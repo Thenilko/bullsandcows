@@ -17,6 +17,7 @@ export const DEV_SCREEN_KEYS: readonly string[] = [
   'rules',
   'new-game',
   'play-start',
+  'play-countdown',
   'play-mid',
   'play-win',
   'result-win',

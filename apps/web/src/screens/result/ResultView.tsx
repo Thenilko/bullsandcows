@@ -25,10 +25,8 @@ const SHEET_MOBILE = {
   right: 10,
   bottom: 10,
   maxHeight: 'calc(100dvh - 20px)',
-  padding: '22px 18px 18px',
   borderRadius: 28,
   boxShadow: '0 18px 40px rgba(30,40,20,.3)',
-  gap: 12,
 } as const
 const SHEET_DESKTOP = {
   ...SHEET_BASE,
@@ -204,7 +202,7 @@ export function ResultView({ model, shareLabel, onAgain, onShare, onBoard }: Res
         <Confetti active={model.won} />
       </div>
       <section
-        className={desktop ? 'rise' : 'sheetup'}
+        className={desktop ? 'rise' : 'sheetup result-sheet'}
         aria-label={t('result.area')}
         style={desktop ? SHEET_DESKTOP : SHEET_MOBILE}
       >

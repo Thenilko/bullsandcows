@@ -22,6 +22,16 @@ body {
   margin: 0;
 }
 
+/* Phones: the shell (`.ps-frame`) is a 100dvh column that scrolls inside; the page never scrolls or rubber-bands. */
+@media (max-width: 767px) {
+  html:has(.ps-frame),
+  html:has(.ps-frame) body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+}
+
 body {
   font-family: Nunito, system-ui, sans-serif;
   background: var(--c-paper);
@@ -93,7 +103,87 @@ body {
   color: var(--c-muted-aa);
 }
 
-/* Compact mode cards on short phone viewports (see useIsShort). */
-.mode.compact {
-  padding: 8px 6px;
+/*
+ * Compact phone rules shared by the screens (the MK1–MK12 reference row). `shell` is the mobile shell's
+ * container (MobileShell.module.css), sized 100dvh, so these follow the height the browser really shows.
+ */
+
+/* „‹ Меню“ in the play HUD: only in focus mode, when the tab bar is hidden. */
+.ps-exit {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+}
+
+/* The notebook bottom sheet (M4 / MK6). */
+.nb-sheet {
+  top: 96px;
+}
+
+/* The result sheet (M5 / MK7). */
+.result-sheet {
+  gap: 12px;
+  padding: 22px 18px 18px;
+}
+
+@container shell (max-height: 759px) {
+  .cmp-hide {
+    display: none !important;
+  }
+
+  .ps-exit {
+    display: flex;
+  }
+
+  .nb-sheet {
+    top: 48px;
+  }
+
+  .result-sheet {
+    gap: 10px;
+    padding: 16px 16px 14px;
+  }
+
+  .mode {
+    padding: 8px 6px;
+  }
+}
+
+/* Full-screen 3-2-1 before a solo game (MK2): over everything, for every height. */
+.cd-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  background: rgba(246, 242, 230, 0.72);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+.cd-label {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #4a5640;
+}
+
+.cd-digit {
+  font-size: clamp(96px, 38vw, 160px);
+  font-weight: 900;
+  line-height: 1;
+  color: #b5452f;
+  text-shadow: 0 6px 0 #7e2e1e;
+}
+
+.cd-sub {
+  font-size: 14px;
+  font-weight: 800;
+  color: #4a5640;
 }

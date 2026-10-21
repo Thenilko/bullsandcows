@@ -38,7 +38,10 @@ function show() {
 beforeEach(() => {
   vi.clearAllMocks()
   useSession.setState({ session: null, me: meWith(null) })
-  api.get.mockResolvedValue({ histogram: [0, 0, 10, 10], sample: 20, fallback: true })
+  // The screen refreshes the profile (`currentGameId`) and asks for the distribution.
+  api.get.mockImplementation((url: string) =>
+    Promise.resolve(url.startsWith('/api/me') ? meWith(null) : { histogram: [0, 0, 10, 10], sample: 20, fallback: true }),
+  )
 })
 
 describe('NewGame', () => {

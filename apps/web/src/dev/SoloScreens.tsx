@@ -80,6 +80,7 @@ function SeededNotebook({ children }: { children: ReactNode }) {
 }
 
 const MID_UI = { cur: '5' }
+const COUNTDOWN_UI = { countdown: 'running' } as const
 const WIN_UI = { solved: true, parity: false, lastVerdict: { bulls: 4, cows: 0 } }
 
 export const NewGameScreen = () => (
@@ -89,6 +90,12 @@ export const NewGameScreen = () => (
 )
 export const PlayStartScreen = () => (
   <Seeded game={BASE}>
+    <PlayGame gameId={GAME_ID} />
+  </Seeded>
+)
+/** MK2: the 3-2-1 overlay; the gallery freezes the clock, so it stays on „3“. */
+export const PlayCountdownScreen = () => (
+  <Seeded game={BASE} ui={COUNTDOWN_UI}>
     <PlayGame gameId={GAME_ID} />
   </Seeded>
 )

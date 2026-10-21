@@ -2,7 +2,7 @@ import { lazy, Suspense, type ReactElement } from 'react'
 import { LoginErrorScreen, LoginRegisterScreen, LoginScreen, RulesScreen } from './AuthScreens'
 import { PrimitivesScreen } from './PrimitivesScreen'
 import { SceneIdle, ScenePlay, SceneResult } from './SceneScreens'
-import { NewGameScreen, NotebookScreen, PlayDesktopNotebookScreen, PlayMidScreen, PlayStartScreen, PlayWinScreen } from './SoloScreens'
+import { NewGameScreen, NotebookScreen, PlayCountdownScreen, PlayDesktopNotebookScreen, PlayMidScreen, PlayStartScreen, PlayWinScreen } from './SoloScreens'
 import { DesktopShellScreen, MobileShellScreen } from './ShellScreens'
 
 /** The fallback carries `data-gallery-loading` so Playwright can wait for the real screen. */
@@ -45,6 +45,7 @@ export const devScreens: Record<string, () => ReactElement> = {
   rules: RulesScreen,
   'new-game': NewGameScreen,
   'play-start': PlayStartScreen,
+  'play-countdown': PlayCountdownScreen,
   'play-mid': PlayMidScreen,
   'play-win': PlayWinScreen,
   'result-win': lazyStats('ResultWin'),

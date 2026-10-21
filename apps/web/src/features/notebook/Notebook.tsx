@@ -100,6 +100,11 @@ export function Notebook({ gameId, guesses, left, layout, onClose, footer }: Not
         placeholder={t('notebook.notesPlaceholder')}
         aria-label={t('notebook.myNotes')}
         onChange={(e) => nb.setText(e.target.value)}
+        onFocus={(e) => {
+          const el = e.currentTarget
+          // After the on-screen keyboard has opened, bring the field back into the visible part of the sheet.
+          setTimeout(() => el.scrollIntoView({ block: 'center' }), 300)
+        }}
       />
       <div style={{ display: 'grid', gridTemplateColumns: footer ? '1fr 1fr' : '1fr', gap: 10 }}>
         <Soft small onClick={nb.clearMarks}>

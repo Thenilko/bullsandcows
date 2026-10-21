@@ -11,23 +11,19 @@ export interface ShellProps {
   /** Hides the tab bar (mobile) and the nav items (desktop); used while signed out. */
   bare?: boolean
   /**
-   * Mobile only: top offset of the panel on the 390x844 artboard (the play screens use 356 to show the whole
-   * scene). Giving it also keeps the meadow visible above the panel on shorter viewports.
+   * Mobile only: top offset of the panel on the 390x844 artboard (play screens: 356 solo, 266 duel). Marks the
+   * screen as play-like: on compact phones the scene takes what is left above the panel and the tab bar hides.
    */
   panelTop?: number
-  /**
-   * Mobile only, play-like screens: the panel's height on compact viewports (under 760px), default 312px
-   * (290px under 640px). The keypad has to fit in it without scrolling.
-   */
-  compactPanelHeight?: number
+  /** Mobile play-like screens: the panel keeps its natural height and never scrolls (solo play, MK3). */
+  fit?: boolean
   /** Overlay rendered on top of the scene (HUD chips), as in the prototypes. */
   hud?: ReactNode
   /** Where the hud sits: `top` (solo chips) or `bottom`, just above the panel (PasDuel opponent strip). */
   hudAt?: 'top' | 'bottom'
 }
 
-/** PasDuel: the strip ends 34px above the scene's lower edge, which the panel overlaps by 24px. */
-export const HUD_GAP_ABOVE_PANEL = 10
+/** PasDuel desktop: the strip ends 34px above the scene card's lower edge. */
 export const HUD_BOTTOM_DESKTOP = 34
 
 export const TABS = [

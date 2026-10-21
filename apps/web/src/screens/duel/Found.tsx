@@ -23,7 +23,13 @@ const noop = (): void => undefined
 
 export function Found({ state, send }: FoundProps) {
   const { t } = useTranslation()
-  const startAt = useDuelStore((s) => s.startAt ?? (state.phase === 'countdown' && state.countdownAt !== null ? state.countdownAt + COUNTDOWN_TOTAL_MS : null))
+  const startAt = useDuelStore(
+    (s) =>
+      s.startAt ??
+      (state.phase === 'countdown' && state.countdownAt !== null
+        ? state.countdownAt + COUNTDOWN_TOTAL_MS
+        : null),
+  )
   const running = useCountdownRun(startAt)
   const opp = state.opp
   const bot = state.opponentKind === 'bot'
@@ -37,25 +43,68 @@ export function Found({ state, send }: FoundProps) {
     send({ t: 'ready' })
   }
 
-  const titleKey = bot ? 'duel.found.title.bot' : state.opponentKind === 'friend' ? 'duel.found.title.friend' : 'duel.found.title.human'
-  const label = state.me.ready ? (opp?.ready ? t('duel.found.starting') : t('duel.found.waitingFor', { name: oppName })) : t('duel.found.ready')
+  const titleKey = bot
+    ? 'duel.found.title.bot'
+    : state.opponentKind === 'friend'
+      ? 'duel.found.title.friend'
+      : 'duel.found.title.human'
+  const label = state.me.ready
+    ? opp?.ready
+      ? t('duel.found.starting')
+      : t('duel.found.waitingFor', { name: oppName })
+    : t('duel.found.ready')
   return (
     <Shell scene={IDLE_SCENE} sceneSide>
-      <section aria-label={t(bot ? 'duel.title.foundBot' : 'duel.title.found')} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <h1 className="rise" style={{ margin: 0, fontSize: 26, fontWeight: 900, textAlign: 'center' }}>
+      <section
+        aria-label={t(bot ? 'duel.title.foundBot' : 'duel.title.found')}
+        style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+      >
+        <h1
+          className="rise"
+          style={{ margin: 0, fontSize: 26, fontWeight: 900, textAlign: 'center' }}
+        >
           {t(titleKey, { name: oppName })}
         </h1>
         <Versus state={state} oppName={oppName} />
-        <SettingChips len={state.len} zero={state.zero} format={state.format} extra={bot ? t('newGame.chip.bot', { level: t(`bot.level.${botLevelKey(state.botLevel)}.name`) }) : undefined} />
-        <p style={{ margin: 0, textAlign: 'center', fontWeight: 700, color: '#4A5640', lineHeight: 1.5 }}>{t(`duel.found.rule.${state.format}`)}</p>
-        <Cta disabled={state.me.ready || opp === null} style={{ minHeight: 60, fontSize: 20 }} onClick={ready}>
+        <SettingChips
+          len={state.len}
+          zero={state.zero}
+          format={state.format}
+          extra={
+            bot
+              ? t('newGame.chip.bot', { level: t(`bot.level.${botLevelKey(state.botLevel)}.name`) })
+              : undefined
+          }
+        />
+        <p
+          style={{
+            margin: 0,
+            textAlign: 'center',
+            fontWeight: 700,
+            color: '#4A5640',
+            lineHeight: 1.5,
+          }}
+        >
+          {t(`duel.found.rule.${state.format}`)}
+        </p>
+        <Cta
+          disabled={state.me.ready || opp === null}
+          style={{ minHeight: 60, fontSize: 20 }}
+          onClick={ready}
+        >
           {label}
         </Cta>
-        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)', textAlign: 'center' }}>{t('duel.found.clockNote')}</span>
+        <span
+          style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)', textAlign: 'center' }}
+        >
+          {t('duel.found.clockNote')}
+        </span>
       </section>
       {feedback.readyToast > 0 ? (
         <Overlay>
-          <Toast tick={feedback.readyToast}>{t('duel.found.opponentReady', { name: oppName })}</Toast>
+          <Toast tick={feedback.readyToast}>
+            {t('duel.found.opponentReady', { name: oppName })}
+          </Toast>
         </Overlay>
       ) : null}
       {running ? (
@@ -78,7 +127,9 @@ interface PlayerCardProps {
 
 function PlayerCard({ side, ready, kind, name, sub, waiting = false }: PlayerCardProps) {
   const { t } = useTranslation()
-  const tag = ready ? t('duel.found.status.ready') : t(side === 'L' ? 'duel.found.status.waiting' : 'duel.found.status.waitingDots')
+  const tag = ready
+    ? t('duel.found.status.ready')
+    : t(side === 'L' ? 'duel.found.status.waiting' : 'duel.found.status.waitingDots')
   return (
     <div className={`pcard vs${side}${ready ? ' ready' : ''}`}>
       <Avatar kind={kind} size={64} />
@@ -102,11 +153,24 @@ function Versus({ state, oppName }: { state: PublicState; oppName: string }) {
       : ''
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <PlayerCard side="L" ready={state.me.ready} kind="me" name={state.me.username} sub={t('duel.found.level', { level: state.me.level, rating: state.me.rating })} />
+      <PlayerCard
+        side="L"
+        ready={state.me.ready}
+        kind="me"
+        name={state.me.username}
+        sub={t('duel.found.level', { level: state.me.level, rating: state.me.rating })}
+      />
       <span className="vsx" style={{ fontSize: 26, fontWeight: 900, color: '#B5452F' }}>
         VS
       </span>
-      <PlayerCard side="R" ready={opp?.ready ?? false} kind={bot ? 'bot' : 'human'} name={oppName} sub={sub} waiting={opp === null} />
+      <PlayerCard
+        side="R"
+        ready={opp?.ready ?? false}
+        kind={bot ? 'bot' : 'human'}
+        name={oppName}
+        sub={sub}
+        waiting={opp === null}
+      />
     </div>
   )
 }

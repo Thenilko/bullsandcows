@@ -38,23 +38,35 @@ describe.each([
   })
 })
 
-describe('MobileShell panel', () => {
-  const panel = (bare: boolean) => {
+describe('MobileShell frame', () => {
+  const classes = (props: { bare?: boolean; panelTop?: number; fit?: boolean }) => {
     const { container, unmount } = renderWithI18n(
       <MemoryRouter>
-        <MobileShell scene={IDLE_SCENE} bare={bare}>
+        <MobileShell scene={IDLE_SCENE} {...props}>
           <p>content</p>
         </MobileShell>
       </MemoryRouter>,
     )
-    const cls = container.querySelector('main')?.className ?? ''
+    const root = container.firstElementChild?.firstElementChild as HTMLElement
+    const out = { root: root.className, panelTop: root.style.getPropertyValue('--panel-top'), main: container.querySelector('main')?.className ?? '' }
     unmount()
-    return cls
+    return out
   }
 
-  it('reaches the bottom on bare screens and stops above the tab bar otherwise', () => {
-    expect(panel(true)).toMatch(/panelBare/)
-    expect(panel(false)).not.toMatch(/panelBare/)
-    expect(panel(false)).toMatch(/panelBody/)
+  it('marks bare screens (no tab bar, the panel reaches the bottom)', () => {
+    expect(classes({ bare: true }).root).toMatch(/bare/)
+    expect(classes({}).root).not.toMatch(/bare/)
+    expect(classes({}).main).toMatch(/panelBody/)
+  })
+
+  it('marks play-like screens with their artboard panel top, and `fit` for the non-scrolling solo panel', () => {
+    const band = classes({})
+    expect(band.root).not.toMatch(/play/)
+    expect(band.panelTop).toBe('')
+    const duel = classes({ panelTop: 266 })
+    expect(duel.root).toMatch(/play/)
+    expect(duel.root).not.toMatch(/fit/)
+    expect(duel.panelTop).toBe('266px')
+    expect(classes({ panelTop: 356, fit: true }).root).toMatch(/fit/)
   })
 })

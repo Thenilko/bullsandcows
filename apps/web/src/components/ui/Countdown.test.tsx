@@ -43,4 +43,14 @@ describe('Countdown', () => {
     act(() => void vi.advanceTimersByTime(5000))
     expect(onDone).not.toHaveBeenCalled()
   })
+
+  it('renders the full-screen variant as an assertive status with the label, the digit and the fog line', () => {
+    renderWithI18n(<Countdown screen running onDone={vi.fn()} />)
+    const status = screen.getByRole('status')
+    expect(status.className).toContain('cd-screen')
+    expect(status).toHaveAttribute('aria-live', 'assertive')
+    expect(status).toHaveTextContent('Готови…')
+    expect(status).toHaveTextContent('3')
+    expect(status).toHaveTextContent('Мъглата се вдига щом започнеш')
+  })
 })

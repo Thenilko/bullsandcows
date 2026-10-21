@@ -1,89 +1,146 @@
 /*
- * Mobile shell. Tall viewports (>= 760px) use the 390x844 artboard values; the compact rules below mirror the
- * MK1–MK12 reference row (PasMobile.layout / PasDuel.frame): band screens 130px, login max(120, H - 540),
- * play screens keep a 312px panel (290px under 640px), hide the tab bar and shrink keys and signs.
+ * Mobile shell: a 100dvh flex column (scene, panel, tab bar), never the page scroll.
+ *
+ * Above 760px of visible height the screens keep the 390x844 artboard values. Below it the compact rules of
+ * the MK1–MK12 reference row apply (PasMobile.layout, PasDuel.frame, `.cmp` / `.tiny` in pasishte.css).
+ * The threshold is a container query on `.frame` (sized 100dvh), so it follows the height the browser really
+ * shows: iOS evaluates `@media (max-height)` against the viewport with its toolbars hidden, which is why a
+ * media query never switched on a phone whose visible height was 560–660px.
  */
-.root {
-  --tabbar-h: calc(72px + env(safe-area-inset-bottom, 0px));
-  --panel-top: 190px;
-  --panel-pad: 18px 16px 16px;
-  --panel-gap: 10px;
-  position: relative;
+.frame {
+  container: shell / size;
   height: 100vh;
   height: 100dvh;
-  min-height: 480px;
   overflow: hidden;
   background: #f6f2e6;
+}
+
+.root {
+  --overlap: 26px;
+  --tabbar-h: calc(72px + env(safe-area-inset-bottom, 0px));
+  /* Band screens (rules, board, profile, setup): panel top 190 on the artboard, plus the overlap. */
+  --scene-h: 216px;
+  --panel-pad: 18px 16px;
+  --panel-pb: 16px;
+  --panel-gap: 14px;
+  --hud-bottom: 36px;
+  /* Compact typography and spacing hooks read by the screens. */
+  --h1-size: 30px;
+  --card-pad: 16px;
+  --start-h1: 26px;
+  --start-btn: 66px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   color: #2e3b24;
 }
 
-/* Play-like screens: `--panel-top-tall` and `--panel-h-compact` come inline from MobileShell. */
+/* Signed-out screens have no tab bar: the panel reaches the bottom and carries the safe area. */
+.bare {
+  --panel-pb: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Play-like screens (solo play, duel play, hide secret): `--panel-top` comes inline from the screen. */
 .play {
-  --panel-top: var(--panel-top-tall);
-  --panel-pad: 14px 16px 12px;
+  --scene-h: min(380px, calc(var(--panel-top) + var(--overlap)));
+  --panel-pad: 14px 16px;
+  --panel-pb: 12px;
+  --panel-gap: 10px;
 }
 
 .scene {
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 380px;
+  position: relative;
+  flex: none;
+  height: var(--scene-h);
   overflow: hidden;
   background: #a9d6f0;
 }
 
-/* Play screens: the whole scene stays visible above the panel (the meadow anchors to the panel's edge). */
-.play .scene {
-  height: min(380px, calc(var(--panel-top) + 26px));
+/* Band screens show the top of the 380px artboard (sky, sun, mountains), as the M-series artboards do. */
+.art {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 380px;
+}
+
+/* Play screens show the whole scene; in a shorter box the meadow stays anchored to the panel's edge. */
+.play .art {
+  height: auto;
+  bottom: 0;
 }
 
 .panelBody {
-  top: var(--panel-top);
-  bottom: var(--tabbar-h);
+  position: relative;
+  inset: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: calc(-1 * var(--overlap));
   padding: var(--panel-pad);
+  padding-bottom: var(--panel-pb);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--panel-gap);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
-/* Bare screens have no tab bar: the panel reaches the bottom, as in the prototype. */
-.panelBare {
-  bottom: 0;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-}
-
 .tabbar {
+  position: relative;
+  inset: auto;
+  flex: none;
   height: var(--tabbar-h);
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
 
-@media (max-height: 760px) {
+/* ---- compact: the browser shows less than 760px ---- */
+@container shell (max-height: 759px) {
   .root {
-    --panel-top: 130px;
+    --scene-h: 156px;
+    --panel-gap: 10px;
+    --h1-size: 26px;
+    --card-pad: 12px;
+    --start-h1: 22px;
+    --start-btn: 56px;
   }
 
+  /* Login: the panel starts at max(120, H - 540), never lower than on tall phones. */
   .bare {
-    --panel-top: clamp(120px, calc(100dvh - 540px), 190px);
+    --scene-h: calc(clamp(120px, 100cqh - 540px, 190px) + var(--overlap));
   }
 
+  /* Focus mode: the scene takes what is left above the panel, the tab bar hides („Меню“ in the HUD leads back). */
   .play {
-    --panel-top: min(var(--panel-top-tall), calc(100dvh - var(--panel-h-compact)));
-    --panel-pad: 12px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+    --panel-pad: 12px 14px;
+    --panel-pb: calc(10px + env(safe-area-inset-bottom, 0px));
     --panel-gap: 8px;
+    --hud-bottom: 30px;
   }
 
-  /* Focus mode: the panel takes the tab bar's place; „Меню“ in the HUD leads back. */
+  .play .scene {
+    flex: 1 1 0;
+    height: auto;
+    min-height: 130px;
+    max-height: 380px;
+  }
+
   .play .panelBody {
-    bottom: 0;
+    flex: 0 1 auto;
+  }
+
+  /* Solo play: the panel keeps its natural height (about 312px) and never scrolls. */
+  .play.fit .panelBody {
+    flex: none;
   }
 
   .play .tabbar {
     display: none;
   }
 
-  .play :global(.cmp-hide) {
-    display: none;
+  .hudBottom :global(.ostrip) {
+    padding: 6px 10px;
   }
 
   .play :global(.sign) {
@@ -105,9 +162,9 @@
   }
 }
 
-@media (max-height: 640px) {
+/* ---- tiny: under 640px (iPhone SE with both browser bars) ---- */
+@container shell (max-height: 639px) {
   .play {
-    --panel-top: min(var(--panel-top-tall), calc(100dvh - var(--panel-h-tiny)));
     --panel-gap: 6px;
   }
 

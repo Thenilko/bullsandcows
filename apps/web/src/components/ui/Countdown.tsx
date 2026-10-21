@@ -7,13 +7,18 @@ export interface CountdownProps {
   stepMs?: number
   startAtMs?: number
   onTick?(n: 3 | 2 | 1): void
+  /**
+   * `screen`: the light full-screen overlay of the solo game on phones (MK2: „ГОТОВИ…“, the digit, the fog line).
+   * Default: the dark `.cd` layer that fills its positioned parent (desktop card, duel overlay).
+   */
+  screen?: boolean
 }
 
 const NUMBERS = [3, 2, 1] as const
 const NUMBER_STYLE = { fontSize: 130, fontWeight: 900, lineHeight: 1, color: '#FFFFFF', textShadow: '0 6px 0 #B5452F' } as const
 const LABEL_STYLE = { fontSize: 20, fontWeight: 900, color: '#FFFFFF' } as const
 
-export function Countdown({ running, onDone, stepMs = 700, startAtMs = 2100, onTick }: CountdownProps) {
+export function Countdown({ running, onDone, stepMs = 700, startAtMs = 2100, onTick, screen = false }: CountdownProps) {
   const { t } = useTranslation()
   const [step, setStep] = useState(0)
   const cb = useRef({ onDone, onTick })
@@ -48,8 +53,19 @@ export function Countdown({ running, onDone, stepMs = 700, startAtMs = 2100, onT
 
   const n = NUMBERS[step]
   if (!running || n === undefined) return null
+  if (screen) {
+    return (
+      <div className="cd-screen fadein" role="status" aria-live="assertive">
+        <span className="cd-label">{t('common.getReady')}</span>
+        <span key={n} className="boing cd-digit">
+          {n}
+        </span>
+        <span className="cd-sub">{t('play.fogLifts')}</span>
+      </div>
+    )
+  }
   return (
-    <div className="cd fadein">
+    <div className="cd fadein" role="status" aria-live="assertive">
       <span key={n} className="boing" style={NUMBER_STYLE}>
         {n}
       </span>

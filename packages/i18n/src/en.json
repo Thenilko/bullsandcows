@@ -214,6 +214,7 @@
     "hiddenTitle": "The number is hidden in the fog",
     "exit": "Menu",
     "exitAria": "Leave the game",
+    "fogLifts": "The fog lifts once you start",
     "hiddenText": "The clock only starts when you press “Start”.",
     "orEnter": "or press Enter",
     "tried": "You already tried {{guess}}",
