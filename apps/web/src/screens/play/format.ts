@@ -1,5 +1,12 @@
+import type { GameViewDto } from '@bc/protocol'
 import type { TFunction } from 'i18next'
 import type { UiError } from '../../features/solo/store'
+
+/** „числото на деня“ / „число на деня #127“ / „свободна игра“ (`play.mode.*`), or the title form (`play.modeTitle.*`). */
+export function modeText(t: TFunction, game: Pick<GameViewDto, 'kind' | 'dailyNumber'>, form: 'mode' | 'modeTitle' = 'mode'): string {
+  if (game.kind === 'daily' && game.dailyNumber !== undefined) return t(`play.${form}.dailyN`, { n: game.dailyNumber })
+  return t(`play.${form}.${game.kind}`)
+}
 
 /** Seconds as mm:ss. */
 export function formatClock(totalSec: number): string {

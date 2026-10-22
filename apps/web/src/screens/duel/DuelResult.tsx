@@ -1,4 +1,5 @@
 import type { ClientMsg, PublicState, RatingChangeDto } from '@bc/protocol'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { Shell } from '../../app/layouts/Shell'
@@ -6,6 +7,8 @@ import { Card, Confetti, Soft } from '../../components/ui'
 import { clearRoomSession } from '../../features/duel/useRoom'
 import { clearMySecret } from '../../features/duel/mySecret'
 import { useDuelStore } from '../../features/duel/store'
+import { shareFromDuel, type ShareModel } from '../../features/share/shareModel'
+import { ShareSheet } from '../../features/share/ShareSheet'
 import { rankKeyOf } from '../../lib/rank'
 import { sfx } from '../../lib/sound'
 import { botLevelKey, fmtClock, outcomeOf, type Outcome } from './duelUtils'
@@ -17,6 +20,8 @@ export interface DuelResultProps {
   roomId: string
   state: PublicState
   send(msg: ClientMsg): void
+  /** Starts with the share sheet open (dev gallery). */
+  sharing?: boolean
 }
 
 const HEAD_COLOR: Readonly<Record<Outcome, string>> = { win: '#B5452F', lose: '#4A5640', draw: '#4A7FB0' }
@@ -39,7 +44,7 @@ export function reasonKey(reason: string, outcome: Outcome): string | null {
   }
 }
 
-export function DuelResult({ roomId, state, send }: DuelResultProps) {
+export function DuelResult({ roomId, state, send, sharing = false }: DuelResultProps) {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const ended = useDuelStore((s) => s.ended)
@@ -59,6 +64,12 @@ export function DuelResult({ roomId, state, send }: DuelResultProps) {
     ? t('duel.result.kicker.bot', { level: t(`bot.level.${botLevelKey(state.botLevel)}.name`).toLocaleUpperCase(i18n.language) })
     : t('duel.result.kicker.duel', { format: formatLabel.toLocaleUpperCase(i18n.language) })
   const sub = outcome === 'win' ? t('duel.result.sub.winOpp', { name: oppName }) : outcome === 'draw' ? t('duel.result.sub.draw') : reason === 'solved' ? t('duel.result.sub.loseOpp', { name: oppName }) : t('duel.result.sub.lose')
+  const [share, setShare] = useState<ShareModel | null>(() => (sharing ? shareFromDuel(state, outcome, oppName) : null))
+
+  function openShare() {
+    sfx.play('tap')
+    setShare(shareFromDuel(state, outcome, oppName))
+  }
 
   function newGame() {
     sfx.play('tap')
@@ -81,8 +92,12 @@ export function DuelResult({ roomId, state, send }: DuelResultProps) {
           <RematchButton offer={offer} oppName={oppName} onRematch={() => send({ t: 'rematch' })} />
           <Soft onClick={newGame}>{t('duel.result.newGame')}</Soft>
         </div>
+        <Soft small onClick={openShare}>
+          {t('common.share')}
+        </Soft>
       </section>
       <Confetti active={outcome === 'win'} />
+      {share ? <ShareSheet model={share} onClose={() => setShare(null)} /> : null}
     </Shell>
   )
 }

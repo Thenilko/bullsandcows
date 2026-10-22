@@ -327,6 +327,8 @@
   width: auto;
   overflow: visible;
   padding: 0;
+  /* The immersive rule above turns pointer events off for the column; the modal and the share sheet need them. */
+  pointer-events: auto;
 }
 
 /* ===== PasDuel: new game, the duel screens — the column is the panel card ===== */

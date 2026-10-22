@@ -74,16 +74,21 @@ describe('Result', () => {
     expect(await screen.findByText('elsewhere')).toBeInTheDocument()
   })
 
-  it('copies the share text and shows the copied label for a moment', async () => {
+  it('opens the share sheet with the chat text and copies it', async () => {
     const writeText = vi.fn(async () => undefined)
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
     Object.defineProperty(navigator, 'share', { value: undefined, configurable: true })
     route(wonGame)
-    const share = await screen.findByRole('button', { name: 'Сподели' })
-    fireEvent.click(share)
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Копирано!' })).toBeInTheDocument(),
-    )
-    expect(writeText).toHaveBeenCalledWith('Бикове и крави · 4 цифри · 6 опита · топ 37%')
+    fireEvent.click(await screen.findByRole('button', { name: 'Сподели' }))
+    const sheet = screen.getByRole('dialog', { name: 'Сподели резултата' })
+    const text = sheet.querySelector('.sh-text')?.textContent ?? ''
+    expect(text.split('\n')[0]).toBe('Бикове и крави #127 · 6 опита · 01:36')
+    expect(text.split('\n')).toHaveLength(8)
+    expect(text).toMatch(/Топ 37% днес · http:\/\/localhost:3000\/\?s=share$/)
+    fireEvent.click(screen.getByRole('button', { name: 'Копирай текста' }))
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Копирано!'))
+    expect(writeText).toHaveBeenCalledWith(text)
+    fireEvent.click(screen.getByRole('button', { name: 'Затвори' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 })

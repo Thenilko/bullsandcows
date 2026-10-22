@@ -1,4 +1,4 @@
-import { progress, rankKeyForStars, starsFromTop, topOf, type Len, type Stars } from '@bc/game-core'
+import { progress, rankKeyForStars, starsFromTop, topOf, type Len, type ShareRow, type Stars } from '@bc/game-core'
 import type { DistributionDto, GameViewDto } from '@bc/protocol'
 import { sceneAnimals, type SceneMode } from '../../components/scene'
 import type { SceneProps } from '../../app/layouts/Shell'
@@ -25,6 +25,13 @@ export interface ResultModel {
   secret: string
   attempts: number
   clock: string
+  /** Duration in whole seconds (at least 1). */
+  secs: number
+  finishedAt: number | null
+  /** „#N“ of a daily game, for the share text and card. */
+  dailyNumber: number | null
+  /** My verdicts in order, digits left out (the share text and card). */
+  rows: readonly ShareRow[]
   score: number
   logic: number
   wasted: number
@@ -91,6 +98,10 @@ export function buildResult(game: GameViewDto, dist: DistributionDto): ResultMod
     secret: game.secret ?? '',
     attempts: n,
     clock: formatClock(secs),
+    secs,
+    finishedAt: game.finishedAt,
+    dailyNumber: game.kind === 'daily' ? (game.dailyNumber ?? null) : null,
+    rows: game.guesses.map((g) => ({ bulls: g.bulls, cows: g.cows })),
     score: game.practice ? 0 : (game.score ?? 0),
     logic: n > 0 ? Math.round(((n - wasted) / n) * 100) : 0,
     wasted,

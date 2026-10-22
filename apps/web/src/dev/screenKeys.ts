@@ -42,4 +42,6 @@ export const DEV_SCREEN_KEYS: readonly string[] = [
   'duel-result-win',
   'duel-result-lose',
   'duel-result-draw',
+  'share-sheet',
+  'share-sheet-duel',
 ]

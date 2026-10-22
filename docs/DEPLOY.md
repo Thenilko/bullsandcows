@@ -127,6 +127,7 @@ pnpm --filter server exec wrangler rollback            # предишната в
 | Secret | `DATABASE_URL` | Session pooler връзка **като `pasishte`** (порт 5432, виж стъпка 2) за `drizzle-kit migrate` |
 | Secret | `VITE_SUPABASE_ANON_KEY` | `anon` ключът (публичен, но се пази като secret) за билда на клиента |
 | Variable | `VITE_SUPABASE_URL` | `https://PROJECT.supabase.co` за билда на клиента |
+| Variable | `VITE_PUBLIC_URL` | публичният адрес на играта в споделения текст (`…/?s=share`); без него клиентът ползва origin-а на страницата |
 
 `ci.yml` не изисква тайни (фалшива автентикация, in-memory хранилище, `VITE_AUTH_MODE=fake`).
 
@@ -146,5 +147,5 @@ pnpm dev        # web на :5173 + wrangler dev --env dev на :8787
 
 - Средата `dev` ползва `AUTH_MODE=fake` и `REPO_MODE=memory`: без Supabase и без акаунт.
 - `.dev.vars` и `.env.local` са в `.gitignore`. Реални стойности са нужни само ако пуснеш `AUTH_MODE=supabase` локално.
-- Клиентът чете `VITE_AUTH_MODE`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_DEV_SCREENS` (виж `apps/web/.env.example`).
+- Клиентът чете `VITE_AUTH_MODE`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_DEV_SCREENS`, `VITE_PUBLIC_URL` (виж `apps/web/.env.example`).
 - Проверки: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage`, `pnpm e2e`.

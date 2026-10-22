@@ -1,5 +1,6 @@
-import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { trapTab, useDialogFocus, useEscape } from '../../components/ui/focusTrap'
 import { useKeyboardInset } from '../../hooks/useKeyboardInset'
 import { Notebook, type NotebookProps } from './Notebook'
 
@@ -35,26 +36,6 @@ const GRIP = {
   flex: 'none',
 } as const
 
-const FOCUSABLE =
-  'button:not(:disabled), textarea, a[href], input:not(:disabled), [tabindex]:not([tabindex="-1"])'
-
-/** Keeps Tab / Shift+Tab inside the dialog. */
-function trapTab(e: ReactKeyboardEvent<HTMLElement>): void {
-  if (e.key !== 'Tab') return
-  const items = Array.from(e.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE))
-  const first = items[0]
-  const last = items.at(-1)
-  if (!first || !last) return
-  const active = document.activeElement
-  if (e.shiftKey && (active === first || active === e.currentTarget)) {
-    e.preventDefault()
-    last.focus()
-  } else if (!e.shiftKey && active === last) {
-    e.preventDefault()
-    first.focus()
-  }
-}
-
 /** Mobile notebook: bottom sheet over the play panel; closes on backdrop tap and Escape. */
 export function NotebookSheet(props: SheetProps) {
   // With the on-screen keyboard open the sheet ends above it, so the notes field stays reachable.
@@ -62,16 +43,8 @@ export function NotebookSheet(props: SheetProps) {
   const { t } = useTranslation()
   const { onClose } = props
   const sheet = useRef<HTMLElement>(null)
-  useEffect(() => {
-    sheet.current?.focus()
-  }, [])
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  useDialogFocus(sheet)
+  useEscape(onClose)
 
   return (
     <>

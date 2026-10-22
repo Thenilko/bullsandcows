@@ -20,6 +20,7 @@ function lazyScreen(load: () => Promise<() => ReactElement>): () => ReactElement
 type DuelScreenName = keyof typeof import('./DuelScreens')
 type StatsScreenName = keyof typeof import('./StatsScreens')
 type ResetScreenName = keyof typeof import('./ResetScreens')
+type ExtrasScreenName = keyof typeof import('./ExtrasScreens')
 
 /**
  * Duel and reset gallery screens load on demand so they stay out of the gallery entry chunk (Lighthouse
@@ -28,6 +29,7 @@ type ResetScreenName = keyof typeof import('./ResetScreens')
 const lazyDuel = (name: DuelScreenName) => lazyScreen(async () => (await import('./DuelScreens'))[name])
 const lazyStats = (name: StatsScreenName) => lazyScreen(async () => (await import('./StatsScreens'))[name])
 const lazyReset = (name: ResetScreenName) => lazyScreen(async () => (await import('./ResetScreens'))[name])
+const lazyExtras = (name: ExtrasScreenName) => lazyScreen(async () => (await import('./ExtrasScreens'))[name])
 
 /** Dev-only screen registry; later tasks add their screens here. */
 export const devScreens: Record<string, () => ReactElement> = {
@@ -70,4 +72,6 @@ export const devScreens: Record<string, () => ReactElement> = {
   'duel-result-win': lazyDuel('ResultWinScreen'),
   'duel-result-lose': lazyDuel('ResultLoseScreen'),
   'duel-result-draw': lazyDuel('ResultDrawScreen'),
+  'share-sheet': lazyExtras('ShareSheetScreen'),
+  'share-sheet-duel': lazyExtras('ShareDuelScreen'),
 }

@@ -18,7 +18,7 @@ import type { GameApi } from '../../features/solo/useGame'
 import { useAverageAttempts } from '../../features/solo/useDistribution'
 import { useDesktopMode } from '../../hooks/useDesktopMode'
 import { sfx } from '../../lib/sound'
-import { errorText, formatClock } from './format'
+import { errorText, formatClock, modeText } from './format'
 import { StartCountdown, StartOverlay } from './StartOverlay'
 
 export interface PlayPanelProps {
@@ -61,7 +61,7 @@ function Status({ game }: { game: GameViewDto }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
       <span style={{ fontWeight: 900, fontSize: 15 }}>
-        {t('play.attemptMode', { attempt: game.attempts + 1, mode: t(`play.mode.${game.kind}`) })}
+        {t('play.attemptMode', { attempt: game.attempts + 1, mode: modeText(t, game) })}
       </span>
       {last ? (
         <span style={{ ...ELLIPSIS, fontWeight: 700, fontSize: 13, color: '#4A5640' }}>
@@ -200,7 +200,7 @@ export function DesktopPlay({ game, g }: Omit<PlayPanelProps, 'desktop'>) {
       <section className="card dk-game" aria-label={t('play.inputArea')}>
         <div style={TITLE_ROW}>
           <h2 style={{ margin: 0, fontSize: 22, fontWeight: 900 }}>
-            {t(`play.modeTitle.${game.kind}`)}
+            {modeText(t, game, 'modeTitle')}
           </h2>
           {game.practice ? <Chip>{t('common.practice')}</Chip> : null}
         </div>

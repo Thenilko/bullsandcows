@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import i18n from '../../i18n'
-import { errorText, formatClock } from './format'
+import { errorText, formatClock, modeText } from './format'
 
 describe('formatClock', () => {
   it.each([
@@ -9,6 +9,19 @@ describe('formatClock', () => {
     [61, '01:01'],
     [3599, '59:59'],
   ])('%i s -> %s', (s, out) => expect(formatClock(s)).toBe(out))
+})
+
+describe('modeText', () => {
+  const t = i18n.getFixedT('bg')
+  it('names the daily number when the server sent one', () => {
+    expect(modeText(t, { kind: 'daily', dailyNumber: 127 })).toBe('число на деня #127')
+    expect(modeText(t, { kind: 'daily', dailyNumber: 127 }, 'modeTitle')).toBe('Числото на деня #127')
+  })
+
+  it('falls back to the plain mode names', () => {
+    expect(modeText(t, { kind: 'daily' })).toBe('числото на деня')
+    expect(modeText(t, { kind: 'free', dailyNumber: 3 }, 'modeTitle')).toBe('Свободна игра')
+  })
 })
 
 describe('errorText', () => {

@@ -29,6 +29,7 @@ export const wonGame: GameViewDto = {
     guess('5274', 4, 0, 1),
   ],
   secret: '5274',
+  dailyNumber: 127,
 }
 
 export const lostGame: GameViewDto = {
