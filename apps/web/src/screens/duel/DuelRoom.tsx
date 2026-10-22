@@ -78,7 +78,7 @@ function Connecting({ closed }: { closed: boolean }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   return (
-    <Shell scene={IDLE_SCENE} sceneSide>
+    <Shell scene={IDLE_SCENE} panelCard>
       <section style={{ display: 'flex', flexDirection: 'column', gap: 14, alignItems: 'center', textAlign: 'center' }}>
         <p role={closed ? 'alert' : 'status'} style={{ margin: 0, fontWeight: 800 }}>
           {t(closed ? 'common.offline' : 'common.loading')}

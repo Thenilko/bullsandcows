@@ -23,18 +23,65 @@ describe.each([
     expect(container.querySelector('main')).toHaveTextContent('content')
   })
 
-  it('pins a bottom hud to the lower edge of the visible scene', () => {
-    const { getByText } = renderWithI18n(
+})
+
+describe('bottom hud (the PasDuel opponent strip)', () => {
+  const render = (Shell: typeof MobileShell) =>
+    renderWithI18n(
       <MemoryRouter>
         <Shell scene={IDLE_SCENE} hud={<span>strip</span>} hudAt="bottom">
           <p>content</p>
         </Shell>
       </MemoryRouter>,
     )
+
+  it('mobile: pins it to the lower edge of the visible scene', () => {
+    const { getByText } = render(MobileShell)
     const wrapper = getByText('strip').parentElement as HTMLElement
     expect(wrapper.style.top).toBe('')
-    const pinned = wrapper.style.bottom !== '' || /hudBottom/.test(wrapper.className)
-    expect(pinned, 'bottom hud wrapper is pinned (inline on desktop, `.hudBottom` on mobile)').toBe(true)
+    expect(wrapper.className).toMatch(/hudBottom/)
+  })
+
+  it('desktop: puts it under the scene card, not over the herd', () => {
+    const { getByText } = render(DesktopShell)
+    const wrapper = getByText('strip').parentElement as HTMLElement
+    expect(wrapper.closest('.card')).toBeNull()
+    expect(wrapper.closest('main')).toBeNull()
+    expect(wrapper.previousElementSibling?.querySelector('svg')).not.toBeNull()
+  })
+})
+
+describe('DesktopShell columns', () => {
+  const render = (props: { sceneSide?: boolean; panelCard?: boolean }) => {
+    const { container, unmount } = renderWithI18n(
+      <MemoryRouter>
+        <DesktopShell scene={IDLE_SCENE} {...props}>
+          <p>content</p>
+        </DesktopShell>
+      </MemoryRouter>,
+    )
+    const main = container.querySelector('main') as HTMLElement
+    const out = { main: main.className, sceneCol: (main.previousElementSibling as HTMLElement).className }
+    unmount()
+    return out
+  }
+
+  it('play pages: the scene comes first and the content is bare', () => {
+    const d = render({})
+    expect(d.sceneCol).not.toMatch(/sceneColSide|sceneColDuel/)
+    expect(d.main).not.toMatch(/card/)
+  })
+
+  it('leaderboard and profile: the scene is the narrow second column', () => {
+    expect(render({ sceneSide: true }).sceneCol).toMatch(/sceneColSide/)
+  })
+
+  it('new game and duel pages: PasDuel column widths and one panel card', () => {
+    const d = render({ panelCard: true })
+    expect(d.sceneCol).toMatch(/sceneColDuel/)
+    expect(d.sceneCol).not.toMatch(/sceneColSide/)
+    expect(d.main).toMatch(/\bcard\b/)
+    expect(d.main).toMatch(/panelCard/)
   })
 })
 

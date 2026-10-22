@@ -14,11 +14,11 @@ import { LangSwitch } from '../../components/ui/LangSwitch'
 import { Soft } from '../../components/ui/Soft'
 import { useSoundToggle } from '../../features/stats/useSoundToggle'
 import styles from './DesktopShell.module.css'
-import { HUD_BOTTOM_DESKTOP, isTabActive, TABS, type ShellProps } from './shell.types'
+import { isTabActive, TABS, type ShellProps } from './shell.types'
 
 const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon, QuestionIcon] as const
 
-export function DesktopShell({ scene, children, sceneSide = false, bare = false, hud, hudAt = 'top' }: ShellProps) {
+export function DesktopShell({ scene, children, sceneSide = false, panelCard = false, bare = false, hud, hudAt = 'top' }: ShellProps) {
   const { t } = useTranslation()
   const { pathname } = useLocation()
   const navigate = useNavigate()
@@ -68,15 +68,16 @@ export function DesktopShell({ scene, children, sceneSide = false, bare = false,
         </div>
       </header>
       <div className={styles.main}>
-        <div className={cx(styles.sceneCol, sceneSide && styles.sceneColSide)}>
+        <div className={cx(styles.sceneCol, sceneSide && styles.sceneColSide, panelCard && styles.sceneColDuel)}>
           <div className={cx('card', styles.sceneCard)}>
             <PastureScene {...scene} label={t('nav.play')} />
-            {hud ? (
-              <div style={{ position: 'absolute', left: 16, right: 16, ...(hudAt === 'top' ? { top: 16 } : { bottom: HUD_BOTTOM_DESKTOP, zIndex: 2 }) }}>{hud}</div>
-            ) : null}
+            {hud && hudAt === 'top' ? <div style={{ position: 'absolute', left: 16, right: 16, top: 16 }}>{hud}</div> : null}
           </div>
+          {hud && hudAt === 'bottom' ? <div className={styles.hudBelow}>{hud}</div> : null}
         </div>
-        <main id="main" tabIndex={-1} className={styles.content}>{children}</main>
+        <main id="main" tabIndex={-1} className={cx(styles.content, panelCard && 'card', panelCard && styles.panelCard)}>
+          {children}
+        </main>
       </div>
     </div>
   )

@@ -60,7 +60,7 @@ export function JoinInvite({ preview }: { preview?: InviteInfoDto } = {}) {
 
   const joinable = info?.status === 'waiting'
   return (
-    <Shell scene={IDLE_SCENE} sceneSide>
+    <Shell scene={IDLE_SCENE} panelCard>
       <section aria-label={t('duel.join.title')} style={COL}>
         <h1 className="rise" style={{ margin: 0, fontSize: 28, fontWeight: 900 }}>
           {t('duel.join.title')}

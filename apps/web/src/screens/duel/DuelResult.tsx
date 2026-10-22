@@ -68,7 +68,7 @@ export function DuelResult({ roomId, state, send }: DuelResultProps) {
   }
 
   return (
-    <Shell scene={resultScene(outcome === 'win', state.len)} sceneSide>
+    <Shell scene={resultScene(outcome === 'win', state.len)} panelCard>
       <section aria-label={t('result.area')} style={COL}>
         <ResultHeader kicker={kicker} outcome={outcome} sub={sub} explain={explain ? t(explain, { name: oppName }) : null} />
         <ResultRows rows={rows} />

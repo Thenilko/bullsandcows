@@ -6,8 +6,13 @@ export type SceneProps = Omit<PastureSceneProps, 'className' | 'label'>
 export interface ShellProps {
   scene: SceneProps
   children: ReactNode
-  /** Desktop only: puts the scene in the narrow second column (non-play screens). */
+  /** Desktop only: puts the scene in the narrow second column (PasDesktop: only the leaderboard and the profile). */
   sceneSide?: boolean
+  /**
+   * Desktop only: PasDuel page — the scene column is `1.15 1 460px` and the content is one panel card
+   * (`#FFFDF6`, radius 28, padding 28). New game and every duel screen.
+   */
+  panelCard?: boolean
   /** Hides the tab bar (mobile) and the nav items (desktop); used while signed out. */
   bare?: boolean
   /**
@@ -24,9 +29,6 @@ export interface ShellProps {
   /** Mobile only: PasDuel's row at the top of the scene (back to the setup, title, sound), at every height. */
   topHud?: ReactNode
 }
-
-/** PasDuel desktop: the strip ends 34px above the scene card's lower edge. */
-export const HUD_BOTTOM_DESKTOP = 34
 
 export const TABS = [
   { to: '/', key: 'nav.play', end: true },

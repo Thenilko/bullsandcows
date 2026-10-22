@@ -138,7 +138,7 @@ export function NewGame({ initial }: { initial?: NewGameInitial }) {
   const resume = (fresh ?? me)?.currentGameId ?? null
 
   return (
-    <Shell scene={IDLE_SCENE} sceneSide>
+    <Shell scene={IDLE_SCENE} panelCard>
       <section aria-label={t('newGame.title')} style={COL}>
         <h1
           className="rise"

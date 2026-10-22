@@ -85,3 +85,23 @@
     top: 16px;
   }
 }
+
+/* PasDuel desktop: the scene column is a little narrower than on the solo play page. */
+.sceneColDuel {
+  flex: 1.15 1 460px;
+}
+
+/* PasDuel's `.dl-panel`: the whole content column is one card. */
+.panelCard {
+  padding: 28px;
+  border-radius: 28px;
+  gap: 14px;
+}
+
+/*
+ * PasDuel overlays the opponent strip on the scene (bottom: 34px), where it hides the herd running in; on
+ * desktop it sits under the scene card instead, so the whole animation stays visible.
+ */
+.hudBelow {
+  margin-top: -10px;
+}

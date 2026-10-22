@@ -111,7 +111,7 @@ export function InviteView({ invite, settings, copy, expired, elapsedMs, onCopy,
   const { t } = useTranslation()
   const copyLabel = copy === 'copied' ? t('common.copied') : copy === 'failed' ? t('common.copyFailed') : t('duel.invite.copyLink')
   return (
-    <Shell scene={WAIT_SCENE} sceneSide>
+    <Shell scene={WAIT_SCENE} panelCard>
       <section aria-label={t('duel.title.invite')} style={COL}>
         <h1 className="rise" style={{ margin: 0, fontSize: 28, fontWeight: 900 }}>
           {t('duel.invite.title')}

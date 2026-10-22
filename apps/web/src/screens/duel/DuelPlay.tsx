@@ -106,7 +106,7 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
   return (
     <Shell
       scene={playScene(state, store.parity, store.miss)}
-      sceneSide
+      panelCard
       panelTop={PANEL_TOP}
       hudAt="bottom"
       hud={<OppStrip state={state} oppName={oppName} status={m.oppStatus} thinking={m.botTurn} />}
