@@ -162,11 +162,12 @@ export function BoardView(props: BoardViewProps) {
     )
   }
   const showAside = status === 'ready' && data !== undefined
+  // Desk.dc.html (DK6 / DS4): the 640px column stacks the table and the „Твоето място“ card.
   return (
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: showAside ? 'minmax(0, 1.6fr) minmax(240px, 1fr)' : '1fr',
+        gridTemplateColumns: '1fr',
         gap: 24,
         alignItems: 'start',
       }}
