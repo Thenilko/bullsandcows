@@ -324,3 +324,36 @@ input,textarea{font-family:inherit}
 .dk > .fadein{z-index:19}
 .dk > section{z-index:20}
 .dk > div[aria-hidden="true"]{z-index:21}
+/* ===== retention screens (PasExtras) ===== */
+.sh-card{padding:16px;border-radius:22px;background:#FFFDF6;border:2px solid #E7E0CC;box-shadow:0 10px 26px rgba(30,40,20,.12);display:flex;flex-direction:column;gap:12px}
+.sh-cell{width:40px;height:40px;border-radius:10px;background:#E4DDCB;display:flex;align-items:center;justify-content:center;border:2px solid #D6CDB6}
+.sh-cell.sh-b{background:#5E9E46;border-color:#3F7A2E}.sh-cell.sh-c{background:#F2C230;border-color:#C9A033}
+.sh-text{margin:0;padding:12px 14px;border-radius:14px;background:#F3EEDF;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.45;white-space:pre-wrap;color:#2E3B24}
+.md{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:inset 0 0 0 4px rgba(255,255,255,.45),0 0 0 3px var(--ring,#CFC6AE);background:var(--fill,#E9E3D3)}
+.md-xl{width:110px;height:110px;box-shadow:inset 0 0 0 7px rgba(255,255,255,.45),0 0 0 5px var(--ring,#CFC6AE),0 10px 24px rgba(30,40,20,.2)}
+.md-none{--fill:#E9E3D3;--ring:#CFC6AE}.md-bronze{--fill:#E7B98A;--ring:#9C6B3A}.md-silver{--fill:#DCE3EA;--ring:#8C98A4}.md-gold{--fill:#F6D774;--ring:#B8860B}
+.md-dot{width:14px;height:14px;border-radius:50%;background:var(--fill);box-shadow:0 0 0 2px var(--ring)}
+.bdg{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px 8px;border-radius:16px;background:#FFFFFF;border:1.5px solid #ECE5D2;text-align:center;transition:transform .15s}
+.bdg:hover{transform:translateY(-2px)}
+.bdg.locked .md{filter:grayscale(1);opacity:.55}.bdg.locked .bdg-name{color:#9CA394}
+.bdg.hidden .md{filter:none;opacity:.7}
+.bdg-name{font-size:11px;font-weight:800;line-height:1.2;color:#2E3B24;min-height:26px;display:flex;align-items:center}
+.pips{display:flex;gap:3px}.pips i{width:7px;height:7px;border-radius:50%;background:#E4DDCB}
+.pips i.on1{background:#C98A4B}.pips i.on2{background:#9AA6B2}.pips i.on3{background:#E2B44A}
+.step{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border-radius:14px;background:#F3EEDF;font-size:12px;font-weight:800;color:#6B7560}
+.step b{font-size:14px;color:#2E3B24}.step.done{background:#E7F2DD;color:#3F7A2E}
+.codebox{width:48px;height:56px;border-radius:12px;border:2px solid #DCD4BF;background:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#2E3B24}
+.codebox.cur{border-color:#B5452F;box-shadow:0 0 0 4px rgba(181,69,47,.15)}
+.unl{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;background:#FFFFFF;border:1.5px solid #ECE5D2}
+.unl.off{background:#F3EEDF}.unl-ic{width:48px;height:48px;border-radius:12px;background:#E7F2DD;display:flex;align-items:center;justify-content:center;flex:none}
+.unl.off .unl-ic{background:#ECE7D8}
+.swatch{width:36px;height:36px;border-radius:10px;box-shadow:inset 0 0 0 2px rgba(0,0,0,.15);opacity:.45}
+.swatch.on{opacity:1;box-shadow:0 0 0 3px #FFFFFF,0 0 0 5px #2E3B24}
+.wk-plank{margin-top:-6px;align-self:center;padding:10px 26px 12px;border-radius:16px;text-align:center;display:flex;flex-direction:column;color:#FFF8EA;background-color:#C48E55;background-image:repeating-linear-gradient(0deg,rgba(90,50,20,.10) 0 2px,rgba(0,0,0,0) 2px 7px);border:3px solid #6A4426;box-shadow:0 5px 0 #6A4426;text-shadow:0 2px 0 rgba(70,40,15,.45);transform:rotate(-1.5deg)}
+.wk-chip{background:#FFFFFF;border:1.5px solid #DCD4BF;color:#2E3B24}
+@keyframes pw-wag{0%,100%{transform:rotate(0)}50%{transform:rotate(-24deg)}}
+@keyframes pw-nod{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@keyframes pw-buzz{0%{transform:translate(0,0)}25%{transform:translate(3px,-2px)}50%{transform:translate(-2px,2px)}75%{transform:translate(2px,3px)}100%{transform:translate(0,0)}}
+.pw-tailwag{transform-box:fill-box;transform-origin:0 100%;animation:pw-wag .5s ease-in-out infinite}
+.pw-nod{transform-box:fill-box;transform-origin:50% 100%;animation:pw-nod 3s ease-in-out infinite}
+.pw-bees circle{animation:pw-buzz 1s linear infinite}.pw-bees circle:nth-child(2){animation-duration:1.3s}.pw-bees circle:nth-child(3){animation-duration:.8s}
