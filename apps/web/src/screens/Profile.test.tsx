@@ -56,6 +56,7 @@ describe('Profile', () => {
   it('shows level, title, xp, stats and badges', async () => {
     const { container } = show()
     expect(await screen.findByText('Говедар · ниво 2')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Бик, Говедар' })).toBeInTheDocument()
     expect(screen.getByText('650 / 1500 т. до ниво 3')).toBeInTheDocument()
     expect(screen.getByText('83%')).toBeInTheDocument()
     expect(screen.getByText('рейтинг 1240')).toBeInTheDocument()
@@ -112,5 +113,6 @@ describe('Profile', () => {
     get.mockResolvedValue({ ...meFixture, profile: { ...meFixture.profile, isGuest: true } })
     show()
     expect(await screen.findByRole('button', { name: 'Направи си профил' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Бик, Теленце' })).toBeInTheDocument()
   })
 })

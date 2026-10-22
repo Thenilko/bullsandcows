@@ -1,14 +1,13 @@
 import { XP_PER_LEVEL } from '@bc/game-core'
 import type { MeDto } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
-import { BullIcon } from '../../components/ui'
+import { RankAvatar } from '../../components/ui'
+import { myRankKey } from '../../lib/rank'
 
 const AVATAR = {
   width: 84,
   height: 84,
   borderRadius: '50%',
-  background: '#F2C230',
-  border: '4px solid #FFFFFF',
   boxShadow: '0 6px 16px rgba(30,40,20,.2)',
   display: 'flex',
   alignItems: 'center',
@@ -18,9 +17,9 @@ const AVATAR = {
 export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: boolean }) {
   const { t } = useTranslation()
   const width = Math.min(100, Math.round((me.xpIntoLevel / XP_PER_LEVEL) * 100))
-  const avatar = desktop
-    ? { ...AVATAR, width: 110, height: 110, border: '5px solid #FFFFFF', flex: 'none' }
-    : AVATAR
+  const avatarSize = desktop ? 110 : 84
+  const avatar = desktop ? { ...AVATAR, width: avatarSize, height: avatarSize, flex: 'none' } : AVATAR
+  const rankKey = myRankKey(me)
   const info = (
     <>
       <h1
@@ -83,7 +82,7 @@ export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: bo
         }}
       >
         <span className="float" style={avatar}>
-          <BullIcon size={60} />
+          <RankAvatar species="bull" rankKey={rankKey} size={avatarSize} />
         </span>
         {info}
       </header>
@@ -95,7 +94,7 @@ export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: bo
       style={{ padding: 28, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 24 }}
     >
       <span className="float" style={avatar}>
-        <BullIcon size={78} />
+        <RankAvatar species="bull" rankKey={rankKey} size={avatarSize} />
       </span>
       <div style={{ flex: 1, minWidth: 220, display: 'flex', flexDirection: 'column', gap: 6 }}>
         {info}

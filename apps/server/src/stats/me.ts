@@ -3,6 +3,8 @@ import type { BucketDto, MeDto, ProfileDto, RecentGameDto } from '@bc/protocol'
 import type { Profile, PublicGameRow } from '../ports/repo'
 
 export const RECENT_GAMES = 10
+/** Guests have no progression: they are always „Теленце“. */
+export const GUEST_RANK: MeDto['rankKey'] = 'calf'
 const BUCKET_FIRST = 3
 const BUCKET_LAST = 10
 
@@ -30,7 +32,7 @@ export function levelInfo(
     xp: profile.xp,
     level,
     xpIntoLevel: xpIntoLevel(profile.xp),
-    rankKey: rankKeyForLevel(level),
+    rankKey: profile.isGuest ? GUEST_RANK : rankKeyForLevel(level),
     rating: displayRating(profile.rating),
   }
 }

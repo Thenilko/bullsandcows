@@ -29,6 +29,7 @@ describe('Result', () => {
     expect(await screen.findByText('ТОП 37%')).toBeInTheDocument()
     expect(screen.getByLabelText('3 от 5 звезди')).toBeInTheDocument()
     expect(screen.getByText('Пастир')).toBeInTheDocument()
+    expect(container.querySelector('[data-rank-head="pastor"]')).toHaveAttribute('aria-hidden', 'true')
     expect(screen.getByText('ориентировъчно')).toBeInTheDocument()
     expect(screen.getByText('ЧИСЛОТО Е 5274')).toBeInTheDocument()
     expect(screen.getByText('Денят изгря!')).toBeInTheDocument()

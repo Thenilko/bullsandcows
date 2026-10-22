@@ -140,6 +140,8 @@ export interface LeaderboardRow {
   readonly username: string
   readonly attempts: number
   readonly score: number
+  /** The player's total xp, for their level and title next to the name. */
+  readonly xp: number
 }
 
 /** Won counted daily games of several days at once (for "top X%" of past days). */

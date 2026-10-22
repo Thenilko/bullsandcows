@@ -509,6 +509,10 @@
     "steward": "Steward",
     "chiefBull": "Chief Bull"
   },
+  "species": {
+    "bull": "Bull",
+    "cow": "Cow"
+  },
   "badge": {
     "firstBull": { "name": "First bull", "desc": "First win" },
     "noWaste": { "name": "No wasted move", "desc": "A win without an illogical guess" },

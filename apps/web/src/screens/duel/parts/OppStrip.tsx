@@ -1,6 +1,7 @@
 import { progress, totalCodes, type Len } from '@bc/game-core'
 import type { PublicState } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
+import { rankKeyOf } from '../../../lib/rank'
 import { Avatar } from './Avatar'
 
 export type OppStatus = 'solved' | 'thinking' | 'waiting' | 'trying'
@@ -28,7 +29,12 @@ export function OppStrip({ state, oppName, status, thinking }: OppStripProps) {
   const width = Math.round(progress(Math.max(1, opp.left), total).prog * 100)
   return (
     <div className="ostrip rise" aria-label={oppName}>
-      <Avatar kind={state.opponentKind === 'bot' ? 'bot' : 'human'} size={42} thinking={thinking} />
+      <Avatar
+        kind={state.opponentKind === 'bot' ? 'bot' : 'human'}
+        rankKey={rankKeyOf(opp)}
+        size={42}
+        thinking={thinking}
+      />
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
           <b style={{ fontSize: 15 }}>{oppName}</b>

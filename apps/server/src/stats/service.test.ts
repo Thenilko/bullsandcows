@@ -1,4 +1,4 @@
-import { FALLBACK_HISTOGRAM, MIN_SAMPLE, sofiaDate } from '@bc/game-core'
+import { FALLBACK_HISTOGRAM, levelFromXp, MIN_SAMPLE, rankKeyForLevel, sofiaDate } from '@bc/game-core'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createMemoryRepo } from '../adapters/repo/memory'
 import type { AuthUser } from '../ports/auth'
@@ -132,12 +132,26 @@ describe('leaderboard', () => {
     await played({ ...daily, userId: ivo.id, practice: true }, { score: 1100, attempts: 2 })
     const board = await stats.leaderboard(mira, q)
     expect(board.rows).toEqual([
-      { rank: 1, username: 'Rada', attempts: 4, score: 900, you: false },
-      { rank: 2, username: 'Ivo', attempts: 5, score: 800, you: false },
-      { rank: 3, username: 'Mira', attempts: 6, score: 700, you: true },
+      { rank: 1, username: 'Rada', attempts: 4, score: 900, you: false, level: 1, rankKey: 'herdsman' },
+      { rank: 2, username: 'Ivo', attempts: 5, score: 800, you: false, level: 1, rankKey: 'herdsman' },
+      { rank: 3, username: 'Mira', attempts: 6, score: 700, you: true, level: 1, rankKey: 'herdsman' },
     ])
     expect(board.me).toMatchObject({ rank: 3, score: 700 })
     expect(board.me?.top).toBeGreaterThan(0)
+  })
+
+  it('gives each row the level and title of its player', async () => {
+    const xp = 20_000
+    await repo.profiles.addXp(rada.id, xp)
+    await played({ ...daily, userId: rada.id }, { score: 900 })
+    await played({ ...daily, userId: mira.id }, { score: 700 })
+    const board = await stats.leaderboard(mira, q)
+    const level = levelFromXp(xp)
+    expect(level).toBeGreaterThan(1)
+    expect(board.rows.map((r) => [r.username, r.level, r.rankKey])).toEqual([
+      ['Rada', level, rankKeyForLevel(level)],
+      ['Mira', 1, rankKeyForLevel(1)],
+    ])
   })
 
   it('has no "me" for a player without a ranked game', async () => {
@@ -216,6 +230,13 @@ describe('me', () => {
     expect(me.stats).toEqual({ played: 0, winRate: 0, streak: 0, best: null })
     expect(me.buckets.map((b) => b.attempts)).toEqual([3, 4, 5, 6, 7, 8, 9, 10])
     expect(Object.values(me.badges).some(Boolean)).toBe(false)
+  })
+
+  it('keeps a guest a calf whatever their xp', async () => {
+    await repo.profiles.addXp(guest.id, 20_000)
+    const me = await stats.me(guest)
+    expect(me.level).toBeGreaterThan(1)
+    expect(me.rankKey).toBe('calf')
   })
 
   it('counts solo, bot and duel games but not practice', async () => {

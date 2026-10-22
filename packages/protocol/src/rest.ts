@@ -75,6 +75,7 @@ export const RankKeySchema = z.enum([
   'steward',
   'chiefBull',
 ])
+export type RankKey = z.infer<typeof RankKeySchema>
 
 export const BADGE_KEYS = [
   'firstBull',
@@ -100,6 +101,8 @@ export const LeaderboardRowDto = z.object({
   attempts: z.number().int(),
   score: z.number().int(),
   you: z.boolean(),
+  level: z.number().int(),
+  rankKey: RankKeySchema,
 })
 export type LeaderboardRowDto = z.infer<typeof LeaderboardRowDto>
 

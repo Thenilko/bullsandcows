@@ -23,7 +23,7 @@ const NOTE = { margin: 0, fontWeight: 700, color: '#4A5640', lineHeight: 1.45 } 
 function podiumRows(data: LeaderboardDto): PodiumRow[] {
   return data.rows.flatMap((r) =>
     r.rank === 1 || r.rank === 2 || r.rank === 3
-      ? [{ rank: r.rank, name: r.username, score: r.score }]
+      ? [{ rank: r.rank, name: r.username, score: r.score, rankKey: r.rankKey }]
       : [],
   )
 }

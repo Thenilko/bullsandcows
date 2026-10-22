@@ -1,8 +1,9 @@
-import type { ClientMsg, PublicState } from '@bc/protocol'
+import type { ClientMsg, PublicState, RankKey } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
 import { Shell } from '../../app/layouts/Shell'
 import { Countdown, Cta, Toast } from '../../components/ui'
 import { useDuelStore } from '../../features/duel/store'
+import { rankKeyOf } from '../../lib/rank'
 import { sfx } from '../../lib/sound'
 import { Avatar } from './parts/Avatar'
 import { Overlay } from './parts/Overlay'
@@ -120,19 +121,20 @@ interface PlayerCardProps {
   side: 'L' | 'R'
   ready: boolean
   kind: 'me' | 'human' | 'bot'
+  rankKey?: RankKey
   name: string
   sub: string
   waiting?: boolean
 }
 
-function PlayerCard({ side, ready, kind, name, sub, waiting = false }: PlayerCardProps) {
+function PlayerCard({ side, ready, kind, rankKey, name, sub, waiting = false }: PlayerCardProps) {
   const { t } = useTranslation()
   const tag = ready
     ? t('duel.found.status.ready')
     : t(side === 'L' ? 'duel.found.status.waiting' : 'duel.found.status.waitingDots')
   return (
     <div className={`pcard vs${side}${ready ? ' ready' : ''}`}>
-      <Avatar kind={kind} size={64} />
+      <Avatar kind={kind} rankKey={rankKey} size={64} />
       <b style={{ fontSize: 17 }}>{waiting ? '…' : name}</b>
       <span style={{ fontSize: 12, fontWeight: 800, color: '#4A5640' }}>{sub}</span>
       <span className="tag" style={ready ? READY_TAG : WAIT_TAG}>
@@ -157,6 +159,7 @@ function Versus({ state, oppName }: { state: PublicState; oppName: string }) {
         side="L"
         ready={state.me.ready}
         kind="me"
+        rankKey={rankKeyOf(state.me)}
         name={state.me.username}
         sub={t('duel.found.level', { level: state.me.level, rating: state.me.rating })}
       />
@@ -167,6 +170,7 @@ function Versus({ state, oppName }: { state: PublicState; oppName: string }) {
         side="R"
         ready={opp?.ready ?? false}
         kind={bot ? 'bot' : 'human'}
+        rankKey={opp ? rankKeyOf(opp) : undefined}
         name={oppName}
         sub={sub}
         waiting={opp === null}

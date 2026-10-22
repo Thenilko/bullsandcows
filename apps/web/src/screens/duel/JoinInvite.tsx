@@ -1,3 +1,4 @@
+import { rankKeyForLevel } from '@bc/game-core'
 import type { InviteInfoDto } from '@bc/protocol'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -67,7 +68,7 @@ export function JoinInvite({ preview }: { preview?: InviteInfoDto } = {}) {
         </h1>
         {info ? (
           <Card style={{ width: '100%', padding: 20, ...COL, gap: 8 }}>
-            <Avatar kind="human" size={64} />
+            <Avatar kind="human" rankKey={rankKeyForLevel(info.host.level)} size={64} />
             <b style={{ fontSize: 20 }}>{info.host.username}</b>
             <span style={{ fontSize: 12, fontWeight: 800, color: '#4A5640' }}>{t('duel.join.hostLevel', { level: info.host.level })}</span>
             <SettingChips {...info.settings} />

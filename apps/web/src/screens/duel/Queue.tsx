@@ -1,3 +1,4 @@
+import type { RankKey } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Shell } from '../../app/layouts/Shell'
@@ -7,6 +8,7 @@ import { useQueue, type QueueError } from '../../features/duel/useQueue'
 import { useSession } from '../../features/auth/session'
 import { useEffect, useState } from 'react'
 import { ApiError } from '../../lib/api'
+import { myRankKey } from '../../lib/rank'
 import { Avatar } from './parts/Avatar'
 import { parseSettings, type MatchSettings } from './parts/params'
 import { SettingChips } from './parts/SettingChips'
@@ -41,6 +43,7 @@ export function Queue() {
   const settings = parseSettings(params)
   const queue = useQueue(settings)
   const level = useSession((s) => s.me?.level ?? 1)
+  const rankKey = useSession((s) => myRankKey(s.me))
   const [inviteError, setInviteError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -69,6 +72,7 @@ export function Queue() {
       settings={settings}
       elapsedMs={queue.elapsedMs}
       level={level}
+      rankKey={rankKey}
       error={queue.error}
       showSuggest={queue.suggestInvite || queue.elapsedMs >= SUGGEST_AFTER_MS}
       inviteError={inviteError}
@@ -83,6 +87,8 @@ export interface QueueViewProps {
   settings: MatchSettings
   elapsedMs: number
   level: number
+  /** My title, for the avatar; the calf for guests. */
+  rankKey?: RankKey
   error: QueueError | null
   showSuggest: boolean
   inviteError: string | null
@@ -91,7 +97,7 @@ export interface QueueViewProps {
   onProfile(): void
 }
 
-export function QueueView({ settings, elapsedMs, level, error, showSuggest, inviteError, onInvite, onCancel, onProfile }: QueueViewProps) {
+export function QueueView({ settings, elapsedMs, level, rankKey, error, showSuggest, inviteError, onInvite, onCancel, onProfile }: QueueViewProps) {
   const { t } = useTranslation()
   return (
     <Shell scene={WAIT_SCENE} panelCard>
@@ -104,7 +110,7 @@ export function QueueView({ settings, elapsedMs, level, error, showSuggest, invi
               <span className="ring" />
               <span className="ring" style={{ animationDelay: '.8s' }} />
               <span className="ring" style={{ animationDelay: '1.6s' }} />
-              <Avatar kind="me" size={76} />
+              <Avatar kind="me" rankKey={rankKey} size={76} />
             </div>
             <h1 style={{ margin: 0, fontSize: 26, fontWeight: 900 }}>
               {t('duel.queue.title')}

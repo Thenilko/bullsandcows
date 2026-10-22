@@ -1,28 +1,10 @@
 import type { LeaderboardRowDto } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
 import { cx } from '../../components/ui/cx'
+import { RankAvatar } from '../../components/ui/RankAvatar'
 
-export const AVATAR_COLORS = [
-  '#B5452F',
-  '#5E9E46',
-  '#C48E55',
-  '#4A7FB0',
-  '#8E5BA8',
-  '#D08A2E',
-] as const
 const FIRST_LIST_RANK = 4
-
-const AVATAR = {
-  width: 30,
-  height: 30,
-  borderRadius: '50%',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  fontWeight: 900,
-  fontSize: 13,
-  color: '#FFFFFF',
-} as const
+const ROW_AVATAR = 30
 
 const WIDE_COLUMNS = '50px 36px minmax(0, 1fr) 80px 90px'
 const HEAD = { fontSize: 12, fontWeight: 900, letterSpacing: '.06em', color: 'var(--c-muted-aa)' } as const
@@ -83,12 +65,7 @@ export function BoardRows({
             }}
           >
             <span style={{ fontWeight: 900, color: 'var(--c-muted-aa)', textAlign: 'center' }}>{r.rank}</span>
-            <span
-              aria-hidden="true"
-              style={{ ...AVATAR, background: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
-            >
-              {Array.from(r.username)[0] ?? '?'}
-            </span>
+            <RankAvatar species="bull" rankKey={r.rankKey} size={ROW_AVATAR} />
             <span
               style={{
                 fontWeight: 800,

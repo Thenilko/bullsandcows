@@ -1,4 +1,12 @@
-import { FALLBACK_HISTOGRAM, pickHistogram, sofiaDate, topOf, type Len } from '@bc/game-core'
+import {
+  FALLBACK_HISTOGRAM,
+  levelFromXp,
+  pickHistogram,
+  rankKeyForLevel,
+  sofiaDate,
+  topOf,
+  type Len,
+} from '@bc/game-core'
 import type { DistributionDto, LeaderboardDto, MeDto, SettingsPatch } from '@bc/protocol'
 import { ensureProfile } from '../auth/profiles'
 import { AppError } from '../http/errors'
@@ -114,13 +122,18 @@ export class StatsService {
     const date = this.today()
     const query = { ...q, date, weekStartMs: sofiaWeekStart(this.deps.clock.now()) }
     const rows = await this.deps.repo.games.leaderboard(query)
-    const ranked = rows.map((r, i) => ({
-      rank: i + 1,
-      username: r.username,
-      attempts: r.attempts,
-      score: r.score,
-      you: r.userId === user.id,
-    }))
+    const ranked = rows.map((r, i) => {
+      const level = levelFromXp(r.xp)
+      return {
+        rank: i + 1,
+        username: r.username,
+        attempts: r.attempts,
+        score: r.score,
+        you: r.userId === user.id,
+        level,
+        rankKey: rankKeyForLevel(level),
+      }
+    })
     // Below the repo's list the caller's place is counted separately.
     const place: LeaderboardPlace | null =
       ranked.find((r) => r.you) ??

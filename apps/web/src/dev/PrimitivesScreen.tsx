@@ -36,9 +36,9 @@ type Period = 'today' | 'week' | 'all'
 
 const MARKS: Readonly<Record<string, DigitMark>> = { '1': 1, '7': 2 }
 const PODIUM = [
-  { rank: 1, name: 'Mila', score: 980 },
-  { rank: 2, name: 'Ivo', score: 870 },
-  { rank: 3, name: 'Desi', score: 760 },
+  { rank: 1, name: 'Mila', score: 980, rankKey: 'chiefBull' },
+  { rank: 2, name: 'Ivo', score: 870, rankKey: 'steward' },
+  { rank: 3, name: 'Desi', score: 760, rankKey: 'pastor' },
 ] as const
 
 function Section({ title, children }: { title: string; children: ReactNode }) {

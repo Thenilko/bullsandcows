@@ -58,6 +58,7 @@ export function rankLeaderboard(
       username: profiles.get(g.userId)?.username ?? '',
       attempts: g.attempts,
       score: g.score,
+      xp: profiles.get(g.userId)?.xp ?? 0,
     }))
 }
 

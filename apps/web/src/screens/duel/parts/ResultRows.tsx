@@ -1,9 +1,11 @@
+import type { RankKey } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
 import { Avatar } from './Avatar'
 
 export interface ResultRow {
   name: string
   kind: 'me' | 'human' | 'bot'
+  rankKey?: RankKey
   attempts: number
   time: string
   solved: boolean
@@ -18,7 +20,7 @@ export function ResultRows({ rows }: { rows: readonly ResultRow[] }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {rows.map((r, i) => (
         <div key={r.kind} className="hrow rise" style={{ padding: 12, animationDelay: `${0.2 + i * 0.1}s` }}>
-          <Avatar kind={r.kind} size={38} />
+          <Avatar kind={r.kind} rankKey={r.rankKey} size={38} />
           <b style={{ flex: 1, minWidth: 0 }}>{r.name}</b>
           <span style={{ fontWeight: 800, color: '#4A5640' }}>{t('common.attemptsShort', { count: r.attempts })}</span>
           <span style={{ fontWeight: 800, color: '#4A5640', fontVariantNumeric: 'tabular-nums' }}>{r.time}</span>

@@ -1,11 +1,14 @@
+import type { RankKey } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
-import { BullIcon, CowIcon, CrownIcon } from './icons'
+import { CrownIcon } from './icons'
 import { Bar } from './Bar'
+import { RankAvatar } from './RankAvatar'
 
 export interface PodiumRow {
   rank: 1 | 2 | 3
   name: string
   score: number
+  rankKey: RankKey
 }
 
 export interface PodiumProps {
@@ -51,7 +54,9 @@ export function Podium({ rows }: PodiumProps) {
         return (
           <div key={row.rank} className="rise" style={{ ...COL_STYLE, animationDelay: delay }}>
             {i === 0 ? <CrownIcon className="shine" /> : null}
-            <span style={{ ...AVATAR_STYLE, background: COLORS[i] }}>{i === 1 ? <CowIcon /> : <BullIcon />}</span>
+            <span style={{ ...AVATAR_STYLE, background: COLORS[i] }}>
+              <RankAvatar species="bull" rankKey={row.rankKey} size={46} />
+            </span>
             <span style={NAME_STYLE}>{row.name}</span>
             <Bar h={`${HEIGHTS[i]}px`} c={WOOD} d={delay} style={{ ...PLATE_STYLE, borderRadius: '12px 12px 4px 4px' }}>
               <span style={{ fontSize: 24, fontWeight: 900, textShadow: '0 2px 0 rgba(70,40,15,.4)' }}>{row.rank}</span>

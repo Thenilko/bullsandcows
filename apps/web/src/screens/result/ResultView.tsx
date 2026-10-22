@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Chip, Confetti, Cta, Inset, Soft } from '../../components/ui'
+import { Chip, Confetti, Cta, Inset, RankHead, Soft } from '../../components/ui'
 import { Bar } from '../../components/ui/Bar'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import type { ResultModel } from './resultModel'
@@ -76,8 +76,9 @@ function Stars({ model, size }: { model: ResultModel; size: number }) {
           <path d={STAR_PATH} />
         </svg>
       ))}
-      <span style={{ marginLeft: 8, fontWeight: 900, color: '#8E3424' }}>
-        {t(`rank.${model.rankKey}`)}
+      <span style={{ marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        <RankHead species="bull" rankKey={model.rankKey} size={Math.round(size * 1.1)} />
+        <span style={{ fontWeight: 900, color: '#8E3424' }}>{t(`rank.${model.rankKey}`)}</span>
       </span>
     </div>
   )
