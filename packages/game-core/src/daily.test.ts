@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { codes, isValidCode, totalCodes } from './codes'
-import { dailyIndex, dailySecret, sofiaDate } from './daily'
+import { LAUNCH_DATE, dailyIndex, dailyNumber, dailySecret, sofiaDate } from './daily'
 
 describe('sofiaDate', () => {
   it('uses UTC+3 in summer', () => {
@@ -8,6 +8,24 @@ describe('sofiaDate', () => {
   })
   it('uses UTC+2 in winter', () => {
     expect(sofiaDate(new Date('2026-01-10T21:30:00Z'))).toBe('2026-01-10')
+  })
+})
+
+describe('dailyNumber', () => {
+  it('counts from #1 on the launch date', () => {
+    expect(LAUNCH_DATE).toBe('2026-10-22')
+    expect(dailyNumber('2026-10-22')).toBe(1)
+    expect(dailyNumber('2026-10-23')).toBe(2)
+    expect(dailyNumber('2027-02-25')).toBe(127)
+  })
+
+  it('rolls over at Sofia midnight, not UTC midnight', () => {
+    // 2026-10-25 is the switch to winter time: 21:59Z is still 2026-10-25 23:59 in Sofia.
+    expect(dailyNumber(new Date('2026-10-24T20:59:59Z'))).toBe(3)
+    expect(dailyNumber(new Date('2026-10-24T21:00:00Z'))).toBe(4)
+    expect(dailyNumber(new Date('2026-10-25T21:59:59Z'))).toBe(4)
+    expect(dailyNumber(new Date('2026-10-25T22:00:00Z'))).toBe(5)
+    expect(dailyNumber(new Date('2026-10-22T00:00:00Z'))).toBe(1)
   })
 })
 

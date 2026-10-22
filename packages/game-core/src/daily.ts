@@ -19,6 +19,21 @@ export function sofiaDate(now: Date): string {
   return sofiaFormat.format(now)
 }
 
+/** The Sofia calendar date of the first number of the day: that day is #1. */
+export const LAUNCH_DATE = '2026-10-22'
+const DAY_MS = 86_400_000
+
+const dayIndex = (date: string): number => Math.floor(Date.parse(`${date}T00:00:00Z`) / DAY_MS)
+
+/**
+ * The number of the day shown next to the puzzle („#127“): days since `LAUNCH_DATE` in
+ * Europe/Sofia plus one. A 'YYYY-MM-DD' string is taken as a Sofia date already.
+ */
+export function dailyNumber(date: string | Date): number {
+  const sofia = typeof date === 'string' ? date : sofiaDate(date)
+  return dayIndex(sofia) - dayIndex(LAUNCH_DATE) + 1
+}
+
 /** HMAC-SHA256(salt, `${date}|${len}|${zero ? 1 : 0}`); first 8 bytes, big-endian, mod total. */
 export function dailyIndex(salt: string, date: string, len: Len, zero: boolean): number {
   const message = `${date}|${len}|${zero ? 1 : 0}`
