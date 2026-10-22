@@ -1,9 +1,13 @@
 import { MemoryRouter } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { renderWithI18n } from '../../test/render'
+import { IMMERSIVE, mockViewport, resetViewport, SPLIT } from '../../test/viewport'
 import { IDLE_SCENE } from '../../screens/idleScene'
 import { DesktopShell } from './DesktopShell'
 import { MobileShell } from './MobileShell'
+import type { ScreenKey, ShellProps } from './shell.types'
+
+afterEach(resetViewport)
 
 describe.each([
   ['MobileShell', MobileShell],
@@ -12,7 +16,7 @@ describe.each([
   it('renders the hud inside the scene wrapper, not in the content', () => {
     const { getByText, container } = renderWithI18n(
       <MemoryRouter>
-        <Shell scene={IDLE_SCENE} hud={<span>hud-chip</span>}>
+        <Shell scene={IDLE_SCENE} screen="play" hud={<span>hud-chip</span>}>
           <p>content</p>
         </Shell>
       </MemoryRouter>,
@@ -22,14 +26,13 @@ describe.each([
     expect(hud.closest('div')?.parentElement?.querySelector('svg')).not.toBeNull()
     expect(container.querySelector('main')).toHaveTextContent('content')
   })
-
 })
 
 describe('bottom hud (the PasDuel opponent strip)', () => {
   const render = (Shell: typeof MobileShell) =>
     renderWithI18n(
       <MemoryRouter>
-        <Shell scene={IDLE_SCENE} hud={<span>strip</span>} hudAt="bottom">
+        <Shell scene={IDLE_SCENE} screen="duel" hud={<span>strip</span>} hudAt="bottom">
           <p>content</p>
         </Shell>
       </MemoryRouter>,
@@ -42,17 +45,28 @@ describe('bottom hud (the PasDuel opponent strip)', () => {
     expect(wrapper.className).toMatch(/hudBottom/)
   })
 
-  it('desktop: puts it under the scene card, not over the herd', () => {
+  it('desktop immersive: bottom-left of the full-bleed scene, outside the scene box and the column', () => {
+    mockViewport(...IMMERSIVE)
     const { getByText } = render(DesktopShell)
     const wrapper = getByText('strip').parentElement as HTMLElement
-    expect(wrapper.closest('.card')).toBeNull()
+    expect(wrapper).toHaveClass('dk-strip')
+    expect(wrapper.parentElement).toHaveClass('dk')
+    expect(wrapper.closest('.dk-scene')).toBeNull()
     expect(wrapper.closest('main')).toBeNull()
-    expect(wrapper.previousElementSibling?.querySelector('svg')).not.toBeNull()
+  })
+
+  it('desktop split: inside the scene card', () => {
+    mockViewport(...SPLIT)
+    const { getByText } = render(DesktopShell)
+    const wrapper = getByText('strip').parentElement as HTMLElement
+    expect(wrapper).toHaveClass('dk-strip')
+    expect(wrapper.closest('.dk-scene')).not.toBeNull()
+    expect(wrapper.closest('main')).toBeNull()
   })
 })
 
-describe('DesktopShell columns', () => {
-  const render = (props: { sceneSide?: boolean; panelCard?: boolean }) => {
+describe('DesktopShell modes', () => {
+  function shell(props: Partial<ShellProps> & { screen: ScreenKey }) {
     const { container, unmount } = renderWithI18n(
       <MemoryRouter>
         <DesktopShell scene={IDLE_SCENE} {...props}>
@@ -60,28 +74,61 @@ describe('DesktopShell columns', () => {
         </DesktopShell>
       </MemoryRouter>,
     )
-    const main = container.querySelector('main') as HTMLElement
-    const out = { main: main.className, sceneCol: (main.previousElementSibling as HTMLElement).className }
+    const root = container.querySelector('.dk') as HTMLElement
+    const out = {
+      root: root.className,
+      mode: root.dataset['mode'],
+      scene: root.querySelector(':scope > .dk-scene') as HTMLElement,
+      header: root.querySelector(':scope > header.dk-header'),
+      hud: root.querySelector('.dk-hud'),
+      main: root.querySelector(':scope > main.dk-col') as HTMLElement,
+    }
     unmount()
     return out
   }
 
-  it('play pages: the scene comes first and the content is bare', () => {
-    const d = render({})
-    expect(d.sceneCol).not.toMatch(/sceneColSide|sceneColDuel/)
-    expect(d.main).not.toMatch(/card/)
+  it('immersive from 820px of height: dk-imm + sc-<screen>, the scene and the column are root children', () => {
+    mockViewport(...IMMERSIVE)
+    const d = shell({ screen: 'play' })
+    expect(d.root).toBe('dk dk-imm sc-play')
+    expect(d.mode).toBe('immersive')
+    expect(d.scene).not.toBeNull()
+    expect(d.header).not.toBeNull()
+    expect(d.main).toHaveTextContent('content')
   })
 
-  it('leaderboard and profile: the scene is the narrow second column', () => {
-    expect(render({ sceneSide: true }).sceneCol).toMatch(/sceneColSide/)
+  it('split below 820px: dk-split', () => {
+    mockViewport(...SPLIT)
+    expect(shell({ screen: 'play' }).root).toBe('dk dk-split sc-play')
+    expect(shell({ screen: 'board' }).mode).toBe('split')
   })
 
-  it('new game and duel pages: PasDuel column widths and one panel card', () => {
-    const d = render({ panelCard: true })
-    expect(d.sceneCol).toMatch(/sceneColDuel/)
-    expect(d.sceneCol).not.toMatch(/sceneColSide/)
-    expect(d.main).toMatch(/\bcard\b/)
-    expect(d.main).toMatch(/panelCard/)
+  it.each<ScreenKey>(['login', 'rules', 'play', 'result', 'board', 'profile', 'new', 'duel'])(
+    'carries the screen key %s on the root for the per-screen column widths',
+    (screen) => {
+      mockViewport(...SPLIT)
+      expect(shell({ screen }).root).toContain(`sc-${screen}`)
+    },
+  )
+
+  it('the scene is the wide pasture, not the phone one', () => {
+    mockViewport(...IMMERSIVE)
+    const d = shell({ screen: 'rules' })
+    expect(d.scene.querySelector('svg')).toHaveAttribute('viewBox', '80 0 1440 900')
+    mockViewport(...SPLIT)
+    expect(shell({ screen: 'rules' }).scene.querySelector('svg')).toHaveAttribute('viewBox', '200 200 1160 700')
+  })
+
+  it('immersive: the top hud is shown only over the game', () => {
+    mockViewport(...IMMERSIVE)
+    expect(shell({ screen: 'play', hud: <span>chips</span> }).hud).not.toBeNull()
+    expect(shell({ screen: 'board', hud: <span>chips</span> }).hud).toBeNull()
+  })
+
+  it('split: the hud sits over the scene card on every screen that has one', () => {
+    mockViewport(...SPLIT)
+    expect(shell({ screen: 'play', hud: <span>chips</span> }).hud).not.toBeNull()
+    expect(shell({ screen: 'board' }).hud).toBeNull()
   })
 })
 
@@ -89,7 +136,7 @@ describe('MobileShell frame', () => {
   const classes = (props: { bare?: boolean; panelTop?: number; fit?: boolean }) => {
     const { container, unmount } = renderWithI18n(
       <MemoryRouter>
-        <MobileShell scene={IDLE_SCENE} {...props}>
+        <MobileShell scene={IDLE_SCENE} screen="play" {...props}>
           <p>content</p>
         </MobileShell>
       </MemoryRouter>,

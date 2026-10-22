@@ -37,7 +37,8 @@ export interface DuelPlayProps {
 }
 
 const COL = { display: 'flex', flexDirection: 'column', gap: 'var(--panel-gap, 10px)' } as const
-// The keypad block never scrolls away; only the chips, the opponent card and „Предавам се“ below it do.
+// Phones: the keypad block never scrolls away; only the chips, the opponent card and „Предавам се“ below it do.
+// Desktop: the panel card scrolls as a whole, so the section keeps its natural height (`COL`).
 const SECTION = { ...COL, flex: '1 1 auto', minHeight: 0 } as const
 const HEAD = { ...COL, flex: 'none' } as const
 const TAIL = { ...COL, flex: '0 1 auto', minHeight: 0, overflowY: 'auto' } as const
@@ -106,13 +107,14 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
   return (
     <Shell
       scene={playScene(state, store.parity, store.miss)}
-      panelCard
+      screen="duel"
+      title={title}
       panelTop={PANEL_TOP}
       hudAt="bottom"
       hud={<OppStrip state={state} oppName={oppName} status={m.oppStatus} thinking={m.botTurn} />}
       topHud={<DuelTopRow title={title} extra={notesButton} />}
     >
-      <section aria-label={title} style={SECTION}>
+      <section aria-label={title} style={desktop ? COL : SECTION}>
         <div style={HEAD}>
           <PlayHeader
             attempt={state.me.guesses.length + 1}

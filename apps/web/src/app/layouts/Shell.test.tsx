@@ -21,19 +21,33 @@ describe.each([
   ['DesktopShell', DesktopShell],
 ] as const)('%s', (_n, Comp) => {
   it('shows the four nav links by default', () => {
-    wrap(<Comp scene={IDLE_SCENE}>x</Comp>)
+    wrap(
+      <Comp scene={IDLE_SCENE} screen="rules">
+        x
+      </Comp>,
+    )
     expect(within(screen.getByRole('navigation')).getAllByRole('link')).toHaveLength(4)
   })
 
   it.each(['/', '/new', '/play/g1', '/result/g1'])('highlights Игра on %s', (at) => {
-    wrap(<Comp scene={IDLE_SCENE}>x</Comp>, at)
+    wrap(
+      <Comp scene={IDLE_SCENE} screen="rules">
+        x
+      </Comp>,
+      at,
+    )
     const on = screen.getAllByRole('link').filter((a) => a.classList.contains('on'))
     expect(on).toHaveLength(1)
     expect(on[0]).toHaveTextContent('Игра')
   })
 
   it('highlights only Класация on /board', () => {
-    wrap(<Comp scene={IDLE_SCENE}>x</Comp>, '/board')
+    wrap(
+      <Comp scene={IDLE_SCENE} screen="board">
+        x
+      </Comp>,
+      '/board',
+    )
     const on = screen.getAllByRole('link').filter((a) => a.classList.contains('on'))
     expect(on).toHaveLength(1)
     expect(on[0]).toHaveTextContent('Класация')
@@ -41,7 +55,7 @@ describe.each([
 
   it('hides the nav when bare', () => {
     wrap(
-      <Comp scene={IDLE_SCENE} bare>
+      <Comp scene={IDLE_SCENE} screen="login" bare>
         x
       </Comp>,
     )
@@ -52,7 +66,11 @@ describe.each([
 
 describe('DesktopShell skip link', () => {
   it('points to the main landmark', () => {
-    wrap(<DesktopShell scene={IDLE_SCENE}>x</DesktopShell>)
+    wrap(
+      <DesktopShell scene={IDLE_SCENE} screen="rules">
+        x
+      </DesktopShell>,
+    )
     expect(screen.getByRole('link', { name: 'Към съдържанието' })).toHaveAttribute('href', '#main')
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main')
   })
@@ -60,22 +78,43 @@ describe('DesktopShell skip link', () => {
 
 describe('DesktopShell „Нова игра“ (PasDuel desktop header)', () => {
   it('offers the new game screen from a running game, since „Игра“ resumes it', () => {
-    wrap(<DesktopShell scene={IDLE_SCENE}>x</DesktopShell>, '/play/g1')
+    wrap(
+      <DesktopShell scene={IDLE_SCENE} screen="play">
+        x
+      </DesktopShell>,
+      '/play/g1',
+    )
     expect(screen.getByRole('button', { name: 'Нова игра' })).toBeInTheDocument()
   })
 
   it.each(['/new'])('is not shown on %s', (at) => {
-    wrap(<DesktopShell scene={IDLE_SCENE}>x</DesktopShell>, at)
+    wrap(
+      <DesktopShell scene={IDLE_SCENE} screen="new">
+        x
+      </DesktopShell>,
+      at,
+    )
     expect(screen.queryByRole('button', { name: 'Нова игра' })).toBeNull()
   })
 
   it('is not shown while signed out', () => {
     wrap(
-      <DesktopShell scene={IDLE_SCENE} bare>
+      <DesktopShell scene={IDLE_SCENE} screen="login" bare>
         x
       </DesktopShell>,
       '/login',
     )
     expect(screen.queryByRole('button', { name: 'Нова игра' })).toBeNull()
+  })
+
+  it('shows the PasDuel „· {title}“ after the logo', () => {
+    wrap(
+      <DesktopShell scene={IDLE_SCENE} screen="duel" title="Дуел · 4 цифри">
+        x
+      </DesktopShell>,
+      '/duel/r1',
+    )
+    expect(screen.getByText('· Дуел · 4 цифри')).toHaveClass('dk-title')
+    expect(screen.getByText('· Дуел · 4 цифри').closest('header')).not.toBeNull()
   })
 })

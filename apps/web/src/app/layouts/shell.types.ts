@@ -1,18 +1,25 @@
 import type { ReactNode } from 'react'
-import type { PastureSceneProps } from '../../components/scene'
+import type { PastureSceneProps, SceneMode } from '../../components/scene'
 
-export type SceneProps = Omit<PastureSceneProps, 'className' | 'label'>
+export interface SceneProps extends Omit<PastureSceneProps, 'className' | 'label'> {
+  /** What the animals do (idle, running in after a verdict, the result); the wide desktop scene places them from it. */
+  mode: SceneMode
+  /** Game progress 0..1 (`progress().prog`); the wide scene's sun follows it (`wideSunY`). */
+  prog: number
+}
+
+/**
+ * Desktop screen key, the `sc-<screen>` class of the shell root (Desk.dc.html, PasDuel.dc.html). `new` covers
+ * the PasDuel setup screens (new game, duel setup, queue, invite, found), `duel` the match itself.
+ */
+export type ScreenKey = 'login' | 'rules' | 'play' | 'result' | 'board' | 'profile' | 'new' | 'duel'
 
 export interface ShellProps {
   scene: SceneProps
+  screen: ScreenKey
   children: ReactNode
-  /** Desktop only: puts the scene in the narrow second column (PasDesktop: only the leaderboard and the profile). */
-  sceneSide?: boolean
-  /**
-   * Desktop only: PasDuel page — the scene column is `1.15 1 460px` and the content is one panel card
-   * (`#FFFDF6`, radius 28, padding 28). New game and every duel screen.
-   */
-  panelCard?: boolean
+  /** Desktop (PasDuel header): „· {title}“ after the logo. On phones the title travels with `topHud`. */
+  title?: string
   /** Hides the tab bar (mobile) and the nav items (desktop); used while signed out. */
   bare?: boolean
   /**
@@ -24,7 +31,7 @@ export interface ShellProps {
   fit?: boolean
   /** Overlay rendered on top of the scene (HUD chips), as in the prototypes. */
   hud?: ReactNode
-  /** Where the hud sits: `top` (solo chips) or `bottom`, just above the panel (PasDuel opponent strip). */
+  /** Where the hud sits: `top` (solo chips) or `bottom` (PasDuel opponent strip). */
   hudAt?: 'top' | 'bottom'
   /** Mobile only: PasDuel's row at the top of the scene (back to the setup, title, sound), at every height. */
   topHud?: ReactNode

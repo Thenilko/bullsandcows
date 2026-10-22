@@ -46,7 +46,7 @@ function Loaded({ model }: { model: ResultModel }) {
   }
 
   return (
-    <Shell scene={model.scene} bare>
+    <Shell scene={model.scene} screen="result" bare>
       <ResultView
         model={model}
         shareLabel={copied ? t('common.copied') : t('common.share')}
@@ -60,7 +60,7 @@ function Loaded({ model }: { model: ResultModel }) {
 
 function Pending({ message }: { message: string }) {
   return (
-    <Shell scene={IDLE_SCENE}>
+    <Shell scene={IDLE_SCENE} screen="result">
       <p role="status" style={{ fontWeight: 800, textAlign: 'center' }}>
         {message}
       </p>

@@ -1,7 +1,7 @@
 import { IDLE_PROGRESS, progress, totalCodes, type Len } from '@bc/game-core'
 import type { PublicState } from '@bc/protocol'
 import type { SceneProps } from '../../app/layouts/Shell'
-import { sceneAnimals } from '../../components/scene'
+import { sceneAnimals, type SceneMode } from '../../components/scene'
 import { IDLE_SCENE } from '../idleScene'
 
 export { IDLE_SCENE }
@@ -17,11 +17,16 @@ export function playScene(state: PublicState, parity: number, miss: boolean): Sc
   const p = progress(Math.max(1, state.me.left), total)
   const last = state.me.guesses[state.me.guesses.length - 1]
   const solved = last !== undefined && last.bulls === state.len
+  const mode: SceneMode = last
+    ? { kind: 'play', bulls: solved ? state.len : last.bulls, cows: last.cows }
+    : { kind: 'play', bulls: 0, cows: 0 }
   return {
+    mode,
+    prog: p.prog,
     fog: solved ? 0 : p.fog,
     sunY: p.sunY,
     dawn: p.dawn,
-    animals: sceneAnimals(last ? { kind: 'play', bulls: solved ? state.len : last.bulls, cows: last.cows } : { kind: 'play', bulls: 0, cows: 0 }),
+    animals: sceneAnimals(mode),
     parity: parity % 2 === 0,
     miss,
   }
@@ -29,5 +34,6 @@ export function playScene(state: PublicState, parity: number, miss: boolean): Sc
 
 /** Result scene: win gathers all bulls, otherwise a calmer pasture. */
 export function resultScene(won: boolean, len: number): SceneProps {
-  return { ...IDLE_SCENE, fog: 0, dawn: 0.15, animals: sceneAnimals(won ? { kind: 'result', bulls: len } : { kind: 'result', bulls: 1 }) }
+  const mode: SceneMode = won ? { kind: 'result', bulls: len } : { kind: 'result', bulls: 1 }
+  return { ...IDLE_SCENE, fog: 0, dawn: 0.15, mode, animals: sceneAnimals(mode) }
 }

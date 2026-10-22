@@ -66,7 +66,7 @@ export function Rules() {
   }
 
   return (
-    <Shell scene={IDLE_SCENE} bare={!authed}>
+    <Shell scene={IDLE_SCENE} screen="rules" bare={!authed}>
       <section aria-label={t('rules.area')} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <h1 className="rise" style={{ margin: 0, fontSize: desktop ? 40 : 30, fontWeight: 900 }}>
           {t('rules.title')}

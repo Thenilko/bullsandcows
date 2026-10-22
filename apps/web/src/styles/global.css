@@ -184,3 +184,12 @@ body {
   font-weight: 800;
   color: #4a5640;
 }
+
+/* Desktop: the shell (`.dk`) is a 100dvh canvas whose column scrolls inside; the page never scrolls. */
+@media (min-width: 768px) {
+  html:has(.dk),
+  html:has(.dk) body {
+    height: 100%;
+    overflow: hidden;
+  }
+}

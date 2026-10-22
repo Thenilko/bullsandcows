@@ -3,7 +3,6 @@ import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import {
-  Card,
   Chip,
   Hud,
   Keypad,
@@ -17,9 +16,10 @@ import { NotesButton } from '../../features/notebook/NotesButton'
 import { useNotebook } from '../../features/notebook/store'
 import type { GameApi } from '../../features/solo/useGame'
 import { useAverageAttempts } from '../../features/solo/useDistribution'
+import { useDesktopMode } from '../../hooks/useDesktopMode'
 import { sfx } from '../../lib/sound'
 import { errorText, formatClock } from './format'
-import { StartOverlay } from './StartOverlay'
+import { StartCountdown, StartOverlay } from './StartOverlay'
 
 export interface PlayPanelProps {
   game: GameViewDto
@@ -36,6 +36,13 @@ const ERR_STYLE = {
 } as const
 const GIVE_UP_STYLE = { color: '#8A1F0B' } as const
 const ELLIPSIS = { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } as const
+const TITLE_ROW = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'baseline',
+  gap: 10,
+  flexWrap: 'wrap',
+} as const
 
 function useStartInfo(game: GameViewDto): string {
   const { t } = useTranslation()
@@ -99,18 +106,19 @@ function Input({ game, g, desktop }: PlayPanelProps) {
   )
 }
 
+const isCounting = (g: GameApi) => !g.started && g.ui.countdown === 'running'
+
+/** The start card over the input, until Start is pressed. */
 function Overlay({ game, g, desktop }: PlayPanelProps) {
   const info = useStartInfo(game)
-  if (g.started) return null
-  return (
-    <StartOverlay
-      desktop={desktop}
-      info={info}
-      running={g.ui.countdown === 'running'}
-      onBegin={g.beginCountdown}
-      onDone={() => void g.start()}
-    />
-  )
+  if (g.started || isCounting(g)) return null
+  return <StartOverlay desktop={desktop} info={info} onBegin={g.beginCountdown} />
+}
+
+/** The full-screen 3-2-1; rendered outside the board so the swinging frame never confines it. */
+function Gate({ g }: { g: GameApi }) {
+  if (!isCounting(g)) return null
+  return <StartCountdown onDone={() => void g.start()} />
 }
 
 function GiveUp({ g }: { g: GameApi }) {
@@ -163,6 +171,7 @@ export function MobilePlay({
       </div>
       <Input game={game} g={g} desktop={false} />
       <Overlay game={game} g={g} desktop={false} />
+      <Gate g={g} />
       {open ? (
         <NotebookSheet
           gameId={game.id}
@@ -176,30 +185,20 @@ export function MobilePlay({
   )
 }
 
-/** Desktop (D3): input card and attempts card in the right column. */
+/**
+ * Desktop (Desk.dc.html): the board (`.dk-game`) and the notebook (`.dk-notes`). Immersive: the board hangs on
+ * two ropes in the middle of the pasture and the notebook is a sheet taped on the right (5×2 digits, no hint);
+ * split: both stack in the right column (dk.css).
+ */
 export function DesktopPlay({ game, g }: Omit<PlayPanelProps, 'desktop'>) {
   const { t } = useTranslation()
+  const immersive = useDesktopMode() === 'immersive'
   return (
-    <>
-      <Card
-        aria-label={t('play.inputArea')}
-        style={{
-          position: 'relative',
-          padding: 24,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 14,
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'baseline',
-            gap: 10,
-            flexWrap: 'wrap',
-          }}
-        >
+    <div className="dk-play">
+      <span className="dk-rope dk-rope-l" aria-hidden="true" />
+      <span className="dk-rope dk-rope-r" aria-hidden="true" />
+      <section className="card dk-game" aria-label={t('play.inputArea')}>
+        <div style={TITLE_ROW}>
           <h2 style={{ margin: 0, fontSize: 22, fontWeight: 900 }}>
             {t(`play.modeTitle.${game.kind}`)}
           </h2>
@@ -212,21 +211,18 @@ export function DesktopPlay({ game, g }: Omit<PlayPanelProps, 'desktop'>) {
           {t('play.keyboardHint')}
         </span>
         <Overlay game={game} g={g} desktop />
-      </Card>
-      <Card
-        role="region"
-        aria-label={t('notebook.title')}
-        style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}
-      >
+      </section>
+      <section className="card dk-notes" aria-label={t('notebook.title')}>
         <Notebook
           gameId={game.id}
           guesses={game.guesses}
           left={g.left}
-          layout="card"
+          layout={immersive ? 'note' : 'card'}
           footer={<GiveUp g={g} />}
         />
-      </Card>
-    </>
+      </section>
+      <Gate g={g} />
+    </div>
   )
 }
 

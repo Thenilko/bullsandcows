@@ -23,7 +23,7 @@ export function DuelSetup({ mode }: { mode: SetupMode }) {
   const cta =
     mode === 'bot' ? 'newGame.cta.bot' : quick ? 'newGame.cta.quick' : 'newGame.cta.invite'
   return (
-    <Shell scene={IDLE_SCENE} panelCard>
+    <Shell scene={IDLE_SCENE} screen="new">
       <section aria-label={t('duel.title.setup')} style={COL}>
         <h1
           className="rise"

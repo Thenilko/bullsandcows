@@ -14,7 +14,7 @@ function Result({ game }: { game: typeof wonGame }) {
   const { t } = useTranslation()
   const model = buildResult(game, fallbackDistribution)
   return (
-    <Shell scene={model.scene}>
+    <Shell scene={model.scene} screen="result">
       <ResultView model={model} shareLabel={t('common.share')} onAgain={noop} onShare={noop} onBoard={noop} />
     </Shell>
   )
@@ -25,7 +25,7 @@ export const ResultLose = () => <Result game={lostGame} />
 export const ResultPractice = () => <Result game={{ ...wonGame, practice: true, score: 0 }} />
 
 export const Board = () => (
-  <Shell scene={IDLE_SCENE} sceneSide>
+  <Shell scene={IDLE_SCENE} screen="board">
     <BoardView
       status="ready"
       filters={FILTERS}
@@ -37,19 +37,19 @@ export const Board = () => (
 )
 
 export const BoardGuest = () => (
-  <Shell scene={IDLE_SCENE} sceneSide>
+  <Shell scene={IDLE_SCENE} screen="board">
     <BoardView status="guest" filters={FILTERS} onFilters={noop} onPlay={noop} />
   </Shell>
 )
 
 export const Profile = () => (
-  <Shell scene={IDLE_SCENE} sceneSide>
+  <Shell scene={IDLE_SCENE} screen="profile">
     <ProfileView me={meFixture} onPatch={noop} onLogout={noop} />
   </Shell>
 )
 
 export const ProfileGuest = () => (
-  <Shell scene={IDLE_SCENE} sceneSide>
+  <Shell scene={IDLE_SCENE} screen="profile">
     <ProfileView
       me={{ ...meFixture, profile: { ...meFixture.profile, isGuest: true, username: 'Гост 482' } }}
       onPatch={noop}

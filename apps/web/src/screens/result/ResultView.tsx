@@ -9,7 +9,10 @@ const STAR_COUNT = 5
 const STAR_ON = '#F2C230'
 const STAR_OFF = '#F3EEDF'
 const FULL_SCREEN = { position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 20 } as const
+// Desktop (Desk.dc.html): the dim at 19, the modal at 20 and the confetti at 21 sit above the shell header (6).
 const OVERLAY = { position: 'fixed', inset: 0, zIndex: 10 } as const
+const OVERLAY_DESKTOP = { ...OVERLAY, zIndex: 19 } as const
+const CONFETTI_DESKTOP = { ...FULL_SCREEN, zIndex: 21 } as const
 const SHEET_BASE = {
   position: 'fixed',
   zIndex: 11,
@@ -30,6 +33,7 @@ const SHEET_MOBILE = {
 } as const
 const SHEET_DESKTOP = {
   ...SHEET_BASE,
+  zIndex: 20,
   left: 0,
   right: 0,
   top: 90,
@@ -197,9 +201,9 @@ export function ResultView({ model, shareLabel, onAgain, onShare, onBoard }: Res
       <div
         className="fadein"
         data-testid="result-overlay"
-        style={{ ...OVERLAY, background: desktop ? 'rgba(30,40,20,.35)' : 'rgba(30,40,20,.4)' }}
+        style={desktop ? { ...OVERLAY_DESKTOP, background: 'rgba(30,40,20,.35)' } : { ...OVERLAY, background: 'rgba(30,40,20,.4)' }}
       />
-      <div style={FULL_SCREEN}>
+      <div style={desktop ? CONFETTI_DESKTOP : FULL_SCREEN}>
         <Confetti active={model.won} />
       </div>
       <section

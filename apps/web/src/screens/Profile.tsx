@@ -12,7 +12,7 @@ export function Profile() {
   const me = useMe()
   const update = useUpdateSettings()
   return (
-    <Shell scene={IDLE_SCENE} sceneSide>
+    <Shell scene={IDLE_SCENE} screen="profile">
       {me.data ? (
         <ProfileView me={me.data} onPatch={(patch) => update.mutate(patch)} onLogout={logout} />
       ) : (

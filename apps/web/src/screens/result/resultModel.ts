@@ -1,6 +1,6 @@
 import { progress, rankKeyForStars, starsFromTop, topOf, type Len, type Stars } from '@bc/game-core'
 import type { DistributionDto, GameViewDto } from '@bc/protocol'
-import { sceneAnimals } from '../../components/scene'
+import { sceneAnimals, type SceneMode } from '../../components/scene'
 import type { SceneProps } from '../../app/layouts/Shell'
 
 export const BAR_MINE = '#B5452F'
@@ -59,11 +59,14 @@ function buildBars(histogram: readonly number[], mineIdx: number | null): Result
 function buildScene(game: GameViewDto, won: boolean): SceneProps {
   const last = game.guesses[game.guesses.length - 1]
   const prog = progress(won ? 1 : (last?.left ?? game.total), game.total)
+  const mode: SceneMode = { kind: 'result', bulls: won ? game.len : (last?.bulls ?? 0) }
   return {
+    mode,
+    prog: prog.prog,
     fog: prog.fog,
     sunY: prog.sunY,
     dawn: prog.dawn,
-    animals: sceneAnimals({ kind: 'result', bulls: won ? game.len : (last?.bulls ?? 0) }),
+    animals: sceneAnimals(mode),
     parity: game.attempts % 2 === 0,
     miss: false,
   }

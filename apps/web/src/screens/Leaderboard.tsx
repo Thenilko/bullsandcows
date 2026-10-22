@@ -21,7 +21,7 @@ export function Leaderboard() {
   const status: BoardStatus =
     guestSession || refused ? 'guest' : board.isError ? 'error' : board.data ? 'ready' : 'loading'
   return (
-    <Shell scene={IDLE_SCENE} sceneSide>
+    <Shell scene={IDLE_SCENE} screen="board">
       <BoardView
         status={status}
         filters={filters}

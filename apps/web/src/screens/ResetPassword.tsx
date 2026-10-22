@@ -117,7 +117,7 @@ function ResetBody({ preview }: { preview?: ResetPreview }) {
 export function ResetPassword({ preview }: { preview?: ResetPreview } = {}) {
   const { t } = useTranslation()
   return (
-    <Shell scene={IDLE_SCENE} bare>
+    <Shell scene={IDLE_SCENE} screen="login" bare>
       <Card style={{ padding: 24, ...STACK }}>
         <h1 style={{ margin: 0, fontSize: 30, fontWeight: 900 }}>{t('reset.title')}</h1>
         <ResetBody preview={preview} />

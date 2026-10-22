@@ -1,0 +1,358 @@
+/*
+ * Desktop shell — Desk.dc.html / PasDuel.dc.html layout="desktop" (pasishte.css „Desktop: B2 + B3“ and
+ * „PasDuel desktop on the wide scene“). `.dk-imm`: immersive, height >= 820 — the wide scene fills the window,
+ * the solo board hangs in the middle, the notebook is a sheet on the right. `.dk-split`: height < 820 — the
+ * scene is a card on the left and everything else lives in the column on the right. The page never scrolls.
+ */
+.dk {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #efe9d7;
+  color: #2e3b24;
+}
+
+.dk-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #a9d6f0;
+}
+
+.dk-header {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  top: 18px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* The logo in a cream pill. */
+.dk-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 18px 6px 6px;
+  border-radius: 999px;
+  background: rgba(255, 253, 246, 0.94);
+  box-shadow: 0 6px 18px rgba(30, 40, 20, 0.12);
+}
+
+.dk-brand img {
+  display: block;
+}
+
+.dk-title {
+  font-weight: 800;
+  color: var(--c-muted-aa);
+  white-space: nowrap;
+}
+
+/* The tabs are router links; the prototype draws them as buttons. */
+.dk-nav .nav {
+  text-decoration: none;
+}
+
+.dk-nav {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 16px;
+  background: #fffdf6;
+  box-shadow: 0 1px 0 #e7e0cc;
+}
+
+.dk-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dk-hud {
+  position: absolute;
+  z-index: 6;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* The PasDuel opponent strip (`.ostrip`). */
+.dk-strip {
+  position: absolute;
+  z-index: 5;
+}
+
+.dk-col {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding: 2px 4px 8px 2px;
+}
+
+/* ===== immersive ===== */
+.dk-imm .dk-hud {
+  right: 24px;
+  top: 84px;
+}
+
+/* Only the game shows the hud on the full-bleed scene. */
+.dk-imm:not(.sc-play) .dk-hud {
+  display: none;
+}
+
+.dk-imm .dk-col {
+  right: 24px;
+  top: 96px;
+  bottom: 24px;
+  width: 640px;
+}
+
+.dk-imm .dk-strip {
+  left: 24px;
+  bottom: 24px;
+  width: 460px;
+}
+
+/* ===== split ===== */
+.dk-split .dk-header {
+  top: 12px;
+  height: 56px;
+}
+
+.dk-split .dk-scene {
+  left: 24px;
+  top: 80px;
+  bottom: 24px;
+  right: 488px;
+  border-radius: 28px;
+  box-shadow: 0 1px 0 #e7e0cc, 0 14px 34px rgba(30, 40, 20, 0.14);
+}
+
+.dk-split .dk-hud {
+  left: 40px;
+  top: 96px;
+}
+
+.dk-split .dk-col {
+  right: 24px;
+  top: 80px;
+  bottom: 24px;
+  width: 440px;
+}
+
+.dk-split .dk-strip {
+  left: 16px;
+  right: 16px;
+  bottom: 20px;
+}
+
+.dk-split.sc-rules .dk-scene,
+.dk-split.sc-board .dk-scene,
+.dk-split.sc-profile .dk-scene {
+  right: 688px;
+}
+
+.dk-split.sc-rules .dk-col,
+.dk-split.sc-board .dk-col,
+.dk-split.sc-profile .dk-col {
+  width: 640px;
+}
+
+/* ===== login: a centred card with the wooden frame when immersive ===== */
+.dk-imm.sc-login .dk-col {
+  left: 50%;
+  right: auto;
+  width: 560px;
+  margin-left: -280px;
+  top: 104px;
+  bottom: auto;
+  overflow: visible;
+}
+
+.dk-imm.sc-login .dk-login {
+  max-height: calc(100dvh - 128px);
+  overflow-y: auto;
+  box-shadow: 0 0 0 8px #8b5e34, 0 0 0 11px #4e321a, 0 30px 60px rgba(20, 30, 10, 0.35);
+}
+
+/* ===== solo game: the hanging board and the notebook ===== */
+.dk-play {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dk-game {
+  position: relative;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dk-notes {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dk-rope {
+  display: none;
+}
+
+@keyframes dk-swing {
+  0% {
+    transform: rotate(-2.2deg);
+  }
+  35% {
+    transform: rotate(1.4deg);
+  }
+  65% {
+    transform: rotate(-0.6deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* The column becomes the whole canvas; the board and the sheet are its only interactive parts. */
+.dk-imm.sc-play .dk-col,
+.dk-imm.sc-result .dk-col {
+  inset: 0;
+  width: auto;
+  overflow: visible;
+  pointer-events: none;
+  padding: 0;
+}
+
+.dk-imm .dk-play {
+  position: static;
+}
+
+.dk-imm .dk-rope {
+  display: block;
+  position: absolute;
+  top: 0;
+  width: 5px;
+  height: 96px;
+  background: #8a6a3e;
+  border-radius: 3px;
+  z-index: 5;
+  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.15);
+}
+
+.dk-imm .dk-rope-l {
+  left: calc(50% - 230px);
+}
+
+.dk-imm .dk-rope-r {
+  left: calc(50% + 225px);
+}
+
+/* Hangs from the ropes: the wooden frame comes from the box-shadow rings; one swing on entering. */
+.dk-imm .dk-game {
+  position: absolute;
+  left: 50%;
+  top: 92px;
+  width: 600px;
+  margin-left: -300px;
+  pointer-events: auto;
+  box-shadow: 0 0 0 8px #8b5e34, 0 0 0 11px #4e321a, 0 30px 60px rgba(20, 30, 10, 0.35);
+  transform-origin: 50% -90px;
+  animation: dk-swing 1.4s ease-out both;
+}
+
+/* A sheet of paper taped on the right; it scrolls inside so the cows in the meadow stay visible. */
+.dk-imm .dk-notes {
+  position: absolute;
+  right: 24px;
+  top: 132px;
+  width: 360px;
+  max-height: calc(100% - 432px);
+  overflow-y: auto;
+  pointer-events: auto;
+  border-radius: 8px;
+  background-color: #fffdf6;
+  transform: rotate(0.8deg);
+  box-shadow: 0 14px 34px rgba(30, 40, 20, 0.25);
+}
+
+.dk-imm .dk-notes::before {
+  content: '';
+  position: sticky;
+  top: -22px;
+  display: block;
+  flex: none;
+  width: 90px;
+  height: 22px;
+  margin: -34px auto 0;
+  background: rgba(242, 207, 91, 0.8);
+  transform: rotate(-3deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dk-imm .dk-game {
+    animation: none;
+  }
+}
+
+/* Split: the board and the sheet stack in the column; 46px keys keep „Пусни стадото!“ in view. */
+.dk-split .dk-game {
+  padding: 18px 20px;
+  gap: 10px;
+  --key-h: 46px;
+}
+
+.dk-split .dk-notes {
+  padding: 18px;
+}
+
+/* ===== result: the modal is above everything (ResultView: dim 19, modal 20, confetti 21) ===== */
+.dk.sc-result .dk-play {
+  display: none;
+}
+
+.dk.sc-result .dk-col {
+  position: static;
+  z-index: auto;
+  width: auto;
+  overflow: visible;
+  padding: 0;
+}
+
+/* ===== PasDuel: new game, the duel screens — the column is the panel card ===== */
+.dk.sc-new .dk-col,
+.dk.sc-duel .dk-col {
+  gap: 14px;
+  padding: 28px;
+  border-radius: 28px;
+  background: #fffdf6;
+  box-shadow: 0 1px 0 #e7e0cc, 0 12px 30px rgba(30, 40, 20, 0.1);
+}
+
+.dk-imm.sc-new .dk-col,
+.dk-imm.sc-duel .dk-col {
+  width: 560px;
+  bottom: auto;
+  max-height: calc(100% - 120px);
+  box-shadow: 0 0 0 8px #8b5e34, 0 0 0 11px #4e321a, 0 30px 60px rgba(20, 30, 10, 0.35);
+}
+
+.dk-split.sc-new .dk-scene,
+.dk-split.sc-duel .dk-scene {
+  right: 584px;
+}
+
+.dk-split.sc-new .dk-col,
+.dk-split.sc-duel .dk-col {
+  width: 540px;
+}

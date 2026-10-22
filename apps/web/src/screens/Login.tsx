@@ -176,9 +176,9 @@ function LoginBody({ initial }: { initial?: LoginInitial }) {
 export function Login({ initial }: { initial?: LoginInitial }) {
   const desktop = useIsDesktop()
   return (
-    <Shell scene={IDLE_SCENE} bare>
+    <Shell scene={IDLE_SCENE} screen="login" bare>
       {desktop ? (
-        <Card style={{ padding: 32 }}>
+        <Card className="dk-login" style={{ padding: 32 }}>
           <LoginBody initial={initial} />
         </Card>
       ) : (

@@ -14,13 +14,13 @@ function Placeholder() {
 }
 
 export const MobileShellScreen = () => (
-  <MobileShell scene={PLAY_SCENE}>
+  <MobileShell scene={PLAY_SCENE} screen="rules">
     <Placeholder />
   </MobileShell>
 )
 
 export const DesktopShellScreen = () => (
-  <DesktopShell scene={PLAY_SCENE}>
+  <DesktopShell scene={PLAY_SCENE} screen="rules">
     <Placeholder />
   </DesktopShell>
 )
