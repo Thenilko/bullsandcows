@@ -97,7 +97,7 @@ describe('DuelPlay', () => {
     show()
     for (const d of ['1', '2', '3', '4']) fireEvent.click(digit(d))
     fireEvent.click(screen.getByRole('button', { name: 'Пусни стадото!' }))
-    expect(send).toHaveBeenCalledWith({ t: 'guess', code: '1234' })
+    expect(send).toHaveBeenCalledWith({ t: 'guess', code: '1234', usedNotes: false })
     expect(useDuelStore.getState().cur).toBe('')
   })
 

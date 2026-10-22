@@ -1,10 +1,13 @@
-import type { GameViewDto, MeDto } from '@bc/protocol'
+import type { GameViewDto, MeDto, NewBadgeDto } from '@bc/protocol'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router'
 import { sfx } from '../../lib/sound'
 import { api } from '../auth/client'
 import { useSession } from '../auth/session'
+import { useBadgeToasts } from '../badges/toastStore'
+import { hasNotes } from '../notebook/store'
+import { invalidateBadges } from '../stats/useBadges'
 import { giveUpGame, sendGuess, startGame } from './api'
 import { withGuess } from './derive'
 import { playRejected, playVerdict, playWin, WIN_DELAY_MS } from './feedback'
@@ -42,15 +45,23 @@ function useGameEffects(gameId: string) {
     [gameId, qc],
   )
 
-  /** The cached game and the profile's current game are stale once a game ends. */
-  const toResult = useCallback(() => {
-    void qc.invalidateQueries({ queryKey: gameKey(gameId) })
-    api.get<MeDto>('/api/me').then(
-      (me) => useSession.getState().setMe(me),
-      () => void qc.invalidateQueries({ queryKey: ['me'] }),
-    )
-    void navigate(`/result/${gameId}`)
-  }, [qc, gameId, navigate])
+  /**
+   * The cached game, the badges and the profile's current game are stale once a game ends; the new badge
+   * tiers pop up over the result.
+   */
+  const toResult = useCallback(
+    (newBadges: readonly NewBadgeDto[] | undefined) => {
+      void qc.invalidateQueries({ queryKey: gameKey(gameId) })
+      invalidateBadges(qc)
+      api.get<MeDto>('/api/me').then(
+        (me) => useSession.getState().setMe(me),
+        () => void qc.invalidateQueries({ queryKey: ['me'] }),
+      )
+      void navigate(`/result/${gameId}`)
+      useBadgeToasts.getState().push(newBadges)
+    },
+    [qc, gameId, navigate],
+  )
 
   return { qc, onError, toResult }
 }
@@ -112,14 +123,14 @@ function useSubmit(gameId: string, { game, started, finished }: GameFlags, busyR
     }
     busyRef.current = true
     try {
-      const r = await sendGuess(gameId, cur.cur)
+      const r = await sendGuess(gameId, cur.cur, hasNotes(gameId))
       qc.setQueryData<GameViewDto>(gameKey(gameId), (g) => (g ? withGuess(g, cur.cur, r) : g))
       useSolo.getState().verdict(gameId, r, r.solved)
       playVerdict(r, vibrate)
       if (r.solved) {
         winTimer.current = setTimeout(() => {
           playWin(vibrate)
-          toResult()
+          toResult(r.newBadges)
         }, WIN_DELAY_MS)
       }
     } catch (e) {
@@ -136,9 +147,9 @@ function useGiveUp(gameId: string, { started, finished }: GameFlags, busyRef: Re
     if (!started || finished || busyRef.current) return
     busyRef.current = true
     try {
-      await giveUpGame(gameId)
+      const r = await giveUpGame(gameId, hasNotes(gameId))
       sfx.play('lose')
-      toResult()
+      toResult(r.newBadges)
     } catch (e) {
       onError(e)
     } finally {

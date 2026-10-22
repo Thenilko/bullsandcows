@@ -101,6 +101,11 @@ export function useNotebook(gameId: string): NotebookState {
   }
 }
 
+/** Whether the notebook of a game was used at all (a mark or some text), from the store or the storage. */
+export function hasNotes(gameId: string): boolean {
+  return countNotes(useNotebookStore.getState().games[gameId] ?? readStored(gameId)) > 0
+}
+
 /** Badge count on the notebook button: marked digits plus one when there is free text. */
 export function countNotes(n: Pick<NotebookState, 'marks' | 'text'>): number {
   return Object.keys(n.marks).length + (n.text ? 1 : 0)

@@ -124,7 +124,7 @@ function reduceMsg(s: DuelStoreData, msg: ServerMsg): Partial<DuelStoreData> {
     case 'warning':
       return { warning: { msLeft: msg.msLeft, at: Date.now() } }
     case 'ended':
-      return { ended: { outcome: msg.outcome, reason: msg.reason, secrets: msg.secrets, rating: msg.rating, xp: msg.xp }, warning: null }
+      return { ended: { outcome: msg.outcome, reason: msg.reason, secrets: msg.secrets, rating: msg.rating, xp: msg.xp, newBadges: msg.newBadges }, warning: null }
     case 'rematchOffer':
       return { rematchOffer: { from: msg.from, expiresAt: msg.expiresAt } }
     case 'error':

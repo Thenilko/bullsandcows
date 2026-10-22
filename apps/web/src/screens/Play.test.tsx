@@ -140,7 +140,7 @@ describe('Play after the start', () => {
     type('1234')
     key('Enter')
     await act(async () => void (await vi.advanceTimersByTimeAsync(0)))
-    expect(api.post).toHaveBeenCalledWith('/api/games/g1/guesses', { guess: '1234' })
+    expect(api.post).toHaveBeenCalledWith('/api/games/g1/guesses', { guess: '1234', usedNotes: false })
     expect(screen.queryByText('result page')).not.toBeInTheDocument()
     await act(async () => void (await vi.advanceTimersByTimeAsync(1799)))
     expect(screen.queryByText('result page')).not.toBeInTheDocument()

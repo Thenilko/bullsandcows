@@ -74,4 +74,8 @@ export const devScreens: Record<string, () => ReactElement> = {
   'duel-result-draw': lazyDuel('ResultDrawScreen'),
   'share-sheet': lazyExtras('ShareSheetScreen'),
   'share-sheet-duel': lazyExtras('ShareDuelScreen'),
+  badges: lazyExtras('BadgesScreen'),
+  'badges-guest': lazyExtras('BadgesGuestScreen'),
+  'badge-detail': lazyExtras('BadgeDetailScreen'),
+  'badge-toast': lazyExtras('BadgeToastScreen'),
 }

@@ -1,6 +1,7 @@
 import type { ClientMsg, PublicState } from '@bc/protocol'
 import { useDuelStore } from '../../features/duel/store'
 import { useBuzz } from '../../features/duel/useFeedback'
+import { hasNotes } from '../../features/notebook/store'
 import { sfx } from '../../lib/sound'
 
 const KEY_BUZZ = 6
@@ -11,8 +12,8 @@ export interface PlayInput {
   submit(): void
 }
 
-/** Keypad handlers: validates locally (length, repeats), then sends the guess. */
-export function usePlayInput(state: PublicState, send: (msg: ClientMsg) => void): PlayInput {
+/** Keypad handlers: validates locally (length, repeats), then sends the guess (with whether the notebook was used). */
+export function usePlayInput(roomId: string, state: PublicState, send: (msg: ClientMsg) => void): PlayInput {
   const buzz = useBuzz()
 
   function rejectWith(code: 'ERR_CODE' | 'ERR_REPEAT'): void {
@@ -34,7 +35,7 @@ export function usePlayInput(state: PublicState, send: (msg: ClientMsg) => void)
       const { cur, clearCur } = useDuelStore.getState()
       if (cur.length !== state.len) return rejectWith('ERR_CODE')
       if (state.me.guesses.some((g) => g.guess === cur)) return rejectWith('ERR_REPEAT')
-      send({ t: 'guess', code: cur })
+      send({ t: 'guess', code: cur, usedNotes: hasNotes(roomId) })
       clearCur()
     },
   }

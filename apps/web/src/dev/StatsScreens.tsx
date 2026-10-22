@@ -5,7 +5,9 @@ import { ResultView } from '../screens/result/ResultView'
 import { IDLE_SCENE } from '../screens/idleScene'
 import { BoardView } from '../screens/board/BoardView'
 import { ProfileView } from '../screens/profile/ProfileView'
-import { boardFixture, fallbackDistribution, lostGame, meFixture, wonGame } from './statsFixtures'
+import { badgesFixture, boardFixture, fallbackDistribution, lostGame, meFixture, wonGame } from './statsFixtures'
+
+const BADGES = { states: badgesFixture, loading: false, error: false }
 
 const noop = () => undefined
 const FILTERS = { period: 'today', len: 4, zero: false } as const
@@ -44,7 +46,7 @@ export const BoardGuest = () => (
 
 export const Profile = () => (
   <Shell scene={IDLE_SCENE} screen="profile">
-    <ProfileView me={meFixture} onPatch={noop} onLogout={noop} />
+    <ProfileView me={meFixture} badges={BADGES} tab="profile" onTab={noop} onPatch={noop} onLogout={noop} />
   </Shell>
 )
 
@@ -52,6 +54,9 @@ export const ProfileGuest = () => (
   <Shell scene={IDLE_SCENE} screen="profile">
     <ProfileView
       me={{ ...meFixture, profile: { ...meFixture.profile, isGuest: true, username: 'Гост 482' } }}
+      badges={BADGES}
+      tab="profile"
+      onTab={noop}
       onPatch={noop}
       onLogout={noop}
     />

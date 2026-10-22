@@ -114,6 +114,31 @@
 - `GameViewDto.dailyNumber` (само за числото на деня) = `dailyNumber(daily_date)`:
   дни от `LAUNCH_DATE` (2026-10-22, по София) + 1.
 
+## Клиент (`apps/web/src/features/share`, `apps/web/src/features/badges`)
+
+- „Сподели“ във всеки резултат (соло дневно/свободно, дуел, бот) отваря `ShareSheet` (Р1): долен
+  лист на телефон, модал на десктоп (`components/ui/Sheet.tsx`). Текстът е точно `shareText()` от
+  game-core; картичката (`ShareCard`) и PNG-то (`sharePng.ts`, SVG шаблон 1080×1080 с вградените
+  Nunito файлове, рисуван в canvas) повтарят `.sh-card`. Действията: „Сподели…“ (`navigator.share`
+  с файл → само текст → клипборд), „Копирай текста“, „Запази картинката“
+  (`bikove-i-kravi-<N>.png`, `-svobodna.png`, `-duel.png`). След успешно действие клиентът праща
+  `POST /api/shares` (`useShare.ts`); гостите също (сървърът връща `counted: false`).
+- Дуел/бот: резултатът на клиента не знае `games.id` на своята седалка (`ended`/`PublicState` не го
+  носят), затова споделянето от дуел не праща `POST /api/shares` и не брои за „Разказвач“. За да
+  брои, протоколът трябва да върне `gameId` в `ended`.
+- `?s=share` при отваряне на страницата → `POST /api/shares/landing` веднъж (`landing.ts`,
+  извиква се от `App.tsx`).
+- `usedNotes`: клиентът праща `true`, ако тефтерчето на играта има поне една маркировка или текст
+  (`hasNotes` в `features/notebook/store.ts`) — при всеки опит и при предаване (соло) и с всяко
+  `guess` по ws (дуел).
+- Профил → „Значки“ (Р2): таб на телефон (`/profile?tab=badges`), карта в дясната колона на десктоп;
+  данните са от `GET /api/me/badges` (`features/stats/useBadges.ts`, инвалидира се след край на игра
+  и след броено споделяне). Гостите виждат цялата колекция заключена и реда „Влез, за да събираш
+  значки“. Детайлът (Р3) е `BadgeDetail`; `available: false` носи етикет „скоро“.
+- Нова степен: `newBadges` от отговора на опита/предаването (соло), от `ended` (дуел) и от
+  `POST /api/shares` влизат в опашката `useBadgeToasts`; `BadgeToastHost` (в `App.tsx`) ги показва
+  един след друг („Нова значка!“ с медальона, `role="status"`), цъкането отваря детайла.
+
 ## Backfill с версии (`profiles.progress_version`)
 
 `profiles.progress_version` (smallint, default 0) казва коя версия на извличането от историята е

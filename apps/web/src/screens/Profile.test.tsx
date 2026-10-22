@@ -1,9 +1,10 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useSession } from '../features/auth/session'
 import { sfx } from '../lib/sound'
-import { meFixture } from '../test/fixtures'
+import { badgesFixture, meFixture } from '../test/fixtures'
 import { renderRoute } from '../test/renderRoute'
+import { resetViewport } from '../test/viewport'
 
 const get = vi.fn()
 const patch = vi.fn()
@@ -13,14 +14,23 @@ vi.mock('../features/auth/client', () => ({
 
 const { Profile } = await import('./Profile')
 
-function show() {
-  return renderRoute(<Profile />, { path: '/profile', at: '/profile' })
+function show(at = '/profile') {
+  return renderRoute(<Profile />, { path: '/profile', at })
 }
+
+/** `/api/me` and `/api/me/badges`; `me` overrides the profile. */
+function answer(me: unknown = meFixture, badges: unknown = badgesFixture) {
+  get.mockImplementation(async (path: string) => (path === '/api/me/badges' ? badges : me))
+}
+
+afterEach(() => {
+  resetViewport()
+})
 
 beforeEach(() => {
   get.mockReset()
   patch.mockReset()
-  get.mockResolvedValue(meFixture)
+  answer()
   vi.restoreAllMocks()
   useSession.setState({
     session: {
@@ -45,23 +55,44 @@ function desktopViewport() {
 }
 
 describe('Profile', () => {
-  it('uses long stat labels and badge descriptions on desktop', async () => {
+  it('uses long stat labels and shows the badge collection in the right column on desktop', async () => {
     desktopViewport()
-    show()
+    const { container } = show()
     expect(await screen.findByText('изиграни игри')).toBeInTheDocument()
-    expect(screen.getByText('Победа без нито един нелогичен опит')).toBeInTheDocument()
-    Reflect.deleteProperty(window, 'matchMedia')
+    expect(screen.getByRole('region', { name: 'Значки' })).toBeInTheDocument()
+    expect(container.querySelectorAll('.bdg')).toHaveLength(29)
+    fireEvent.click(await screen.findByRole('button', { name: 'Без излишен ход: сребро' }))
+    expect(screen.getByRole('dialog', { name: 'Значка' })).toHaveTextContent('Победа без нито един нелогичен опит')
   })
 
-  it('shows level, title, xp, stats and badges', async () => {
-    const { container } = show()
+  it('shows level, title, xp and stats', async () => {
+    show()
     expect(await screen.findByText('Говедар · ниво 2')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Бик, Говедар' })).toBeInTheDocument()
     expect(screen.getByText('150 / 750 т. до ниво 3')).toBeInTheDocument()
     expect(screen.getByText('83%')).toBeInTheDocument()
     expect(screen.getByText('рейтинг 1240')).toBeInTheDocument()
-    expect(container.querySelectorAll('.badge')).toHaveLength(29)
-    expect(container.querySelectorAll('.badge.locked')).toHaveLength(28)
+    expect(screen.getByRole('radio', { name: 'Профил' })).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('opens the badges tab from the URL with the 29 tiles and their tiers', async () => {
+    const { container } = show('/profile?tab=badges')
+    expect(await screen.findByText('16 значки · 19 степени · 13 предстоят')).toBeInTheDocument()
+    expect(screen.getByText('Колекция')).toBeInTheDocument()
+    expect(container.querySelectorAll('.bdg')).toHaveLength(29)
+    expect(container.querySelectorAll('.bdg.locked')).toHaveLength(13)
+    expect(screen.getAllByRole('button', { name: '???: не е спечелена' })).toHaveLength(3)
+    expect(screen.queryByText('Говедар · ниво 2')).toBeNull()
+  })
+
+  it('switches to the badges tab and opens a detail from a tile', async () => {
+    show()
+    fireEvent.click(await screen.findByRole('radio', { name: 'Значки' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Шерлок: мед' }))
+    const dialog = screen.getByRole('dialog', { name: 'Значка' })
+    expect(dialog).toHaveTextContent('3 от 5 до следващата степен')
+    fireEvent.click(screen.getByRole('button', { name: 'Затвори' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
   it('turns the sound off through PATCH and mutes the player', async () => {
@@ -110,7 +141,7 @@ describe('Profile', () => {
   })
 
   it('offers guests a way to create a profile', async () => {
-    get.mockResolvedValue({ ...meFixture, profile: { ...meFixture.profile, isGuest: true } })
+    answer({ ...meFixture, profile: { ...meFixture.profile, isGuest: true } })
     show()
     expect(await screen.findByRole('button', { name: 'Направи си профил' })).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Бик, Теленце' })).toBeInTheDocument()

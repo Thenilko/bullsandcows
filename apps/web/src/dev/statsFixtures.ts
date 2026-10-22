@@ -1,5 +1,5 @@
-import type { DistributionDto, GameViewDto, LeaderboardDto, MeDto } from '@bc/protocol'
-import { FALLBACK_HISTOGRAM } from '@bc/game-core'
+import type { BadgeKey, BadgeStateDto, DistributionDto, GameViewDto, LeaderboardDto, MeDto } from '@bc/protocol'
+import { BADGES, FALLBACK_HISTOGRAM, nextThreshold, tierFor } from '@bc/game-core'
 
 const START = 1_700_000_000_000
 
@@ -84,6 +84,19 @@ export const meFixture: MeDto = {
   },
   recent: [],
 }
+
+/** Progress per badge as on the Р2 artboard; everything else is at zero. */
+const BADGE_PROGRESS: Readonly<Partial<Record<BadgeKey, number>>> = {
+  noWaste: 14, sherlock: 3, allCows: 1, five: 4, underMinute: 12, bolt: 1, streak: 9, early: 6,
+  duelist: 23, unbeaten: 6, comeback: 1, rematch: 3, bot1: 1, bot2: 1, formats: 4, notes: 31, teller: 8,
+}
+
+/** All 29 badges as `GET /api/me/badges` returns them, with the artboard's tiers. */
+export const badgesFixture: BadgeStateDto[] = BADGES.map((def) => {
+  const progress = BADGE_PROGRESS[def.key] ?? 0
+  const tier = tierFor(def, progress)
+  return { key: def.key, tier, progress, next: nextThreshold(def, tier), earnedAt: tier > 0 ? START : null }
+})
 
 export const boardFixture: LeaderboardDto = {
   rows: [

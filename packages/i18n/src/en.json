@@ -563,6 +563,27 @@
     "saved": "Saved!",
     "failed": "That did not work — try again"
   },
+  "badges": {
+    "profileTab": "Profile",
+    "tab": "Badges",
+    "collection": "Collection",
+    "summary": "{{earned}} badges · {{tiers}} tiers · {{left}} to go",
+    "count": "{{earned}} / {{total}}",
+    "category": { "logic": "Logic", "speed": "Speed", "consistency": "Consistency", "duel": "Duels", "bot": "The Scarecrow", "collector": "Collector", "together": "Together", "hidden": "Hidden" },
+    "tier": { "none": "not earned", "bronze": "bronze", "silver": "silver", "gold": "gold" },
+    "tileAria": "{{name}}: {{tier}}",
+    "need": { "times_one": "{{count}} time", "times_other": "{{count}} times", "days_one": "{{count}} day", "days_other": "{{count}} days", "formats_one": "{{count}} format", "formats_other": "{{count}} formats" },
+    "progress": "{{progress}} of {{next}} to the next tier",
+    "allDone": "Every tier collected",
+    "xpNote": "+50 XP for every tier",
+    "soon": "soon",
+    "soonNote": "This badge comes with a future part of the game.",
+    "guestNote": "Sign in to collect badges",
+    "detailAria": "Badge",
+    "newBadge": "New badge!",
+    "openDetail": "See the badge",
+    "dismiss": "Dismiss"
+  },
   "error": {
     "ERR_AUTH": "Sign in to continue.",
     "ERR_GUEST": "This is for registered shepherds — create a profile",

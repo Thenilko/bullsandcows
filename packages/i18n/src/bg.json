@@ -566,6 +566,27 @@
     "saved": "Запазено!",
     "failed": "Не се получи — опитай пак"
   },
+  "badges": {
+    "profileTab": "Профил",
+    "tab": "Значки",
+    "collection": "Колекция",
+    "summary": "{{earned}} значки · {{tiers}} степени · {{left}} предстоят",
+    "count": "{{earned}} / {{total}}",
+    "category": { "logic": "Логика", "speed": "Скорост", "consistency": "Постоянство", "duel": "Дуели", "bot": "Плашилото", "collector": "Колекционер", "together": "Заедно", "hidden": "Скрити" },
+    "tier": { "none": "не е спечелена", "bronze": "мед", "silver": "сребро", "gold": "злато" },
+    "tileAria": "{{name}}: {{tier}}",
+    "need": { "times_one": "{{count}} път", "times_other": "{{count}} пъти", "days_one": "{{count}} ден", "days_other": "{{count}} дни", "formats_one": "{{count}} формат", "formats_other": "{{count}} формата" },
+    "progress": "{{progress}} от {{next}} до следващата степен",
+    "allDone": "Всички степени са събрани",
+    "xpNote": "+50 XP за всяка степен",
+    "soon": "скоро",
+    "soonNote": "Тази значка идва с бъдеща част от играта.",
+    "guestNote": "Влез, за да събираш значки",
+    "detailAria": "Значка",
+    "newBadge": "Нова значка!",
+    "openDetail": "Виж значката",
+    "dismiss": "Скрий"
+  },
   "error": {
     "ERR_AUTH": "Влез в профила си, за да продължиш.",
     "ERR_GUEST": "Това е за регистрирани пастири — направи си профил",

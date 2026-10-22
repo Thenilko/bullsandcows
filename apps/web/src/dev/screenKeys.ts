@@ -44,4 +44,8 @@ export const DEV_SCREEN_KEYS: readonly string[] = [
   'duel-result-draw',
   'share-sheet',
   'share-sheet-duel',
+  'badges',
+  'badges-guest',
+  'badge-detail',
+  'badge-toast',
 ]

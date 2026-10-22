@@ -71,7 +71,7 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
   const ended = useEndFlow(roomId, state, (to) => void navigate(to, { replace: true }))
   useVerdictFeedback(store.verdict, buzz)
   useOppFeedback(store.oppMoved)
-  const input = usePlayInput(state, send)
+  const input = usePlayInput(roomId, state, send)
   const now = useNow(500, state.phase === 'playing' && !ended)
   const notebook = useDuelNotebook(roomId, state)
   const [notesOpen, setNotesOpen] = useState(false)
