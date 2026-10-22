@@ -19,11 +19,102 @@ export const SessionDto = z.object({
 })
 export type SessionDto = z.infer<typeof SessionDto>
 
+/** Mirrors `BADGE_KEYS` in game-core (the 29 badges of the spec); the client translates them. */
+export const BADGE_KEYS = [
+  'noWaste',
+  'sherlock',
+  'allCows',
+  'lucky',
+  'five',
+  'pure',
+  'underMinute',
+  'bolt',
+  'streak',
+  'early',
+  'night',
+  'month',
+  'duelist',
+  'unbeaten',
+  'comeback',
+  'rematch',
+  'bot1',
+  'bot2',
+  'bot3',
+  'bot4',
+  'formats',
+  'notes',
+  'invite',
+  'family',
+  'teller',
+  'weekly',
+  'mirror',
+  'ladder',
+  'zeroHero',
+] as const
+export const BadgeKeySchema = z.enum(BADGE_KEYS)
+export type BadgeKey = z.infer<typeof BadgeKeySchema>
+
+/**
+ * The six badges of the first version and what became of them. Their `user_badges` rows were
+ * dropped by migration 0003 (`five` and `streak` are re-derived from the history by the
+ * backfill; `firstBull` and `chiefBull` have no successor); `noWaste` and `underMinute` kept
+ * their rows and `earned_at`.
+ */
+export const LEGACY_BADGE_KEYS: Readonly<Record<string, BadgeKey | null>> = {
+  firstBull: null,
+  noWaste: 'noWaste',
+  underMinute: 'underMinute',
+  streak7: 'streak',
+  chiefBull: null,
+  fiveDigits: 'five',
+}
+
+/** A badge tier earned just now: 1 for a single badge, 1–3 for a tiered one. */
+export const NewBadgeDto = z.object({ key: BadgeKeySchema, tier: z.number().int().min(1).max(3) })
+export type NewBadgeDto = z.infer<typeof NewBadgeDto>
+
+/**
+ * `GET /api/me/badges`: one entry per badge, earned or not. Keys only — names and
+ * descriptions are the client's (`badge.<key>.name/desc`), and for a `hidden` badge at tier 0
+ * the client shows „???“. `next` is the progress needed for the next tier, null once all
+ * tiers are earned; `earnedAt` is when the current tier was earned (null at tier 0).
+ */
+export const BadgeStateDto = z.object({
+  key: BadgeKeySchema,
+  tier: z.number().int().min(0).max(3),
+  progress: z.number().int().min(0),
+  next: z.number().int().nullable(),
+  earnedAt: z.number().nullable(),
+})
+export type BadgeStateDto = z.infer<typeof BadgeStateDto>
+
+export const ShareChannelSchema = z.enum(['native', 'copy', 'image'])
+export type ShareChannel = z.infer<typeof ShareChannelSchema>
+
+/** `POST /api/shares`: one row per (user, game), the channel is for measurement only. */
+export const ShareBody = z.object({ gameId: z.uuid(), channel: ShareChannelSchema })
+export type ShareBody = z.infer<typeof ShareBody>
+
+/** `counted` is false for guests and for a game already shared; then there are no new badges. */
+export const ShareResultDto = z.object({
+  counted: z.boolean(),
+  newBadges: z.array(NewBadgeDto).optional(),
+})
+export type ShareResultDto = z.infer<typeof ShareResultDto>
+
+/** `POST /api/shares/landing`: a `?s=share` visit, logged and nothing more. */
+export const ShareLandingDto = z.object({ logged: z.literal(true) })
+export type ShareLandingDto = z.infer<typeof ShareLandingDto>
+
 export const CreateGameBody = z.object({ len: LenSchema, zero: ZeroSchema, kind: KindSchema })
 export type CreateGameBody = z.infer<typeof CreateGameBody>
 
 /** Only the shape is checked here; whether the code is valid for the game is `ERR_CODE`. */
-export const GuessBody = z.object({ guess: z.string().max(16) })
+export const GuessBody = z.object({
+  guess: z.string().max(16),
+  /** The notebook was used in this game (sticky once true); for the „notes“ badge. */
+  usedNotes: z.boolean().optional(),
+})
 export type GuessBody = z.infer<typeof GuessBody>
 
 export const GuessEntryDto = z.object({
@@ -42,8 +133,20 @@ export const GuessResultDto = z.object({
   left: z.number().int(),
   solved: z.boolean(),
   score: z.number().int().optional(),
+  /** Badge tiers this (counted, winning) guess earned; absent unless the game ended. */
+  newBadges: z.array(NewBadgeDto).optional(),
 })
 export type GuessResultDto = z.infer<typeof GuessResultDto>
+
+/** `POST /api/games/:id/give-up` accepts an optional body. */
+export const GiveUpBody = z.object({ usedNotes: z.boolean().optional() })
+export type GiveUpBody = z.infer<typeof GiveUpBody>
+
+export const GiveUpResultDto = z.object({
+  secret: z.string(),
+  newBadges: z.array(NewBadgeDto).optional(),
+})
+export type GiveUpResultDto = z.infer<typeof GiveUpResultDto>
 
 export const GameViewDto = z.object({
   id: z.string(),
@@ -60,6 +163,8 @@ export const GameViewDto = z.object({
   guesses: z.array(GuessEntryDto),
   /** Present only once the game is finished. */
   secret: z.string().optional(),
+  /** Daily games: „#N“, days since the launch date in Europe/Sofia plus one. */
+  dailyNumber: z.number().int().optional(),
 })
 export type GameViewDto = z.infer<typeof GameViewDto>
 
@@ -80,17 +185,6 @@ export type RankKey = z.infer<typeof RankKeySchema>
 /** Which character a player's avatar is drawn as; `profiles.avatar_species`. */
 export const SpeciesSchema = z.enum(['bull', 'cow'])
 export type AvatarSpecies = z.infer<typeof SpeciesSchema>
-
-export const BADGE_KEYS = [
-  'firstBull',
-  'noWaste',
-  'underMinute',
-  'streak7',
-  'chiefBull',
-  'fiveDigits',
-] as const
-export const BadgeKeySchema = z.enum(BADGE_KEYS)
-export type BadgeKey = z.infer<typeof BadgeKeySchema>
 
 export const DistributionDto = z.object({
   histogram: z.array(z.number()),
@@ -167,7 +261,8 @@ export const MeDto = z.object({
     best: z.number().int().nullable(),
   }),
   buckets: z.array(BucketDto),
-  badges: z.record(BadgeKeySchema, z.boolean()),
+  /** Held (tier ≥ 1) per badge key; the full state is `GET /api/me/badges`. */
+  badges: z.partialRecord(BadgeKeySchema, z.boolean()),
   recent: z.array(RecentGameDto),
 })
 export type MeDto = z.infer<typeof MeDto>

@@ -20,6 +20,12 @@ type Finished = PublicGameRow & { readonly finishedAt: number }
 export const isFinished = (g: PublicGameRow): g is Finished => g.finishedAt !== null
 export const isSolo = (g: PublicGameRow) => g.kind === 'daily' || g.kind === 'free'
 
+/** Consecutive wins counting back from the most recent game; `history` is newest first. */
+export function streakOf(history: readonly Pick<PublicGameRow, 'won'>[]): number {
+  const firstMiss = history.findIndex((g) => g.won !== true)
+  return firstMiss === -1 ? history.length : firstMiss
+}
+
 export const toProfileDto = (p: Profile): ProfileDto => ({
   id: p.id,
   username: p.username,

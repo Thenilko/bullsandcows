@@ -48,7 +48,13 @@ export function applyClient(
     case 'secret':
       return setSecret(m, s, seat, msg.code, now, rng)
     case 'guess':
-      return applyGuess(m, s, seat, msg.code, now)
+      return applyGuess(
+        msg.usedNotes ? withPlayer(m, seat, { usedNotes: true }) : m,
+        s,
+        seat,
+        msg.code,
+        now,
+      )
     case 'giveUp':
       return giveUp(m, s, seat, now)
   }

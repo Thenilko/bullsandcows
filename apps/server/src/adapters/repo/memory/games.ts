@@ -54,6 +54,7 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
         won: null,
         score: 0,
         suspicious: false,
+        usedNotes: false,
         createdAt: clock.now(),
       })
     },

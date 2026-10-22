@@ -97,35 +97,86 @@ describe('memory profiles', () => {
       currentStreak: 0,
       bestStreak: 0,
       streakDate: null,
-      progressBackfilled: false,
+      progressVersion: 0,
     })
     await repo.profiles.setStreak('u1', {
       currentStreak: 3,
       bestStreak: 5,
       streakDate: '2026-10-20',
     })
-    await repo.profiles.markBackfilled('u1')
+    await repo.profiles.setProgressVersion('u1', 2)
     expect(await repo.profiles.get('u1')).toMatchObject({
       currentStreak: 3,
       bestStreak: 5,
       streakDate: '2026-10-20',
-      progressBackfilled: true,
+      progressVersion: 2,
     })
-    await expect(repo.profiles.markBackfilled('nobody')).rejects.toMatchObject({
+    await expect(repo.profiles.setProgressVersion('nobody', 2)).rejects.toMatchObject({
       code: 'ERR_NOT_FOUND',
     })
   })
 })
 
 describe('memory badges', () => {
-  it('awards badges once, keeping the first earned time', async () => {
+  it('saves badge states per key and lists them back as copies', async () => {
     await member('u1', 'Mira')
     expect(await repo.badges.listOf('u1')).toEqual([])
-    await repo.badges.award('u1', ['firstBull', 'noWaste'], 1_000)
-    await repo.badges.award('u1', ['noWaste', 'fiveDigits'], 2_000)
-    await repo.badges.award('u1', [], 3_000)
-    expect(await repo.badges.listOf('u1')).toEqual(['firstBull', 'noWaste', 'fiveDigits'])
+    await repo.badges.save('u1', [
+      { key: 'noWaste', tier: 1, progress: 3, earnedAt: 1_000 },
+      { key: 'five', tier: 0, progress: 0, earnedAt: 1_000 },
+    ])
+    await repo.badges.save('u1', [{ key: 'noWaste', tier: 2, progress: 10, earnedAt: 2_000 }])
+    await repo.badges.save('u1', [])
+    expect(await repo.badges.listOf('u1')).toEqual([
+      { key: 'noWaste', tier: 2, progress: 10, earnedAt: 2_000 },
+      { key: 'five', tier: 0, progress: 0, earnedAt: 1_000 },
+    ])
     expect(await repo.badges.listOf('u2')).toEqual([])
+  })
+})
+
+describe('memory shares', () => {
+  it('keeps one share per user and game and counts them', async () => {
+    await member('u1', 'Mira')
+    const share = { userId: 'u1', gameId: 'g1', channel: 'copy' as const, createdAt: 1_000 }
+    expect(await repo.shares.add(share)).toBe(true)
+    expect(await repo.shares.add({ ...share, channel: 'native' })).toBe(false)
+    expect(await repo.shares.add({ ...share, gameId: 'g2' })).toBe(true)
+    expect(await repo.shares.countOf('u1')).toBe(2)
+    expect(await repo.shares.countOf('u2')).toBe(0)
+  })
+})
+
+describe('memory duels list', () => {
+  const base = {
+    format: 'race' as const,
+    len: 4 as const,
+    zero: false,
+    inviteCode: null,
+    gameA: null,
+    gameB: null,
+  }
+  const human = { ...base, opponentKind: 'quick' as const, botLevel: null }
+
+  it('lists finished duels of a player, newest first, bots included', async () => {
+    await member('u1', 'Mira')
+    const d1 = await repo.duels.create({ ...human, playerA: 'u1', playerB: 'u2' })
+    const d2 = await repo.duels.create({
+      ...base,
+      opponentKind: 'bot',
+      botLevel: 2,
+      playerA: 'u1',
+      playerB: null,
+    })
+    await repo.duels.create({ ...human, playerA: 'u3', playerB: 'u2' })
+    const open = await repo.duels.create({ ...human, playerA: 'u2', playerB: 'u1' })
+    const finish = { winner: 'u1', outcome: 'solved', ratingDeltaA: null, ratingDeltaB: null }
+    await repo.duels.finish(d1.id, { ...finish, finishedAt: 1_000 })
+    await repo.duels.finish(d2.id, { ...finish, finishedAt: 2_000 })
+    expect((await repo.duels.listOf('u1', 10)).map((d) => d.id)).toEqual([d2.id, d1.id])
+    expect((await repo.duels.listOf('u1', 1)).map((d) => d.id)).toEqual([d2.id])
+    expect(await repo.duels.listOf('u3', 10)).toEqual([])
+    expect(open).toMatchObject({ isRematch: false, comeback: false })
   })
 })
 

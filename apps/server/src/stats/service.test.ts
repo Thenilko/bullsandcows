@@ -1,9 +1,9 @@
-import { FALLBACK_HISTOGRAM, levelFromXp, MIN_SAMPLE, rankKeyForLevel, sofiaDate } from '@bc/game-core'
+import { BADGES, FALLBACK_HISTOGRAM, levelFromXp, MIN_SAMPLE, rankKeyForLevel, sofiaDate } from '@bc/game-core'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createMemoryRepo } from '../adapters/repo/memory'
 import type { AuthUser } from '../ports/auth'
 import type { GamePatch, NewGame, PublicGameRow, Repo } from '../ports/repo'
-import { DistributionCache, StatsService } from './service'
+import { DistributionCache, PROGRESS_VERSION, StatsService } from './service'
 
 const START = Date.parse('2026-10-20T09:00:00Z')
 const DATE = sofiaDate(new Date(START))
@@ -269,7 +269,7 @@ describe('me', () => {
     const count = (k: number) => me.buckets.find((b) => b.attempts === k)?.count
     expect([count(3), count(4), count(7), count(10)]).toEqual([0, 1, 1, 1])
     expect(me.badges.noWaste).toBe(false)
-    expect(me.badges.firstBull).toBe(true)
+    expect(me.badges.sherlock).toBe(true)
     expect(me.recent).toHaveLength(5)
     expect(me.recent[0]).toMatchObject({ practice: true, attempts: 3 })
   })
@@ -290,50 +290,42 @@ describe('me', () => {
     expect(me.stats.streak).toBe(12)
   })
 
-  it('awards chief bull and the quick-win badges from finished wins', async () => {
+  it('holds the badges a finished win earns, by key', async () => {
     await played({ len: 5 }, { attempts: 2, wasted: 0, startedAt: now - 30_000 })
     const me = await stats.me(mira)
-    expect(me.badges).toEqual({
-      firstBull: true,
-      noWaste: true,
-      underMinute: true,
-      streak7: false,
-      chiefBull: true,
-      fiveDigits: true,
-    })
+    const held = Object.entries(me.badges)
+      .filter(([, v]) => v)
+      .map(([k]) => k)
+      .sort()
+    expect(held).toEqual(['five', 'lucky', 'noWaste', 'pure', 'underMinute'])
+    expect(Object.keys(me.badges)).toHaveLength(BADGES.length)
   })
 
-  it("measures daily wins against that day's real sample, with one grouped query", async () => {
-    // 30 other players needed 8 attempts on day D; Mira's 5 is then top 2% (fallback: 8%).
-    const D = '2026-09-01'
-    for (let i = 0; i < 30; i += 1) {
-      await played({ kind: 'daily', dailyDate: D, userId: `d${i}` }, { attempts: 8 })
+  it('lists all 29 badges with tier, progress and next threshold, keys only', async () => {
+    await played({ len: 5 }, { attempts: 2, wasted: 0, startedAt: now - 30_000 })
+    const badges = await stats.badges(mira)
+    expect(badges).toHaveLength(BADGES.length)
+    expect(badges.map((b) => b.key)).toEqual(BADGES.map((b) => b.key))
+    expect(badges.find((b) => b.key === 'five')).toEqual({
+      key: 'five',
+      tier: 1,
+      progress: 1,
+      next: 10,
+      earnedAt: now,
+    })
+    expect(badges.find((b) => b.key === 'lucky')).toMatchObject({ tier: 1, next: null })
+    expect(badges.find((b) => b.key === 'streak')).toEqual({
+      key: 'streak',
+      tier: 0,
+      progress: 0,
+      next: 7,
+      earnedAt: null,
+    })
+    // Hidden badges carry a key and numbers only; no name or description to leak.
+    for (const b of badges.filter((b) => BADGES.find((d) => d.key === b.key)?.hidden)) {
+      expect(Object.keys(b).sort()).toEqual(['earnedAt', 'key', 'next', 'progress', 'tier'])
+      expect(b.tier).toBe(0)
     }
-    for (let k = 1; k <= 39; k += 1) {
-      const date = new Date(Date.UTC(2026, 6, k)).toISOString().slice(0, 10)
-      await played({ kind: 'daily', dailyDate: date }, { attempts: 9 })
-    }
-    await played({ kind: 'daily', dailyDate: D }, { attempts: 5, wasted: 1 })
-    const calls = { byDate: 0, single: 0 }
-    const counting: Repo = {
-      ...repo,
-      games: {
-        ...repo.games,
-        wonAttemptsByDate: (q) => {
-          calls.byDate += 1
-          return repo.games.wonAttemptsByDate(q)
-        },
-        wonAttempts: (q) => {
-          calls.single += 1
-          return repo.games.wonAttempts(q)
-        },
-      },
-    }
-    const me = await new StatsService({ repo: counting, clock, cache: new DistributionCache() }).me(
-      mira,
-    )
-    expect(me.badges.chiefBull).toBe(true)
-    expect(calls).toEqual({ byDate: 1, single: 0 })
   })
 
   it('creates a missing profile on first read', async () => {
@@ -342,8 +334,8 @@ describe('me', () => {
     expect(me.profile.username).toMatch(/^guest-[A-HJ-NP-Z2-9]{4}$/)
   })
 
-  it('backfills badges and the day streak from the history once, then reads the stored ones', async () => {
-    const calls = { award: 0, setStreak: 0 }
+  it('backfills the day streak and the badge tiers from the history once, without XP', async () => {
+    const calls = { save: 0, setStreak: 0 }
     const counting: Repo = {
       ...repo,
       profiles: {
@@ -355,9 +347,9 @@ describe('me', () => {
       },
       badges: {
         ...repo.badges,
-        award: (id, keys, at) => {
-          calls.award += 1
-          return repo.badges.award(id, keys, at)
+        save: (id, rows) => {
+          calls.save += 1
+          return repo.badges.save(id, rows)
         },
       },
     }
@@ -366,30 +358,50 @@ describe('me', () => {
       await played({ ...daily, dailyDate: date }, { attempts: 7, wasted: 1 })
     }
     await played({ ...daily, dailyDate: '2026-10-18' }, { won: false })
-    expect((await repo.profiles.get(mira.id))?.progressBackfilled).toBe(false)
+    expect((await repo.profiles.get(mira.id))?.progressVersion).toBe(0)
     const first = await svc.me(mira)
-    expect(first.badges).toMatchObject({ firstBull: true, noWaste: false, streak7: false })
+    expect(first.badges).toMatchObject({ noWaste: false, streak: false, sherlock: false })
+    expect(first.xp).toBe(0)
     expect(await repo.profiles.get(mira.id)).toMatchObject({
       currentStreak: 1,
       bestStreak: 3,
       streakDate: '2026-10-17',
-      progressBackfilled: true,
+      progressVersion: PROGRESS_VERSION,
+      xp: 0,
     })
-    expect(calls).toEqual({ award: 1, setStreak: 1 })
+    expect(calls).toEqual({ save: 1, setStreak: 1 })
+    expect(await repo.badges.listOf(mira.id)).toContainEqual(
+      expect.objectContaining({ key: 'streak', tier: 0, progress: 3 }),
+    )
     // Stored badges are read, not recomputed: a later loss changes nothing.
     await played({}, { won: false })
     await repo.games.update((await played({}, { wasted: 0 })).id, { won: false })
-    expect((await svc.me(mira)).badges).toMatchObject({ firstBull: true, noWaste: false })
-    expect(calls).toEqual({ award: 1, setStreak: 1 })
+    expect((await svc.me(mira)).badges).toMatchObject({ noWaste: false })
+    expect(calls).toEqual({ save: 1, setStreak: 1 })
   })
 
-  it('gives streak7 in the backfill for a past run of seven days', async () => {
+  it('backfills idempotently: a second pass writes nothing new and keeps earned times', async () => {
     for (let k = 1; k <= 7; k += 1) {
-      await played({ ...daily, dailyDate: `2026-09-0${k}` }, { attempts: 7 })
+      await played({ ...daily, dailyDate: `2026-09-0${k}` }, { attempts: 7, wasted: 0 })
     }
-    const me = await stats.me(mira)
-    expect(me.badges.streak7).toBe(true)
-    expect(await repo.profiles.get(mira.id)).toMatchObject({ currentStreak: 7, bestStreak: 7 })
+    await stats.me(mira)
+    const first = await repo.badges.listOf(mira.id)
+    expect(first).toContainEqual(expect.objectContaining({ key: 'streak', tier: 1, progress: 7 }))
+    expect(first).toContainEqual(expect.objectContaining({ key: 'noWaste', tier: 1, progress: 7 }))
+    expect(await repo.profiles.get(mira.id)).toMatchObject({ currentStreak: 7, bestStreak: 7, xp: 0 })
+    // Force a second pass (as a version bump would) at a later time.
+    now += 3_600_000
+    await repo.profiles.setProgressVersion(mira.id, PROGRESS_VERSION - 1)
+    await stats.me(mira)
+    expect(await repo.badges.listOf(mira.id)).toEqual(first)
+    expect((await repo.profiles.get(mira.id))?.xp).toBe(0)
+  })
+
+  it('backfills before answering GET /api/me/badges as well', async () => {
+    await played({ len: 5 }, { attempts: 2, wasted: 0 })
+    const badges = await stats.badges(mira)
+    expect(badges.find((b) => b.key === 'five')).toMatchObject({ tier: 1 })
+    expect((await repo.profiles.get(mira.id))?.progressVersion).toBe(PROGRESS_VERSION)
   })
 
   it('titles a guest a calf whatever the level', async () => {

@@ -54,7 +54,7 @@ export function memoryProfiles(store: MemoryStore, clock: Clock): ProfilesRepo {
         currentStreak: 0,
         bestStreak: 0,
         streakDate: null,
-        progressBackfilled: false,
+        progressVersion: 0,
         createdAt: clock.now(),
       })
     },
@@ -74,8 +74,8 @@ export function memoryProfiles(store: MemoryStore, clock: Clock): ProfilesRepo {
     setStreak: async (id, streak) => {
       save({ ...find(id), ...streak })
     },
-    markBackfilled: async (id) => {
-      save({ ...find(id), progressBackfilled: true })
+    setProgressVersion: async (id, version) => {
+      save({ ...find(id), progressVersion: version })
     },
   }
 }

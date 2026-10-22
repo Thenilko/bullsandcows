@@ -1,6 +1,6 @@
 import type { Len, Outcome, Rating } from '@bc/game-core'
 import type { Lang } from '@bc/i18n'
-import type { AvatarSpecies, BadgeKey } from '@bc/protocol'
+import type { AvatarSpecies, BadgeKey, ShareChannel } from '@bc/protocol'
 
 export type GameKind = 'daily' | 'free' | 'duel_race' | 'duel_classic' | 'bot'
 export type SoloKind = Extract<GameKind, 'daily' | 'free'>
@@ -26,8 +26,8 @@ export interface Profile {
   readonly currentStreak: number
   readonly bestStreak: number
   readonly streakDate: string | null
-  /** Badges and the day streak were derived from the history once (see docs/PROGRESSION.md). */
-  readonly progressBackfilled: boolean
+  /** Version of the one-time progression backfill this profile has had (docs/PROGRESSION.md). */
+  readonly progressVersion: number
   readonly createdAt: number
 }
 
@@ -60,6 +60,8 @@ export interface GameRow {
   readonly won: boolean | null
   readonly score: number
   readonly suspicious: boolean
+  /** The notebook was used at least once (the client reports it; sticky). */
+  readonly usedNotes: boolean
   readonly createdAt: number
 }
 
@@ -76,7 +78,15 @@ export type NewGame = Pick<
 export type GamePatch = Partial<
   Pick<
     GameRow,
-    'startedAt' | 'finishedAt' | 'attempts' | 'wasted' | 'won' | 'score' | 'suspicious' | 'practice'
+    | 'startedAt'
+    | 'finishedAt'
+    | 'attempts'
+    | 'wasted'
+    | 'won'
+    | 'score'
+    | 'suspicious'
+    | 'practice'
+    | 'usedNotes'
   >
 >
 
@@ -112,10 +122,14 @@ export interface DuelRow {
   readonly finishedAt: number | null
   /** XP (and quick-match ratings) of this duel have been credited; set exactly once. */
   readonly rewardsApplied: boolean
+  /** Accepted as a rematch of the previous match in the room. */
+  readonly isRematch: boolean
+  /** The winner won after the loser had exactly one candidate left (badge „comeback“). */
+  readonly comeback: boolean
 }
 
 /** `id` (optional): a caller-chosen id makes `create` idempotent (an existing row is returned). */
-export type NewDuel = Partial<Pick<DuelRow, 'id'>> &
+export type NewDuel = Partial<Pick<DuelRow, 'id' | 'isRematch' | 'comeback'>> &
   Pick<
     DuelRow,
     | 'format'
@@ -187,13 +201,38 @@ export interface ProfilesRepo {
   addXp(id: string, xp: number): Promise<Profile | null>
   setRating(id: string, rating: Rating): Promise<void>
   setStreak(id: string, streak: DayStreak): Promise<void>
-  markBackfilled(id: string): Promise<void>
+  setProgressVersion(id: string, version: number): Promise<void>
+}
+
+/** One badge of a player: `tier` 0–3, `progress` its metric, `earnedAt` when the tier was reached. */
+export interface BadgeState {
+  readonly key: BadgeKey
+  readonly tier: number
+  readonly progress: number
+  readonly earnedAt: number
 }
 
 export interface BadgesRepo {
-  listOf(userId: string): Promise<BadgeKey[]>
-  /** Writes the badges not held yet; a held one keeps its `earnedAt`. Idempotent. */
-  award(userId: string, keys: readonly BadgeKey[], earnedAt: number): Promise<void>
+  /** Only badges with a row (progress or a tier); keys absent are at tier 0 / progress 0. */
+  listOf(userId: string): Promise<BadgeState[]>
+  /** Inserts or overwrites the rows for the keys given (tier, progress, earnedAt). */
+  save(userId: string, rows: readonly BadgeState[]): Promise<void>
+}
+
+export interface ShareRow {
+  readonly id: string
+  readonly userId: string
+  readonly gameId: string
+  readonly channel: ShareChannel
+  readonly createdAt: number
+}
+
+export type NewShare = Omit<ShareRow, 'id'>
+
+export interface SharesRepo {
+  /** One row per (user, game): returns false (and changes nothing) when it exists already. */
+  add(share: NewShare): Promise<boolean>
+  countOf(userId: string): Promise<number>
 }
 
 /**
@@ -253,6 +292,8 @@ export interface DuelsRepo {
    * (and changes nothing) when they were already applied. Throws when the duel is missing.
    */
   applyRewards(id: string, rewards: readonly DuelReward[]): Promise<boolean>
+  /** Finished duels (bots included) a player sat in, newest first. */
+  listOf(userId: string, limit: number): Promise<DuelRow[]>
 }
 
 export interface Repo {
@@ -260,6 +301,7 @@ export interface Repo {
   readonly games: GamesRepo
   readonly duels: DuelsRepo
   readonly badges: BadgesRepo
+  readonly shares: SharesRepo
 }
 
 /** A repo bound to resources that must be released when the request ends. */

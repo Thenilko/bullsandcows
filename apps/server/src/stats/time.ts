@@ -32,6 +32,14 @@ function local(ms: number): LocalParts {
 
 const offsetAt = (ms: number): number => local(ms).wallMs - (ms - (ms % 1000))
 
+const HOUR_MS = 3_600_000
+const HOURS_PER_DAY = 24
+
+/** Sofia wall-clock hour (0–23) of `ms`. */
+export function sofiaHour(ms: number): number {
+  return Math.floor((local(ms).wallMs % DAY_MS) / HOUR_MS) % HOURS_PER_DAY
+}
+
 /** Monday 00:00 Europe/Sofia of the ISO week containing `nowMs`, in Unix ms. */
 export function sofiaWeekStart(nowMs: number): number {
   const { wallMs, weekday } = local(nowMs)

@@ -1,5 +1,4 @@
 import {
-  FALLBACK_HISTOGRAM,
   levelFromXp,
   pickHistogram,
   rankKeyForLevel,
@@ -7,7 +6,13 @@ import {
   topOf,
   type Len,
 } from '@bc/game-core'
-import type { DistributionDto, LeaderboardDto, MeDto, SettingsPatch } from '@bc/protocol'
+import type {
+  BadgeStateDto,
+  DistributionDto,
+  LeaderboardDto,
+  MeDto,
+  SettingsPatch,
+} from '@bc/protocol'
 import { ensureProfile } from '../auth/profiles'
 import { AppError } from '../http/errors'
 import type { AuthUser } from '../ports/auth'
@@ -21,25 +26,29 @@ import {
   type Repo,
   type SoloKind,
 } from '../ports/repo'
-import { badgeMap, badgesFor, streakOf, type BadgeKey } from './badges'
+import { heldBadges, recomputeBadges, toBadgeStates } from './badgeService'
 import {
   bucketsOf,
   isFinished,
   isSolo,
   levelInfo,
   RECENT_GAMES,
+  streakOf,
   summaryOf,
   toProfileDto,
   toRecent,
 } from './me'
 import { dayStreakFromDates } from './streak'
 import { sofiaWeekStart } from './time'
-import { cacheKey, queryOf, type DistributionQuery, type DistributionSource } from './top'
+import { cacheKey, type DistributionQuery, type DistributionSource } from './top'
 
 export type { DistributionQuery } from './top'
 
-const heldKeys = (badges: Readonly<Record<BadgeKey, boolean>>): BadgeKey[] =>
-  (Object.keys(badges) as BadgeKey[]).filter((k) => badges[k])
+/**
+ * The progression backfill a profile must have had: 1 = badges v1 and the day streak,
+ * 2 = badge tiers and progress (docs/PROGRESSION.md). Bump when the derivation changes.
+ */
+export const PROGRESS_VERSION = 2
 
 const CACHE_TTL_MS = 60_000
 const FREE_WINDOW_MS = 30 * 86_400_000
@@ -150,27 +159,42 @@ export class StatsService implements DistributionSource {
     const games = await repo.games.history(user.id, HISTORY_LIMIT)
     const finished = games.filter(isFinished)
     const counted = finished.filter((g) => !g.practice)
-    if (!profile.progressBackfilled) await this.backfill(profile, counted)
+    const current =
+      profile.progressVersion < PROGRESS_VERSION ? await this.backfill(profile, counted) : profile
     return {
-      profile: toProfileDto(profile),
-      ...levelInfo(profile),
+      profile: toProfileDto(current),
+      ...levelInfo(current),
       currentGameId: games.find((g) => isSolo(g) && g.finishedAt === null)?.id ?? null,
       stats: summaryOf(counted, streakOf(counted)),
       buckets: bucketsOf(counted.filter((g) => g.won === true)),
-      badges: { ...badgeMap(await repo.badges.listOf(user.id)) },
+      badges: { ...heldBadges(await repo.badges.listOf(user.id)) },
       recent: finished.slice(0, RECENT_GAMES).map(toRecent),
     }
   }
 
+  /** `GET /api/me/badges`: all 29 badges with tier and progress (after the backfill, if due). */
+  async badges(user: AuthUser): Promise<BadgeStateDto[]> {
+    const { repo } = this.deps
+    const profile = await ensureProfile(repo, user)
+    if (profile.progressVersion < PROGRESS_VERSION) {
+      const games = await repo.games.history(user.id, HISTORY_LIMIT)
+      await this.backfill(
+        profile,
+        games.filter((g) => isFinished(g) && !g.practice),
+      )
+    }
+    return toBadgeStates(await repo.badges.listOf(user.id))
+  }
+
   /**
-   * One-time derivation of the badges and the day streak from the history of a profile
-   * from before they were stored (docs/PROGRESSION.md). Idempotent: badges are only added,
-   * the streak is a function of the history, and the flag is set last.
+   * One-time derivation of the day streak and the badge tiers from the history of a profile
+   * (docs/PROGRESSION.md), without XP. Idempotent: the streak is a function of the history
+   * (`best_streak` keeps the larger value), tiers and progress only grow, and the version is
+   * written last. Returns the profile as it stands afterwards.
    */
-  private async backfill(profile: Profile, counted: readonly PublicGameRow[]): Promise<void> {
+  private async backfill(profile: Profile, counted: readonly PublicGameRow[]): Promise<Profile> {
     const { repo, clock } = this.deps
     const wins = counted.filter((g) => g.won === true)
-    const topOfGame = await this.topOfGames(wins)
     const fromHistory = dayStreakFromDates(
       wins.flatMap((g) => (g.kind === 'daily' && g.dailyDate !== null ? [g.dailyDate] : [])),
     )
@@ -179,68 +203,28 @@ export class StatsService implements DistributionSource {
       bestStreak: Math.max(fromHistory.bestStreak, profile.bestStreak),
     }
     await repo.profiles.setStreak(profile.id, streak)
-    const earned = badgesFor(wins, streak.bestStreak, topOfGame)
-    await repo.badges.award(profile.id, heldKeys(earned), clock.now())
-    await repo.profiles.markBackfilled(profile.id)
+    await recomputeBadges(repo, {
+      userId: profile.id,
+      scope: 'all',
+      now: clock.now(),
+      games: counted,
+      payXp: false,
+    })
+    await repo.profiles.setProgressVersion(profile.id, PROGRESS_VERSION)
+    return { ...profile, ...streak, progressVersion: PROGRESS_VERSION }
   }
 
   async updateSettings(user: AuthUser, patch: SettingsPatch): Promise<MeDto> {
     await ensureProfile(this.deps.repo, user)
     // Picked field by field: nothing else (xp, rating, username) can ride along.
     const { sound, vibrate, defaultLen, lang, avatarSpecies } = patch
-    await this.deps.repo.profiles.update(user.id, { sound, vibrate, defaultLen, lang, avatarSpecies })
-    return this.me(user)
-  }
-
-  /** "Top X%" of each won game against the distribution its mode would show (fallback for bots/duels). */
-  private async topOfGames(wins: readonly PublicGameRow[]): Promise<(g: PublicGameRow) => number> {
-    const today = this.today()
-    const queries = new Map<string, DistributionQuery>()
-    for (const g of wins) {
-      const q = queryOf(g, today)
-      if (q) queries.set(cacheKey(q), q)
-    }
-    const all = [...queries.values()]
-    const daily = await this.dailyDistributions(all.filter((q) => q.kind === 'daily'))
-    const free = await Promise.all(
-      all
-        .filter((q) => q.kind === 'free')
-        .map(async (q) => [cacheKey(q), await this.distribution(q)] as const),
-    )
-    const histograms = new Map([...daily, ...free])
-    return (g) => {
-      const q = queryOf(g, today)
-      const histogram = (q && histograms.get(cacheKey(q))?.histogram) ?? FALLBACK_HISTOGRAM[g.len]
-      return topOf(g.attempts, histogram).top
-    }
-  }
-
-  /** Past days' distributions: cached ones, plus one grouped query per (len, zero) for the rest. */
-  private async dailyDistributions(
-    queries: readonly DistributionQuery[],
-  ): Promise<[string, DistributionDto][]> {
-    const now = this.deps.clock.now()
-    const cached = queries.flatMap((q) => {
-      const hit = this.cache.get(cacheKey(q), now)
-      return hit ? [[cacheKey(q), hit] as [string, DistributionDto]] : []
+    await this.deps.repo.profiles.update(user.id, {
+      sound,
+      vibrate,
+      defaultLen,
+      lang,
+      avatarSpecies,
     })
-    const missing = queries.filter((q) => !this.cache.get(cacheKey(q), now))
-    const groups = new Map<string, DistributionQuery[]>()
-    for (const q of missing) {
-      const group = `${q.len}|${q.zero}`
-      groups.set(group, [...(groups.get(group) ?? []), q])
-    }
-    const fetched: [string, DistributionDto][] = []
-    for (const group of groups.values()) {
-      const [{ len, zero }] = group as [DistributionQuery]
-      const dates = group.map((q) => q.date)
-      const byDate = await this.deps.repo.games.wonAttemptsByDate({ len, zero, dates })
-      for (const q of group) {
-        const value = toDistribution(byDate[q.date] ?? [], len)
-        this.cache.set(cacheKey(q), value, now)
-        fetched.push([cacheKey(q), value])
-      }
-    }
-    return [...cached, ...fetched]
+    return this.me(user)
   }
 }

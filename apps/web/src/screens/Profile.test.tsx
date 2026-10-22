@@ -49,7 +49,7 @@ describe('Profile', () => {
     desktopViewport()
     show()
     expect(await screen.findByText('изиграни игри')).toBeInTheDocument()
-    expect(screen.getByText('Първа победа')).toBeInTheDocument()
+    expect(screen.getByText('Победа без нито един нелогичен опит')).toBeInTheDocument()
     Reflect.deleteProperty(window, 'matchMedia')
   })
 
@@ -60,8 +60,8 @@ describe('Profile', () => {
     expect(screen.getByText('150 / 750 т. до ниво 3')).toBeInTheDocument()
     expect(screen.getByText('83%')).toBeInTheDocument()
     expect(screen.getByText('рейтинг 1240')).toBeInTheDocument()
-    expect(container.querySelectorAll('.badge')).toHaveLength(6)
-    expect(container.querySelectorAll('.badge.locked')).toHaveLength(4)
+    expect(container.querySelectorAll('.badge')).toHaveLength(29)
+    expect(container.querySelectorAll('.badge.locked')).toHaveLength(28)
   })
 
   it('turns the sound off through PATCH and mutes the player', async () => {

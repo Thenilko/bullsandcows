@@ -15,6 +15,15 @@ export const rooms = durableRoomClient(ns)
 export const repo = sharedMemoryRepo()
 
 export const RACE: RoomOpts = { format: 'race', len: 4, zero: false, opponentKind: 'quick' }
+
+const BADGE_XP = 50
+
+/** XP from the matches alone: the profile's xp minus what badge tiers paid (+50 each). */
+export async function gameXp(userId: string): Promise<number> {
+  const xp = (await repo.profiles.get(userId))?.xp ?? 0
+  const tiers = (await repo.badges.listOf(userId)).reduce((n, b) => n + b.tier, 0)
+  return xp - BADGE_XP * tiers
+}
 export const CLASSIC: RoomOpts = { format: 'classic', len: 4, zero: false, opponentKind: 'human' }
 
 export interface Member {

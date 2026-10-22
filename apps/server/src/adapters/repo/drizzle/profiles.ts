@@ -76,10 +76,10 @@ export function drizzleProfiles(db: Db): ProfilesRepo {
         .returning({ id: profiles.id })
       required(rows[0])
     },
-    markBackfilled: async (id) => {
+    setProgressVersion: async (id, version) => {
       const rows = await db
         .update(profiles)
-        .set({ progressBackfilled: true })
+        .set({ progressVersion: version })
         .where(eq(profiles.id, id))
         .returning({ id: profiles.id })
       required(rows[0])

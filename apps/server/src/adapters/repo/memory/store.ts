@@ -1,5 +1,13 @@
 import type { BadgeKey } from '@bc/protocol'
-import type { DuelRow, GameRow, GuessRow, Profile, PublicGameRow } from '../../../ports/repo'
+import type {
+  BadgeState,
+  DuelRow,
+  GameRow,
+  GuessRow,
+  Profile,
+  PublicGameRow,
+  ShareRow,
+} from '../../../ports/repo'
 
 /** The in-memory "database". Only the memory repo touches it; callers get copies. */
 export interface MemoryStore {
@@ -8,8 +16,10 @@ export interface MemoryStore {
   readonly guesses: Map<string, readonly GuessRow[]>
   readonly duels: Map<string, DuelRow>
   readonly dailyNumbers: Map<string, number>
-  /** Per user: badge key → when it was earned (Unix ms). */
-  readonly badges: Map<string, ReadonlyMap<BadgeKey, number>>
+  /** Per user: badge key → its state. */
+  readonly badges: Map<string, ReadonlyMap<BadgeKey, BadgeState>>
+  /** Key `<userId>|<gameId>`. */
+  readonly shares: Map<string, ShareRow>
   nextGuessId: number
 }
 
@@ -20,6 +30,7 @@ export const createStore = (): MemoryStore => ({
   duels: new Map(),
   dailyNumbers: new Map(),
   badges: new Map(),
+  shares: new Map(),
   nextGuessId: 1,
 })
 

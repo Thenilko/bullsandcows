@@ -6,9 +6,12 @@ import {
   CLASSIC,
   FAR_FUTURE,
   RACE,
+  type Setup,
   alarmAt,
   cleanup,
   connect,
+  gameXp,
+  got,
   last,
   member,
   of,
@@ -16,17 +19,15 @@ import {
   repo,
   rooms,
   send,
+  sendRaw,
   setup,
   startRace,
   storage,
   stubOf,
   track,
-  got,
-  sendRaw,
   until,
   useClock,
   wsUrl,
-  type Setup,
 } from './duelRoom.testkit'
 import { INVITE_MS, READY_MS } from './state'
 import type { Timers } from './timers'
@@ -207,8 +208,12 @@ describe('DuelRoom race', () => {
     expect(last(cb, 'ended')).toMatchObject({ outcome: 'lose', xp: 40 })
     const pa = await repo.profiles.get(s.a.info.id)
     const pb = await repo.profiles.get(s.b.info.id)
-    expect(pa?.xp).toBe(120)
-    expect(pb?.xp).toBe(40)
+    expect(await gameXp(s.a.info.id)).toBe(120)
+    expect(await gameXp(s.b.info.id)).toBe(40)
+    // The winner's `ended` carries the tiers earned (+50 XP each), the loser's none.
+    expect(endedA?.newBadges).toContainEqual({ key: 'duelist', tier: 1 })
+    expect(last(cb, 'ended')?.newBadges).toBeUndefined()
+    expect(pa?.xp).toBe(120 + 50 * (endedA?.newBadges?.length ?? 0))
     expect(pa?.rating.rating).toBeGreaterThan(s.a.info.rating.rating)
     expect(pb?.rating.rating).toBeLessThan(s.b.info.rating.rating)
     const [game] = await repo.games.history(s.a.info.id, 5)
@@ -228,8 +233,8 @@ describe('DuelRoom race', () => {
     const pb = await repo.profiles.get(s.b.info.id)
     expect(pa?.rating).toEqual(s.a.info.rating)
     expect(pb?.rating).toEqual(s.b.info.rating)
-    expect(pa?.xp).toBe(120)
-    expect(pb?.xp).toBe(40)
+    expect(await gameXp(s.a.info.id)).toBe(120)
+    expect(await gameXp(s.b.info.id)).toBe(40)
   })
 
   it('reveals the secret in the final state only', async () => {

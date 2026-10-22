@@ -76,12 +76,10 @@ export const meFixture: MeDto = {
     { attempts: 10, count: 0 },
   ],
   badges: {
-    firstBull: true,
     noWaste: true,
     underMinute: false,
-    streak7: false,
-    chiefBull: false,
-    fiveDigits: false,
+    streak: false,
+    five: false,
   },
   recent: [],
 }

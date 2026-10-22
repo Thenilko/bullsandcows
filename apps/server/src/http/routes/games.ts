@@ -1,6 +1,7 @@
-import { CreateGameBody, GuessBody, type ErrorCode } from '@bc/protocol'
+import { CreateGameBody, GiveUpBody, GuessBody, type ErrorCode } from '@bc/protocol'
 import { Hono, type Context } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
+import type { z } from 'zod'
 import { SoloError, SoloService } from '../../solo/service'
 import { AppError } from '../errors'
 import { requireUser } from '../middleware/auth'
@@ -39,6 +40,23 @@ function service(c: Context<AppEnv>): SoloService {
   return new SoloService({ repo, clock, dailySalt: env.DAILY_SALT, distributions: statsService(c) })
 }
 
+/** A JSON body is optional on this route (older clients send none); a malformed one is `ERR_INPUT`. */
+async function optionalBody<T extends z.ZodObject>(
+  c: Context<AppEnv>,
+  schema: T,
+): Promise<z.infer<T>> {
+  const type = c.req.header('content-type') ?? ''
+  const raw = c.req.raw.body
+  if (!type.toLowerCase().includes('application/json') || raw === null) return schema.parse({})
+  const text = await c.req.text()
+  if (text.trim() === '') return schema.parse({})
+  try {
+    return schema.parse(JSON.parse(text))
+  } catch {
+    throw new AppError('ERR_INPUT', 400)
+  }
+}
+
 /** A malformed id cannot exist, so it is "not found" (and never reaches a uuid column). */
 function gameId(c: Context<AppEnv>): string {
   const id = c.req.param('id') ?? ''
@@ -66,14 +84,15 @@ export function gamesRoutes(): Hono<AppEnv> {
     rateLimit({ ...GUESS_LIMIT, name: 'guesses', key: (c) => c.get('user').id }),
     validate('json', GuessBody),
     async (c) => {
-      const { guess } = c.req.valid('json')
-      return ok(c, await run(() => service(c).guess(c.get('user'), gameId(c), guess)))
+      const { guess, usedNotes } = c.req.valid('json')
+      return ok(c, await run(() => service(c).guess(c.get('user'), gameId(c), guess, usedNotes)))
     },
   )
 
-  routes.post('/:id/give-up', async (c) =>
-    ok(c, await run(() => service(c).giveUp(c.get('user'), gameId(c)))),
-  )
+  routes.post('/:id/give-up', async (c) => {
+    const { usedNotes } = await optionalBody(c, GiveUpBody)
+    return ok(c, await run(() => service(c).giveUp(c.get('user'), gameId(c), usedNotes)))
+  })
 
   routes.get('/:id', async (c) => ok(c, await run(() => service(c).get(c.get('user'), gameId(c)))))
 

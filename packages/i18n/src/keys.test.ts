@@ -66,7 +66,14 @@ describe('translation resources', () => {
     for (const rank of ['calf', 'herdsman', 'shepherd', 'pastor', 'steward', 'chiefBull']) {
       expect(bg).toHaveProperty(`rank.${rank}`)
     }
-    for (const badge of ['firstBull', 'noWaste', 'underMinute', 'streak7', 'chiefBull', 'fiveDigits']) {
+    // The 29 badge keys of game-core plus the „???“ placeholder for a hidden one.
+    const badges = [
+      'noWaste', 'sherlock', 'allCows', 'lucky', 'five', 'pure', 'underMinute', 'bolt',
+      'streak', 'early', 'night', 'month', 'duelist', 'unbeaten', 'comeback', 'rematch',
+      'bot1', 'bot2', 'bot3', 'bot4', 'formats', 'notes', 'invite', 'family', 'teller',
+      'weekly', 'mirror', 'ladder', 'zeroHero', 'hidden',
+    ]
+    for (const badge of badges) {
       expect(bg).toHaveProperty(`badge.${badge}.name`)
       expect(bg).toHaveProperty(`badge.${badge}.desc`)
     }

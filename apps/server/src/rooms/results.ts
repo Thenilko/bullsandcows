@@ -1,5 +1,5 @@
 import type { RepoHandle } from '../ports/repo'
-import { recordResult, resultIds } from './persist'
+import { recordResult, resultIds, type NewBadgesByUser } from './persist'
 import { PERSIST_MAX_ATTEMPTS, retryDelay, type PendingResult, type RoomState } from './state'
 
 /** Storage keys of claimed, not yet written results: `pending:<duelId>`. */
@@ -23,30 +23,32 @@ export function claimResult(st: RoomState, now: number): PendingResult | null {
   }
 }
 
-async function write(openRepo: () => RepoHandle, p: PendingResult): Promise<void> {
+async function write(openRepo: () => RepoHandle, p: PendingResult): Promise<NewBadgesByUser> {
   const repo = openRepo()
   try {
-    await recordResult(repo, p)
+    return await recordResult(repo, p)
   } finally {
     await repo.close()
   }
 }
 
 /**
- * One write of a claimed result. Success deletes its entry; a failure is retried with
- * backoff, and after `PERSIST_MAX_ATTEMPTS` the entry is dropped. Writes are idempotent (fixed
- * row ids, rewards credited once per duel), so an overlapping retry is harmless.
+ * One write of a claimed result. Success deletes its entry and returns the badges earned per
+ * user; a failure (null) is retried with backoff, and after `PERSIST_MAX_ATTEMPTS` the entry
+ * is dropped. Writes are idempotent (fixed row ids, rewards credited once per duel, badges
+ * recomputed from the rows), so an overlapping retry is harmless.
  */
 export async function attemptWrite(
   storage: DurableObjectStorage,
   openRepo: () => RepoHandle,
   p: PendingResult,
   now: number,
-): Promise<void> {
+): Promise<NewBadgesByUser | null> {
   const key = pendingKey(p)
   try {
-    await write(openRepo, p)
+    const badges = await write(openRepo, p)
     await storage.delete(key)
+    return badges
   } catch (err) {
     const attempts = p.attempts + 1
     if (attempts >= PERSIST_MAX_ATTEMPTS) {
@@ -54,12 +56,13 @@ export async function attemptWrite(
         `duel ${p.ids.duelId}: result dropped after ${attempts} attempts: ${errorText(err)}`,
       )
       await storage.delete(key)
-      return
+      return null
     }
     if (attempts === 1) {
       console.error(`duel ${p.ids.duelId}: result not recorded, retrying: ${errorText(err)}`)
     }
     await storage.put(key, { ...p, attempts, retryAt: now + retryDelay(attempts) })
+    return null
   }
 }
 

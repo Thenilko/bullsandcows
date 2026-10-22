@@ -11,6 +11,9 @@ const STREAK_XP_MAX = 70
 /** Counted (non-practice) free games per Sofia day that earn the full XP. */
 export const FREE_XP_GAMES_PER_DAY = 10
 
+/** XP for every new badge tier (a single badge is one tier); none for the backfill. */
+export const BADGE_TIER_XP = 50
+
 /** +10 XP per day in the day streak (the day being won included), at most +70. */
 export function dayStreakBonus(dayStreak: number): number {
   return Math.min(STREAK_XP_MAX, STREAK_XP_PER_DAY * Math.max(0, dayStreak))

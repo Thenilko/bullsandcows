@@ -1,10 +1,11 @@
-import type { GameViewDto, GuessResultDto } from '@bc/protocol'
+import type { GameViewDto, GiveUpResultDto, GuessResultDto } from '@bc/protocol'
 import type { Len } from '@bc/game-core'
 import type { z } from 'zod'
 
 /** The REST shape is defined once, in `@bc/protocol`. */
 export type GameView = z.infer<typeof GameViewDto>
 export type GuessResult = z.infer<typeof GuessResultDto>
+export type GiveUpResult = z.infer<typeof GiveUpResultDto>
 
 export interface CreateInput {
   readonly len: Len

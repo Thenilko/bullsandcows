@@ -15,6 +15,8 @@ export function memoryDuels(store: MemoryStore, clock: Clock): DuelsRepo {
       const existing = input.id === undefined ? undefined : store.duels.get(input.id)
       if (existing) return copy(existing)
       return save({
+        isRematch: false,
+        comeback: false,
         ...input,
         id: input.id ?? crypto.randomUUID(),
         winner: null,
@@ -50,5 +52,11 @@ export function memoryDuels(store: MemoryStore, clock: Clock): DuelsRepo {
       save({ ...current, rewardsApplied: true })
       return true
     },
+    listOf: async (userId, limit) =>
+      [...store.duels.values()]
+        .filter((d) => (d.playerA === userId || d.playerB === userId) && d.finishedAt !== null)
+        .sort((a, b) => (b.finishedAt ?? 0) - (a.finishedAt ?? 0) || b.id.localeCompare(a.id))
+        .slice(0, limit)
+        .map(copy),
   }
 }

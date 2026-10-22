@@ -63,6 +63,7 @@ export function acceptRematch(m: Match, s: Secrets, seat: Seat, now: number): St
     turnNo: 0,
     warnedTurn: null,
     rematch: NO_REMATCH,
+    isRematch: true,
   }
   return step(next, EMPTY_SECRETS)
 }

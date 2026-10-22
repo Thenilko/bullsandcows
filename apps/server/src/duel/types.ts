@@ -44,6 +44,8 @@ export interface Player extends PlayerInfo {
   readonly left: number
   readonly connected: boolean
   readonly disconnectedAt: number | null
+  /** The notebook was used in this match (the client says so with a guess; sticky). */
+  readonly usedNotes?: boolean
 }
 
 export interface MatchOutcome {
@@ -73,6 +75,8 @@ export interface Match {
   readonly warnedTurn: number | null
   /** Per seat: when that seat's rematch offer expires, or null. */
   readonly rematch: { readonly a: number | null; readonly b: number | null }
+  /** This match was accepted as a rematch of the previous one (absent for the first). */
+  readonly isRematch?: boolean
 }
 
 /** Kept apart from `Match`; never part of a public view before the end. */

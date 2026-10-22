@@ -1,6 +1,6 @@
 import type { Len } from '@bc/game-core'
 import type { Lang } from '@bc/i18n'
-import type { AvatarSpecies, BadgeKey } from '@bc/protocol'
+import type { AvatarSpecies, BadgeKey, ShareChannel } from '@bc/protocol'
 import { sql } from 'drizzle-orm'
 import {
   type AnyPgColumn,
@@ -53,8 +53,8 @@ export const profiles = pgTable(
     currentStreak: integer('current_streak').notNull().default(0),
     bestStreak: integer('best_streak').notNull().default(0),
     streakDate: date('streak_date', { mode: 'string' }),
-    /** Badges and day streak derived from the game history once (see docs/PROGRESSION.md). */
-    progressBackfilled: boolean('progress_backfilled').notNull().default(false),
+    /** Version of the progression backfill applied to this profile (see docs/PROGRESSION.md). */
+    progressVersion: smallint('progress_version').notNull().default(0),
     createdAt: ts('created_at').notNull().defaultNow(),
   },
   (t) => [
@@ -85,6 +85,8 @@ export const games = pgTable(
     won: boolean('won'),
     score: integer('score').notNull().default(0),
     suspicious: boolean('suspicious').notNull().default(false),
+    /** The notebook was used at least once (the client reports it; sticky). */
+    usedNotes: boolean('used_notes').notNull().default(false),
     createdAt: ts('created_at').notNull().defaultNow(),
   },
   (t) => [
@@ -147,6 +149,10 @@ export const duels = pgTable(
     finishedAt: ts('finished_at'),
     /** XP/ratings credited; flipped once, in the transaction that credits them. */
     rewardsApplied: boolean('rewards_applied').notNull().default(false),
+    /** The match was accepted as a rematch of the previous one in the room. */
+    isRematch: boolean('is_rematch').notNull().default(false),
+    /** The winner won after the loser had exactly one candidate left (badge „comeback“). */
+    comeback: boolean('comeback').notNull().default(false),
   },
   (t) => [
     index('duels_invite_code_idx').on(t.inviteCode),
@@ -156,7 +162,10 @@ export const duels = pgTable(
   ],
 ).enableRLS()
 
-/** A badge is written the moment it is earned and never removed. */
+/**
+ * One row per badge a player has progress in; `tier` (0–3) and `progress` only ever grow and
+ * `earned_at` is when the current tier was reached. Rows are never removed.
+ */
 export const userBadges = pgTable(
   'user_badges',
   {
@@ -164,9 +173,31 @@ export const userBadges = pgTable(
       .notNull()
       .references(() => profiles.id, { onDelete: 'cascade' }),
     badgeKey: text('badge_key').$type<BadgeKey>().notNull(),
+    tier: smallint('tier').notNull().default(0),
+    progress: integer('progress').notNull().default(0),
     earnedAt: ts('earned_at').notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.userId, t.badgeKey] })],
+).enableRLS()
+
+/** A shared result: one row per (user, game) however often it is shared; no personal data. */
+export const shares = pgTable(
+  'shares',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    gameId: uuid('game_id')
+      .notNull()
+      .references(() => games.id, { onDelete: 'cascade' }),
+    channel: text('channel').$type<ShareChannel>().notNull(),
+    createdAt: ts('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('shares_user_game_idx').on(t.userId, t.gameId),
+    check('shares_channel_check', sql`${t.channel} in ('native', 'copy', 'image')`),
+  ],
 ).enableRLS()
 
 /** Materialised daily numbers for auditing (the salt itself is the DAILY_SALT secret). */

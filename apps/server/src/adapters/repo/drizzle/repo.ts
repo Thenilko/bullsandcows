@@ -4,6 +4,7 @@ import type { DbHandle } from './client'
 import { drizzleDuels } from './duels'
 import { drizzleGames } from './games'
 import { drizzleProfiles } from './profiles'
+import { drizzleShares } from './shares'
 
 /** Postgres-backed repo; mirrors the memory repo method for method. */
 export function createDrizzleRepo(handle: DbHandle): RepoHandle {
@@ -12,6 +13,7 @@ export function createDrizzleRepo(handle: DbHandle): RepoHandle {
     games: drizzleGames(handle.db),
     duels: drizzleDuels(handle.db),
     badges: drizzleBadges(handle.db),
+    shares: drizzleShares(handle.db),
     close: () => handle.close(),
   }
 }

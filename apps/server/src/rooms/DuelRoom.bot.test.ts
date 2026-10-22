@@ -5,10 +5,12 @@ import type { RoomOpts } from '../duel/roomClient'
 import { COUNTDOWN_MS, type Match, type Secrets } from '../duel/types'
 import type { DuelRoom } from './DuelRoom'
 import {
+  type Client,
+  FAR_FUTURE,
   alarmAt as alarmAtKit,
   cleanup,
   connect,
-  FAR_FUTURE,
+  gameXp,
   got,
   last,
   member,
@@ -16,12 +18,11 @@ import {
   repo,
   rooms,
   send as sendKit,
-  stubOf,
   storage as storageKit,
+  stubOf,
   track,
   until,
   useClock,
-  type Client,
 } from './duelRoom.testkit'
 import { SECRETS_MS } from './state'
 import type { Timers } from './timers'
@@ -127,8 +128,11 @@ describe('DuelRoom bot: race', () => {
       'the recorded result',
     )
     const after = await repo.profiles.get(s.userId)
-    expect(after!.xp).toBe(before!.xp + 40)
+    expect(await gameXp(s.userId)).toBe(before!.xp + 40)
     expect(after!.rating).toEqual(before!.rating)
+    expect(await repo.badges.listOf(s.userId)).toContainEqual(
+      expect.objectContaining({ key: 'bot3', tier: 1 }),
+    )
     const games = await repo.games.history(s.userId, 10)
     expect(games.map((g) => g.kind)).toEqual(['bot'])
     expect(await botTimer(s)).toBeUndefined()

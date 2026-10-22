@@ -4,19 +4,20 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { NewDuel, RepoHandle } from '../ports/repo'
 import type { DuelRoom } from './DuelRoom'
 import {
+  type Setup,
   alarmAt,
   cleanup,
   connect,
+  gameXp,
   got,
   last,
-  rooms,
   repo,
+  rooms,
   send,
   setup,
   startRace,
   track,
   until,
-  type Setup,
 } from './duelRoom.testkit'
 import { PERSIST_MAX_ATTEMPTS, PERSIST_RETRY_MAX_MS, PERSIST_RETRY_MS } from './state'
 
@@ -78,9 +79,11 @@ describe('DuelRoom result retry', () => {
     expect(flaky.calls()).toBe(2)
     expect(await pendingKeys(s)).toEqual([])
     const pa = await repo.profiles.get(s.a.info.id)
-    expect(pa?.xp).toBe(120)
-    expect((await repo.profiles.get(s.b.info.id))?.xp).toBe(40)
+    expect(await gameXp(s.a.info.id)).toBe(120)
+    expect(await gameXp(s.b.info.id)).toBe(40)
     expect(displayRating(pa!.rating)).toBe(ended.rating?.to)
+    // The first write failed, so the `ended` went out without the badges it would have carried.
+    expect(ended.newBadges).toBeUndefined()
     expect(await repo.games.history(s.a.info.id, 5)).toHaveLength(1)
     expect(await repo.games.history(s.b.info.id, 5)).toHaveLength(1)
     expect(logged).toHaveBeenCalledTimes(1)

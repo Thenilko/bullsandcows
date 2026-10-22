@@ -29,6 +29,16 @@ const daily = (user = alice, len: 3 | 4 | 5 = 4, zero = false) =>
 const free = (secret: string, user = alice) =>
   solo.create(user, { len: 4, zero: false, kind: 'free', secretOverride: secret })
 
+const BADGE_XP = 50
+const tiersOf = async (id: string) => (await repo.badges.listOf(id)).reduce((n, b) => n + b.tier, 0)
+/** XP from games alone: the profile's xp minus what badge tiers paid (+50 each). */
+async function gameXp(id = 'alice'): Promise<number> {
+  const xp = (await repo.profiles.get(id))?.xp ?? 0
+  return xp - BADGE_XP * (await tiersOf(id))
+}
+const held = async (id = 'alice') =>
+  (await repo.badges.listOf(id)).filter((b) => b.tier > 0).map((b) => b.key)
+
 const codeOf = async (action: Promise<unknown>) =>
   action.then(
     () => null,
@@ -151,7 +161,7 @@ describe('guess', () => {
     const view = await solo.get(alice, game.id)
     expect(view).toMatchObject({ secret: '1234', won: true, score: 690, attempts: 6 })
     // Six attempts is top 37% of the fallback histogram: 3 stars, 40 + 12·3 XP.
-    expect((await repo.profiles.get('alice'))?.xp).toBe(76)
+    expect(await gameXp()).toBe(76)
     expect(await codeOf(solo.guess(alice, game.id, '9871'))).toBe('ERR_FINISHED')
   })
 
@@ -183,7 +193,7 @@ describe('guess', () => {
     const secret = dailySecret(SALT, sofiaDate(new Date(START)), 4, false)
     expect((await solo.guess(alice, game.id, secret)).solved).toBe(true)
     // One attempt is top 1%: five stars, plus +10 for a day streak of one.
-    expect((await repo.profiles.get('alice'))?.xp).toBe(260)
+    expect(await gameXp()).toBe(260)
   })
 
   it('pays full XP for ten free games a Sofia day and 10 XP after that', async () => {
@@ -199,12 +209,12 @@ describe('guess', () => {
     now = Date.parse('2026-10-20T19:00:00Z') // 22:00 Sofia
     for (let i = 0; i < 10; i += 1) await winFree()
     // Two attempts is top 1%: five stars, 40 + 12·5 XP each.
-    expect((await repo.profiles.get('alice'))?.xp).toBe(1000)
+    expect(await gameXp()).toBe(1000)
     await winFree()
-    expect((await repo.profiles.get('alice'))?.xp).toBe(1010)
+    expect(await gameXp()).toBe(1010)
     now = Date.parse('2026-10-20T22:30:00Z') // 01:30 Sofia, the next day
     await winFree()
-    expect((await repo.profiles.get('alice'))?.xp).toBe(1110)
+    expect(await gameXp()).toBe(1110)
   })
 
   it('flags bot-like pacing as suspicious', async () => {
@@ -237,15 +247,16 @@ describe('day streak and badges', () => {
   it('counts consecutive Sofia days across midnight and pays +10 XP per day', async () => {
     now = Date.parse('2026-10-20T20:30:00Z') // 23:30 Sofia, 20 October
     await winDaily()
-    expect(await profile()).toMatchObject({ currentStreak: 1, bestStreak: 1, xp: 260 })
+    expect(await profile()).toMatchObject({ currentStreak: 1, bestStreak: 1 })
+    expect(await gameXp()).toBe(260)
     now = Date.parse('2026-10-20T21:30:00Z') // 00:30 Sofia, 21 October
     await winDaily()
     expect(await profile()).toMatchObject({
       currentStreak: 2,
       bestStreak: 2,
       streakDate: '2026-10-21',
-      xp: 260 + 270,
     })
+    expect(await gameXp()).toBe(260 + 270)
   })
 
   it('does not extend the streak with a second length the same day', async () => {
@@ -263,37 +274,79 @@ describe('day streak and badges', () => {
     now += 2 * DAY_MS
     await winDaily()
     expect(await profile()).toMatchObject({ currentStreak: 1, bestStreak: 2 })
-    expect((await repo.badges.listOf('alice')).includes('streak7')).toBe(false)
+    expect(await held()).not.toContain('streak')
   })
 
-  it('awards streak7 on the seventh day and caps the bonus at +70', async () => {
+  it('awards the streak badge on the seventh day and caps the bonus at +70', async () => {
     for (let day = 0; day < 8; day += 1) {
       now = START + day * DAY_MS
       await winDaily()
     }
     expect(await profile()).toMatchObject({ currentStreak: 8, bestStreak: 8 })
-    expect(await repo.badges.listOf('alice')).toContain('streak7')
+    expect(await repo.badges.listOf('alice')).toContainEqual(
+      expect.objectContaining({ key: 'streak', tier: 1, progress: 8 }),
+    )
     // 250 per win plus 10, 20, ... 70, 70.
-    expect((await profile())?.xp).toBe(8 * 250 + 10 + 20 + 30 + 40 + 50 + 60 + 70 + 70)
+    expect(await gameXp()).toBe(8 * 250 + 10 + 20 + 30 + 40 + 50 + 60 + 70 + 70)
   })
 
-  it('keeps a badge after a loss and gives none for a loss or a practice win', async () => {
+  it('returns the new tiers of a counted win and pays +50 XP per tier', async () => {
+    const win = await free('1234')
+    await solo.start(alice, win.id)
+    now += 5_000
+    const result = await solo.guess(alice, win.id, '1234')
+    // One quick clean guess at a ladder secret: lucky, noWaste, sherlock, underMinute, bolt, ladder.
+    const keys = ['noWaste', 'sherlock', 'lucky', 'underMinute', 'bolt', 'ladder']
+    expect(result.newBadges?.map((b) => b.key).sort()).toEqual([...keys].sort())
+    expect(result.newBadges?.every((b) => b.tier === 1)).toBe(true)
+    expect((await profile())?.xp).toBe(100 + BADGE_XP * keys.length)
+    expect(await held()).toEqual(expect.arrayContaining(keys))
+  })
+
+  it('keeps badges after a loss and gives none for a practice win', async () => {
     const win = await free('1234')
     await solo.start(alice, win.id)
     now += 5_000
     await solo.guess(alice, win.id, '1234')
-    const earned = ['firstBull', 'noWaste', 'underMinute', 'chiefBull']
-    expect(await repo.badges.listOf('alice')).toEqual(earned)
-    await solo.giveUp(alice, (await free('5678')).id)
-    expect(await repo.badges.listOf('alice')).toEqual(earned)
+    const earned = await held()
+    expect(earned).toContain('noWaste')
+    const lost = await solo.giveUp(alice, (await free('5678')).id)
+    expect(lost.newBadges).toEqual([])
+    expect(await held()).toEqual(earned)
     await solo.giveUp(alice, (await daily()).id)
     const practice = await solo.create(alice, { len: 5, zero: false, kind: 'daily' })
     await solo.giveUp(alice, practice.id)
     const again = await solo.create(alice, { len: 5, zero: false, kind: 'daily' })
     expect(again.practice).toBe(true)
     await solo.start(alice, again.id)
-    await solo.guess(alice, again.id, dailySecret(SALT, sofiaDate(new Date(now)), 5, false))
-    expect((await repo.badges.listOf('alice')).includes('fiveDigits')).toBe(false)
+    const secret = dailySecret(SALT, sofiaDate(new Date(now)), 5, false)
+    const result = await solo.guess(alice, again.id, secret)
+    expect(result.newBadges).toBeUndefined()
+    expect(await held()).not.toContain('five')
+  })
+
+  it('remembers that the notebook was used, also on a give-up, and counts it for „notes“', async () => {
+    const first = await free('1234')
+    await solo.start(alice, first.id)
+    await solo.guess(alice, first.id, '5678', true)
+    await solo.guess(alice, first.id, '5687', false)
+    expect((await repo.games.get(first.id))?.usedNotes).toBe(true)
+    const second = await free('1234')
+    await solo.giveUp(alice, second.id, true)
+    expect((await repo.games.get(second.id))?.usedNotes).toBe(true)
+    const third = await free('1234')
+    await solo.giveUp(alice, third.id)
+    expect((await repo.games.get(third.id))?.usedNotes).toBe(false)
+    expect(await repo.badges.listOf('alice')).toContainEqual(
+      expect.objectContaining({ key: 'notes', tier: 0, progress: 1 }),
+    )
+  })
+
+  it('numbers the day in the view of a daily game', async () => {
+    now = Date.parse('2026-10-23T09:00:00Z')
+    const game = await daily()
+    expect(game.dailyNumber).toBe(2)
+    expect((await free('1234')).dailyNumber).toBeUndefined()
   })
 })
 

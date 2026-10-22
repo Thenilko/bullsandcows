@@ -2,6 +2,7 @@ import {
   bullsCows,
   codes,
   dailyIndex,
+  dailyNumber,
   dailySecret,
   dailyXp,
   filterCandidates,
@@ -15,17 +16,18 @@ import {
   totalCodes,
   type Len,
 } from '@bc/game-core'
-import type { ErrorCode } from '@bc/protocol'
+import type { ErrorCode, NewBadgeDto } from '@bc/protocol'
 import type { AuthUser } from '../ports/auth'
 import type { Clock } from '../ports/clock'
 import { isDuplicate } from '../ports/errors'
-import type { GameRow, GuessRow, NewGuess, PublicGameRow, Repo } from '../ports/repo'
-import { earnedByDayStreak, earnedByGame } from '../stats/badges'
+import type { GamePatch, GameRow, GuessRow, NewGuess, PublicGameRow, Repo } from '../ports/repo'
+import { guessEvents } from '../stats/badgeMetrics'
+import { recomputeBadges } from '../stats/badgeService'
 import { StatsService } from '../stats/service'
 import { nextDayStreak } from '../stats/streak'
 import { topOfGame, type DistributionSource } from '../stats/top'
 import { candidatesAfter, leftAfterEach } from './evaluate'
-import type { CreateInput, GameView, GuessResult } from './types'
+import type { CreateInput, GameView, GiveUpResult, GuessResult } from './types'
 
 export class SoloError extends Error {
   constructor(readonly code: ErrorCode) {
@@ -136,7 +138,13 @@ export class SoloService {
     return { startedAt }
   }
 
-  async guess(user: AuthUser, gameId: string, guess: string): Promise<GuessResult> {
+  /** `usedNotes` (optional) marks the game once the notebook has been used; it never unmarks. */
+  async guess(
+    user: AuthUser,
+    gameId: string,
+    guess: string,
+    usedNotes = false,
+  ): Promise<GuessResult> {
     const { repo, clock } = this.deps
     const game = await this.ownedWithSecret(user, gameId)
     if (game.startedAt === null) throw new SoloError('ERR_NOT_STARTED')
@@ -153,23 +161,37 @@ export class SoloService {
     const attempts = previous.length + 1
     const wasted = [...previous, row].filter((r) => !r.consistent).length
     const solved = verdict.bulls === game.len
+    const notes = usedNotes ? { usedNotes: true } : {}
     if (!solved) {
-      await repo.games.update(gameId, { attempts, wasted })
+      await repo.games.update(gameId, { attempts, wasted, ...notes })
       return { ...verdict, consistent, left, solved }
     }
-    const score = await this.finishWin(user, game, [...previous, row], attempts, wasted)
-    return { ...verdict, consistent, left, solved, score }
+    const rows = [...previous, row]
+    const { score, newBadges } = await this.finishWin(user, game, rows, attempts, wasted, notes)
+    return { ...verdict, consistent, left, solved, score, ...(newBadges && { newBadges }) }
   }
 
-  async giveUp(user: AuthUser, gameId: string): Promise<{ secret: string }> {
+  /** A loss still moves badges („pure“, „notes“, the hidden ones); practice games move nothing. */
+  async giveUp(user: AuthUser, gameId: string, usedNotes = false): Promise<GiveUpResult> {
+    const { repo, clock } = this.deps
     const game = await this.ownedWithSecret(user, gameId)
     if (game.finishedAt !== null) throw new SoloError('ERR_FINISHED')
-    await this.deps.repo.games.update(gameId, {
-      finishedAt: this.deps.clock.now(),
+    await repo.games.update(gameId, {
+      finishedAt: clock.now(),
       won: false,
       score: 0,
+      ...(usedNotes ? { usedNotes: true } : {}),
     })
-    return { secret: game.secret }
+    if (game.practice || !(await repo.profiles.get(user.id))) return { secret: game.secret }
+    const rows = await repo.games.guesses(gameId)
+    const newBadges = await recomputeBadges(repo, {
+      userId: user.id,
+      scope: 'game',
+      now: clock.now(),
+      events: guessEvents(game.secret, rows, game.len, false),
+      payXp: true,
+    })
+    return { secret: game.secret, newBadges }
   }
 
   async get(user: AuthUser, gameId: string): Promise<GameView> {
@@ -182,7 +204,8 @@ export class SoloService {
     rows: readonly GuessRow[],
     attempts: number,
     wasted: number,
-  ): Promise<number> {
+    notes: Pick<GamePatch, 'usedNotes'>,
+  ): Promise<{ score: number; newBadges: NewBadgeDto[] | null }> {
     const { repo, clock } = this.deps
     const finishedAt = clock.now()
     const startedAt = game.startedAt ?? finishedAt
@@ -201,21 +224,28 @@ export class SoloService {
       won: true,
       score,
       suspicious,
+      ...notes,
     })
-    if (!game.practice) await this.reward(user, finished)
-    return score
+    const newBadges = game.practice ? null : await this.reward(user, finished, game.secret, rows)
+    return { score, newBadges }
   }
 
   /**
    * A counted win: the number of the day extends the day streak and pays 150 + 20 per star
    * plus the streak bonus; a free game pays 40 + 12 per star for the first ten of the Sofia
    * day, then 10. Stars come from "top X%" against the distribution the result screen
-   * shows. The badges earned are written for good. A user without a profile row gets nothing.
+   * shows. Then the badges are recomputed (+50 XP per new tier) and the new tiers returned.
+   * A user without a profile row gets nothing.
    */
-  private async reward(user: AuthUser, game: PublicGameRow): Promise<void> {
+  private async reward(
+    user: AuthUser,
+    game: PublicGameRow,
+    secret: string,
+    rows: readonly GuessRow[],
+  ): Promise<NewBadgeDto[] | null> {
     const { repo, clock } = this.deps
     const profile = await repo.profiles.get(user.id)
-    if (!profile) return
+    if (!profile) return null
     const today = sofiaDate(new Date(clock.now()))
     const top = await topOfGame(this.distributions, game, today)
     const stars = starsFromTop(top)
@@ -225,8 +255,13 @@ export class SoloService {
       ? dailyXp(stars, streak.currentStreak)
       : freeXp(stars, await repo.games.countFreeGamesOn(user.id, today))
     await repo.profiles.addXp(user.id, xp)
-    const earned = [...earnedByGame(game, top), ...earnedByDayStreak(streak?.currentStreak ?? 0)]
-    await repo.badges.award(user.id, earned, clock.now())
+    return recomputeBadges(repo, {
+      userId: user.id,
+      scope: 'game',
+      now: clock.now(),
+      events: guessEvents(secret, rows, game.len, true),
+      payXp: true,
+    })
   }
 
   /** The same guess sent twice at once passes the repeat check twice; the unique index decides. */
@@ -277,6 +312,7 @@ export class SoloService {
       attempts: game.attempts,
       guesses: toGuessEntries(rows, lefts),
       ...(secret === undefined ? {} : { secret }),
+      ...(game.dailyDate === null ? {} : { dailyNumber: dailyNumber(game.dailyDate) }),
     }
   }
 }

@@ -1,5 +1,6 @@
 import type { ErrorCode } from '@bc/protocol'
 import { DurableObject } from 'cloudflare:workers'
+import type { Emit } from '../duel/types'
 import { makeRepo } from '../adapters/repo'
 import { nextDueAt } from '../duel/expire'
 import { markDisconnected, markReconnected } from '../duel/match'
@@ -8,7 +9,7 @@ import { parseEnv, type Env } from '../env'
 import type { Profile, RepoHandle } from '../ports/repo'
 import { advance, fromStep, isAbandoned, type Advanced } from './lifecycle'
 import { acceptsRematch, applyClient, parseClient, refreshPlayers, rematch } from './messages'
-import { BOT_ID } from './persist'
+import { BOT_ID, type NewBadgesByUser } from './persist'
 import { attemptWrite, claimResult, earliestRetry, pendingKey, retryDue } from './results'
 import {
   CreateBody,
@@ -269,7 +270,8 @@ export class DuelRoom extends DurableObject<CloudflareBindings> {
   /**
    * Persists `adv.state`, re-arms the alarm, sends `state` (per seat) when the match changed
    * and routes the events. A newly ended match has its result claimed (flag + pending record,
-   * in the same storage write) and then written.
+   * in the same storage write) and then written; its `ended` events wait for that write, so
+   * they can carry the badges it earned (a failed write sends them without).
    */
   private async commit(
     prev: RoomState | null,
@@ -287,8 +289,15 @@ export class DuelRoom extends DurableObject<CloudflareBindings> {
     await this.arm(st, now)
     if (prev && !prev.meta.expired && st.meta.expired) closeAll(this.ctx, CLOSE.expired, 'expired')
     if (forceState || prev?.match !== st.match) broadcastState(this.ctx, st.match, st.secrets)
-    route(this.ctx, adv.events)
-    if (claimed) await this.writeClaimed(claimed, now)
+    const held = claimed ? adv.events.filter(isEnded) : []
+    route(
+      this.ctx,
+      adv.events.filter((e) => !held.includes(e)),
+    )
+    if (claimed) {
+      const badges = await this.writeClaimed(claimed, now)
+      route(this.ctx, withBadges(st.match, held, badges))
+    }
     return st
   }
 
@@ -308,10 +317,11 @@ export class DuelRoom extends DurableObject<CloudflareBindings> {
    * it in practice; if it did, the machine still emits a corrected `ended`, but the stored
    * result is not rewritten.
    */
-  private async writeClaimed(claimed: PendingResult, now: number): Promise<void> {
-    await attemptWrite(this.ctx.storage, () => this.repo(), claimed, now)
+  private async writeClaimed(claimed: PendingResult, now: number): Promise<NewBadgesByUser | null> {
+    const badges = await attemptWrite(this.ctx.storage, () => this.repo(), claimed, now)
     const st = await this.load()
     if (st) await this.arm(st, now)
+    return badges
   }
 
   /** The repository for one use; callers close it. Test seam. */
@@ -352,6 +362,17 @@ export class DuelRoom extends DurableObject<CloudflareBindings> {
 
 const stepOrError = (st: RoomState, step: Parameters<typeof fromStep>[1]): Advanced | ErrorCode =>
   'error' in step ? step.error : fromStep(st, step)!
+
+const isEnded = (e: Emit): boolean => e.msg.t === 'ended'
+
+/** The seat's `ended` with the badges its player earned, when the result was written. */
+function withBadges(m: Match, held: readonly Emit[], badges: NewBadgesByUser | null): Emit[] {
+  return held.map((e) => {
+    if (!badges || e.msg.t !== 'ended' || e.to === 'both') return e
+    const earned = badges[m.players[e.to]?.id ?? ''] ?? []
+    return earned.length > 0 ? { ...e, msg: { ...e.msg, newBadges: [...earned] } } : e
+  })
+}
 
 async function readJson(req: Request): Promise<unknown> {
   try {

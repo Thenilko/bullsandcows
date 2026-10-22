@@ -1,5 +1,5 @@
 import { updateRating } from '@bc/game-core'
-import { and, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, isNotNull, or, sql } from 'drizzle-orm'
 import type { DuelReward, DuelsRepo, RatingUpdate } from '../../../ports/repo'
 import type { Db } from './client'
 import { required } from './errors'
@@ -73,5 +73,19 @@ export function drizzleDuels(db: Db): DuelsRepo {
         for (const r of rewards) await credit(tx, r)
         return true
       }),
+    listOf: async (userId, limit) => {
+      const rows = await db
+        .select()
+        .from(duels)
+        .where(
+          and(
+            or(eq(duels.playerA, userId), eq(duels.playerB, userId)),
+            isNotNull(duels.finishedAt),
+          ),
+        )
+        .orderBy(desc(duels.finishedAt), desc(duels.id))
+        .limit(limit)
+      return rows.map(toDuel)
+    },
   }
 }

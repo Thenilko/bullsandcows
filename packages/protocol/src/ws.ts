@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { ERROR_CODES } from './errors'
-import { BotLevelSchema, LenSchema, SpeciesSchema, ZeroSchema } from './rest'
+import { BotLevelSchema, LenSchema, NewBadgeDto, SpeciesSchema, ZeroSchema } from './rest'
 
 /** WebSocket message schemas shared by the duel/queue rooms and the client. */
 export const WS_PROTOCOL_VERSION = 1
@@ -39,7 +39,8 @@ const Int = z.number().int()
 export const ClientMsg = z.discriminatedUnion('t', [
   z.object({ t: z.literal('ready') }),
   z.object({ t: z.literal('secret'), code: CodeInput }),
-  z.object({ t: z.literal('guess'), code: CodeInput }),
+  /** `usedNotes`: the notebook was used in this match (sticky once true). */
+  z.object({ t: z.literal('guess'), code: CodeInput, usedNotes: z.boolean().optional() }),
   z.object({ t: z.literal('giveUp') }),
   z.object({ t: z.literal('rematch') }),
 ])
@@ -154,6 +155,8 @@ export const ServerMsg = z.discriminatedUnion('t', [
     secrets: RevealedSecrets,
     rating: RatingChangeDto.nullable(),
     xp: Int,
+    /** Badge tiers this seat earned; absent when the result could not be recorded yet. */
+    newBadges: z.array(NewBadgeDto).optional(),
   }),
   RematchOfferDto.extend({ t: z.literal('rematchOffer') }),
   z.object({ t: z.literal('error'), code: ErrorCodeSchema }),
