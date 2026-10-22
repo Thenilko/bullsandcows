@@ -518,7 +518,7 @@
     "firstBull": { "name": "First bull", "desc": "First win" },
     "noWaste": { "name": "No wasted move", "desc": "A win without an illogical guess" },
     "underMinute": { "name": "Under a minute", "desc": "A win in under 60 seconds" },
-    "streak7": { "name": "7-day streak", "desc": "7 wins in a row" },
+    "streak7": { "name": "7-day streak", "desc": "7 days in a row with the number of the day solved" },
     "chiefBull": { "name": "Chief Bull", "desc": "Top 5% in a game" },
     "fiveDigits": { "name": "Five digits", "desc": "A win on the hard level" }
   },

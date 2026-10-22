@@ -1,6 +1,7 @@
 import type { Len } from '@bc/game-core'
 import type { Lang } from '@bc/i18n'
 import type { AvatarSpecies } from '@bc/protocol'
+import type { BadgeKey } from '@bc/protocol'
 import { sql } from 'drizzle-orm'
 import {
   type AnyPgColumn,
@@ -49,6 +50,12 @@ export const profiles = pgTable(
     rating: doublePrecision('rating').notNull().default(1500),
     ratingDev: doublePrecision('rating_dev').notNull().default(350),
     volatility: doublePrecision('volatility').notNull().default(0.06),
+    /** Consecutive Sofia days with a won number of the day, as of `streakDate`. */
+    currentStreak: integer('current_streak').notNull().default(0),
+    bestStreak: integer('best_streak').notNull().default(0),
+    streakDate: date('streak_date', { mode: 'string' }),
+    /** Badges and day streak derived from the game history once (see docs/PROGRESSION.md). */
+    progressBackfilled: boolean('progress_backfilled').notNull().default(false),
     createdAt: ts('created_at').notNull().defaultNow(),
   },
   (t) => [
@@ -148,6 +155,19 @@ export const duels = pgTable(
     check('duels_opponent_kind_check', sql`${t.opponentKind} in ('quick', 'friend', 'bot')`),
     lenCheck('duels', t.len),
   ],
+).enableRLS()
+
+/** A badge is written the moment it is earned and never removed. */
+export const userBadges = pgTable(
+  'user_badges',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    badgeKey: text('badge_key').$type<BadgeKey>().notNull(),
+    earnedAt: ts('earned_at').notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.badgeKey] })],
 ).enableRLS()
 
 /** Materialised daily numbers for auditing (the salt itself is the DAILY_SALT secret). */

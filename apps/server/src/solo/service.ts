@@ -20,7 +20,9 @@ import type { AuthUser } from '../ports/auth'
 import type { Clock } from '../ports/clock'
 import { isDuplicate } from '../ports/errors'
 import type { GameRow, GuessRow, NewGuess, PublicGameRow, Repo } from '../ports/repo'
+import { earnedByDayStreak, earnedByGame } from '../stats/badges'
 import { StatsService } from '../stats/service'
+import { nextDayStreak } from '../stats/streak'
 import { topOfGame, type DistributionSource } from '../stats/top'
 import { candidatesAfter, leftAfterEach } from './evaluate'
 import type { CreateInput, GameView, GuessResult } from './types'
@@ -205,19 +207,26 @@ export class SoloService {
   }
 
   /**
-   * XP of a counted win: the number of the day pays 150 + 20 per star; a free game 40 + 12 per
-   * star for the first ten of the Sofia day, then 10. Stars come from "top X%" against the
-   * distribution the result screen shows. A user without a profile row is skipped by addXp.
+   * A counted win: the number of the day extends the day streak and pays 150 + 20 per star
+   * plus the streak bonus; a free game pays 40 + 12 per star for the first ten of the Sofia
+   * day, then 10. Stars come from "top X%" against the distribution the result screen
+   * shows. The badges earned are written for good. A user without a profile row gets nothing.
    */
   private async reward(user: AuthUser, game: PublicGameRow): Promise<void> {
     const { repo, clock } = this.deps
+    const profile = await repo.profiles.get(user.id)
+    if (!profile) return
     const today = sofiaDate(new Date(clock.now()))
-    const stars = starsFromTop(await topOfGame(this.distributions, game, today))
-    const xp =
-      game.kind === 'daily'
-        ? dailyXp(stars)
-        : freeXp(stars, await repo.games.countFreeGamesOn(user.id, today))
+    const top = await topOfGame(this.distributions, game, today)
+    const stars = starsFromTop(top)
+    const streak = game.kind === 'daily' ? nextDayStreak(profile, game.dailyDate ?? today) : null
+    if (streak) await repo.profiles.setStreak(user.id, streak)
+    const xp = streak
+      ? dailyXp(stars, streak.currentStreak)
+      : freeXp(stars, await repo.games.countFreeGamesOn(user.id, today))
     await repo.profiles.addXp(user.id, xp)
+    const earned = [...earnedByGame(game, top), ...earnedByDayStreak(streak?.currentStreak ?? 0)]
+    await repo.badges.award(user.id, earned, clock.now())
   }
 
   /** The same guess sent twice at once passes the repeat check twice; the unique index decides. */

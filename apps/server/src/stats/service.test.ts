@@ -342,6 +342,56 @@ describe('me', () => {
     expect(me.profile.username).toMatch(/^guest-[A-HJ-NP-Z2-9]{4}$/)
   })
 
+  it('backfills badges and the day streak from the history once, then reads the stored ones', async () => {
+    const calls = { award: 0, setStreak: 0 }
+    const counting: Repo = {
+      ...repo,
+      profiles: {
+        ...repo.profiles,
+        setStreak: (id, s) => {
+          calls.setStreak += 1
+          return repo.profiles.setStreak(id, s)
+        },
+      },
+      badges: {
+        ...repo.badges,
+        award: (id, keys, at) => {
+          calls.award += 1
+          return repo.badges.award(id, keys, at)
+        },
+      },
+    }
+    const svc = new StatsService({ repo: counting, clock, cache: new DistributionCache() })
+    for (const date of ['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-17']) {
+      await played({ ...daily, dailyDate: date }, { attempts: 7, wasted: 1 })
+    }
+    await played({ ...daily, dailyDate: '2026-10-18' }, { won: false })
+    expect((await repo.profiles.get(mira.id))?.progressBackfilled).toBe(false)
+    const first = await svc.me(mira)
+    expect(first.badges).toMatchObject({ firstBull: true, noWaste: false, streak7: false })
+    expect(await repo.profiles.get(mira.id)).toMatchObject({
+      currentStreak: 1,
+      bestStreak: 3,
+      streakDate: '2026-10-17',
+      progressBackfilled: true,
+    })
+    expect(calls).toEqual({ award: 1, setStreak: 1 })
+    // Stored badges are read, not recomputed: a later loss changes nothing.
+    await played({}, { won: false })
+    await repo.games.update((await played({}, { wasted: 0 })).id, { won: false })
+    expect((await svc.me(mira)).badges).toMatchObject({ firstBull: true, noWaste: false })
+    expect(calls).toEqual({ award: 1, setStreak: 1 })
+  })
+
+  it('gives streak7 in the backfill for a past run of seven days', async () => {
+    for (let k = 1; k <= 7; k += 1) {
+      await played({ ...daily, dailyDate: `2026-09-0${k}` }, { attempts: 7 })
+    }
+    const me = await stats.me(mira)
+    expect(me.badges.streak7).toBe(true)
+    expect(await repo.profiles.get(mira.id)).toMatchObject({ currentStreak: 7, bestStreak: 7 })
+  })
+
   it('titles a guest a calf whatever the level', async () => {
     await repo.profiles.addXp(guest.id, 3700)
     expect(await stats.me(guest)).toMatchObject({ level: 5, rankKey: 'calf' })

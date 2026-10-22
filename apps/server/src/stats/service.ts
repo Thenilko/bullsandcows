@@ -16,11 +16,12 @@ import {
   LEADERBOARD_LIMIT,
   type LeaderboardPlace,
   type LeaderboardQuery,
+  type Profile,
   type PublicGameRow,
   type Repo,
   type SoloKind,
 } from '../ports/repo'
-import { badgesFor, streakOf } from './badges'
+import { badgeMap, badgesFor, streakOf, type BadgeKey } from './badges'
 import {
   bucketsOf,
   isFinished,
@@ -31,10 +32,14 @@ import {
   toProfileDto,
   toRecent,
 } from './me'
+import { dayStreakFromDates } from './streak'
 import { sofiaWeekStart } from './time'
 import { cacheKey, queryOf, type DistributionQuery, type DistributionSource } from './top'
 
 export type { DistributionQuery } from './top'
+
+const heldKeys = (badges: Readonly<Record<BadgeKey, boolean>>): BadgeKey[] =>
+  (Object.keys(badges) as BadgeKey[]).filter((k) => badges[k])
 
 const CACHE_TTL_MS = 60_000
 const FREE_WINDOW_MS = 30 * 86_400_000
@@ -140,21 +145,43 @@ export class StatsService implements DistributionSource {
   }
 
   async me(user: AuthUser): Promise<MeDto> {
-    const profile = await ensureProfile(this.deps.repo, user)
-    const games = await this.deps.repo.games.history(user.id, HISTORY_LIMIT)
+    const { repo } = this.deps
+    const profile = await ensureProfile(repo, user)
+    const games = await repo.games.history(user.id, HISTORY_LIMIT)
     const finished = games.filter(isFinished)
     const counted = finished.filter((g) => !g.practice)
-    const streak = streakOf(counted)
-    const topOfGame = await this.topOfGames(counted.filter((g) => g.won === true))
+    if (!profile.progressBackfilled) await this.backfill(profile, counted)
     return {
       profile: toProfileDto(profile),
       ...levelInfo(profile),
       currentGameId: games.find((g) => isSolo(g) && g.finishedAt === null)?.id ?? null,
-      stats: summaryOf(counted, streak),
+      stats: summaryOf(counted, streakOf(counted)),
       buckets: bucketsOf(counted.filter((g) => g.won === true)),
-      badges: { ...badgesFor(counted, streak, topOfGame) },
+      badges: { ...badgeMap(await repo.badges.listOf(user.id)) },
       recent: finished.slice(0, RECENT_GAMES).map(toRecent),
     }
+  }
+
+  /**
+   * One-time derivation of the badges and the day streak from the history of a profile
+   * from before they were stored (docs/PROGRESSION.md). Idempotent: badges are only added,
+   * the streak is a function of the history, and the flag is set last.
+   */
+  private async backfill(profile: Profile, counted: readonly PublicGameRow[]): Promise<void> {
+    const { repo, clock } = this.deps
+    const wins = counted.filter((g) => g.won === true)
+    const topOfGame = await this.topOfGames(wins)
+    const fromHistory = dayStreakFromDates(
+      wins.flatMap((g) => (g.kind === 'daily' && g.dailyDate !== null ? [g.dailyDate] : [])),
+    )
+    const streak = {
+      ...fromHistory,
+      bestStreak: Math.max(fromHistory.bestStreak, profile.bestStreak),
+    }
+    await repo.profiles.setStreak(profile.id, streak)
+    const earned = badgesFor(wins, streak.bestStreak, topOfGame)
+    await repo.badges.award(profile.id, heldKeys(earned), clock.now())
+    await repo.profiles.markBackfilled(profile.id)
   }
 
   async updateSettings(user: AuthUser, patch: SettingsPatch): Promise<MeDto> {

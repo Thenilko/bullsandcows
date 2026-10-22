@@ -2,6 +2,8 @@ import { isSuspicious } from '@bc/game-core'
 import { settle, type Settlement } from '../duel/settle'
 import { targetOf, type Match, type Player, type Secrets, type Seat } from '../duel/types'
 import type { DuelReward, GameKind, Repo } from '../ports/repo'
+import { earnedByGame } from '../stats/badges'
+import { fallbackTopOf } from '../stats/top'
 import type { PendingResult, ResultIds } from './state'
 
 /** The synthetic id of the bot seat; it has no profile and no rows. */
@@ -38,7 +40,7 @@ async function recordGame(
   })
   const solved = p.guesses.some((g) => g.bulls === m.len)
   const startedAt = m.startedAt ?? m.createdAt
-  await repo.games.update(game.id, {
+  const row = await repo.games.update(game.id, {
     startedAt: m.startedAt,
     finishedAt: m.endedAt,
     attempts: p.guesses.length,
@@ -52,6 +54,8 @@ async function recordGame(
       solved,
     ),
   })
+  // Badges are kept for good; a retry re-awards the same ones, which the repo ignores.
+  await repo.badges.award(p.id, earnedByGame(row, fallbackTopOf(row)), m.endedAt ?? startedAt)
   return game.id
 }
 
@@ -67,7 +71,9 @@ function rewardsOf(m: Match, result: Settlement): DuelReward[] {
     if (!isHuman(p)) return []
     const opponent = m.players[seat === 'a' ? 'b' : 'a']
     const ratingUpdate =
-      result.ratings && opponent ? { opponent: opponent.rating, outcome: result.outcome[seat] } : null
+      result.ratings && opponent
+        ? { opponent: opponent.rating, outcome: result.outcome[seat] }
+        : null
     return [{ userId: p.id, xp: result.xp[seat], ratingUpdate }]
   })
 }

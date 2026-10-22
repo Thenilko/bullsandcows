@@ -26,6 +26,10 @@ export function queryOf(g: PublicGameRow, today: string): DistributionQuery | nu
   return g.kind === 'free' ? { kind: 'free', len: g.len, zero: g.zero, date: today } : null
 }
 
+/** "Top X%" against the prototype histogram: what bot and duel games are measured by. */
+export const fallbackTopOf = (g: Pick<PublicGameRow, 'attempts' | 'len'>): number =>
+  topOf(g.attempts, FALLBACK_HISTOGRAM[g.len]).top
+
 /** "Top X%" of one game against the distribution its mode shows (the fallback for bots/duels). */
 export async function topOfGame(
   source: DistributionSource,
@@ -33,6 +37,6 @@ export async function topOfGame(
   today: string,
 ): Promise<number> {
   const q = queryOf(g, today)
-  const histogram = q ? (await source.distribution(q)).histogram : FALLBACK_HISTOGRAM[g.len]
-  return topOf(g.attempts, histogram).top
+  if (!q) return fallbackTopOf(g)
+  return topOf(g.attempts, (await source.distribution(q)).histogram).top
 }

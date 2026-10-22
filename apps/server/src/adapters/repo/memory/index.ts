@@ -1,5 +1,6 @@
 import { systemClock, type Clock } from '../../../ports/clock'
 import type { RepoHandle } from '../../../ports/repo'
+import { memoryBadges } from './badges'
 import { memoryDuels } from './duels'
 import { memoryGames } from './games'
 import { memoryProfiles } from './profiles'
@@ -13,6 +14,7 @@ export function createMemoryRepo(
     profiles: memoryProfiles(store, clock),
     games: memoryGames(store, clock),
     duels: memoryDuels(store, clock),
+    badges: memoryBadges(store),
     close: async () => undefined,
   }
 }

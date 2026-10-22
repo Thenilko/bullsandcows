@@ -51,6 +51,10 @@ export function memoryProfiles(store: MemoryStore, clock: Clock): ProfilesRepo {
         avatarSpecies: input.avatarSpecies ?? 'bull',
         xp: 0,
         rating: DEFAULT_RATING,
+        currentStreak: 0,
+        bestStreak: 0,
+        streakDate: null,
+        progressBackfilled: false,
         createdAt: clock.now(),
       })
     },
@@ -66,6 +70,12 @@ export function memoryProfiles(store: MemoryStore, clock: Clock): ProfilesRepo {
     },
     setRating: async (id, rating) => {
       save({ ...find(id), rating: { ...rating } })
+    },
+    setStreak: async (id, streak) => {
+      save({ ...find(id), ...streak })
+    },
+    markBackfilled: async (id) => {
+      save({ ...find(id), progressBackfilled: true })
     },
   }
 }

@@ -1,6 +1,6 @@
 import type { Len, Outcome, Rating } from '@bc/game-core'
 import type { Lang } from '@bc/i18n'
-import type { AvatarSpecies } from '@bc/protocol'
+import type { AvatarSpecies, BadgeKey } from '@bc/protocol'
 
 export type GameKind = 'daily' | 'free' | 'duel_race' | 'duel_classic' | 'bot'
 export type SoloKind = Extract<GameKind, 'daily' | 'free'>
@@ -22,8 +22,16 @@ export interface Profile {
   readonly avatarSpecies: AvatarSpecies
   readonly xp: number
   readonly rating: Rating
+  /** Consecutive Sofia days with a won number of the day, as of `streakDate` (null: none yet). */
+  readonly currentStreak: number
+  readonly bestStreak: number
+  readonly streakDate: string | null
+  /** Badges and the day streak were derived from the history once (see docs/PROGRESSION.md). */
+  readonly progressBackfilled: boolean
   readonly createdAt: number
 }
+
+export type DayStreak = Pick<Profile, 'currentStreak' | 'bestStreak' | 'streakDate'>
 
 export type NewProfile = Pick<Profile, 'id' | 'username' | 'email' | 'isGuest'> &
   Partial<Pick<Profile, 'lang' | 'sound' | 'vibrate' | 'defaultLen' | 'avatarSpecies'>>
@@ -178,6 +186,14 @@ export interface ProfilesRepo {
   /** Returns null (and changes nothing) when the profile does not exist. */
   addXp(id: string, xp: number): Promise<Profile | null>
   setRating(id: string, rating: Rating): Promise<void>
+  setStreak(id: string, streak: DayStreak): Promise<void>
+  markBackfilled(id: string): Promise<void>
+}
+
+export interface BadgesRepo {
+  listOf(userId: string): Promise<BadgeKey[]>
+  /** Writes the badges not held yet; a held one keeps its `earnedAt`. Idempotent. */
+  award(userId: string, keys: readonly BadgeKey[], earnedAt: number): Promise<void>
 }
 
 /**
@@ -243,6 +259,7 @@ export interface Repo {
   readonly profiles: ProfilesRepo
   readonly games: GamesRepo
   readonly duels: DuelsRepo
+  readonly badges: BadgesRepo
 }
 
 /** A repo bound to resources that must be released when the request ends. */

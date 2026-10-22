@@ -90,6 +90,43 @@ describe('memory profiles', () => {
     expect(await repo.profiles.get('nobody')).toBeNull()
     expect(await repo.profiles.addXp('nobody', 1)).toBeNull()
   })
+
+  it('starts without a day streak and stores one, and the backfill flag', async () => {
+    const p = await member('u1', 'Mira')
+    expect(p).toMatchObject({
+      currentStreak: 0,
+      bestStreak: 0,
+      streakDate: null,
+      progressBackfilled: false,
+    })
+    await repo.profiles.setStreak('u1', {
+      currentStreak: 3,
+      bestStreak: 5,
+      streakDate: '2026-10-20',
+    })
+    await repo.profiles.markBackfilled('u1')
+    expect(await repo.profiles.get('u1')).toMatchObject({
+      currentStreak: 3,
+      bestStreak: 5,
+      streakDate: '2026-10-20',
+      progressBackfilled: true,
+    })
+    await expect(repo.profiles.markBackfilled('nobody')).rejects.toMatchObject({
+      code: 'ERR_NOT_FOUND',
+    })
+  })
+})
+
+describe('memory badges', () => {
+  it('awards badges once, keeping the first earned time', async () => {
+    await member('u1', 'Mira')
+    expect(await repo.badges.listOf('u1')).toEqual([])
+    await repo.badges.award('u1', ['firstBull', 'noWaste'], 1_000)
+    await repo.badges.award('u1', ['noWaste', 'fiveDigits'], 2_000)
+    await repo.badges.award('u1', [], 3_000)
+    expect(await repo.badges.listOf('u1')).toEqual(['firstBull', 'noWaste', 'fiveDigits'])
+    expect(await repo.badges.listOf('u2')).toEqual([])
+  })
 })
 
 describe('memory games', () => {

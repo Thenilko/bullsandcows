@@ -68,5 +68,21 @@ export function drizzleProfiles(db: Db): ProfilesRepo {
         .returning({ id: profiles.id })
       required(rows[0])
     },
+    setStreak: async (id, streak) => {
+      const rows = await db
+        .update(profiles)
+        .set(streak)
+        .where(eq(profiles.id, id))
+        .returning({ id: profiles.id })
+      required(rows[0])
+    },
+    markBackfilled: async (id) => {
+      const rows = await db
+        .update(profiles)
+        .set({ progressBackfilled: true })
+        .where(eq(profiles.id, id))
+        .returning({ id: profiles.id })
+      required(rows[0])
+    },
   }
 }

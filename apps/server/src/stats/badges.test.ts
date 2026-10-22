@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { PublicGameRow } from '../ports/repo'
-import { badgesFor, streakOf } from './badges'
+import {
+  badgeMap,
+  badgesFor,
+  earnedByDayStreak,
+  earnedByGame,
+  STREAK_BADGE_DAYS,
+  streakOf,
+} from './badges'
 
 const T0 = 1_000_000
 
@@ -49,10 +56,11 @@ describe('badgesFor', () => {
     })
   })
 
-  it('awards streak7 from the streak only', () => {
+  it('awards streak7 from the best day streak only', () => {
     const wins = Array.from({ length: 7 }, () => game())
-    expect(badgesFor(wins, streakOf(wins), never).streak7).toBe(true)
+    expect(badgesFor(wins, 7, never).streak7).toBe(true)
     expect(badgesFor(wins, 6, never).streak7).toBe(false)
+    expect(badgesFor([], 9, never).streak7).toBe(true)
   })
 
   it('ignores losses for the per-game badges', () => {
@@ -66,6 +74,38 @@ describe('badgesFor', () => {
     expect(badgesFor([minute], 1, () => 6).chiefBull).toBe(false)
     expect(badgesFor([minute], 1, () => 5).chiefBull).toBe(true)
     expect(badgesFor([game({ startedAt: null })], 1, never).underMinute).toBe(false)
+  })
+})
+
+describe('earnedByGame', () => {
+  it('lists what one win earns and nothing for a loss', () => {
+    expect(earnedByGame(game({ wasted: 0, len: 5, finishedAt: T0 + 50_000 }), 5)).toEqual([
+      'firstBull',
+      'noWaste',
+      'underMinute',
+      'chiefBull',
+      'fiveDigits',
+    ])
+    expect(earnedByGame(game(), 50)).toEqual(['firstBull'])
+    expect(earnedByGame(game({ won: false, wasted: 0, len: 5 }), 1)).toEqual([])
+  })
+})
+
+describe('earnedByDayStreak and badgeMap', () => {
+  it('gives streak7 from seven days on', () => {
+    expect(STREAK_BADGE_DAYS).toBe(7)
+    expect(earnedByDayStreak(6)).toEqual([])
+    expect(earnedByDayStreak(7)).toEqual(['streak7'])
+  })
+  it('maps held keys onto every badge', () => {
+    expect(badgeMap(['streak7', 'firstBull', 'firstBull'])).toEqual({
+      firstBull: true,
+      noWaste: false,
+      underMinute: false,
+      streak7: true,
+      chiefBull: false,
+      fiveDigits: false,
+    })
   })
 })
 
