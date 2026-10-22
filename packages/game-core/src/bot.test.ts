@@ -17,7 +17,7 @@ const LEVELS: readonly BotLevel[] = [1, 2, 3, 4]
 
 describe('constants', () => {
   it('match the design prototype', () => {
-    expect(BOT_THINK_BASE.race).toEqual([11000, 8500, 6500, 4500])
+    expect(BOT_THINK_BASE.race).toEqual([11000, 8500, 6500, 2500])
     expect(BOT_THINK_BASE.classic).toEqual([3600, 3000, 2500, 2000])
     expect(BOT_LEVEL1_RANDOM_CHANCE).toBe(0.35)
     expect(BOT_SEARCH).toEqual({ 3: { k: 12 }, 4: { budget: 6_000_000 } })
@@ -195,5 +195,11 @@ describe('botThinkMs', () => {
     expect(botThinkMs(4, true, () => 0.9999)).toBe(2700)
     expect(botThinkMs(2, false, () => 0.5)).toBe(8750)
     expect(botThinkMs(3, true, () => 0)).toBe(2000)
+  })
+
+  it('keeps the expert race move between 2 and 3 seconds', () => {
+    expect(botThinkMs(4, false, () => 0)).toBe(2000)
+    expect(botThinkMs(4, false, () => 0.9999)).toBe(3000)
+    expect(botThinkMs(3, false, () => 0)).toBe(4500)
   })
 })

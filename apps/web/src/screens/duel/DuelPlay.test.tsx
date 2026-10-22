@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fixtureMe, fixtureOpp, fixtureState, myGuess } from '../../dev/duelFixtures'
 import { useDuelStore } from '../../features/duel/store'
+import { useNotebookStore } from '../../features/notebook/store'
 import { renderWithI18n } from '../../test/render'
 import { DuelPlay } from './DuelPlay'
 
@@ -26,6 +27,8 @@ beforeEach(() => {
   send.mockClear()
   useDuelStore.getState().reset()
   sessionStorage.clear()
+  localStorage.clear()
+  useNotebookStore.setState({ games: {} })
 })
 
 afterEach(() => {
@@ -47,6 +50,26 @@ describe('DuelPlay', () => {
     expect(back.closest('main')).toBeNull()
     expect(screen.getByText(/^Дуел · /)).toHaveClass('ps-hud')
     expect(screen.getByRole('button', { name: /звука/ })).toBeInTheDocument()
+  })
+
+  it('opens the notebook sheet from the top row with my attempts and their candidate counts', () => {
+    show(fixtureState({ me: { ...fixtureMe(), guesses: [myGuess('5678', 0, 0)], left: 120 } }))
+    const opener = screen.getByRole('button', { name: 'Тефтерче' })
+    expect(opener.closest('main')).toBeNull()
+    fireEvent.click(opener)
+    const sheet = screen.getByRole('dialog', { name: 'Тефтерче' })
+    expect(sheet).toBeInTheDocument()
+    expect(screen.getByText('Остават 120 възможни числа')).toBeInTheDocument()
+    expect(screen.getByRole('list', { name: 'Опити' })).toHaveTextContent('5678')
+    expect(screen.getByRole('list', { name: 'Опити' })).toHaveTextContent('120 вар.')
+    fireEvent.click(screen.getByRole('button', { name: 'Затвори' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('shows notebook marks on the keypad', () => {
+    localStorage.setItem('bc.notebook.r1', JSON.stringify({ marks: { '7': 1 }, text: '' }))
+    show()
+    expect(digit('7')).toHaveClass('nx')
   })
 
   it('enables the keypad on my turn', () => {

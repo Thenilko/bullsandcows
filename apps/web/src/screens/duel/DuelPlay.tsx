@@ -1,12 +1,20 @@
+import type { Len } from '@bc/game-core'
 import type { ClientMsg, PublicState } from '@bc/protocol'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { Shell } from '../../app/layouts/Shell'
-import { Toast } from '../../components/ui'
+import { Card, Toast } from '../../components/ui'
 import { readMySecret } from '../../features/duel/mySecret'
 import { useDuelStore, type ToastInfo } from '../../features/duel/store'
+import { Notebook } from '../../features/notebook/Notebook'
+import { NotebookSheet } from '../../features/notebook/NotebookSheet'
+import { NotesButton } from '../../features/notebook/NotesButton'
+import { useNotebook } from '../../features/notebook/store'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { useNow } from '../../hooks/useNow'
+import { sfx } from '../../lib/sound'
+import { toNotebookGuesses } from './notebookGuesses'
 import { GuessChips } from './parts/GuessChips'
 import { OppGuessesCard } from './parts/OppGuessesCard'
 import { OppStrip } from './parts/OppStrip'
@@ -43,6 +51,16 @@ const GIVE_UP = {
   textDecoration: 'underline',
 } as const
 
+/** The notebook of one match: keyed by the room, like a solo game by its id. */
+function useDuelNotebook(roomId: string, state: PublicState) {
+  const nb = useNotebook(roomId)
+  const guesses = useMemo(
+    () => toNotebookGuesses(state.me.guesses, state.len as Len, state.zero),
+    [state.me.guesses, state.len, state.zero],
+  )
+  return { marks: nb.marks, guesses, left: state.me.left }
+}
+
 export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -54,6 +72,14 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
   useOppFeedback(store.oppMoved)
   const input = usePlayInput(state, send)
   const now = useNow(500, state.phase === 'playing' && !ended)
+  const notebook = useDuelNotebook(roomId, state)
+  const [notesOpen, setNotesOpen] = useState(false)
+  const opener = useRef<HTMLButtonElement>(null)
+  const closeNotes = useCallback(() => {
+    sfx.play('page')
+    setNotesOpen(false)
+    opener.current?.focus()
+  }, [])
 
   const m = playModel(state, store, now, ended)
   const oppName = m.bot ? t('bot.name') : (state.opp?.username ?? '')
@@ -66,6 +92,16 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
           secret: mySecret,
         }
       : null
+  const notesButton = desktop ? null : (
+    <NotesButton
+      buttonRef={opener}
+      gameId={roomId}
+      onClick={() => {
+        sfx.play('page')
+        setNotesOpen(true)
+      }}
+    />
+  )
 
   return (
     <Shell
@@ -74,7 +110,7 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
       panelTop={PANEL_TOP}
       hudAt="bottom"
       hud={<OppStrip state={state} oppName={oppName} status={m.oppStatus} thinking={m.botTurn} />}
-      topHud={<DuelTopRow title={title} />}
+      topHud={<DuelTopRow title={title} extra={notesButton} />}
     >
       <section aria-label={title} style={SECTION}>
         <div style={HEAD}>
@@ -92,6 +128,7 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
             errCode={store.errCode}
             disabled={!m.playing || (m.classic && !m.myTurn)}
             desktop={desktop}
+            marks={notebook.marks}
             overlay={waitOverlay}
             onPress={input.press}
             onBack={input.back}
@@ -126,6 +163,14 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
           </button>
         </div>
       </section>
+      {desktop ? (
+        <Card role="region" aria-label={t('notebook.title')} style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <Notebook gameId={roomId} guesses={notebook.guesses} left={notebook.left} layout="card" />
+        </Card>
+      ) : null}
+      {notesOpen ? (
+        <NotebookSheet gameId={roomId} guesses={notebook.guesses} left={notebook.left} onClose={closeNotes} />
+      ) : null}
       <OppToast toast={store.toast} name={oppName} />
     </Shell>
   )

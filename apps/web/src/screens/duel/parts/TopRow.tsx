@@ -1,11 +1,12 @@
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { SoundIconButton } from '../../../components/ui/SoundIconButton'
 
 const ROW = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 } as const
 
-/** PasDuel mobile: the row at the top of the scene — back to the setup, the screen title, the sound toggle. */
-export function DuelTopRow({ title }: { title: string }) {
+/** PasDuel mobile: the row at the top of the scene — back to the setup, the screen title, `extra` (the notebook button), the sound toggle. */
+export function DuelTopRow({ title, extra }: { title: string; extra?: ReactNode }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   return (
@@ -16,7 +17,10 @@ export function DuelTopRow({ title }: { title: string }) {
         </svg>
       </button>
       <span className="ps-hud" style={{ fontSize: 14 }}>{title}</span>
-      <SoundIconButton />
+      <span style={{ display: 'flex', gap: 8 }}>
+        {extra}
+        <SoundIconButton />
+      </span>
     </div>
   )
 }

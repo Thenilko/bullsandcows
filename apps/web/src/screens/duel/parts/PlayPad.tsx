@@ -1,7 +1,7 @@
 import type { Len } from '@bc/game-core'
 import type { PublicState } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
-import { Inset, Keypad, Slots } from '../../../components/ui'
+import { Inset, Keypad, Slots, type DigitMark } from '../../../components/ui'
 import type { ErrorCode } from '@bc/protocol'
 import { errorText } from '../../../features/duel/errorText'
 
@@ -12,6 +12,8 @@ export interface PlayPadProps {
   errCode: ErrorCode | null
   disabled: boolean
   desktop: boolean
+  /** Notebook digit marks shown on the keys. */
+  marks?: Readonly<Record<string, DigitMark>>
   /** Shown over the keypad while the opponent is on turn (classic). */
   overlay: { title: string; secret: string } | null
   onPress(d: string): void
@@ -22,7 +24,7 @@ export interface PlayPadProps {
 const COL = { display: 'flex', flexDirection: 'column', gap: 10 } as const
 
 /** Last-verdict line, input slots, error line, keypad and the opponent-turn overlay. */
-export function PlayPad({ state, cur, shake, errCode, disabled, desktop, overlay, onPress, onBack, onSubmit }: PlayPadProps) {
+export function PlayPad({ state, cur, shake, errCode, disabled, desktop, marks = {}, overlay, onPress, onBack, onSubmit }: PlayPadProps) {
   const { t } = useTranslation()
   const last = state.me.guesses[state.me.guesses.length - 1]
   return (
@@ -37,7 +39,7 @@ export function PlayPad({ state, cur, shake, errCode, disabled, desktop, overlay
         {errCode ? errorText(t, errCode, state.len) : ''}
       </p>
       <div style={{ position: 'relative', ...COL }}>
-        <Keypad len={state.len as Len} zero={state.zero} current={cur} marks={{}} disabled={disabled} layout={desktop ? 'desktop' : 'mobile'} onPress={onPress} onBack={onBack} onSubmit={onSubmit} />
+        <Keypad len={state.len as Len} zero={state.zero} current={cur} marks={marks} disabled={disabled} layout={desktop ? 'desktop' : 'mobile'} onPress={onPress} onBack={onBack} onSubmit={onSubmit} />
         {overlay ? (
           <div className="fadein" style={{ position: 'absolute', inset: -6, borderRadius: 18, background: 'rgba(246,242,230,.92)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
             <b style={{ fontSize: 18 }}>{overlay.title}</b>

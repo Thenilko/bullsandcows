@@ -4,9 +4,9 @@ import { bestProbe } from './botSearch'
 export type BotLevel = 1 | 2 | 3 | 4
 export type Rng = () => number
 
-/** Base think time per level (index = level - 1). */
+/** Base think time per level (index = level - 1). The expert answers a race move in 2–3 s. */
 export const BOT_THINK_BASE = {
-  race: [11000, 8500, 6500, 4500],
+  race: [11000, 8500, 6500, 2500],
   classic: [3600, 3000, 2500, 2000],
 } as const
 
@@ -27,6 +27,8 @@ export const BOT_SEARCH = {
 const MIN_POOL_FOR_SEARCH = 3
 const CLASSIC_JITTER = [-500, 700] as const
 const RACE_JITTER = [-2000, 2500] as const
+/** Level 4 keeps a tight 2–3 s window instead of the wide race jitter. */
+const RACE_JITTER_EXPERT = [-500, 500] as const
 
 function pick<T>(arr: readonly T[], rng: Rng): T {
   return arr[Math.floor(rng() * arr.length)]
@@ -85,5 +87,5 @@ function jitter([a, b]: readonly [number, number], rng: Rng): number {
 
 export function botThinkMs(level: BotLevel, classic: boolean, rng: Rng = Math.random): number {
   if (classic) return BOT_THINK_BASE.classic[level - 1] + jitter(CLASSIC_JITTER, rng)
-  return BOT_THINK_BASE.race[level - 1] + jitter(RACE_JITTER, rng)
+  return BOT_THINK_BASE.race[level - 1] + jitter(level === 4 ? RACE_JITTER_EXPERT : RACE_JITTER, rng)
 }

@@ -1,5 +1,5 @@
 import type { GameViewDto } from '@bc/protocol'
-import { useCallback, useRef, useState, type RefObject } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import {
@@ -7,14 +7,14 @@ import {
   Chip,
   Hud,
   Keypad,
-  NotebookIcon,
   Slots,
   Soft,
 } from '../../components/ui'
 import { SoundIconButton } from '../../components/ui/SoundIconButton'
 import { Notebook } from '../../features/notebook/Notebook'
 import { NotebookSheet } from '../../features/notebook/NotebookSheet'
-import { countNotes, useNotebook } from '../../features/notebook/store'
+import { NotesButton } from '../../features/notebook/NotesButton'
+import { useNotebook } from '../../features/notebook/store'
 import type { GameApi } from '../../features/solo/useGame'
 import { useAverageAttempts } from '../../features/solo/useDistribution'
 import { sfx } from '../../lib/sound'
@@ -124,53 +124,6 @@ function GiveUp({ g }: { g: GameApi }) {
     >
       {t('notebook.giveUp')}
     </Soft>
-  )
-}
-
-const NOTES_BADGE_STYLE = {
-  position: 'absolute',
-  top: -4,
-  right: -4,
-  minWidth: 18,
-  height: 18,
-  padding: '0 4px',
-  borderRadius: 9,
-  background: '#B5452F',
-  color: '#FFFFFF',
-  fontSize: 11,
-  fontWeight: 900,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-} as const
-
-function NotesButton({
-  gameId,
-  onClick,
-  buttonRef,
-}: {
-  gameId: string
-  onClick(): void
-  buttonRef: RefObject<HTMLButtonElement | null>
-}) {
-  const { t } = useTranslation()
-  const count = countNotes(useNotebook(gameId))
-  return (
-    <button
-      ref={buttonRef}
-      type="button"
-      className="iconbox icobtn"
-      style={{ position: 'relative' }}
-      aria-label={t('notebook.title')}
-      onClick={onClick}
-    >
-      <NotebookIcon />
-      {count > 0 ? (
-        <span aria-hidden="true" style={NOTES_BADGE_STYLE}>
-          {count}
-        </span>
-      ) : null}
-    </button>
   )
 }
 
