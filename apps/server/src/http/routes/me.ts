@@ -11,6 +11,7 @@ export function meRoutes(): Hono<AppEnv> {
   const routes = new Hono<AppEnv>()
   routes.use('*', requireUser())
   routes.get('/', async (c) => ok(c, await statsService(c).me(c.get('user'))))
+  routes.get('/badges', async (c) => ok(c, await statsService(c).badges(c.get('user'))))
   routes.patch('/settings', validate('json', SettingsPatch), async (c) =>
     ok(c, await statsService(c).updateSettings(c.get('user'), c.req.valid('json'))),
   )

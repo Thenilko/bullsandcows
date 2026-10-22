@@ -1,6 +1,7 @@
 import { env as workerEnv } from 'cloudflare:workers'
-import { MeDto } from '@bc/protocol'
+import { BADGE_KEYS, BadgeStateDto, MeDto } from '@bc/protocol'
 import { describe, expect, it } from 'vitest'
+import { z } from 'zod'
 import { createFakeAuth } from '../../adapters/auth/fake'
 import { createMemoryRepo } from '../../adapters/repo/memory'
 import { parseEnv } from '../../env'
@@ -51,7 +52,29 @@ describe('me routes', () => {
   it('requires a user', async () => {
     const { app } = setup()
     expect((await app.request('/api/me')).status).toBe(401)
+    expect((await app.request('/api/me/badges')).status).toBe(401)
     expect((await app.request('/api/me/settings', { method: 'PATCH' })).status).toBe(401)
+  })
+
+  it('lists the 29 badges with tier, progress and next; hidden ones carry no text', async () => {
+    const { app, repo } = setup()
+    await repo.profiles.create({ id: 'm3', username: 'Ivo', email: null, isGuest: false })
+    await repo.badges.save('m3', [{ key: 'bolt', tier: 2, progress: 7, earnedAt: clock.now() }])
+    const res = await req(app, 'fake:m3:Ivo', 'GET', '/api/me/badges')
+    expect(res.status).toBe(200)
+    const badges = z.array(BadgeStateDto).parse((await json(res)).data)
+    expect(badges).toHaveLength(BADGE_KEYS.length)
+    expect(badges.map((b) => b.key)).toEqual([...BADGE_KEYS])
+    expect(badges.find((b) => b.key === 'bolt')).toEqual({
+      key: 'bolt',
+      tier: 2,
+      progress: 7,
+      next: 25,
+      earnedAt: clock.now(),
+    })
+    const hidden = badges.find((b) => b.key === 'zeroHero')
+    expect(hidden).toEqual({ key: 'zeroHero', tier: 0, progress: 0, next: 1, earnedAt: null })
+    expect(JSON.stringify(badges)).not.toMatch(/name|desc/)
   })
 
   it('patches settings for members and guests, refusing anything else', async () => {

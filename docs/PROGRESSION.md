@@ -34,25 +34,109 @@
 
 Статистиката „поредни победи“ в профила (`streakOf`) остава отделна и се смята от историята.
 
-## Значки (`user_badges`, `apps/server/src/stats/badges.ts`)
+## Значки със степени (`user_badges`, `packages/game-core/src/badges.ts`)
 
-Значка се записва в момента на спечелването (`BadgesRepo.award`, идемпотентно по първичния
-ключ) и никога не се маха; `/api/me` само чете таблицата. Записват се:
+Спецификация: `docs/superpowers/specs/2026-10-22-share-and-badge-tiers.md`, част B. 29 значки
+в 8 групи; дефинициите (`BADGES`: `key`, `category`, `nameKey`/`descKey` = `badge.<key>.name|desc`
+в i18n, `glyph` от `BADGE_GLYPHS`, `thresholds`, `hidden`, `available`) и помощниците
+`tierFor`, `nextThreshold`, `isTiered`, `maxTier` са в game-core. Един праг = единична значка
+(степен 0/1, рисува се златна); три прага = мед/сребро/злато (степени 1–3).
 
-- след спечелена непрактическа соло игра — `firstBull`, `noWaste`, `underMinute`, `chiefBull`
-  (топ 5% срещу разпределението на режима), `fiveDigits`, и `streak7` при серия ≥ 7 дни;
-- след записан дуел/бот — същите значки за всяка човешка седалка с победа; „топ X%“ е срещу
-  резервната хистограма, както преди.
+| Група | Ключ | Прагове | Метрика (`apps/server/src/stats/badgeMetrics.ts`) |
+| --- | --- | --- | --- |
+| Логика | `noWaste` | 1/10/50 | победи (всякакъв вид) без нелогичен опит (`wasted = 0`) |
+| | `sherlock` | 1/5/25 | победи с 4 цифри за ≤ 4 опита |
+| | `allCows` | 1 | опит с 0 бика и всички цифри крави (събитие) |
+| | `lucky` | 1 | победа от 1-ви или 2-ри опит |
+| | `five` | 1/10/50 | победи с 5 цифри |
+| | `pure` | 1/10/25 | соло игри (и загуби) със 100% логика и ≥ 2 опита |
+| Скорост | `underMinute` | 1/10/50 | победи за < 60 s |
+| | `bolt` | 1/5/25 | победи за < 30 s |
+| Постоянство | `streak` | 7/30/100 | най-добра серия по дни (`profiles.best_streak`) |
+| | `early` | 1/10/30 | спечелени числа на деня, завършени преди 08:00 по София |
+| | `night` | 1/10/30 | спечелени числа на деня, завършени от 22:00 по София |
+| | `month` | 1 | календарен месец с победа в числото на деня всеки ден |
+| Дуели | `duelist` | 1/10/100 | победи в дуел срещу хора |
+| | `unbeaten` | 5/10/20 | най-дълга поредица победи срещу хора (равно/загуба я прекъсва) |
+| | `comeback` | 1 | победа, при която губещият е стигал до 1 оставащ вариант (`duels.comeback`) |
+| | `rematch` | 1/10/50 | изиграни реванши срещу хора (`duels.is_rematch`) |
+| Плашилото | `bot1`…`bot4` | 1 | победа срещу бот ниво 1…4 |
+| Колекционер | `formats` | 6 | различни комбинации {3,4,5} × {без/с нула} с победа |
+| | `notes` | 10/50/200 | игри (всякакви) с `games.used_notes` |
+| Заедно | `invite` | 1/5/20 | **available: false** — идва с поканите (винаги 0) |
+| | `family` | 1 | **available: false** — идва с фермата (винаги 0) |
+| | `teller` | 5/25/100 | записи в `shares` |
+| | `weekly` | 1/4/12 | **available: false** — идва със седмичното (винаги 0) |
+| Скрити | `mirror` | 1 | опит, равен на обърнатото тайно число (събитие) |
+| | `ladder` | 1 | победа над тайно число с поредни цифри, нагоре или надолу (събитие) |
+| | `zeroHero` | 1 | победа с нула над тайно число, започващо с 0 (събитие) |
 
-## Еднократен backfill за съществуващите профили
+Събитията (`guessEvents`) се виждат само в играта, която току-що приключва (нужни са опитите и
+тайното число); веднъж записани, остават. Останалите метрики се смятат от редовете: последните
+1000 игри (`games.history`), последните 1000 дуела (`duels.listOf`), профила и броя `shares`.
 
-Колоната `profiles.progress_backfilled` (default `false`) бележи дали значките и серията по дни
-на профила са извлечени от историята. При първото `GET /api/me` на профил с `false`
-`StatsService.backfill` смята от последните 1000 игри: значките по старата логика
-(`badgesFor`, включително `streak7` при най-добра серия по дни ≥ 7), серията по дни от датите на
-спечелените числа на деня (`dayStreakFromDates`), записва ги (`award` само добавя,
-`setStreak` е функция на историята, `best_streak` пази по-голямото) и накрая вдига флага.
-Повторно или паралелно изпълнение дава същия резултат. За нов профил историята е празна и
-backfill-ът е почти безплатен.
+### Данни и преизчисляване (`apps/server/src/stats/badgeService.ts`)
 
-Миграция: `apps/server/drizzle/0001_badges_streaks.sql` (генерирана с `drizzle-kit generate`).
+`user_badges` пази по ред на значка `tier` (0–3), `progress` (метриката) и `earned_at` — кога е
+достигната текущата степен. `recomputeBadges(repo, { userId, scope, now, events, payXp })`:
+
+- `scope: 'game'` (край на соло игра — победа или предаване — и записан дуел/бот) преизчислява
+  всичко без групата „Заедно“; `scope: 'share'` (`POST /api/shares`) само „Заедно“; `scope: 'all'` —
+  backfill-ът. Само засегнатите значки се четат и пишат.
+- `mergeBadgeStates` е чиста: `progress` и `tier` никога не падат (max със записаното), нова
+  степен получава `earned_at = now`, непроменените редове не се пишат.
+- +50 XP (`BADGE_TIER_XP`) за всяка нова степен (единична значка = 1 степен) през
+  `ProfilesRepo.addXp`; при `payXp: false` (backfill) няма XP.
+- Новите степени се връщат като `newBadges: [{ key, tier }]`: в отговора на спечелващия опит
+  (`GuessResultDto.newBadges`), на предаването (`GiveUpResultDto.newBadges`) и в ws съобщението
+  `ended` на всяка седалка (`DuelRoom.commit` задържа `ended`, докато резултатът се запише; при
+  неуспешен запис `ended` тръгва без `newBadges`, а повторният запис не ги праща повторно).
+
+Практическите игри не местят значки. Гост може да има степени (има профил), но е „теленце“.
+
+`games.used_notes`: клиентът праща `usedNotes: true` в тялото на опит/предаване
+(`POST /api/games/:id/guesses`, `POST /api/games/:id/give-up`) или в ws `guess`; веднъж `true`,
+остава. `duels.is_rematch` се вдига при приет реванш (`Match.isRematch`), `duels.comeback` се
+смята при записа от опитите на губещия (`comebackOf`).
+
+### API
+
+- `GET /api/me/badges` → `BadgeStateDto[]`: всичките 29 в реда на `BADGES`:
+  `{ key, tier, progress, next, earnedAt }` (`next` = прагът на следващата степен или `null`,
+  `earnedAt` = `null` при степен 0). Само ключове — имената и описанията са в i18n на клиента;
+  за `hidden` значка на степен 0 клиентът показва „???“ (`badge.hidden.*`).
+- `MeDto.badges` остава `{ [key]: boolean }` (степен ≥ 1), за старите екрани.
+- `POST /api/shares { gameId, channel: 'native' | 'copy' | 'image' }` → `ShareResultDto`
+  `{ counted, newBadges? }`: един ред на (потребител, игра) в `shares`, само за собствена
+  приключена игра (иначе 404); гостите се приемат, но не се броят (`counted: false`). Лимит 30/мин.
+- `POST /api/shares/landing` — без потребител и тяло; само записва ред в лога („share landing“)
+  за измерване на `?s=share`. Лимит 60/мин по IP.
+- `GameViewDto.dailyNumber` (само за числото на деня) = `dailyNumber(daily_date)`:
+  дни от `LAUNCH_DATE` (2026-10-22, по София) + 1.
+
+## Backfill с версии (`profiles.progress_version`)
+
+`profiles.progress_version` (smallint, default 0) казва коя версия на извличането от историята е
+минал профилът: 1 = значките v1 и серията по дни (старият флаг `progress_backfilled`, пренесен от
+миграцията), 2 = степените и прогресът. `PROGRESS_VERSION` в `stats/service.ts` е текущата;
+при `GET /api/me` или `GET /api/me/badges` на профил с по-малка версия `StatsService.backfill`:
+
+1. смята серията по дни от датите на спечелените числа на деня (`dayStreakFromDates`;
+   `best_streak` пази по-голямото) и я записва;
+2. `recomputeBadges` със `scope: 'all'` и `payXp: false` — степените и прогресът от последните
+   1000 игри, дуелите и shares; събитията (`allCows`, `mirror`, `ladder`, `zeroHero`) не се извличат
+   от историята (нужни са опитите на всяка игра), остават само за напред;
+3. записва `progress_version = PROGRESS_VERSION` последно.
+
+Идемпотентно: повторно или паралелно изпълнение дава същите редове и нула XP. При следваща
+промяна на извличането се вдига `PROGRESS_VERSION` и всеки профил минава още веднъж.
+
+Старите значки: `firstBull` и `chiefBull` нямат наследник и редовете им се трият в миграцията;
+`fiveDigits` → `five` и `streak7` → `streak` се извличат наново от историята (редовете се трият);
+`noWaste` и `underMinute` пазят реда и `earned_at`, получават степен 1, която backfill-ът само
+вдига (`LEGACY_BADGE_KEYS` в protocol документира съответствието).
+
+Миграции: `apps/server/drizzle/0002_badges_streaks.sql` (`user_badges`, серията) и
+`0003_badge_tiers_shares.sql` (`tier`/`progress`, `shares`, `games.used_notes`,
+`duels.is_rematch`/`comeback`, `progress_version`; генерирана с `drizzle-kit generate`, с ръчно
+добавените UPDATE/DELETE за данните).
