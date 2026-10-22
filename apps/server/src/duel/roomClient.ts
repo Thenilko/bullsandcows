@@ -1,5 +1,5 @@
 import type { Len, Rating } from '@bc/game-core'
-import type { DuelFormat, ErrorCode } from '@bc/protocol'
+import type { AvatarSpecies, DuelFormat, ErrorCode } from '@bc/protocol'
 
 export interface PlayerInfo {
   readonly id: string
@@ -7,6 +7,8 @@ export interface PlayerInfo {
   readonly level: number
   readonly rating: Rating
   readonly isGuest: boolean
+  /** Absent for the bot and for rooms created before the choice existed: drawn as a bull. */
+  readonly avatarSpecies?: AvatarSpecies
 }
 
 export interface RoomSettings {
@@ -26,7 +28,12 @@ export type RoomStatus = 'waiting' | 'started' | 'ended' | 'expired'
 
 export interface RoomInfo {
   readonly status: RoomStatus
-  readonly host: { readonly id: string; readonly username: string; readonly level: number }
+  readonly host: {
+    readonly id: string
+    readonly username: string
+    readonly level: number
+    readonly avatarSpecies?: AvatarSpecies
+  }
   readonly settings: RoomSettings
   readonly players: number
 }

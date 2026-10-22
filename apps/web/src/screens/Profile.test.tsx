@@ -115,4 +115,13 @@ describe('Profile', () => {
     expect(await screen.findByRole('button', { name: 'Направи си профил' })).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Бик, Теленце' })).toBeInTheDocument()
   })
+
+  it('lets me pick the cow as my avatar and redraws the header with it', async () => {
+    patch.mockResolvedValue({ ...meFixture, profile: { ...meFixture.profile, avatarSpecies: 'cow' } })
+    show()
+    expect(await screen.findByRole('img', { name: 'Бик, Говедар' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('radio', { name: 'Крава' }))
+    await waitFor(() => expect(patch).toHaveBeenCalledWith('/api/me/settings', { avatarSpecies: 'cow' }))
+    expect(await screen.findByRole('img', { name: 'Крава, Говедар' })).toBeInTheDocument()
+  })
 })

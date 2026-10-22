@@ -65,7 +65,7 @@ export function BoardRows({
             }}
           >
             <span style={{ fontWeight: 900, color: 'var(--c-muted-aa)', textAlign: 'center' }}>{r.rank}</span>
-            <RankAvatar species="bull" rankKey={r.rankKey} size={ROW_AVATAR} />
+            <RankAvatar species={r.avatarSpecies} rankKey={r.rankKey} size={ROW_AVATAR} />
             <span
               style={{
                 fontWeight: 800,

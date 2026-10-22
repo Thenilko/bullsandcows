@@ -1,9 +1,9 @@
-import type { SettingsPatch } from '@bc/protocol'
+import type { AvatarSpecies, ProfileDto, SettingsPatch } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
 import { Card, LangSwitch, Seg, Toggle } from '../../components/ui'
-import type { ProfileDto } from '@bc/protocol'
 
 const LENS = [3, 4, 5] as const
+const SPECIES: readonly AvatarSpecies[] = ['bull', 'cow']
 const ROW = {
   display: 'flex',
   alignItems: 'center',
@@ -55,6 +55,15 @@ export function SettingsCard({ profile, onPatch, desktop = false }: SettingsCard
             label: t('profile.digitsOption', { count: n }),
           }))}
           onChange={(v) => onPatch({ defaultLen: Number(v) as (typeof LENS)[number] })}
+        />
+      </div>
+      <div style={{ ...ROW, ...DIVIDER, minHeight: 60 }}>
+        <span style={{ fontWeight: 800 }}>{t('settings.avatar')}</span>
+        <Seg
+          label={t('settings.avatar')}
+          value={profile.avatarSpecies}
+          options={SPECIES.map((s) => ({ value: s, label: t(`species.${s}`) }))}
+          onChange={(avatarSpecies) => onPatch({ avatarSpecies })}
         />
       </div>
       <div style={{ ...ROW, minHeight: 60 }}>

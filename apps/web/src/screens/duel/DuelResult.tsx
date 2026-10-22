@@ -103,11 +103,20 @@ function buildRows(state: PublicState, outcome: Outcome, reason: string, oppName
   const oppSolved = theirs || (reason === 'solved' && outcome !== 'win')
   const clock = state.startedAt && state.endedAt ? fmtClock(state.endedAt - state.startedAt) : '—'
   return [
-    { name: myName, kind: 'me', rankKey: rankKeyOf(state.me), attempts: state.me.guesses.length, time: mySolved ? clock : '—', solved: mySolved },
+    {
+      name: myName,
+      kind: 'me',
+      rankKey: rankKeyOf(state.me),
+      species: state.me.avatarSpecies,
+      attempts: state.me.guesses.length,
+      time: mySolved ? clock : '—',
+      solved: mySolved,
+    },
     {
       name: oppName,
       kind: bot ? 'bot' : 'human',
       rankKey: state.opp ? rankKeyOf(state.opp) : undefined,
+      species: state.opp?.avatarSpecies,
       attempts: state.opp?.guesses.length ?? 0,
       time: oppSolved ? clock : '—',
       solved: oppSolved,

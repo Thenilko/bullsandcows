@@ -7,6 +7,7 @@ function base(name: string, over: Partial<PublicMe & PublicOpp> = {}) {
     id: `id-${name}`,
     username: name,
     level: 7,
+    avatarSpecies: 'bull' as const,
     rating: 1240,
     isGuest: false,
     ready: true,
@@ -19,7 +20,11 @@ function base(name: string, over: Partial<PublicMe & PublicOpp> = {}) {
 }
 
 export const fixtureMe = (over: Partial<PublicMe> = {}): PublicMe => ({ ...base('Мира'), guesses: [], ...over })
-export const fixtureOpp = (over: Partial<PublicOpp> = {}): PublicOpp => ({ ...base('Боби', { level: 6, rating: 1210 }), guesses: [], ...over })
+export const fixtureOpp = (over: Partial<PublicOpp> = {}): PublicOpp => ({
+  ...base('Боби', { level: 6, rating: 1210, avatarSpecies: 'cow' }),
+  guesses: [],
+  ...over,
+})
 
 export const myGuess = (guess: string, bulls: number, cows: number, consistent = true) => ({ guess, bulls, cows, consistent, at: T0 })
 export const oppGuess = (guess: string | null, bulls: number | null, cows: number | null): OppGuessDto => ({ guess, bulls, cows, at: T0 })

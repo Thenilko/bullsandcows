@@ -59,7 +59,8 @@
     "difficultyDefault": "Default difficulty",
     "muteOn": "Mute sounds",
     "muteOff": "Unmute sounds",
-    "lang": "Language"
+    "lang": "Language",
+    "avatar": "Avatar"
   },
   "login": {
     "title": "Bulls and Cows",

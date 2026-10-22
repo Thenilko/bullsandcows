@@ -71,7 +71,7 @@ function result(outcome: 'win' | 'lose' | 'draw') {
 export const DuelSetupScreen = () => <DuelSetup mode="duel" />
 export const BotSetupScreen = () => <DuelSetup mode="bot" />
 export const InviteScreen = () => <InviteView invite={INVITE} settings={SETTINGS} copy="idle" expired={false} elapsedMs={9000} onCopy={noop} onShare={noop} onCancel={noop} />
-export const JoinInviteScreen = () => <JoinInvite preview={{ status: 'waiting', host: { username: 'Ани', level: 8 }, settings: SETTINGS }} />
+export const JoinInviteScreen = () => <JoinInvite preview={{ status: 'waiting', host: { username: 'Ани', level: 8, avatarSpecies: 'cow' }, settings: SETTINGS }} />
 const queueView = (elapsedMs: number, showSuggest: boolean) => (
   <QueueView settings={SETTINGS} elapsedMs={elapsedMs} level={7} error={null} showSuggest={showSuggest} inviteError={null} onInvite={noop} onCancel={noop} onProfile={noop} />
 )

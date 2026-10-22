@@ -1,5 +1,6 @@
 import type { BotLevel, Len, Rating } from '@bc/game-core'
 import type {
+  AvatarSpecies,
   EndReason,
   ErrorCode,
   Format,
@@ -32,6 +33,8 @@ export interface PlayerInfo {
   readonly level: number
   readonly rating: Rating
   readonly isGuest: boolean
+  /** Absent for the bot and for rooms created before the choice existed: drawn as a bull. */
+  readonly avatarSpecies?: AvatarSpecies
 }
 
 export interface Player extends PlayerInfo {

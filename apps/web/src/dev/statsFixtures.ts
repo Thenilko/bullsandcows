@@ -55,6 +55,7 @@ export const meFixture: MeDto = {
     sound: true,
     vibrate: true,
     defaultLen: 4,
+    avatarSpecies: 'bull',
   },
   xp: 650,
   level: 2,
@@ -86,11 +87,11 @@ export const meFixture: MeDto = {
 
 export const boardFixture: LeaderboardDto = {
   rows: [
-    { rank: 1, username: 'Ани', attempts: 4, score: 1015, you: false, level: 22, rankKey: 'steward' },
-    { rank: 2, username: 'Боби', attempts: 5, score: 925, you: false, level: 11, rankKey: 'pastor' },
-    { rank: 3, username: 'Цвети', attempts: 5, score: 880, you: false, level: 7, rankKey: 'shepherd' },
-    { rank: 4, username: 'Ники', attempts: 6, score: 800, you: false, level: 3, rankKey: 'herdsman' },
-    { rank: 5, username: 'Мира', attempts: 6, score: 770, you: true, level: 2, rankKey: 'herdsman' },
+    { rank: 1, username: 'Ани', attempts: 4, score: 1015, you: false, level: 22, rankKey: 'steward', avatarSpecies: 'cow' },
+    { rank: 2, username: 'Боби', attempts: 5, score: 925, you: false, level: 11, rankKey: 'pastor', avatarSpecies: 'bull' },
+    { rank: 3, username: 'Цвети', attempts: 5, score: 880, you: false, level: 7, rankKey: 'shepherd', avatarSpecies: 'cow' },
+    { rank: 4, username: 'Ники', attempts: 6, score: 800, you: false, level: 3, rankKey: 'herdsman', avatarSpecies: 'bull' },
+    { rank: 5, username: 'Мира', attempts: 6, score: 770, you: true, level: 2, rankKey: 'herdsman', avatarSpecies: 'bull' },
   ],
   me: { rank: 5, score: 770, top: 40 },
 }

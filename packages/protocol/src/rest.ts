@@ -77,6 +77,10 @@ export const RankKeySchema = z.enum([
 ])
 export type RankKey = z.infer<typeof RankKeySchema>
 
+/** Which character a player's avatar is drawn as; `profiles.avatar_species`. */
+export const SpeciesSchema = z.enum(['bull', 'cow'])
+export type AvatarSpecies = z.infer<typeof SpeciesSchema>
+
 export const BADGE_KEYS = [
   'firstBull',
   'noWaste',
@@ -103,6 +107,7 @@ export const LeaderboardRowDto = z.object({
   you: z.boolean(),
   level: z.number().int(),
   rankKey: RankKeySchema,
+  avatarSpecies: SpeciesSchema,
 })
 export type LeaderboardRowDto = z.infer<typeof LeaderboardRowDto>
 
@@ -122,6 +127,7 @@ export const ProfileDto = z.object({
   sound: z.boolean(),
   vibrate: z.boolean(),
   defaultLen: LenSchema,
+  avatarSpecies: SpeciesSchema,
 })
 export type ProfileDto = z.infer<typeof ProfileDto>
 
@@ -171,6 +177,7 @@ export const SettingsPatch = z
     vibrate: z.boolean().optional(),
     defaultLen: LenSchema.optional(),
     lang: LangSchema.optional(),
+    avatarSpecies: SpeciesSchema.optional(),
   })
   .strict()
 export type SettingsPatch = z.infer<typeof SettingsPatch>
@@ -263,7 +270,7 @@ export type InviteDto = z.infer<typeof InviteDto>
 
 export const InviteInfoDto = z.object({
   status: z.enum(['waiting', 'started']),
-  host: z.object({ username: z.string(), level: z.number().int() }),
+  host: z.object({ username: z.string(), level: z.number().int(), avatarSpecies: SpeciesSchema }),
   settings: InviteSettingsDto,
 })
 export type InviteInfoDto = z.infer<typeof InviteInfoDto>

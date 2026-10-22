@@ -21,6 +21,7 @@ export const toProfileDto = (p: Profile): ProfileDto => ({
   sound: p.sound,
   vibrate: p.vibrate,
   defaultLen: p.defaultLen,
+  avatarSpecies: p.avatarSpecies,
 })
 
 /** Title as in the prototype: RANK_KEYS[min(5, level)], so level 1 is "herdsman". */

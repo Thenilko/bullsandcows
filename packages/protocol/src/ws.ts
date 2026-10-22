@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { ERROR_CODES } from './errors'
-import { BotLevelSchema, LenSchema, ZeroSchema } from './rest'
+import { BotLevelSchema, LenSchema, SpeciesSchema, ZeroSchema } from './rest'
 
 /** WebSocket message schemas shared by the duel/queue rooms and the client. */
 export const WS_PROTOCOL_VERSION = 1
@@ -72,6 +72,8 @@ const PublicPlayerBase = z.object({
   id: z.string(),
   username: z.string(),
   level: Int,
+  /** The character the player is drawn as (next to `level`, which gives the title). */
+  avatarSpecies: SpeciesSchema,
   /** Rounded display rating. */
   rating: Int,
   isGuest: z.boolean(),

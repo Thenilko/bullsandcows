@@ -36,6 +36,7 @@ function bestPerPlayer(db: Db, q: LeaderboardQuery) {
       attempts: games.attempts,
       score: games.score,
       xp: profiles.xp,
+      avatarSpecies: profiles.avatarSpecies,
       finishedAt: games.finishedAt,
     })
     .from(games)
@@ -65,6 +66,7 @@ export async function drizzleLeaderboard(db: Db, q: LeaderboardQuery): Promise<L
       attempts: best.attempts,
       score: best.score,
       xp: best.xp,
+      avatarSpecies: best.avatarSpecies,
     })
     .from(best)
     .orderBy(desc(best.score), asc(best.finishedAt), asc(best.userId))

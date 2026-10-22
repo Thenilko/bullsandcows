@@ -32,6 +32,7 @@ export function OppStrip({ state, oppName, status, thinking }: OppStripProps) {
       <Avatar
         kind={state.opponentKind === 'bot' ? 'bot' : 'human'}
         rankKey={rankKeyOf(opp)}
+        species={opp.avatarSpecies}
         size={42}
         thinking={thinking}
       />

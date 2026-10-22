@@ -1,5 +1,12 @@
 import { rankKeyForLevel } from '@bc/game-core'
-import type { MeDto, RankKey } from '@bc/protocol'
+import type { AvatarSpecies, MeDto, RankKey } from '@bc/protocol'
+
+export const DEFAULT_SPECIES: AvatarSpecies = 'bull'
+
+/** My chosen character from the session; the bull while signed out. */
+export function mySpecies(me: MeDto | null): AvatarSpecies {
+  return me?.profile.avatarSpecies ?? DEFAULT_SPECIES
+}
 
 /** Guests have no progression: they are always „Теленце“. */
 export const GUEST_RANK: RankKey = 'calf'

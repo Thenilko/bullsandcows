@@ -1,4 +1,4 @@
-import type { ClientMsg, PublicState, RankKey } from '@bc/protocol'
+import type { AvatarSpecies, ClientMsg, PublicState, RankKey } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
 import { Shell } from '../../app/layouts/Shell'
 import { Countdown, Cta, Toast } from '../../components/ui'
@@ -122,19 +122,20 @@ interface PlayerCardProps {
   ready: boolean
   kind: 'me' | 'human' | 'bot'
   rankKey?: RankKey
+  species?: AvatarSpecies
   name: string
   sub: string
   waiting?: boolean
 }
 
-function PlayerCard({ side, ready, kind, rankKey, name, sub, waiting = false }: PlayerCardProps) {
+function PlayerCard({ side, ready, kind, rankKey, species, name, sub, waiting = false }: PlayerCardProps) {
   const { t } = useTranslation()
   const tag = ready
     ? t('duel.found.status.ready')
     : t(side === 'L' ? 'duel.found.status.waiting' : 'duel.found.status.waitingDots')
   return (
     <div className={`pcard vs${side}${ready ? ' ready' : ''}`}>
-      <Avatar kind={kind} rankKey={rankKey} size={64} />
+      <Avatar kind={kind} rankKey={rankKey} species={species} size={64} />
       <b style={{ fontSize: 17 }}>{waiting ? '…' : name}</b>
       <span style={{ fontSize: 12, fontWeight: 800, color: '#4A5640' }}>{sub}</span>
       <span className="tag" style={ready ? READY_TAG : WAIT_TAG}>
@@ -160,6 +161,7 @@ function Versus({ state, oppName }: { state: PublicState; oppName: string }) {
         ready={state.me.ready}
         kind="me"
         rankKey={rankKeyOf(state.me)}
+        species={state.me.avatarSpecies}
         name={state.me.username}
         sub={t('duel.found.level', { level: state.me.level, rating: state.me.rating })}
       />
@@ -171,6 +173,7 @@ function Versus({ state, oppName }: { state: PublicState; oppName: string }) {
         ready={opp?.ready ?? false}
         kind={bot ? 'bot' : 'human'}
         rankKey={opp ? rankKeyOf(opp) : undefined}
+        species={opp?.avatarSpecies}
         name={oppName}
         sub={sub}
         waiting={opp === null}

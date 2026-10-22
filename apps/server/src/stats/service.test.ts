@@ -132,9 +132,9 @@ describe('leaderboard', () => {
     await played({ ...daily, userId: ivo.id, practice: true }, { score: 1100, attempts: 2 })
     const board = await stats.leaderboard(mira, q)
     expect(board.rows).toEqual([
-      { rank: 1, username: 'Rada', attempts: 4, score: 900, you: false, level: 1, rankKey: 'herdsman' },
-      { rank: 2, username: 'Ivo', attempts: 5, score: 800, you: false, level: 1, rankKey: 'herdsman' },
-      { rank: 3, username: 'Mira', attempts: 6, score: 700, you: true, level: 1, rankKey: 'herdsman' },
+      { rank: 1, username: 'Rada', attempts: 4, score: 900, you: false, level: 1, rankKey: 'herdsman', avatarSpecies: 'bull' },
+      { rank: 2, username: 'Ivo', attempts: 5, score: 800, you: false, level: 1, rankKey: 'herdsman', avatarSpecies: 'bull' },
+      { rank: 3, username: 'Mira', attempts: 6, score: 700, you: true, level: 1, rankKey: 'herdsman', avatarSpecies: 'bull' },
     ])
     expect(board.me).toMatchObject({ rank: 3, score: 700 })
     expect(board.me?.top).toBeGreaterThan(0)
@@ -221,6 +221,7 @@ describe('me', () => {
       sound: true,
       vibrate: true,
       defaultLen: 4,
+      avatarSpecies: 'bull',
     })
   })
 
@@ -344,5 +345,12 @@ describe('updateSettings', () => {
 
   it('lets guests change their settings', async () => {
     expect((await stats.updateSettings(guest, { vibrate: false })).profile.vibrate).toBe(false)
+  })
+
+  it('saves the chosen avatar character, a bull by default', async () => {
+    expect((await stats.me(mira)).profile.avatarSpecies).toBe('bull')
+    const me = await stats.updateSettings(mira, { avatarSpecies: 'cow' })
+    expect(me.profile.avatarSpecies).toBe('cow')
+    expect((await stats.me(mira)).profile.avatarSpecies).toBe('cow')
   })
 })

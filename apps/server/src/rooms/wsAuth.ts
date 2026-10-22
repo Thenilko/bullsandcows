@@ -1,5 +1,5 @@
 import { levelFromXp, type Rating } from '@bc/game-core'
-import { apiErr, type ErrorCode } from '@bc/protocol'
+import { apiErr, SpeciesSchema, type AvatarSpecies, type ErrorCode } from '@bc/protocol'
 import { makeAuth } from '../adapters/auth'
 import { makeRepo } from '../adapters/repo'
 import { ensureProfile } from '../auth/profiles'
@@ -20,6 +20,7 @@ const H = {
   rd: 'x-rd',
   vol: 'x-vol',
   guest: 'x-guest',
+  species: 'x-species',
 } as const
 
 const reject = (code: ErrorCode, status: number): Response =>
@@ -54,6 +55,7 @@ export async function authenticateWs(
         level: levelFromXp(profile.xp),
         rating: profile.rating,
         isGuest: user.isGuest,
+        avatarSpecies: profile.avatarSpecies,
       },
     }
   } finally {
@@ -72,7 +74,13 @@ export function forwardWithIdentity(req: Request, info: PlayerInfo): Request {
   headers.set(H.rd, String(info.rating.rd))
   headers.set(H.vol, String(info.rating.vol))
   headers.set(H.guest, info.isGuest ? '1' : '0')
+  if (info.avatarSpecies !== undefined) headers.set(H.species, info.avatarSpecies)
   return new Request(req, { headers })
+}
+
+const speciesOf = (v: string | null): AvatarSpecies | undefined => {
+  const parsed = SpeciesSchema.safeParse(v)
+  return parsed.success ? parsed.data : undefined
 }
 
 const num = (v: string | null): number | null => {
@@ -92,11 +100,13 @@ export function readIdentity(headers: Headers): PlayerInfo | null {
   if (!id || username === null || level === null || rating === null || rd === null || vol === null)
     return null
   const r: Rating = { rating, rd, vol }
+  const avatarSpecies = speciesOf(headers.get(H.species))
   return {
     id,
     username: decodeURIComponent(username),
     level,
     rating: r,
     isGuest: headers.get(H.guest) === '1',
+    ...(avatarSpecies === undefined ? {} : { avatarSpecies }),
   }
 }

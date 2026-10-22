@@ -1,4 +1,4 @@
-import type { RankKey } from '@bc/protocol'
+import type { AvatarSpecies, RankKey } from '@bc/protocol'
 import { ScarecrowIcon } from '../../../components/ui/icons'
 import { RankAvatar } from '../../../components/ui/RankAvatar'
 import { cx } from '../../../components/ui/cx'
@@ -13,11 +13,13 @@ export interface AvatarProps {
   size: number
   /** Title of the player (ring colour and accessory); the calf when unknown. Ignored for the bot. */
   rankKey?: RankKey
+  /** The player's chosen character; without one you are the bull and a human opponent the cow. */
+  species?: AvatarSpecies
   thinking?: boolean
 }
 
-/** PasDuel: you are the bull, a human opponent is the cow, the bot is the scarecrow. */
-export function Avatar({ kind, size, rankKey = GUEST_RANK, thinking = false }: AvatarProps) {
+/** PasDuel: the bot is always the scarecrow; people are drawn as the character they chose. */
+export function Avatar({ kind, size, rankKey = GUEST_RANK, species, thinking = false }: AvatarProps) {
   if (kind === 'bot') {
     const inner = Math.round(size * 0.72)
     return (
@@ -26,7 +28,6 @@ export function Avatar({ kind, size, rankKey = GUEST_RANK, thinking = false }: A
       </span>
     )
   }
-  return (
-    <RankAvatar species={kind === 'me' ? 'bull' : 'cow'} rankKey={rankKey} size={size} thinking={thinking} />
-  )
+  const drawn = species ?? (kind === 'me' ? 'bull' : 'cow')
+  return <RankAvatar species={drawn} rankKey={rankKey} size={size} thinking={thinking} />
 }

@@ -46,6 +46,7 @@ async function playerInfo(c: Context<AppEnv>): Promise<PlayerInfo> {
     level: levelFromXp(profile.xp),
     rating: profile.rating,
     isGuest: user.isGuest,
+    avatarSpecies: profile.avatarSpecies,
   }
 }
 
@@ -122,7 +123,11 @@ export function duelsRoutes(): Hono<AppEnv> {
     const info = await liveInvite(rooms(c).invite(codeParam(c)))
     const dto: InviteInfoDto = {
       status: info.status,
-      host: { username: info.host.username, level: info.host.level },
+      host: {
+        username: info.host.username,
+        level: info.host.level,
+        avatarSpecies: info.host.avatarSpecies ?? 'bull',
+      },
       settings: info.settings,
     }
     return ok(c, dto)

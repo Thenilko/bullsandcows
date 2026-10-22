@@ -132,6 +132,7 @@ export class StatsService {
         you: r.userId === user.id,
         level,
         rankKey: rankKeyForLevel(level),
+        avatarSpecies: r.avatarSpecies,
       }
     })
     // Below the repo's list the caller's place is counted separately.
@@ -174,8 +175,8 @@ export class StatsService {
   async updateSettings(user: AuthUser, patch: SettingsPatch): Promise<MeDto> {
     await ensureProfile(this.deps.repo, user)
     // Picked field by field: nothing else (xp, rating, username) can ride along.
-    const { sound, vibrate, defaultLen, lang } = patch
-    await this.deps.repo.profiles.update(user.id, { sound, vibrate, defaultLen, lang })
+    const { sound, vibrate, defaultLen, lang, avatarSpecies } = patch
+    await this.deps.repo.profiles.update(user.id, { sound, vibrate, defaultLen, lang, avatarSpecies })
     return this.me(user)
   }
 

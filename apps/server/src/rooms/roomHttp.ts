@@ -1,5 +1,5 @@
 import { DEFAULT_RATING, isInviteCode, isValidCode } from '@bc/game-core'
-import { BotLevelSchema, FormatSchema, LenSchema, type ErrorCode } from '@bc/protocol'
+import { BotLevelSchema, FormatSchema, LenSchema, SpeciesSchema, type ErrorCode } from '@bc/protocol'
 import { z } from 'zod'
 import { createMatch, join } from '../duel/match'
 import type { RoomInfo } from '../duel/roomClient'
@@ -25,6 +25,7 @@ const PlayerInfoSchema = z.object({
     vol: z.number().finite().positive(),
   }),
   isGuest: z.boolean(),
+  avatarSpecies: SpeciesSchema.optional(),
 })
 
 export const CreateBody = z.object({
@@ -119,7 +120,7 @@ export function roomInfo(st: RoomState): RoomInfo {
   const host = m.players.a
   return {
     status: roomStatus(st),
-    host: { id: host.id, username: host.username, level: host.level },
+    host: { id: host.id, username: host.username, level: host.level, avatarSpecies: host.avatarSpecies },
     settings: { format: m.format, len: m.len, zero: m.zero },
     players: m.players.b ? 2 : 1,
   }

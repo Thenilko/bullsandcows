@@ -1,5 +1,6 @@
 import type { Len, Outcome, Rating } from '@bc/game-core'
 import type { Lang } from '@bc/i18n'
+import type { AvatarSpecies } from '@bc/protocol'
 
 export type GameKind = 'daily' | 'free' | 'duel_race' | 'duel_classic' | 'bot'
 export type SoloKind = Extract<GameKind, 'daily' | 'free'>
@@ -17,16 +18,21 @@ export interface Profile {
   readonly sound: boolean
   readonly vibrate: boolean
   readonly defaultLen: Len
+  /** The character the player's avatar is drawn as. */
+  readonly avatarSpecies: AvatarSpecies
   readonly xp: number
   readonly rating: Rating
   readonly createdAt: number
 }
 
 export type NewProfile = Pick<Profile, 'id' | 'username' | 'email' | 'isGuest'> &
-  Partial<Pick<Profile, 'lang' | 'sound' | 'vibrate' | 'defaultLen'>>
+  Partial<Pick<Profile, 'lang' | 'sound' | 'vibrate' | 'defaultLen' | 'avatarSpecies'>>
 
 export type ProfilePatch = Partial<
-  Pick<Profile, 'username' | 'email' | 'isGuest' | 'lang' | 'sound' | 'vibrate' | 'defaultLen'>
+  Pick<
+    Profile,
+    'username' | 'email' | 'isGuest' | 'lang' | 'sound' | 'vibrate' | 'defaultLen' | 'avatarSpecies'
+  >
 >
 
 export interface GameRow {
@@ -142,6 +148,7 @@ export interface LeaderboardRow {
   readonly score: number
   /** The player's total xp, for their level and title next to the name. */
   readonly xp: number
+  readonly avatarSpecies: AvatarSpecies
 }
 
 /** Won counted daily games of several days at once (for "top X%" of past days). */

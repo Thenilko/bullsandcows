@@ -2,7 +2,7 @@ import { XP_PER_LEVEL } from '@bc/game-core'
 import type { MeDto } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
 import { RankAvatar } from '../../components/ui'
-import { myRankKey } from '../../lib/rank'
+import { myRankKey, mySpecies } from '../../lib/rank'
 
 const AVATAR = {
   width: 84,
@@ -20,6 +20,7 @@ export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: bo
   const avatarSize = desktop ? 110 : 84
   const avatar = desktop ? { ...AVATAR, width: avatarSize, height: avatarSize, flex: 'none' } : AVATAR
   const rankKey = myRankKey(me)
+  const species = mySpecies(me)
   const info = (
     <>
       <h1
@@ -82,7 +83,7 @@ export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: bo
         }}
       >
         <span className="float" style={avatar}>
-          <RankAvatar species="bull" rankKey={rankKey} size={avatarSize} />
+          <RankAvatar species={species} rankKey={rankKey} size={avatarSize} />
         </span>
         {info}
       </header>
@@ -94,7 +95,7 @@ export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: bo
       style={{ padding: 28, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 24 }}
     >
       <span className="float" style={avatar}>
-        <RankAvatar species="bull" rankKey={rankKey} size={avatarSize} />
+        <RankAvatar species={species} rankKey={rankKey} size={avatarSize} />
       </span>
       <div style={{ flex: 1, minWidth: 220, display: 'flex', flexDirection: 'column', gap: 6 }}>
         {info}

@@ -17,6 +17,7 @@ const base = (p: Player): PublicBase => ({
   id: p.id,
   username: p.username,
   level: p.level,
+  avatarSpecies: p.avatarSpecies ?? 'bull',
   rating: displayRating(p.rating),
   isGuest: p.isGuest,
   ready: p.ready,

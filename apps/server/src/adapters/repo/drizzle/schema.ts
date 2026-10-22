@@ -1,5 +1,6 @@
 import type { Len } from '@bc/game-core'
 import type { Lang } from '@bc/i18n'
+import type { AvatarSpecies } from '@bc/protocol'
 import { sql } from 'drizzle-orm'
 import {
   type AnyPgColumn,
@@ -43,6 +44,7 @@ export const profiles = pgTable(
     sound: boolean('sound').notNull().default(true),
     vibrate: boolean('vibrate').notNull().default(true),
     defaultLen: smallint('default_len').$type<Len>().notNull().default(4),
+    avatarSpecies: text('avatar_species').$type<AvatarSpecies>().notNull().default('bull'),
     xp: integer('xp').notNull().default(0),
     rating: doublePrecision('rating').notNull().default(1500),
     ratingDev: doublePrecision('rating_dev').notNull().default(350),
@@ -52,6 +54,7 @@ export const profiles = pgTable(
   (t) => [
     uniqueIndex('profiles_username_lower_idx').on(t.usernameLower),
     check('profiles_lang_check', sql`${t.lang} in ('bg', 'en')`),
+    check('profiles_avatar_species_check', sql`${t.avatarSpecies} in ('bull', 'cow')`),
     check('profiles_default_len_check', sql`${t.defaultLen} between 3 and 5`),
   ],
 ).enableRLS()

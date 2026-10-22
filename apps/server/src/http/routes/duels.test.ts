@@ -138,7 +138,8 @@ describe('invites', () => {
     expect(info.data.status).toBe('waiting')
     expect(info.data.settings).toEqual(settings)
     expect(info.data.host.id).toBeUndefined()
-    expect(Object.keys(info.data.host).sort()).toEqual(['level', 'username'])
+    expect(Object.keys(info.data.host).sort()).toEqual(['avatarSpecies', 'level', 'username'])
+    expect(info.data.host.avatarSpecies).toBe('bull')
   })
 
   it('answers 404 for an unknown or malformed code', async () => {

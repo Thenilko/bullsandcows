@@ -5,6 +5,7 @@ const me = {
   id: 'u1',
   username: 'Mira',
   level: 2,
+  avatarSpecies: 'bull',
   rating: 1500,
   isGuest: false,
   ready: true,

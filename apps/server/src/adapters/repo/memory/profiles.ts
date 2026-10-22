@@ -48,6 +48,7 @@ export function memoryProfiles(store: MemoryStore, clock: Clock): ProfilesRepo {
         sound: input.sound ?? true,
         vibrate: input.vibrate ?? true,
         defaultLen: input.defaultLen ?? 4,
+        avatarSpecies: input.avatarSpecies ?? 'bull',
         xp: 0,
         rating: DEFAULT_RATING,
         createdAt: clock.now(),

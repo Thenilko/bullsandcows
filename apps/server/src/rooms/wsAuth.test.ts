@@ -56,11 +56,20 @@ describe('identity headers', () => {
     level: 3,
     rating: { rating: 1612.4, rd: 80, vol: 0.06 },
     isGuest: false,
+    avatarSpecies: 'cow' as const,
   }
 
   it('round-trips PlayerInfo through the forwarded request', () => {
     const fwd = forwardWithIdentity(req('x'), info)
     expect(readIdentity(fwd.headers)).toEqual(info)
+  })
+
+  it('leaves the species out when the player has none, and ignores a bad one', () => {
+    const plain = { id: info.id, username: info.username, level: info.level, rating: info.rating, isGuest: false }
+    expect(readIdentity(forwardWithIdentity(req('x'), plain).headers)).toEqual(plain)
+    const fwd = forwardWithIdentity(req('x'), plain)
+    fwd.headers.set('x-species', 'goat')
+    expect(readIdentity(fwd.headers)).toEqual(plain)
   })
 
   it('overwrites identity headers the client sent', () => {
