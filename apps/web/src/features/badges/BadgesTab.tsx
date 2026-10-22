@@ -22,7 +22,7 @@ export interface BadgesTabProps {
 }
 
 const BAR = { height: 10, borderRadius: 5, background: '#ECE5D2', overflow: 'hidden' } as const
-const MUTED = { fontSize: 12, fontWeight: 800, color: '#6B7560' } as const
+const MUTED = { fontSize: 12, fontWeight: 800, color: 'var(--c-muted-aa)' } as const
 const COLUMNS = 4
 
 /** The display name: „???“ for a hidden badge not earned yet. */

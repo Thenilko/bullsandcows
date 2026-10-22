@@ -11,9 +11,9 @@ export interface BadgeDetailProps {
   onClose(): void
 }
 
-const MUTED = { fontSize: 13, fontWeight: 800, color: '#6B7560' } as const
+const MUTED = { fontSize: 13, fontWeight: 800, color: 'var(--c-muted-aa)' } as const
 const BAR = { height: 12, borderRadius: 6, background: '#ECE5D2', overflow: 'hidden' } as const
-const SOON = { background: '#F3EEDF', color: '#6B7560' } as const
+const SOON = { background: '#F3EEDF', color: 'var(--c-muted-aa)' } as const
 const WIDTH = 440
 
 function Step({ step, unit }: { step: BadgeStep; unit: BadgeView['unit'] }) {
@@ -61,7 +61,7 @@ export function BadgeDetail({ view, onClose }: BadgeDetailProps) {
           {progressText}
         </span>
       </div>
-      <span style={{ fontSize: 12, fontWeight: 700, color: '#6B7560' }}>{t('badges.xpNote')}</span>
+      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)' }}>{t('badges.xpNote')}</span>
       <Soft style={{ width: '100%' }} onClick={onClose}>
         {t('common.close')}
       </Soft>
