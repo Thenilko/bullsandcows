@@ -6,12 +6,17 @@ import { cx } from '../../components/ui/cx'
 import { History } from '../../screens/play/History'
 import { useNotebook } from './store'
 
+export type NotebookLayout = 'sheet' | 'card' | 'note'
+
 export interface NotebookProps {
   gameId: string
   guesses: readonly GuessEntryDto[]
   left: number
-  /** `sheet`: mobile bottom sheet content (M4); `card`: desktop right column (D4). */
-  layout: 'sheet' | 'card'
+  /**
+   * `sheet`: mobile bottom sheet content (M4); `card`: desktop card, digits in one row of 10 (D4, split desktop);
+   * `note`: the sheet of paper of the immersive desktop — digits 5×2, no „цъкни…“ hint (Desk.dc.html).
+   */
+  layout: NotebookLayout
   onClose?: () => void
   /** Extra action next to "clear" (the give-up button). */
   footer?: ReactNode
@@ -23,10 +28,12 @@ const SHORT_KEYS = [null, 'no', 'yes'] as const
 const HEADING = { margin: 0, fontWeight: 900 } as const
 const HINT = { fontWeight: 700, color: 'var(--c-muted-aa)' } as const
 
-function DigitChips({ marks, cycle, desktop }: { marks: Readonly<Record<string, DigitMark>>; cycle(d: string): void; desktop: boolean }) {
+function DigitChips({ marks, cycle, layout }: { marks: Readonly<Record<string, DigitMark>>; cycle(d: string): void; layout: NotebookLayout }) {
   const { t } = useTranslation()
+  const desktop = layout !== 'sheet'
+  const columns = layout === 'card' ? 10 : 5
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${desktop ? 10 : 5}, minmax(0, 1fr))`, gap: desktop ? 6 : 8 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap: desktop ? 6 : 8 }}>
       {DIGITS.map((d) => {
         const v = marks[d] ?? 0
         const short = SHORT_KEYS[v]
@@ -50,14 +57,14 @@ function DigitChips({ marks, cycle, desktop }: { marks: Readonly<Record<string, 
 
 function Header({ left, layout, onClose }: Pick<NotebookProps, 'left' | 'layout' | 'onClose'>) {
   const { t } = useTranslation()
-  if (layout === 'card') {
+  if (layout !== 'sheet') {
     return (
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
         <h2 style={{ ...HEADING, fontSize: 22, display: 'flex', alignItems: 'center', gap: 8 }}>
           <NotebookIcon size={22} stroke="#8E3424" />
           {t('notebook.title')}
         </h2>
-        <span style={{ ...HINT, fontSize: 13 }}>{t('notebook.hint')}</span>
+        {layout === 'card' ? <span style={{ ...HINT, fontSize: 13 }}>{t('notebook.hint')}</span> : null}
       </div>
     )
   }
@@ -78,7 +85,7 @@ function Header({ left, layout, onClose }: Pick<NotebookProps, 'left' | 'layout'
 export function Notebook({ gameId, guesses, left, layout, onClose, footer }: NotebookProps) {
   const { t } = useTranslation()
   const nb = useNotebook(gameId)
-  const desktop = layout === 'card'
+  const desktop = layout !== 'sheet'
   return (
     <>
       <Header left={left} layout={layout} onClose={onClose} />
@@ -88,7 +95,7 @@ export function Notebook({ gameId, guesses, left, layout, onClose, footer }: Not
           <span style={{ ...HINT, fontSize: 12 }}>{t('notebook.hint')}</span>
         </div>
       )}
-      <DigitChips marks={nb.marks} cycle={nb.cycle} desktop={desktop} />
+      <DigitChips marks={nb.marks} cycle={nb.cycle} layout={layout} />
       {desktop ? null : <h3 style={{ ...HEADING, margin: '4px 0 0', fontSize: 16 }}>{t('notebook.attempts')}</h3>}
       <div style={desktop ? { maxHeight: 260, overflowY: 'auto' } : undefined}>
         <History guesses={guesses} />

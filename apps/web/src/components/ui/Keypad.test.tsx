@@ -83,7 +83,7 @@ describe('Keypad', () => {
 
   it('uses 56px keys and 10px gap in the desktop layout', () => {
     renderWithI18n(<Keypad {...base} layout="desktop" />)
-    expect(digit('1').style.height).toBe('56px')
+    expect(digit('1').style.height).toBe('var(--key-h, 56px)')
     expect(digit('1').parentElement!.style.gap).toBe('10px')
   })
 })

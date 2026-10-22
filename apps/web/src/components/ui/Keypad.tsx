@@ -17,11 +17,14 @@ export interface KeypadProps {
   onPress(d: string): void
   onBack(): void
   onSubmit(): void
-  /** Mobile: 8px gap, default key height. Desktop: 10px gap, 56px keys (PasDesktop). */
+  /** Mobile: 8px gap, default key height. Desktop: 10px gap, 56px keys (PasDesktop) unless the shell sets `--key-h` (46px in the split layout). */
   layout?: 'mobile' | 'desktop'
   /** Overrides the submit label (default: `play.submit`). */
   submitLabel?: string
 }
+
+/** The desktop key height follows the shell: `--key-h` is 46px in the split desktop layout, 56px otherwise. */
+const DESKTOP_KEY = { height: 'var(--key-h, 56px)' } as const
 
 const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'] as const
 
@@ -35,7 +38,7 @@ export function Keypad({ len, zero, current, marks, disabled, onPress, onBack, o
   function digit(d: string) {
     const blocked = disabled || current.includes(d) || full || (d === '0' && !zero)
     return (
-      <Key key={d} style={layout === 'desktop' ? { height: 56 } : undefined} mark={marks[d] ?? 0} disabled={blocked} aria-label={t('common.digitAria', { digit: d })} onClick={() => onPress(d)}>
+      <Key key={d} style={layout === 'desktop' ? DESKTOP_KEY : undefined} mark={marks[d] ?? 0} disabled={blocked} aria-label={t('common.digitAria', { digit: d })} onClick={() => onPress(d)}>
         {d}
       </Key>
     )
