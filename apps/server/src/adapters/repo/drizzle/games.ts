@@ -1,10 +1,23 @@
-import { and, asc, count, desc, eq, getTableColumns, gte, inArray, type SQL } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  getTableColumns,
+  gte,
+  inArray,
+  sql,
+  type SQL,
+} from 'drizzle-orm'
 import type { GamePatch, GamesRepo, WonAttemptsQuery } from '../../../ports/repo'
 import type { Db } from './client'
 import { required } from './errors'
 import { drizzleLeaderboard, drizzleRankOf } from './leaderboard'
 import { toDate, toGame, toGuess, toPublicGame } from './mappers'
 import { dailyNumbers, games, guesses } from './schema'
+
+const SOFIA_TZ = 'Europe/Sofia'
 
 /** Every column except `secret`: the default projection for all game reads and writes. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -128,6 +141,20 @@ export function drizzleGames(db: Db): GamesRepo {
         .orderBy(desc(games.createdAt))
         .limit(limit)
       return rows.map(toPublicGame)
+    },
+    countFreeGamesOn: async (userId, date) => {
+      const [row] = await db
+        .select({ n: count() })
+        .from(games)
+        .where(
+          and(
+            eq(games.userId, userId),
+            eq(games.kind, 'free'),
+            eq(games.practice, false),
+            sql`(${games.finishedAt} at time zone ${SOFIA_TZ})::date = ${date}::date`,
+          ),
+        )
+      return row?.n ?? 0
     },
   }
 }

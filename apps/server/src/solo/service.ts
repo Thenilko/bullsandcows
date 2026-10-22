@@ -3,12 +3,15 @@ import {
   codes,
   dailyIndex,
   dailySecret,
+  dailyXp,
   filterCandidates,
+  freeXp,
   isConsistent,
   isSuspicious,
   isValidCode,
   scoreSolo,
   sofiaDate,
+  starsFromTop,
   totalCodes,
   type Len,
 } from '@bc/game-core'
@@ -17,6 +20,8 @@ import type { AuthUser } from '../ports/auth'
 import type { Clock } from '../ports/clock'
 import { isDuplicate } from '../ports/errors'
 import type { GameRow, GuessRow, NewGuess, PublicGameRow, Repo } from '../ports/repo'
+import { StatsService } from '../stats/service'
+import { topOfGame, type DistributionSource } from '../stats/top'
 import { candidatesAfter, leftAfterEach } from './evaluate'
 import type { CreateInput, GameView, GuessResult } from './types'
 
@@ -31,6 +36,8 @@ export interface SoloDeps {
   readonly repo: Repo
   readonly clock: Clock
   readonly dailySalt: string
+  /** Where "top X%" of a finished game is measured; the stats service unless given. */
+  readonly distributions?: DistributionSource
 }
 
 type SoloKind = GameView['kind']
@@ -56,7 +63,12 @@ const toGuessEntries = (rows: readonly GuessRow[], lefts: readonly number[]) =>
   }))
 
 export class SoloService {
-  constructor(private readonly deps: SoloDeps) {}
+  private readonly distributions: DistributionSource
+
+  constructor(private readonly deps: SoloDeps) {
+    this.distributions =
+      deps.distributions ?? new StatsService({ repo: deps.repo, clock: deps.clock })
+  }
 
   async create(user: AuthUser, input: CreateInput): Promise<GameView> {
     const { repo } = this.deps
@@ -180,7 +192,7 @@ export class SoloService {
       game.len,
       true,
     )
-    await repo.games.update(game.id, {
+    const finished = await repo.games.update(game.id, {
       attempts,
       wasted,
       finishedAt,
@@ -188,9 +200,24 @@ export class SoloService {
       score,
       suspicious,
     })
-    // A user without a profile row yet is skipped by addXp (returns null).
-    if (!game.practice) await repo.profiles.addXp(user.id, score)
+    if (!game.practice) await this.reward(user, finished)
     return score
+  }
+
+  /**
+   * XP of a counted win: the number of the day pays 150 + 20 per star; a free game 40 + 12 per
+   * star for the first ten of the Sofia day, then 10. Stars come from "top X%" against the
+   * distribution the result screen shows. A user without a profile row is skipped by addXp.
+   */
+  private async reward(user: AuthUser, game: PublicGameRow): Promise<void> {
+    const { repo, clock } = this.deps
+    const today = sofiaDate(new Date(clock.now()))
+    const stars = starsFromTop(await topOfGame(this.distributions, game, today))
+    const xp =
+      game.kind === 'daily'
+        ? dailyXp(stars)
+        : freeXp(stars, await repo.games.countFreeGamesOn(user.id, today))
+    await repo.profiles.addXp(user.id, xp)
   }
 
   /** The same guess sent twice at once passes the repeat check twice; the unique index decides. */

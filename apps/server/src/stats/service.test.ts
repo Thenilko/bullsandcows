@@ -209,9 +209,15 @@ describe('leaderboard', () => {
 
 describe('me', () => {
   it('derives level, xp into level and rank title from xp', async () => {
-    await repo.profiles.addXp(mira.id, 1700)
+    await repo.profiles.addXp(mira.id, 3700)
     const me = await stats.me(mira)
-    expect(me).toMatchObject({ xp: 1700, level: 2, xpIntoLevel: 200, rankKey: 'shepherd' })
+    expect(me).toMatchObject({
+      xp: 3700,
+      level: 5,
+      xpIntoLevel: 200,
+      xpForNextLevel: 1500,
+      rankKey: 'shepherd',
+    })
     expect(me.rating).toBe(1500)
     expect(me.profile).toEqual({
       id: 'mira',
@@ -227,7 +233,13 @@ describe('me', () => {
 
   it('starts a new player at level 1 as a herdsman with empty stats', async () => {
     const me = await stats.me(mira)
-    expect(me).toMatchObject({ level: 1, rankKey: 'herdsman', currentGameId: null, recent: [] })
+    expect(me).toMatchObject({
+      level: 1,
+      xpForNextLevel: 500,
+      rankKey: 'herdsman',
+      currentGameId: null,
+      recent: [],
+    })
     expect(me.stats).toEqual({ played: 0, winRate: 0, streak: 0, best: null })
     expect(me.buckets.map((b) => b.attempts)).toEqual([3, 4, 5, 6, 7, 8, 9, 10])
     expect(Object.values(me.badges).some(Boolean)).toBe(false)
@@ -328,6 +340,11 @@ describe('me', () => {
     const me = await stats.me({ id: 'newbie', isGuest: true })
     expect(me.profile.isGuest).toBe(true)
     expect(me.profile.username).toMatch(/^guest-[A-HJ-NP-Z2-9]{4}$/)
+  })
+
+  it('titles a guest a calf whatever the level', async () => {
+    await repo.profiles.addXp(guest.id, 3700)
+    expect(await stats.me(guest)).toMatchObject({ level: 5, rankKey: 'calf' })
   })
 })
 

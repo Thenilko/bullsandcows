@@ -317,7 +317,7 @@
     "area": "Profile",
     "caption": "Your pasture",
     "levelLine": "{{title}} · level {{level}}",
-    "xp": "{{xp}} / 1500 pts to level {{level}}",
+    "xp": "{{xp}} / {{max}} pts to level {{level}}",
     "rating": "rating {{rating}}",
     "streakBand": "streak {{count}}",
     "streakChip": "Streak {{count}}",

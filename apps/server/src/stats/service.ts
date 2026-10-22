@@ -32,6 +32,9 @@ import {
   toRecent,
 } from './me'
 import { sofiaWeekStart } from './time'
+import { cacheKey, queryOf, type DistributionQuery, type DistributionSource } from './top'
+
+export type { DistributionQuery } from './top'
 
 const CACHE_TTL_MS = 60_000
 const FREE_WINDOW_MS = 30 * 86_400_000
@@ -39,14 +42,6 @@ const FREE_WINDOW_MS = 30 * 86_400_000
 export const LEADERBOARD_ROWS = 50
 /** Games read for profile stats and badges. */
 const HISTORY_LIMIT = 1_000
-
-export interface DistributionQuery {
-  readonly len: Len
-  readonly zero: boolean
-  readonly kind: SoloKind
-  /** Sofia date; selects the day for `daily` (and is part of the cache key for both). */
-  readonly date: string
-}
 
 /** Per-isolate cache of distributions with expiry; tiny (one entry per kind/len/zero/date). */
 export class DistributionCache {
@@ -67,19 +62,9 @@ export class DistributionCache {
 
 const sharedCache = new DistributionCache()
 
-const cacheKey = (q: DistributionQuery) => `${q.kind}|${q.len}|${q.zero ? 1 : 0}|${q.date}`
-
 function toDistribution(sample: readonly number[], len: Len): DistributionDto {
   const picked = pickHistogram(sample, len)
   return { histogram: [...picked.histogram], sample: picked.sample, fallback: picked.fallback }
-}
-
-/** The won daily games' date-specific query, or the free one (last 30 days), or none. */
-function queryOf(g: PublicGameRow, today: string): DistributionQuery | null {
-  if (g.kind === 'daily' && g.dailyDate !== null) {
-    return { kind: 'daily', len: g.len, zero: g.zero, date: g.dailyDate }
-  }
-  return g.kind === 'free' ? { kind: 'free', len: g.len, zero: g.zero, date: today } : null
 }
 
 export interface StatsDeps {
@@ -90,7 +75,7 @@ export interface StatsDeps {
 
 export type LeaderboardInput = Pick<LeaderboardQuery, 'period' | 'len' | 'zero'>
 
-export class StatsService {
+export class StatsService implements DistributionSource {
   private readonly cache: DistributionCache
 
   constructor(private readonly deps: StatsDeps) {

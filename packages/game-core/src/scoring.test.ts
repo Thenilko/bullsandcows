@@ -4,13 +4,15 @@ import {
   DUEL_XP,
   LEN_FACTOR,
   RANK_KEYS,
-  XP_PER_LEVEL,
   duelXp,
   levelFromXp,
+  rankKeyForGuest,
   rankKeyForLevel,
   rankKeyForStars,
   scoreSolo,
   starsFromTop,
+  xpForLevel,
+  xpForNextLevel,
   xpIntoLevel,
 } from './scoring'
 
@@ -43,19 +45,36 @@ describe('starsFromTop', () => {
 })
 
 describe('levels and XP', () => {
-  it('has 1500 XP per level', () => {
-    expect(XP_PER_LEVEL).toBe(1500)
+  it('costs 500 XP for level 2 and 250 more for each level after', () => {
+    expect([1, 2, 3, 4, 10].map(xpForNextLevel)).toEqual([500, 750, 1000, 1250, 2750])
+  })
+  it('sums the costs into the XP at which a level is reached', () => {
+    expect([1, 2, 3, 4, 5, 35].map(xpForLevel)).toEqual([0, 500, 1250, 2250, 3500, 157_250])
   })
   it.each([
     [0, 1],
-    [1499, 1],
-    [1500, 2],
-    [10500, 8],
+    [499, 1],
+    [500, 2],
+    [1249, 2],
+    [1250, 3],
+    [2249, 3],
+    [2250, 4],
+    [3499, 4],
+    [3500, 5],
+    [157_249, 34],
+    [157_250, 35],
   ] as const)('levelFromXp(%i) = %i', (xp, level) => {
     expect(levelFromXp(xp)).toBe(level)
   })
+  it('has no level cap', () => {
+    expect(levelFromXp(xpForLevel(1000))).toBe(1000)
+    expect(levelFromXp(xpForLevel(1000) - 1)).toBe(999)
+  })
   it('computes XP into the level', () => {
-    expect(xpIntoLevel(1700)).toBe(200)
+    expect(xpIntoLevel(0)).toBe(0)
+    expect(xpIntoLevel(499)).toBe(499)
+    expect(xpIntoLevel(500)).toBe(0)
+    expect(xpIntoLevel(1700)).toBe(450)
   })
 })
 
@@ -63,11 +82,28 @@ describe('ranks', () => {
   it('lists six rank keys', () => {
     expect(RANK_KEYS).toEqual(['calf', 'herdsman', 'shepherd', 'pastor', 'steward', 'chiefBull'])
   })
-  it('maps level and stars to rank keys', () => {
-    expect(rankKeyForLevel(9)).toBe('chiefBull')
-    expect(rankKeyForLevel(0)).toBe('calf')
+  it.each([
+    [1, 'herdsman'],
+    [4, 'herdsman'],
+    [5, 'shepherd'],
+    [9, 'shepherd'],
+    [10, 'pastor'],
+    [19, 'pastor'],
+    [20, 'steward'],
+    [34, 'steward'],
+    [35, 'chiefBull'],
+    [80, 'chiefBull'],
+  ] as const)('rankKeyForLevel(%i) = %s', (level, key) => {
+    expect(rankKeyForLevel(level)).toBe(key)
+  })
+  it('never makes a level a calf; guests are calves', () => {
+    expect(rankKeyForLevel(0)).toBe('herdsman')
+    expect(rankKeyForGuest()).toBe('calf')
+  })
+  it('maps stars to rank keys', () => {
     expect(rankKeyForStars(0)).toBe('calf')
     expect(rankKeyForStars(3)).toBe('pastor')
+    expect(rankKeyForStars(5)).toBe('chiefBull')
   })
 })
 

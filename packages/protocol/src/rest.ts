@@ -153,6 +153,8 @@ export const MeDto = z.object({
   xp: z.number().int(),
   level: z.number().int(),
   xpIntoLevel: z.number().int(),
+  /** XP from `level` to the next one; the profile shows `xpIntoLevel / xpForNextLevel`. */
+  xpForNextLevel: z.number().int(),
   rankKey: RankKeySchema,
   rating: z.number().int(),
   /** The most recent unfinished solo game, to resume after a reload. */

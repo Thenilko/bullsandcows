@@ -206,6 +206,8 @@ export interface GamesRepo {
   recordDailyNumber(date: string, len: Len, zero: boolean, idx: number): Promise<void>
   /** Newest first. */
   history(userId: string, limit: number): Promise<PublicGameRow[]>
+  /** Counted (non-practice) free games of a user finished on a Sofia calendar date. */
+  countFreeGamesOn(userId: string, sofiaDate: string): Promise<number>
 }
 
 /** What one player gets from a finished duel. */

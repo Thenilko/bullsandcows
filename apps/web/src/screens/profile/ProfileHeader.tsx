@@ -1,4 +1,3 @@
-import { XP_PER_LEVEL } from '@bc/game-core'
 import type { MeDto } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
 import { RankAvatar } from '../../components/ui'
@@ -16,7 +15,7 @@ const AVATAR = {
 
 export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: boolean }) {
   const { t } = useTranslation()
-  const width = Math.min(100, Math.round((me.xpIntoLevel / XP_PER_LEVEL) * 100))
+  const width = Math.min(100, Math.round((me.xpIntoLevel / me.xpForNextLevel) * 100))
   const avatarSize = desktop ? 110 : 84
   const avatar = desktop ? { ...AVATAR, width: avatarSize, height: avatarSize, flex: 'none' } : AVATAR
   const rankKey = myRankKey(me)
@@ -46,7 +45,7 @@ export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: bo
         role="progressbar"
         aria-label={t('profile.levelLine', { title: t(`rank.${me.rankKey}`), level: me.level })}
         aria-valuemin={0}
-        aria-valuemax={XP_PER_LEVEL}
+        aria-valuemax={me.xpForNextLevel}
         aria-valuenow={me.xpIntoLevel}
         style={{
           width: desktop ? '100%' : '70%',
@@ -64,7 +63,7 @@ export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: bo
         />
       </div>
       <span style={{ fontSize: desktop ? 13 : 12, fontWeight: 700, color: 'var(--c-muted-aa)' }}>
-        {t('profile.xp', { xp: me.xpIntoLevel, level: me.level + 1 })}
+        {t('profile.xp', { xp: me.xpIntoLevel, max: me.xpForNextLevel, level: me.level + 1 })}
       </span>
       <span style={{ fontSize: desktop ? 13 : 12, fontWeight: 700, color: 'var(--c-muted-aa)' }}>
         {t('profile.rating', { rating: me.rating })}

@@ -237,6 +237,21 @@ describe('memory games', () => {
     expect((await repo.games.history('u1', 2)).map((g) => g.id)).toEqual([ids[2], ids[1]])
     expect(await repo.games.history('nobody', 5)).toEqual([])
   })
+
+  it('counts the counted free games finished on a Sofia date', async () => {
+    now = Date.parse('2026-10-20T20:30:00Z') // 23:30 Sofia, 20 October
+    await finishedGame({}, {})
+    await finishedGame({}, { won: false })
+    await finishedGame({ practice: true }, {})
+    await finishedGame({ kind: 'daily', dailyDate: '2026-10-20' }, {})
+    await finishedGame({ userId: 'u2' }, {})
+    await repo.games.create(newGame())
+    now = Date.parse('2026-10-20T21:30:00Z') // 00:30 Sofia, 21 October
+    await finishedGame({}, {})
+    expect(await repo.games.countFreeGamesOn('u1', '2026-10-20')).toBe(2)
+    expect(await repo.games.countFreeGamesOn('u1', '2026-10-21')).toBe(1)
+    expect(await repo.games.countFreeGamesOn('u1', '2026-10-22')).toBe(0)
+  })
 })
 
 describe('memory leaderboard', () => {

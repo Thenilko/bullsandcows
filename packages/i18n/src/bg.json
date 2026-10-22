@@ -320,7 +320,7 @@
     "area": "Профил",
     "caption": "Твоето пасище",
     "levelLine": "{{title}} · ниво {{level}}",
-    "xp": "{{xp}} / 1500 т. до ниво {{level}}",
+    "xp": "{{xp}} / {{max}} т. до ниво {{level}}",
     "rating": "рейтинг {{rating}}",
     "streakBand": "серия {{count}}",
     "streakChip": "Серия {{count}}",

@@ -24,23 +24,55 @@ export function starsFromTop(top: number): Stars {
 }
 
 export const RANK_KEYS = ['calf', 'herdsman', 'shepherd', 'pastor', 'steward', 'chiefBull'] as const
+export type RankKey = (typeof RANK_KEYS)[number]
 
-export function rankKeyForStars(stars: Stars): (typeof RANK_KEYS)[number] {
+/** The title of one game's result: 0 stars is a calf, 5 a chief bull. */
+export function rankKeyForStars(stars: Stars): RankKey {
   return RANK_KEYS[stars]
 }
 
-export function rankKeyForLevel(level: number): (typeof RANK_KEYS)[number] {
-  return RANK_KEYS[Math.min(5, Math.max(0, level))]
+const RANK_LEVELS = [
+  { from: 35, key: 'chiefBull' },
+  { from: 20, key: 'steward' },
+  { from: 10, key: 'pastor' },
+  { from: 5, key: 'shepherd' },
+] as const satisfies readonly { from: number; key: RankKey }[]
+
+/** Title by level: 1–4 herdsman, 5–9 shepherd, 10–19 pastor, 20–34 steward, 35+ chief bull. */
+export function rankKeyForLevel(level: number): RankKey {
+  return RANK_LEVELS.find((r) => level >= r.from)?.key ?? 'herdsman'
 }
 
-export const XP_PER_LEVEL = 1500
+/** Guests are calves whatever their level. */
+export function rankKeyForGuest(): RankKey {
+  return 'calf'
+}
 
+const LEVEL_BASE_COST = 500
+const LEVEL_COST_STEP = 250
+
+/** XP needed to go from `level` to the next one: 500, 750, 1000, ... (no cap). */
+export function xpForNextLevel(level: number): number {
+  return LEVEL_BASE_COST + LEVEL_COST_STEP * (level - 1)
+}
+
+/** Total XP at which `level` is reached: 500·(n−1) + 125·(n−1)·(n−2) = 125·(n−1)·(n+2). */
+export function xpForLevel(level: number): number {
+  return (LEVEL_COST_STEP / 2) * (level - 1) * (level + 2)
+}
+
+/** The highest level whose threshold is at most `xp`. */
 export function levelFromXp(xp: number): number {
-  return 1 + Math.floor(xp / XP_PER_LEVEL)
+  // Solve 125·(n−1)·(n+2) ≤ xp for n, then settle any rounding exactly at the boundary.
+  const estimate = Math.floor((-1 + Math.sqrt(9 + (4 * xp) / (LEVEL_COST_STEP / 2))) / 2)
+  let level = Math.max(1, estimate)
+  while (xpForLevel(level + 1) <= xp) level += 1
+  while (level > 1 && xpForLevel(level) > xp) level -= 1
+  return level
 }
 
 export function xpIntoLevel(xp: number): number {
-  return xp % XP_PER_LEVEL
+  return xp - xpForLevel(levelFromXp(xp))
 }
 
 export const DUEL_XP = { win: 120, draw: 70, lose: 40 } as const

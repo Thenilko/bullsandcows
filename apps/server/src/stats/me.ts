@@ -1,4 +1,11 @@
-import { displayRating, levelFromXp, rankKeyForLevel, xpIntoLevel } from '@bc/game-core'
+import {
+  displayRating,
+  levelFromXp,
+  rankKeyForGuest,
+  rankKeyForLevel,
+  xpForNextLevel,
+  xpIntoLevel,
+} from '@bc/game-core'
 import type { BucketDto, MeDto, ProfileDto, RecentGameDto } from '@bc/protocol'
 import type { Profile, PublicGameRow } from '../ports/repo'
 
@@ -24,16 +31,17 @@ export const toProfileDto = (p: Profile): ProfileDto => ({
   avatarSpecies: p.avatarSpecies,
 })
 
-/** Title as in the prototype: RANK_KEYS[min(5, level)], so level 1 is "herdsman". */
+/** Level and title from xp; a guest is a calf whatever the level. */
 export function levelInfo(
   profile: Profile,
-): Pick<MeDto, 'xp' | 'level' | 'xpIntoLevel' | 'rankKey' | 'rating'> {
+): Pick<MeDto, 'xp' | 'level' | 'xpIntoLevel' | 'xpForNextLevel' | 'rankKey' | 'rating'> {
   const level = levelFromXp(profile.xp)
   return {
     xp: profile.xp,
     level,
     xpIntoLevel: xpIntoLevel(profile.xp),
-    rankKey: profile.isGuest ? GUEST_RANK : rankKeyForLevel(level),
+    xpForNextLevel: xpForNextLevel(level),
+    rankKey: profile.isGuest ? rankKeyForGuest() : rankKeyForLevel(level),
     rating: displayRating(profile.rating),
   }
 }

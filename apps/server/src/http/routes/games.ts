@@ -7,6 +7,7 @@ import { requireUser } from '../middleware/auth'
 import { rateLimit } from '../middleware/rateLimit'
 import { testSecret } from '../testSecret'
 import { ok } from '../respond'
+import { statsService } from '../services'
 import type { AppEnv } from '../types'
 import { validate } from '../validate'
 
@@ -35,7 +36,7 @@ async function run<T>(action: () => Promise<T>): Promise<T> {
 
 function service(c: Context<AppEnv>): SoloService {
   const { repo, clock, env } = c.get('deps')
-  return new SoloService({ repo, clock, dailySalt: env.DAILY_SALT })
+  return new SoloService({ repo, clock, dailySalt: env.DAILY_SALT, distributions: statsService(c) })
 }
 
 /** A malformed id cannot exist, so it is "not found" (and never reaches a uuid column). */

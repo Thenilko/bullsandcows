@@ -57,7 +57,7 @@ describe('Profile', () => {
     const { container } = show()
     expect(await screen.findByText('Говедар · ниво 2')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Бик, Говедар' })).toBeInTheDocument()
-    expect(screen.getByText('650 / 1500 т. до ниво 3')).toBeInTheDocument()
+    expect(screen.getByText('150 / 750 т. до ниво 3')).toBeInTheDocument()
     expect(screen.getByText('83%')).toBeInTheDocument()
     expect(screen.getByText('рейтинг 1240')).toBeInTheDocument()
     expect(container.querySelectorAll('.badge')).toHaveLength(6)

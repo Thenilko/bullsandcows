@@ -34,11 +34,17 @@ describe('me routes', () => {
   it('returns the profile with level, stats and badges', async () => {
     const { app, repo } = setup()
     await repo.profiles.create({ id: 'm1', username: 'Mira', email: 'm@x.bg', isGuest: false })
-    await repo.profiles.addXp('m1', 1700)
+    await repo.profiles.addXp('m1', 3700)
     const res = await req(app, 'fake:m1:Mira', 'GET', '/api/me')
     expect(res.status).toBe(200)
     const me = MeDto.parse((await json(res)).data)
-    expect(me).toMatchObject({ level: 2, xpIntoLevel: 200, rankKey: 'shepherd', rating: 1500 })
+    expect(me).toMatchObject({
+      level: 5,
+      xpIntoLevel: 200,
+      xpForNextLevel: 1500,
+      rankKey: 'shepherd',
+      rating: 1500,
+    })
     expect(JSON.stringify(me)).not.toContain('m@x.bg')
   })
 

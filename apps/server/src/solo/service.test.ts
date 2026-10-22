@@ -150,7 +150,8 @@ describe('guess', () => {
     expect(result).toMatchObject({ solved: true, bulls: 4, score: 690 })
     const view = await solo.get(alice, game.id)
     expect(view).toMatchObject({ secret: '1234', won: true, score: 690, attempts: 6 })
-    expect((await repo.profiles.get('alice'))?.xp).toBe(690)
+    // Six attempts is top 37% of the fallback histogram: 3 stars, 40 + 12·3 XP.
+    expect((await repo.profiles.get('alice'))?.xp).toBe(76)
     expect(await codeOf(solo.guess(alice, game.id, '9871'))).toBe('ERR_FINISHED')
   })
 
@@ -172,6 +173,38 @@ describe('guess', () => {
     await solo.start(alice, game.id)
     now += 5_000
     expect((await solo.guess(alice, game.id, '1234')).solved).toBe(true)
+  })
+
+  it('pays the number of the day 150 XP plus 20 per star', async () => {
+    await repo.profiles.create({ id: 'alice', username: 'Alice', email: null, isGuest: false })
+    const game = await daily()
+    await solo.start(alice, game.id)
+    now += 5_000
+    const secret = dailySecret(SALT, sofiaDate(new Date(START)), 4, false)
+    expect((await solo.guess(alice, game.id, secret)).solved).toBe(true)
+    // One attempt is top 1%: five stars.
+    expect((await repo.profiles.get('alice'))?.xp).toBe(250)
+  })
+
+  it('pays full XP for ten free games a Sofia day and 10 XP after that', async () => {
+    await repo.profiles.create({ id: 'alice', username: 'Alice', email: null, isGuest: false })
+    const winFree = async () => {
+      const game = await free('1234')
+      await solo.start(alice, game.id)
+      now += 5_000
+      await solo.guess(alice, game.id, '5678')
+      now += 5_000
+      await solo.guess(alice, game.id, '1234')
+    }
+    now = Date.parse('2026-10-20T19:00:00Z') // 22:00 Sofia
+    for (let i = 0; i < 10; i += 1) await winFree()
+    // Two attempts is top 1%: five stars, 40 + 12·5 XP each.
+    expect((await repo.profiles.get('alice'))?.xp).toBe(1000)
+    await winFree()
+    expect((await repo.profiles.get('alice'))?.xp).toBe(1010)
+    now = Date.parse('2026-10-20T22:30:00Z') // 01:30 Sofia, the next day
+    await winFree()
+    expect((await repo.profiles.get('alice'))?.xp).toBe(1110)
   })
 
   it('flags bot-like pacing as suspicious', async () => {

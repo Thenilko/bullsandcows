@@ -1,3 +1,4 @@
+import { sofiaDate } from '@bc/game-core'
 import { AppError } from '../../../http/errors'
 import type { Clock } from '../../../ports/clock'
 import { duplicateError } from '../../../ports/errors'
@@ -110,5 +111,14 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
         .sort((a, b) => b.createdAt - a.createdAt)
         .slice(0, limit)
         .map(publicGame),
+    countFreeGamesOn: async (userId, date) =>
+      all().filter(
+        (g) =>
+          g.userId === userId &&
+          g.kind === 'free' &&
+          !g.practice &&
+          g.finishedAt !== null &&
+          sofiaDate(new Date(g.finishedAt)) === date,
+      ).length,
   }
 }
