@@ -1,3 +1,6 @@
+import { COW_BODY } from './RigParts'
+
+/** Gradients and filters of the pasture scenes; `rigCowClip` (the cow rigs' spot clip) is defined only here. */
 export function Defs() {
   return (
     <>
@@ -14,12 +17,7 @@ export function Defs() {
 <linearGradient id="psBarn" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#C9563D" /><stop offset="1" stopColor="#9C3A28" /></linearGradient>
 <linearGradient id="psWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#B98650" /><stop offset="1" stopColor="#875B33" /></linearGradient>
 <radialGradient id="psCanopy" cx=".35" cy=".3" r=".8"><stop offset="0" stopColor="#86C462" /><stop offset=".6" stopColor="#4F8F3E" /><stop offset="1" stopColor="#346829" /></radialGradient>
-<linearGradient id="psBullBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#6E4E3C" /><stop offset=".5" stopColor="#3D2B21" /><stop offset="1" stopColor="#20160F" /></linearGradient>
-<linearGradient id="psBullHead" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#6A4B3B" /><stop offset="1" stopColor="#2B1E17" /></linearGradient>
-<linearGradient id="psBullLeg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3B2A20" /><stop offset="1" stopColor="#1C130E" /></linearGradient>
-<linearGradient id="psHorn" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stopColor="#D3BD92" /><stop offset="1" stopColor="#FFF8E6" /></linearGradient>
-<linearGradient id="psCowBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#FFFFFF" /><stop offset="1" stopColor="#DED7CA" /></linearGradient>
-<linearGradient id="psCowLeg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#F3EFE7" /><stop offset="1" stopColor="#CBC2B2" /></linearGradient>
+<clipPath id="rigCowClip"><path d={COW_BODY} /></clipPath>
 <filter id="psBlur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="12" /></filter>
 </defs>
     </>

@@ -10,14 +10,6 @@ input,textarea{font-family:inherit}
 @keyframes ps-fly{0%{transform:translate(-40px,0)}50%{transform:translate(200px,-14px)}100%{transform:translate(440px,6px)}}
 @keyframes ps-flap{0%,100%{transform:scaleY(1)}50%{transform:scaleY(-.6)}}
 @keyframes ps-rays{to{transform:rotate(360deg)}}
-@keyframes ps-run{0%{transform:translateX(340px)}78%{transform:translateX(-8px)}100%{transform:none}}
-@keyframes ps-walk{0%{transform:translateX(230px);opacity:0}12%{opacity:1}100%{transform:none;opacity:1}}
-@keyframes ps-legA{from{transform:rotate(-20deg)}to{transform:rotate(20deg)}}
-@keyframes ps-legB{from{transform:rotate(20deg)}to{transform:rotate(-20deg)}}
-@keyframes ps-bob{from{transform:translateY(0)}to{transform:translateY(-2px)}}
-@keyframes ps-graze{0%,50%,100%{transform:none}60%,88%{transform:rotate(-26deg) translateY(1px)}}
-@keyframes ps-swish{0%,70%,100%{transform:none}80%{transform:rotate(22deg)}90%{transform:rotate(-10deg)}}
-@keyframes ps-breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.025)}}
 @keyframes ps-puff{0%{transform:scale(.4);opacity:.9}100%{transform:scale(2.6);opacity:0}}
 @keyframes ps-boing{0%{transform:scale(0)}55%{transform:scale(1.18)}80%{transform:scale(.95)}100%{transform:scale(1)}}
 @keyframes ps-shakeA{0%,100%{transform:none}25%{transform:translateX(-9px) rotate(-2deg)}50%{transform:translateX(8px) rotate(2deg)}75%{transform:translateX(-4px)}}
@@ -39,21 +31,77 @@ input,textarea{font-family:inherit}
 .ps-rays{animation:ps-rays 40s linear infinite;transform-box:fill-box;transform-origin:50% 50%}
 .ps-sun{transition:transform 1.6s cubic-bezier(.3,1.2,.5,1)}
 .ps-fade{transition:opacity 1.6s ease}
-.legA,.legB,.head,.tail,.whole{transform-box:fill-box}
-.legA,.legB{transform-origin:50% 0}
-.a-run{animation:ps-run 1.05s cubic-bezier(.25,.8,.35,1) both;animation-delay:var(--d)}
-.a-run .legA{animation:ps-legA .15s ease-in-out 7 alternate both;animation-delay:var(--d)}
-.a-run .legB{animation:ps-legB .15s ease-in-out 7 alternate both;animation-delay:var(--d)}
-.a-run .whole{animation:ps-bob .15s ease-in-out 7 alternate;animation-delay:var(--d)}
-.a-walk{animation:ps-walk 1.9s ease-out both;animation-delay:var(--d)}
-.a-walk .legA{animation:ps-legA .38s ease-in-out 5 alternate both;animation-delay:var(--d)}
-.a-walk .legB{animation:ps-legB .38s ease-in-out 5 alternate both;animation-delay:var(--d)}
-.cow .head{transform-origin:100% 45%;animation:ps-graze 5.5s ease-in-out infinite;animation-delay:calc(var(--d) + 2.2s)}
-.bull .tail,.cow .tail{transform-origin:0 0;animation:ps-swish 3.2s ease-in-out infinite;animation-delay:var(--d)}
-.bull .whole{transform-origin:50% 100%}
-.a-idle .bull .whole{animation:ps-breathe 2.6s ease-in-out infinite}
 .ps-puff{transform-box:fill-box;transform-origin:50% 50%;animation:ps-puff 1s ease-out both}
 .ps-hud{padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.8);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font-weight:900;font-size:13px;color:#2E3B24}
+
+/* ---- realistic rigs (bull/cow) ---- */
+.rig .leg,.rig .low,.rig-body,.rig-head,.rig-tail,.rig-dust circle{transform-box:fill-box}
+.rig .leg,.rig .low{transform-origin:50% 0}
+.rig-body{transform-origin:50% 100%}
+.rig-head{transform-origin:70% 85%}
+.rig-tail{transform-origin:0 0}
+.rig-dust{opacity:0}
+@keyframes rig-gal-f{0%,100%{transform:rotate(0)}22%{transform:rotate(30deg)}48%{transform:rotate(6deg)}74%{transform:rotate(-28deg)}}
+@keyframes rig-gal-fk{0%,62%,100%{transform:none}80%{transform:rotate(-78deg)}92%{transform:rotate(-24deg)}}
+@keyframes rig-gal-h{0%,100%{transform:rotate(0)}26%{transform:rotate(-30deg)}52%{transform:rotate(-4deg)}78%{transform:rotate(24deg)}}
+@keyframes rig-gal-hk{0%,100%{transform:none}30%{transform:rotate(34deg)}48%{transform:rotate(12deg)}62%{transform:none}}
+@keyframes rig-gal-b{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-6px) rotate(-3deg)}68%{transform:translateY(1px) rotate(2.5deg)}}
+@keyframes rig-gal-head{0%,100%{transform:rotate(0)}30%{transform:rotate(7deg)}68%{transform:rotate(-5deg)}}
+@keyframes rig-tail-run{0%{transform:rotate(0)}18%,82%{transform:rotate(-62deg)}100%{transform:rotate(-8deg)}}
+@keyframes rig-dust{0%{transform:translate(0,0) scale(.3);opacity:.9}100%{transform:translate(18px,-8px) scale(1.6);opacity:0}}
+@keyframes rig-walk{0%,100%{transform:rotate(0)}25%{transform:rotate(15deg)}75%{transform:rotate(-15deg)}}
+@keyframes rig-walk-k{0%,40%,100%{transform:none}12%{transform:rotate(-30deg)}26%{transform:rotate(-8deg)}}
+@keyframes rig-walk-hk{0%,40%,100%{transform:none}12%{transform:rotate(22deg)}}
+@keyframes rig-walk-b{0%,50%,100%{transform:translateY(0)}25%,75%{transform:translateY(-1.6px)}}
+@keyframes rig-walk-head{0%,50%,100%{transform:rotate(0)}25%,75%{transform:rotate(4deg)}}
+@keyframes rig-breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.018)}}
+@keyframes rig-swish{0%,62%,100%{transform:rotate(0)}72%{transform:rotate(-26deg)}84%{transform:rotate(12deg)}92%{transform:rotate(-6deg)}}
+@keyframes rig-graze{0%,40%,100%{transform:none}52%,86%{transform:translate(-3px,14px) rotate(-12deg)}62%,74%{transform:translate(-3px,13px) rotate(-9deg)}}
+@keyframes rig-toss{0%,80%,100%{transform:rotate(0)}86%{transform:rotate(8deg)}92%{transform:rotate(-3deg)}}
+@keyframes rig-bell{0%,100%{transform:rotate(0)}50%{transform:rotate(10deg)}}
+@keyframes ps-run2{0%{transform:translateX(360px)}86%{transform:translateX(-5px)}100%{transform:none}}
+@keyframes ps-walk2{0%{transform:translateX(240px);opacity:0}10%{opacity:1}100%{transform:none;opacity:1}}
+/* run = gallop: 4 strides of .34s */
+.a-run{animation:ps-run2 1.36s cubic-bezier(.33,.55,.45,1) both;animation-delay:var(--d)}
+.a-run .rig .nf{animation:rig-gal-f .34s linear 4 both;animation-delay:calc(var(--d) - .17s)}
+.a-run .rig .ff{animation:rig-gal-f .34s linear 4 both;animation-delay:calc(var(--d) - .12s)}
+.a-run .rig .nh{animation:rig-gal-h .34s linear 4 both;animation-delay:var(--d)}
+.a-run .rig .fh{animation:rig-gal-h .34s linear 4 both;animation-delay:calc(var(--d) - .04s)}
+.a-run .rig .nf .low{animation:rig-gal-fk .34s linear 4 both;animation-delay:calc(var(--d) - .17s)}
+.a-run .rig .ff .low{animation:rig-gal-fk .34s linear 4 both;animation-delay:calc(var(--d) - .12s)}
+.a-run .rig .nh .low{animation:rig-gal-hk .34s linear 4 both;animation-delay:var(--d)}
+.a-run .rig .fh .low{animation:rig-gal-hk .34s linear 4 both;animation-delay:calc(var(--d) - .04s)}
+.a-run .rig-body{animation:rig-gal-b .34s ease-in-out 4 both;animation-delay:var(--d)}
+.a-run .rig-head{animation:rig-gal-head .34s ease-in-out 4 both;animation-delay:var(--d)}
+.a-run .rig-tail{animation:rig-tail-run 1.5s ease-out both;animation-delay:var(--d)}
+.a-run .rig-dust{opacity:1}
+.a-run .rig-dust circle{animation:rig-dust .34s ease-out 4 both;animation-delay:var(--d)}
+.a-run .rig-dust circle:nth-child(2){animation-delay:calc(var(--d) + .1s)}
+.a-run .rig-dust circle:nth-child(3){animation-delay:calc(var(--d) + .2s)}
+/* walk = 4-beat: hind-left, fore-left, hind-right, fore-right */
+.a-walk{animation:ps-walk2 2s cubic-bezier(.2,.5,.4,1) both;animation-delay:var(--d)}
+.a-walk .rig .nh{animation:rig-walk .66s linear 3 both;animation-delay:var(--d)}
+.a-walk .rig .nf{animation:rig-walk .66s linear 3 both;animation-delay:calc(var(--d) - .165s)}
+.a-walk .rig .fh{animation:rig-walk .66s linear 3 both;animation-delay:calc(var(--d) - .33s)}
+.a-walk .rig .ff{animation:rig-walk .66s linear 3 both;animation-delay:calc(var(--d) - .495s)}
+.a-walk .rig .nf .low{animation:rig-walk-k .66s linear 3 both;animation-delay:calc(var(--d) - .165s)}
+.a-walk .rig .ff .low{animation:rig-walk-k .66s linear 3 both;animation-delay:calc(var(--d) - .495s)}
+.a-walk .rig .nh .low{animation:rig-walk-hk .66s linear 3 both;animation-delay:var(--d)}
+.a-walk .rig .fh .low{animation:rig-walk-hk .66s linear 3 both;animation-delay:calc(var(--d) - .33s)}
+.a-walk .rig-body{animation:rig-walk-b .66s ease-in-out 3 both;animation-delay:var(--d)}
+.a-walk .rig-head{animation:rig-walk-head .66s ease-in-out 3 both;animation-delay:var(--d)}
+/* standing life (all states) */
+.rig-tail{animation:rig-swish 3.6s ease-in-out infinite;animation-delay:var(--d)}
+.a-idle .rig-body{animation:rig-breathe 2.8s ease-in-out infinite;animation-delay:var(--d)}
+.a-idle .rig-c .rig-head{animation:rig-graze 7s ease-in-out infinite;animation-delay:calc(var(--d) + 1.2s)}
+.a-idle .rig-b .rig-head{animation:rig-toss 6s ease-in-out infinite;animation-delay:var(--d)}
+.a-walk .rig-c .rig-bell,.a-idle .rig-c .rig-bell{transform-box:fill-box;transform-origin:50% 0;animation:rig-bell .66s ease-in-out infinite}
+.rig-static .rig-tail,.rig-static .rig-head,.rig-static .rig-body{animation:none!important}
+/* reduced motion: no run-in, gallop or walk; the animals stand in place, legs, tail and head still */
+@media (prefers-reduced-motion: reduce){
+  .a-run,.a-walk,.rig .leg,.rig .low,.rig-body,.rig-head,.rig-tail,.rig-dust circle,.rig-bell{animation:none!important}
+  .a-run .rig-dust{opacity:0}
+}
 
 /* motion helpers */
 .boing{animation:ps-boing .4s cubic-bezier(.3,1.4,.5,1) both}

@@ -1,7 +1,6 @@
 import type { Len } from '@bc/game-core'
 import type { Lang } from '@bc/i18n'
-import type { AvatarSpecies } from '@bc/protocol'
-import type { BadgeKey } from '@bc/protocol'
+import type { AvatarSpecies, BadgeKey } from '@bc/protocol'
 import { sql } from 'drizzle-orm'
 import {
   type AnyPgColumn,

@@ -37,11 +37,18 @@ describe('PastureScene', () => {
 
   it('renders animals in the layer chosen by parity', () => {
     const a = render(<PastureScene {...base} parity />)
-    expect(a.container.querySelectorAll('[data-layer="animals-A"] .bull')).toHaveLength(2)
+    expect(a.container.querySelectorAll('[data-layer="animals-A"] .rig-b')).toHaveLength(2)
     expect(a.container.querySelector('[data-layer="animals-B"]')).toBeNull()
     const b = render(<PastureScene {...base} parity={false} />)
     expect(b.container.querySelector('[data-layer="animals-A"]')).toBeNull()
-    expect(b.container.querySelectorAll('[data-layer="animals-B"] .cow')).toHaveLength(2)
+    expect(b.container.querySelectorAll('[data-layer="animals-B"] .rig-c')).toHaveLength(2)
+  })
+
+  it('defines the cow clip path once however many cows graze', () => {
+    const { container } = render(<PastureScene {...base} animals={sceneAnimals({ kind: 'play', bulls: 0, cows: 4 })} />)
+    expect(container.querySelectorAll('#rigCowClip')).toHaveLength(1)
+    expect(container.querySelectorAll('[clip-path="url(#rigCowClip)"]')).toHaveLength(4)
+    expect(container.querySelectorAll('.rig')).toHaveLength(4)
   })
 
   it('applies transform, motion class and --d to each animal', () => {

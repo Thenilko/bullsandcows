@@ -41,6 +41,8 @@ function Eyes({ big = false, pupil, pupilY }: EyesProps) {
 export interface HeadPartsProps {
   /** „Теленце“: smaller, lighter, horn buds instead of horns, big eyes. */
   calf?: boolean
+  /** Outline width; the scene rigs draw the head at scale .58 with 6. */
+  strokeWidth?: number
 }
 
 const BULL_FACE = 'M-27 -38 C-14 -47 14 -47 27 -38 C33 -18 30 6 26 20 L-26 20 C-30 6 -33 -18 -27 -38 Z'
@@ -75,11 +77,11 @@ const BULL_CALF: BullPalette = {
   muzzle: '#E2BFA3',
 }
 
-export function BullHead({ calf = false }: HeadPartsProps) {
+export function BullHead({ calf = false, strokeWidth = LINE.strokeWidth }: HeadPartsProps) {
   const c = calf ? BULL_CALF : BULL
   return (
     <g data-head={calf ? 'calf' : 'bull'}>
-      <g {...LINE}>
+      <g {...LINE} strokeWidth={strokeWidth}>
         <path d={c.hornL} fill="#F3E6C8" />
         <path d={c.hornR} fill="#F3E6C8" />
         <path d={BULL_EAR_L} fill={c.ear} />
@@ -120,10 +122,10 @@ const COW_SPOT_SMALL = 'M-30 4 C-23 1 -17 8 -20 15 C-23 20 -28 19 -29 15 Z'
 const COW_LASHES =
   'M-17 -18 l-3 -3 M-13 -19.5 l-1.5 -3.8 M-8.5 -19 l0 -4 M17 -18 l3 -3 M13 -19.5 l1.5 -3.8 M8.5 -19 l0 -4'
 
-export function CowHead({ calf = false }: HeadPartsProps) {
+export function CowHead({ calf = false, strokeWidth = LINE.strokeWidth }: HeadPartsProps) {
   return (
     <g data-head={calf ? 'calf' : 'cow'}>
-      <g {...LINE}>
+      <g {...LINE} strokeWidth={strokeWidth}>
         <path d={calf ? COW_BUD_L : COW_HORN_L} fill="#EADBB8" />
         <path d={calf ? COW_BUD_R : COW_HORN_R} fill="#EADBB8" />
         <path d="M-22 -20 C-37 -29 -51 -23 -56 -12 C-46 -4 -32 -6 -21 -11 Z" fill="#FFFDF6" />
@@ -132,9 +134,9 @@ export function CowHead({ calf = false }: HeadPartsProps) {
       </g>
       <path d={COW_SPOT_BIG} fill="#26262B" />
       <path d={COW_SPOT_SMALL} fill="#26262B" />
-      <path d={COW_FACE} fill="none" stroke="#2E3B24" strokeWidth="3" strokeLinejoin="round" />
+      <path d={COW_FACE} fill="none" stroke="#2E3B24" strokeWidth={strokeWidth} strokeLinejoin="round" />
       <path d="M-30 -18 C-40 -23 -48 -20 -50 -14 C-43 -10 -35 -11 -29 -14 Z" fill="#F0B2AE" />
-      <ellipse cx="0" cy="22" rx="26" ry="17" fill="#F4B9B2" stroke="#2E3B24" strokeWidth="3" />
+      <ellipse cx="0" cy="22" rx="26" ry="17" fill="#F4B9B2" stroke="#2E3B24" strokeWidth={strokeWidth} />
       <ellipse cx="-10" cy="21" rx="3.6" ry="5" fill="#A2504C" />
       <ellipse cx="10" cy="21" rx="3.6" ry="5" fill="#A2504C" />
       <path d="M-6 31 Q0 34 6 31" fill="none" stroke="#A2504C" strokeWidth="2" strokeLinecap="round" />
@@ -207,4 +209,20 @@ export function ScarecrowIcon({ size = 40 }: HeadProps) {
       <path d="M-13 12 l1.5 5 M-7 15.5 l0.6 5 M0 16.6 l0 5 M7 15.5 l-0.6 5 M13 12 l-1.5 5" stroke="#2E3B24" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   )
+}
+
+/**
+ * The heads as a `<g>` for the scene rigs, which draw them at scale .58 with a thicker outline
+ * (`strokeWidth` 6 ≈ the 3.4 body outline).
+ */
+interface HeadPathsProps {
+  strokeWidth?: number
+}
+
+export function BullHeadPaths({ strokeWidth }: HeadPathsProps) {
+  return <BullHead strokeWidth={strokeWidth} />
+}
+
+export function CowHeadPaths({ strokeWidth }: HeadPathsProps) {
+  return <CowHead strokeWidth={strokeWidth} />
 }

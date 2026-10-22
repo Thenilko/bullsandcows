@@ -1,5 +1,39 @@
+import { CowHeadPaths } from '../ui/characters'
+import { COW_BODY, ForeLeg, HindLeg, RIG_LINE, RigTail } from './RigParts'
+
+const BODY = '#FFFDF6'
+const FAR = '#E9E2D6'
+const HOOF = '#3A2A20'
+const SPOT = '#26262B'
+
+/** Cow rig (PasScene `rig-c`); the spots use the `rigCowClip` clip path that `Defs` defines once. */
 export function Cow() {
   return (
-<g className="cow"><ellipse cx="42" cy="53" rx="28" ry="3" fill="#1E2A14" opacity=".2" /><g className="whole"><path className="tail" d="M68 21 C74 25 74 34 72 42 M70 41 C69 46 75 46 74 41Z" stroke="#D6CEC0" strokeWidth="1.8" fill="#1F1F23" strokeLinecap="round" /><g className="legB"><path d="M58 32 L59 50 L64 50 L64 32Z" fill="#CBC2B2" /><rect x="58.5" y="48.5" width="6" height="3.5" rx="1" fill="#3A3430" /></g><g className="legA"><path d="M24 32 L25 50 L30 50 L31 32Z" fill="#CBC2B2" /><rect x="24.5" y="48.5" width="6" height="3.5" rx="1" fill="#3A3430" /></g><g className="legA"><path d="M52 32 L53 51 L58 51 L59 32Z" fill="url(#psCowLeg)" /><rect x="52.5" y="49.5" width="6" height="3.5" rx="1" fill="#3A3430" /></g><g className="legB"><path d="M17 31 L18 51 L23 51 L25 31Z" fill="url(#psCowLeg)" /><rect x="17.5" y="49.5" width="6" height="3.5" rx="1" fill="#3A3430" /></g><path d="M16 21 C18 13 32 11 46 12 C60 12 70 14 70 24 C70 34 62 37 46 37 C32 37 22 36 18 30Z" fill="url(#psCowBody)" /><path d="M30 13 C38 11 44 14 42 20 C40 26 32 26 28 21 C26 17 27 14 30 13Z" fill="#1F1F23" /><path d="M53 13.5 C61 13 67 17 65 24 C63 30 55 30 53 25 C51 21 50 16 53 13.5Z" fill="#1F1F23" /><path d="M40 28 C44 27 48 30 46 34 C43 36 38 35 38 32Z" fill="#1F1F23" /><path d="M51 35 C53 41 59 41 61 35Z" fill="#F0B2AE" /><path d="M13 20 C17 12 27 12 31 17 L30 31 L17 31Z" fill="url(#psCowBody)" /><path d="M24 32 C34 38 56 38 68 30 C66 36 58 38 46 38 C34 38 26 36 24 32Z" fill="#B8AE9C" opacity=".35" /><path d="M13 27 C16 31 20 31 22 27" stroke="#7A4E2A" strokeWidth="1.3" fill="none" /><path d="M15 30 L19 30 L20.2 35.5 L13.8 35.5Z" fill="#D9AE52" /><g className="head"><path d="M13.6 10.4 C14.2 7.8 15.8 6.2 17.8 5.8 C16.8 7 16.2 8.6 15.9 10.8Z" fill="#C9B184" stroke="#8C7A5A" strokeWidth=".4" /><path d="M15 13 C19 11 23 12 24 14 C21 15 18 15 15 14Z" fill="#F4EFE6" stroke="#CFC6B8" strokeWidth=".5" /><path d="M16.6 13.3 C19 12.5 21.4 12.8 22.5 13.8 C20.4 14.3 18.4 14.2 16.6 13.8Z" fill="#F0B2AE" /><path d="M3 18 C2 12 7 9 12 10 C17 11 19 15 18 21 C17 28 13 32 8 31 C4 30 2 25 3 18Z" fill="url(#psCowBody)" stroke="#D3CABA" strokeWidth=".4" /><path d="M12.4 10.6 C16 11 18.6 13.8 18.2 17.6 C16.2 18 13.8 16.8 12.8 14.6 C12.2 13.2 12 11.8 12.4 10.6Z" fill="#1F1F23" /><path d="M10.6 10.4 C10.2 7.6 8.8 5.6 6.6 4.9 C7.5 6.3 8.1 8.2 8.3 10.6Z" fill="url(#psHorn)" stroke="#8C7A5A" strokeWidth=".4" /><path d="M6.6 4.9 C7.2 5.6 7.6 6.3 7.8 7 L7.1 6.9 C6.9 6.2 6.8 5.5 6.6 4.9Z" fill="#9C8762" /><ellipse cx="9.4" cy="16.2" rx="2.9" ry="2.5" fill="#E9E2D6" /><ellipse cx="9.3" cy="16.3" rx="2.2" ry="1.9" fill="#FFFFFF" stroke="#2A2420" strokeWidth=".35" /><circle cx="8.8" cy="16.5" r="1.25" fill="#4A2E1C" /><circle cx="8.7" cy="16.6" r=".65" fill="#0B0806" /><circle cx="8.3" cy="15.9" r=".38" fill="#FFFFFF" /><path d="M7.1 15.3 Q9.3 13.4 11.5 15.1" stroke="#2A2420" strokeWidth=".6" fill="none" strokeLinecap="round" /><path d="M7.5 14.8 l-.7 -.6 M8.4 14.3 l-.4 -.8 M9.4 14.1 l-.1 -.8" stroke="#2A2420" strokeWidth=".35" strokeLinecap="round" /><ellipse cx="6.5" cy="27" rx="5" ry="4" fill="#F0B2AE" /><ellipse cx="4.3" cy="26.6" rx=".9" ry=".7" fill="#9A5450" /><ellipse cx="7.6" cy="27.2" rx=".7" ry=".55" fill="#9A5450" opacity=".7" /><path d="M3.3 29.8 Q6 31.1 9.4 29.9" stroke="#9A5450" strokeWidth=".45" fill="none" strokeLinecap="round" /></g></g></g>
+    <g className="rig rig-c" transform="scale(.5)">
+      <ellipse className="rig-shadow" cx="90" cy="106" rx="54" ry="5" fill="#1E2A14" opacity=".2" />
+      <g className="rig-body">
+        <HindLeg name="fh" far x={102} fill={FAR} hoof={HOOF} />
+        <ForeLeg name="ff" far x={60} fill={FAR} hoof={HOOF} />
+        <RigTail color={BODY} />
+        <path d={COW_BODY} fill={BODY} />
+        <g clipPath="url(#rigCowClip)" fill={SPOT}>
+          <path d="M70 28 C84 26 96 34 94 46 C92 56 78 58 70 52 C62 46 62 34 70 28Z" />
+          <path d="M110 28 C124 26 142 34 146 48 C140 56 126 56 118 48 C112 42 106 34 110 28Z" />
+          <path d="M86 66 C94 62 104 66 104 74 C100 80 88 80 84 74Z" />
+        </g>
+        <path d={COW_BODY} fill="none" {...RIG_LINE} strokeLinejoin="round" />
+        <g className="rig-udder">
+          <ellipse cx="110" cy="79" rx="10" ry="6" fill="#F4B9B2" stroke="#2E3B24" strokeWidth="2.6" />
+          <path d="M104 84 v3.5 M110 85 v4 M116 84 v3.5" stroke="#2E3B24" strokeWidth="2.6" strokeLinecap="round" />
+        </g>
+        <HindLeg name="nh" x={110} fill={BODY} hoof={HOOF} />
+        <ForeLeg name="nf" x={50} fill={BODY} hoof={HOOF} />
+        <g className="rig-head">
+          <g transform="translate(32 40) scale(.58)">
+            <CowHeadPaths strokeWidth={6} />
+          </g>
+        </g>
+      </g>
+    </g>
   )
 }
