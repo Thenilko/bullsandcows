@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { IDLE_PROGRESS, progress } from './progress'
+import { IDLE_PROGRESS, progress, wideSunY } from './progress'
 
 describe('progress', () => {
   it('starts foggy at full candidate count', () => {
@@ -24,6 +24,12 @@ describe('progress', () => {
     const p = progress(left, total)
     expect(p.prog).toBe(1)
     expect(Number.isFinite(p.sunY)).toBe(true)
+  })
+  it('places the wide-scene sun at 380 - 260 * prog', () => {
+    expect(wideSunY(0)).toBe(380)
+    expect(wideSunY(1)).toBe(120)
+    expect(wideSunY(IDLE_PROGRESS.prog)).toBeCloseTo(172, 9)
+    expect(wideSunY(progress(1, 3024).prog)).toBe(120)
   })
   it('exposes an idle scene at prog 0.8', () => {
     expect(IDLE_PROGRESS.prog).toBe(0.8)

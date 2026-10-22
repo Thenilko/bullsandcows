@@ -1,4 +1,6 @@
 export { PastureScene } from './PastureScene'
 export type { PastureSceneProps } from './PastureScene'
-export { sceneAnimals, BULL_SPOTS, COW_SPOTS } from './sceneAnimals'
+export { WideScene, WIDE_VIEWBOX } from './WideScene'
+export type { Tally, WideSceneProps } from './WideScene'
+export { sceneAnimals, wideSceneAnimals, BULL_SPOTS, COW_SPOTS, WIDE_BULL_SPOTS, WIDE_COW_SPOTS } from './sceneAnimals'
 export type { AnimalKind, AnimalMotion, SceneAnimal, SceneMode } from './sceneAnimals'

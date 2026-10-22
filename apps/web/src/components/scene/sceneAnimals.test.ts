@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BULL_SPOTS, COW_SPOTS, sceneAnimals } from './sceneAnimals'
+import { BULL_SPOTS, COW_SPOTS, WIDE_BULL_SPOTS, WIDE_COW_SPOTS, sceneAnimals, wideSceneAnimals } from './sceneAnimals'
 
 describe('sceneAnimals', () => {
   it('idle gives two bulls and two cows sorted by y', () => {
@@ -50,5 +50,52 @@ describe('sceneAnimals', () => {
     const before = JSON.stringify([BULL_SPOTS, COW_SPOTS])
     sceneAnimals({ kind: 'play', bulls: 5, cows: 5 })
     expect(JSON.stringify([BULL_SPOTS, COW_SPOTS])).toBe(before)
+  })
+})
+
+describe('wideSceneAnimals', () => {
+  it('uses the wide spots of the spec with their scales', () => {
+    expect(WIDE_BULL_SPOTS).toEqual([[300, 600, 1.9], [455, 602, 1.9], [610, 600, 1.9], [380, 573, 1.55], [535, 575, 1.55]])
+    expect(WIDE_COW_SPOTS).toEqual([[900, 644, 1.9], [1060, 650, 1.9], [1215, 644, 1.9], [985, 606, 1.55], [1140, 608, 1.55]])
+    const a = wideSceneAnimals({ kind: 'play', bulls: 5, cows: 5 })
+    expect(a).toHaveLength(10)
+    for (const x of a) {
+      const table = x.kind === 'bull' ? WIDE_BULL_SPOTS : WIDE_COW_SPOTS
+      expect(table.map(([sx, sy, s]) => `${sx},${sy},${s}`)).toContain(`${x.x},${x.y},${x.scale}`)
+    }
+  })
+
+  it('idle matches the design: two bulls and two cows, back-to-front, back row at scale 1.55', () => {
+    const a = wideSceneAnimals({ kind: 'idle' })
+    expect(a.map((x) => [x.kind, x.x, x.y, x.scale, x.delay])).toEqual([
+      ['bull', 535, 575, 1.55, '-1.3s'],
+      ['bull', 300, 600, 1.9, '0s'],
+      ['cow', 985, 606, 1.55, '-3s'],
+      ['cow', 1060, 650, 1.9, '-1s'],
+    ])
+    expect(a.every((x) => x.motion === 'idle')).toBe(true)
+  })
+
+  it('play runs the bulls in and walks the cows in with the prototype delays', () => {
+    const a = wideSceneAnimals({ kind: 'play', bulls: 2, cows: 2 })
+    expect(a.filter((x) => x.kind === 'bull').map((x) => [x.motion, x.delay])).toEqual([['run', '0s'], ['run', '0.16s']])
+    expect(a.filter((x) => x.kind === 'cow').map((x) => [x.motion, x.delay])).toEqual([['walk', '0.35s'], ['walk', '0.57s']])
+    expect(a.map((x) => x.y)).toEqual([...a.map((x) => x.y)].sort((p, q) => p - q))
+  })
+
+  it('result (win) stands the bulls idle on the wide spots plus one cow', () => {
+    const a = wideSceneAnimals({ kind: 'result', bulls: 4 })
+    const bulls = a.filter((x) => x.kind === 'bull')
+    expect(bulls).toHaveLength(4)
+    expect(bulls.every((x) => x.motion === 'idle')).toBe(true)
+    expect(bulls.map((x) => x.delay).sort()).toEqual(['-0.7s', '-1.4s', '-2.1s', '0s'].sort())
+    const cows = a.filter((x) => x.kind === 'cow')
+    expect(cows).toEqual([{ kind: 'cow', x: 900, y: 644, scale: 1.9, motion: 'idle', delay: '-2s' }])
+  })
+
+  it('clamps to 0–5 animals per kind', () => {
+    expect(wideSceneAnimals({ kind: 'play', bulls: 9, cows: 9 })).toHaveLength(10)
+    expect(wideSceneAnimals({ kind: 'play', bulls: -1, cows: 0 })).toHaveLength(0)
+    expect(wideSceneAnimals({ kind: 'result', bulls: 0 })).toHaveLength(1)
   })
 })

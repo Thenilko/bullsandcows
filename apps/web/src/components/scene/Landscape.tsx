@@ -1,3 +1,23 @@
+/** The red barn with its shadow, drawn on the mobile artboard coordinates; the wide scene scales the same shapes. */
+export function BarnShapes() {
+  return (
+    <>
+<ellipse cx="80" cy="264" rx="74" ry="7" fill="#2F5A22" opacity=".35" />
+<path d="M118 204 L148 214 L148 263 L118 263Z" fill="#88311F" />
+<path d="M70 164 L100 172 L154 216 L124 207Z" fill="#3E2A1F" />
+<rect x="127" y="226" width="12" height="12" fill="#3A2418" stroke="#F3EDE2" strokeWidth="1.5" />
+<path d="M22 263 L22 203 L70 167 L118 203 L118 263Z" fill="url(#psBarn)" />
+<path d="M34 194 V263 M46 185 V263 M58 176 V263 M82 176 V263 M94 185 V263 M106 194 V263" stroke="#8E3424" strokeWidth="1" opacity=".55" />
+<path d="M15 208 L70 163 L125 208" stroke="#3E2A1F" strokeWidth="7" fill="none" strokeLinejoin="round" strokeLinecap="round" />
+<path d="M22 203 L70 167 L118 203" stroke="#F3EDE2" strokeWidth="2.5" fill="none" />
+<rect x="61" y="186" width="18" height="16" fill="#3A2418" stroke="#F3EDE2" strokeWidth="2" />
+<path d="M62 201 C66 196 72 197 78 201Z" fill="#E2B85A" />
+<rect x="48" y="221" width="44" height="42" fill="#8E3424" stroke="#F3EDE2" strokeWidth="3" />
+<path d="M48 221 L92 263 M92 221 L48 263 M70 221 V263" stroke="#F3EDE2" strokeWidth="2.5" />
+    </>
+  )
+}
+
 /** Static hills, barn, trees and meadow (everything between the sky and the animals). */
 export function Landscape() {
   return (
@@ -14,18 +34,7 @@ export function Landscape() {
 <circle cx="334" cy="200" r="20" fill="url(#psCanopy)" /><circle cx="357" cy="189" r="24" fill="url(#psCanopy)" /><circle cx="374" cy="206" r="18" fill="url(#psCanopy)" /><circle cx="350" cy="213" r="17" fill="url(#psCanopy)" />
 <path d="M150 250 L152 232 L154 250Z" fill="#5E4129" /><ellipse cx="152" cy="224" rx="9" ry="19" fill="url(#psCanopy)" />
 <path d="M166 252 L167.5 238 L169 252Z" fill="#5E4129" /><ellipse cx="167.5" cy="232" rx="7" ry="14" fill="url(#psCanopy)" />
-<ellipse cx="80" cy="264" rx="74" ry="7" fill="#2F5A22" opacity=".35" />
-<path d="M118 204 L148 214 L148 263 L118 263Z" fill="#88311F" />
-<path d="M70 164 L100 172 L154 216 L124 207Z" fill="#3E2A1F" />
-<rect x="127" y="226" width="12" height="12" fill="#3A2418" stroke="#F3EDE2" strokeWidth="1.5" />
-<path d="M22 263 L22 203 L70 167 L118 203 L118 263Z" fill="url(#psBarn)" />
-<path d="M34 194 V263 M46 185 V263 M58 176 V263 M82 176 V263 M94 185 V263 M106 194 V263" stroke="#8E3424" strokeWidth="1" opacity=".55" />
-<path d="M15 208 L70 163 L125 208" stroke="#3E2A1F" strokeWidth="7" fill="none" strokeLinejoin="round" strokeLinecap="round" />
-<path d="M22 203 L70 167 L118 203" stroke="#F3EDE2" strokeWidth="2.5" fill="none" />
-<rect x="61" y="186" width="18" height="16" fill="#3A2418" stroke="#F3EDE2" strokeWidth="2" />
-<path d="M62 201 C66 196 72 197 78 201Z" fill="#E2B85A" />
-<rect x="48" y="221" width="44" height="42" fill="#8E3424" stroke="#F3EDE2" strokeWidth="3" />
-<path d="M48 221 L92 263 M92 221 L48 263 M70 221 V263" stroke="#F3EDE2" strokeWidth="2.5" />
+<BarnShapes />
 <rect x="150" y="250" width="26" height="16" rx="5" fill="#E2B85A" /><path d="M154 254 H172 M154 258 H172 M154 262 H172" stroke="#C3943B" strokeWidth="1" />
 <rect x="160" y="238" width="20" height="13" rx="4" fill="#EBC56B" />
 <path d="M0 272 C80 264 180 268 260 264 C320 261 360 264 390 262 L390 380 L0 380Z" fill="url(#psGrass)" />

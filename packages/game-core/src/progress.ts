@@ -22,3 +22,11 @@ export function progress(left: number, total: number): SceneProgress {
 
 /** Scene outside a game. */
 export const IDLE_PROGRESS: SceneProgress = fromProg(0.8)
+
+/**
+ * Sun height on the wide desktop scene (1600×900 artboard): sunY = 380 − prog·260, from 380 at the start of a
+ * game to 120 at the end. The mobile scene keeps `sunY` above (176 − 150·prog on the 390×380 artboard).
+ */
+export function wideSunY(prog: number): number {
+  return 380 - 260 * prog
+}

@@ -97,9 +97,23 @@ input,textarea{font-family:inherit}
 .a-idle .rig-b .rig-head{animation:rig-toss 6s ease-in-out infinite;animation-delay:var(--d)}
 .a-walk .rig-c .rig-bell,.a-idle .rig-c .rig-bell{transform-box:fill-box;transform-origin:50% 0;animation:rig-bell .66s ease-in-out infinite}
 .rig-static .rig-tail,.rig-static .rig-head,.rig-static .rig-body{animation:none!important}
-/* reduced motion: no run-in, gallop or walk; the animals stand in place, legs, tail and head still */
+/* wide desktop scene (PasWideScene) */
+@keyframes ps-driftw{from{transform:translateX(-300px)}to{transform:translateX(1900px)}}
+@keyframes ps-flyw{0%{transform:translate(-80px,0)}50%{transform:translate(800px,-40px)}100%{transform:translate(1700px,10px)}}
+@keyframes ps-smoke{0%{transform:translateY(6px);opacity:0}30%{opacity:1}100%{transform:translate(10px,-26px);opacity:0}}
+@keyframes ps-sway{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.6deg)}}
+@keyframes ps-signswing{0%{transform:rotate(-7deg)}40%{transform:rotate(4deg)}70%{transform:rotate(-2deg)}100%{transform:none}}
+.ps-cloudw{animation:ps-driftw linear infinite}
+.ps-birdw{animation:ps-flyw linear infinite}
+.ps-birdw path{animation:ps-flap .35s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 50%}
+.ps-smoke circle{animation:ps-smoke 3.6s ease-out infinite;transform-box:fill-box}
+.ps-smoke circle:nth-child(2){animation-delay:1.2s}.ps-smoke circle:nth-child(3){animation-delay:2.4s}
+.sc-sway{transform-box:fill-box;transform-origin:50% 100%;animation:ps-sway 4.5s ease-in-out infinite}
+.pw-sign{transform-box:fill-box;transform-origin:50% 0;animation:ps-signswing 1.2s ease-out both}
+/* reduced motion: no run-in, gallop, walk, sway or swing; the animals stand in place, legs, tail and head still */
 @media (prefers-reduced-motion: reduce){
-  .a-run,.a-walk,.rig .leg,.rig .low,.rig-body,.rig-head,.rig-tail,.rig-dust circle,.rig-bell{animation:none!important}
+  .a-run,.a-walk,.rig .leg,.rig .low,.rig-body,.rig-head,.rig-tail,.rig-dust circle,.rig-bell,
+  .ps-cloudw,.ps-birdw,.ps-birdw path,.ps-smoke circle,.sc-sway,.pw-sign{animation:none!important}
   .a-run .rig-dust{opacity:0}
 }
 
