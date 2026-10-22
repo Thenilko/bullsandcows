@@ -20,3 +20,6 @@ supabase/.temp/
 test-results/
 playwright-report/
 dist-gallery/
+
+# Claude Code agent worktrees
+.claude/worktrees/

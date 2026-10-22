@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test'
 import { LANGS, SCREEN_KEYS, openScreen } from './gallery'
 
-const WIDTHS = [390, 768, 1280] as const
+// 1280×768 is the split desktop (DS/DDS artboards), 1440×900 the immersive one (DK/DD artboards).
+const WIDTHS = [390, 768, 1280, 1440] as const
+const HEIGHTS: Readonly<Record<(typeof WIDTHS)[number], number>> = { 390: 844, 768: 1024, 1280: 768, 1440: 900 }
 
 test.use({ reducedMotion: 'reduce' })
 
@@ -9,7 +11,7 @@ for (const screen of SCREEN_KEYS) {
   for (const w of WIDTHS) {
     for (const lang of LANGS) {
       test(`screenshot ${screen} ${w} ${lang}`, async ({ page }) => {
-        await page.setViewportSize({ width: w, height: w === 390 ? 844 : w === 768 ? 1024 : 800 })
+        await page.setViewportSize({ width: w, height: HEIGHTS[w] })
         await openScreen(page, screen, lang)
         await expect(page).toHaveScreenshot(`${screen}-${w}-${lang}.png`, {
           fullPage: true,

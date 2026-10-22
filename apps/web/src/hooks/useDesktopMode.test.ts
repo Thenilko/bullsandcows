@@ -12,6 +12,11 @@ describe('useDesktopMode', () => {
     expect(renderHook(() => useDesktopMode()).result.current).toBe('split')
   })
 
+  it('is split on a portrait tablet (768 wide), however tall', () => {
+    mockViewport(768, 1024)
+    expect(renderHook(() => useDesktopMode()).result.current).toBe('split')
+  })
+
   it('is immersive from 820px of height', () => {
     mockViewport(1280, 820)
     expect(renderHook(() => useDesktopMode()).result.current).toBe('immersive')
