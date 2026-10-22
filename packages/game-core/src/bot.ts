@@ -1,5 +1,5 @@
 import { codes, type Len } from './codes'
-import { bullsCows } from './verdict'
+import { bestProbe } from './botSearch'
 
 export type BotLevel = 1 | 2 | 3 | 4
 export type Rng = () => number
@@ -11,9 +11,20 @@ export const BOT_THINK_BASE = {
 } as const
 
 export const BOT_LEVEL1_RANDOM_CHANCE = 0.35
-export const BOT_MINIMAX = { 3: { k: 4, maxCands: 400 }, 4: { k: 10, maxCands: 900 } } as const
 
-const MIN_POOL_FOR_MINIMAX = 2
+/**
+ * How the two thinking levels choose a guess (after the first move, which is a random code: every
+ * first guess is equivalent).
+ *  - 3 „Трудно“: `k` probes drawn from the candidates; keeps the one with the smallest worst-case bucket.
+ *  - 4 „Експерт“: every code is a probe (inconsistent ones too) and the expected pool size after the
+ *    answer is minimised, within `budget` probe×candidate evaluations (see `expertProbes`).
+ */
+export const BOT_SEARCH = {
+  3: { k: 12 },
+  4: { budget: 6_000_000 },
+} as const
+
+const MIN_POOL_FOR_SEARCH = 3
 const CLASSIC_JITTER = [-500, 700] as const
 const RACE_JITTER = [-2000, 2500] as const
 
@@ -21,39 +32,31 @@ function pick<T>(arr: readonly T[], rng: Rng): T {
   return arr[Math.floor(rng() * arr.length)]
 }
 
-function worstBucket(pool: readonly string[], guess: string): number {
-  const buckets = new Map<number, number>()
-  let worst = 0
-  for (const candidate of pool) {
-    const { bulls, cows } = bullsCows(candidate, guess)
-    const key = bulls * 10 + cows
-    const size = (buckets.get(key) ?? 0) + 1
-    buckets.set(key, size)
-    if (size > worst) worst = size
-  }
-  return worst
-}
+const draws = (pool: readonly string[], k: number, rng: Rng): string[] =>
+  Array.from({ length: k }, () => pick(pool, rng))
 
-function minimaxGuess(pool: readonly string[], k: number, rng: Rng): string {
-  let best = pool[0]
-  let bestWorst = Infinity
-  for (let i = 0; i < k; i++) {
-    const guess = pick(pool, rng)
-    const worst = worstBucket(pool, guess)
-    if (worst < bestWorst) {
-      bestWorst = worst
-      best = guess
-    }
-  }
-  return best
+/**
+ * The expert's probe set for the budget: all codes when they fit, else the whole pool, else a sample
+ * of the pool. `rng` is consumed only in the last case (one draw per probe).
+ */
+export function expertProbes(
+  pool: readonly string[],
+  all: readonly string[],
+  budget: number,
+  rng: Rng,
+): readonly string[] {
+  if (all.length * pool.length <= budget) return all
+  if (pool.length * pool.length <= budget) return pool
+  return draws(pool, Math.max(1, Math.floor(budget / pool.length)), rng)
 }
 
 /**
  * Picks the bot's next guess. Order in which `rng` is consumed (tests rely on it):
  *  1. level 1 with prior guesses: one draw for the random-branch roll; if it fires,
  *     one more draw picks uniformly from all codes not yet guessed.
- *  2. level >= 3 with 2 < pool <= maxCands: `k` draws, each picking a probe from the pool.
- *  3. otherwise: one draw picking from the pool.
+ *  2. no prior guesses, or fewer than 3 candidates, or level <= 2: one draw picking from the pool.
+ *  3. level 3: `k` draws, each picking a probe from the pool.
+ *  4. level 4: no draws unless the probe set has to be sampled (`expertProbes`).
  */
 export function botGuess(
   cands: readonly string[],
@@ -71,13 +74,9 @@ export function botGuess(
       rng,
     )
   }
-  if (level === 3 || level === 4) {
-    const { k, maxCands } = BOT_MINIMAX[level]
-    if (pool.length > MIN_POOL_FOR_MINIMAX && pool.length <= maxCands) {
-      return minimaxGuess(pool, k, rng)
-    }
-  }
-  return pick(pool, rng)
+  if (level <= 2 || guessed.length === 0 || pool.length < MIN_POOL_FOR_SEARCH) return pick(pool, rng)
+  if (level === 3) return bestProbe(pool, draws(pool, BOT_SEARCH[3].k, rng), len, 'worst')
+  return bestProbe(pool, expertProbes(pool, codes(len, zero), BOT_SEARCH[4].budget, rng), len, 'expected')
 }
 
 function jitter([a, b]: readonly [number, number], rng: Rng): number {

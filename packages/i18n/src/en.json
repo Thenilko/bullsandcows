@@ -535,5 +535,12 @@
     "ERR_INTERNAL": "Something went wrong. Try again.",
     "network": "No connection. Check your internet and try again.",
     "unknown": "Something went wrong. Try again."
+  },
+  "crash": {
+    "title": "Something went wrong",
+    "generic": "The page could not be shown. Reload and try again.",
+    "stale": "The game was updated while this page was open. Reload to get the new version.",
+    "notFound": "There is no such page.",
+    "reload": "Reload"
   }
 }

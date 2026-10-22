@@ -117,6 +117,17 @@ async function handleDuelWs(request: Request, raw: CloudflareBindings, roomId: s
   return env.DUEL.get(id).fetch(forwardWithIdentity(inner, auth.info))
 }
 
+/**
+ * Hashed build files under /assets: a miss answers 404, never the SPA shell that the asset
+ * binding's single-page-application mode would return (a page from an older deploy asking for
+ * a chunk that is gone must see an error and reload, not parse HTML as a script).
+ */
+async function serveAsset(request: Request, raw: CloudflareBindings): Promise<Response> {
+  const res = await raw.ASSETS.fetch(request)
+  const html = res.headers.get('content-type')?.startsWith('text/html') ?? false
+  return res.ok && html ? new Response('Not found', { status: 404, headers: SECURITY_HEADERS }) : res
+}
+
 async function keepAlive(raw: CloudflareBindings, ctx: ExecutionContext): Promise<void> {
   try {
     const repo = makeRepo(loadEnv(raw))
@@ -138,6 +149,7 @@ export default {
     const duel = DUEL_WS.exec(pathname)
     if (duel?.[1]) return handleDuelWs(request, env, duel[1])
     if (pathname === '/ws' || pathname.startsWith('/ws/')) return notImplemented()
+    if (pathname.startsWith('/assets/')) return serveAsset(request, env)
     return env.ASSETS.fetch(request)
   },
   async scheduled(_controller, env, ctx) {

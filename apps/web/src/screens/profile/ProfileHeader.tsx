@@ -83,7 +83,7 @@ export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: bo
         }}
       >
         <span className="float" style={avatar}>
-          <BullIcon size={60} ring />
+          <BullIcon size={60} />
         </span>
         {info}
       </header>
@@ -95,7 +95,7 @@ export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: bo
       style={{ padding: 28, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 24 }}
     >
       <span className="float" style={avatar}>
-        <BullIcon size={78} ring />
+        <BullIcon size={78} />
       </span>
       <div style={{ flex: 1, minWidth: 220, display: 'flex', flexDirection: 'column', gap: 6 }}>
         {info}

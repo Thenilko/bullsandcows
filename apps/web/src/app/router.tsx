@@ -4,6 +4,7 @@ import { DevScreens } from '../dev/DevScreens'
 import { Login } from '../screens/Login'
 import { Home } from './Home'
 import { RequireAuth } from './RequireAuth'
+import { RouteError } from './RouteError'
 
 const devRoutes: RouteObject[] =
   import.meta.env.DEV || import.meta.env.VITE_DEV_SCREENS === '1'
@@ -35,7 +36,7 @@ const duelRoom = (view: 'play' | 'result') => async () => {
   return { element: <DuelRoom view={view} /> }
 }
 
-export const router = createBrowserRouter([
+const routes: RouteObject[] = [
   { path: '/login', element: <Login /> },
   { path: '/rules', HydrateFallback: RouteFallback, lazy: page(() => import('../screens/Rules'), 'Rules') },
   { path: '/reset', HydrateFallback: RouteFallback, lazy: page(() => import('../screens/ResetPassword'), 'ResetPassword') },
@@ -59,4 +60,7 @@ export const router = createBrowserRouter([
     ],
   },
   ...devRoutes,
-])
+]
+
+/** A pathless root so one error page covers every route, including a lazy chunk that fails to load. */
+export const router = createBrowserRouter([{ errorElement: <RouteError />, children: routes }])

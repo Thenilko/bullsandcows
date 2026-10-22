@@ -14,7 +14,7 @@ describe('public API', () => {
         'XP_PER_LEVEL', 'levelFromXp', 'xpIntoLevel', 'DUEL_XP', 'BOT_WIN_XP', 'duelXp',
         'sofiaDate', 'dailyIndex', 'dailySecret',
         'INVITE_ALPHABET', 'inviteCode', 'isInviteCode',
-        'botGuess', 'botThinkMs', 'BOT_THINK_BASE', 'BOT_LEVEL1_RANDOM_CHANCE', 'BOT_MINIMAX',
+        'botGuess', 'botThinkMs', 'BOT_THINK_BASE', 'BOT_LEVEL1_RANDOM_CHANCE', 'BOT_SEARCH', 'expertProbes',
         'DEFAULT_RATING', 'updateRating', 'displayRating',
         'SUSPICIOUS', 'isSuspicious',
       ]),

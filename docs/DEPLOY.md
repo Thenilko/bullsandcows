@@ -110,6 +110,12 @@ pnpm --filter server exec wrangler rollback            # предишната в
 Ако някой клиент все пак е на стара версия: DevTools → Application → Service workers → „skipWaiting“, или
 затваряне на всички табове на сайта (на iPhone — затваряне на добавеното на началния екран приложение).
 
+Старите чънкове (`/assets/*-<hash>.js`) не се пазят след деплой. Отворена страница от предишната
+версия, която поиска такъв чънк, получава 404 от Worker-а (`/assets/*` минава през него, за да не
+върне SPA обвивката като скрипт), Vite вдига `vite:preloadError` и клиентът се презарежда веднъж
+(`apps/web/src/app/staleChunk.ts`). Ако и това не помогне, маршрутът показва страницата за грешка
+с бутон „Презареди“ (`RouteError.tsx`).
+
 ## 10. GitHub secrets и variables за `deploy.yml`
 
 В GitHub → Settings → Environments → `production`:
