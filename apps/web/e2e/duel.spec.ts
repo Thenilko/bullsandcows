@@ -19,9 +19,12 @@ test('friend duel: invite, join, race to the win, reconnect after reload', async
     const code = host.url().split('/').pop()!
     await expect(host.getByText(code, { exact: true })).toBeVisible()
 
-    // B: guest → the invite link → join.
+    // B: guest → duel setup → types the code (lower case is fine) → the invite page → join.
     await guestLogin(guest)
-    await guest.goto(`/d/${code}`)
+    await guest.getByRole('button', { name: /^Дуел/ }).click()
+    await guest.getByLabel('Имаш код от приятел?').fill(code.toLowerCase())
+    await guest.getByRole('button', { name: 'Влез' }).click()
+    await expect(guest).toHaveURL(new RegExp(`/d/${code}$`))
     await guest.getByRole('button', { name: 'Присъедини се' }).click()
 
     // Both land in the room lobby and get ready.

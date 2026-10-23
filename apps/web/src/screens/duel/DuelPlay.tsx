@@ -52,9 +52,13 @@ const GIVE_UP = {
   textDecoration: 'underline',
 } as const
 
-/** The notebook of one match: keyed by the room, like a solo game by its id. */
+/** The notebook's id: one per match, so a rematch in the same room starts with a clean page. */
+export const notebookId = (roomId: string, state: Pick<PublicState, 'startedAt'>): string =>
+  state.startedAt === null ? roomId : `${roomId}:${state.startedAt}`
+
+/** The notebook of one match, like a solo game's by its id. */
 function useDuelNotebook(roomId: string, state: PublicState) {
-  const nb = useNotebook(roomId)
+  const nb = useNotebook(notebookId(roomId, state))
   const guesses = useMemo(
     () => toNotebookGuesses(state.me.guesses, state.len as Len, state.zero),
     [state.me.guesses, state.len, state.zero],
@@ -74,6 +78,7 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
   const input = usePlayInput(roomId, state, send)
   const now = useNow(500, state.phase === 'playing' && !ended)
   const notebook = useDuelNotebook(roomId, state)
+  const nbId = notebookId(roomId, state)
   const [notesOpen, setNotesOpen] = useState(false)
   const opener = useRef<HTMLButtonElement>(null)
   const closeNotes = useCallback(() => {
@@ -96,7 +101,7 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
   const notesButton = desktop ? null : (
     <NotesButton
       buttonRef={opener}
-      gameId={roomId}
+      gameId={nbId}
       onClick={() => {
         sfx.play('page')
         setNotesOpen(true)
@@ -167,11 +172,11 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
       </section>
       {desktop ? (
         <Card role="region" aria-label={t('notebook.title')} style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <Notebook gameId={roomId} guesses={notebook.guesses} left={notebook.left} layout="card" />
+          <Notebook gameId={nbId} guesses={notebook.guesses} left={notebook.left} layout="card" />
         </Card>
       ) : null}
       {notesOpen ? (
-        <NotebookSheet gameId={roomId} guesses={notebook.guesses} left={notebook.left} onClose={closeNotes} />
+        <NotebookSheet gameId={nbId} guesses={notebook.guesses} left={notebook.left} onClose={closeNotes} />
       ) : null}
       <OppToast toast={store.toast} name={oppName} />
     </Shell>

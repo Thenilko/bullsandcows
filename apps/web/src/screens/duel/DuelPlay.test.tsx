@@ -1,7 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fixtureMe, fixtureOpp, fixtureState, myGuess } from '../../dev/duelFixtures'
+import { FIXTURE_T0, fixtureMe, fixtureOpp, fixtureState, myGuess } from '../../dev/duelFixtures'
 import { useDuelStore } from '../../features/duel/store'
 import { useNotebookStore } from '../../features/notebook/store'
 import { renderWithI18n } from '../../test/render'
@@ -66,10 +66,12 @@ describe('DuelPlay', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('shows notebook marks on the keypad', () => {
-    localStorage.setItem('bc.notebook.r1', JSON.stringify({ marks: { '7': 1 }, text: '' }))
+  it('shows notebook marks on the keypad; the notebook belongs to this match, not the room', () => {
+    localStorage.setItem(`bc.notebook.r1:${FIXTURE_T0}`, JSON.stringify({ marks: { '7': 1 }, text: '' }))
+    localStorage.setItem('bc.notebook.r1', JSON.stringify({ marks: { '8': 1 }, text: '' }))
     show()
     expect(digit('7')).toHaveClass('nx')
+    expect(digit('8')).not.toHaveClass('nx')
   })
 
   it('enables the keypad on my turn', () => {

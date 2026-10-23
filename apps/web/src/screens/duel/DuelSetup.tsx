@@ -8,6 +8,7 @@ import {
   OpponentFields,
   SETUP_NOTE,
 } from './parts/SetupFields'
+import { JoinByCode } from './parts/JoinByCode'
 import { IDLE_SCENE } from './scenes'
 import { useSetupForm, type SetupMode } from './useSetupForm'
 
@@ -20,6 +21,7 @@ export function DuelSetup({ mode }: { mode: SetupMode }) {
   const { t } = useTranslation()
   const form = useSetupForm(mode)
   const quick = mode === 'duel' && form.opponent === 'quick'
+  const friend = mode === 'duel' && form.opponent === 'friend'
   const cta =
     mode === 'bot' ? 'newGame.cta.bot' : quick ? 'newGame.cta.quick' : 'newGame.cta.invite'
   return (
@@ -36,6 +38,7 @@ export function DuelSetup({ mode }: { mode: SetupMode }) {
           <CommonFields form={form} />
           {mode === 'duel' ? <OpponentFields form={form} /> : <BotFields form={form} />}
         </Card>
+        {friend ? <JoinByCode /> : null}
         <PanelFooter>
           {form.error ? (
             <p role="alert" style={{ margin: 0, fontWeight: 800, color: '#8A1F0B' }}>

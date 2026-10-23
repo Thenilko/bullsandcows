@@ -10,6 +10,7 @@ import { useNow } from '../../hooks/useNow'
 import { sfx } from '../../lib/sound'
 import { fmtClock } from './duelUtils'
 import type { MatchSettings } from './parts/params'
+import { InviteQr } from './parts/InviteQr'
 import { SettingChips } from './parts/SettingChips'
 import { WAIT_SCENE } from './scenes'
 
@@ -123,6 +124,8 @@ export function InviteView({ invite, settings, copy, expired, elapsedMs, onCopy,
             {invite.code}
           </span>
           <span style={{ fontSize: 13, fontWeight: 700, color: '#6B7560', wordBreak: 'break-all' }}>{invite.url}</span>
+          <InviteQr url={invite.url} />
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#6B7560' }}>{t('duel.invite.qrHint')}</span>
           <span style={{ fontSize: 12, fontWeight: 700, color: '#6B7560' }}>{t('duel.invite.validity')}</span>
         </Card>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>

@@ -360,7 +360,17 @@
       "copyLink": "Copy the link",
       "waiting": "Waiting for your friend",
       "cancel": "Cancel",
-      "expired": "The invite has expired. Create a new one."
+      "expired": "The invite has expired. Create a new one.",
+      "qrAlt": "QR code with the duel link",
+      "qrHint": "or your friend scans it with the camera"
+    },
+    "joinCode": {
+      "area": "Join with a code",
+      "label": "Got a code from a friend?",
+      "placeholder": "ABCDE",
+      "cta": "Join",
+      "hint": "The five characters from the invite, or the whole link.",
+      "invalid": "The code has 5 characters: letters and digits, no O, I, 0 or 1."
     },
     "queue": {
       "title": "Finding an opponent",
