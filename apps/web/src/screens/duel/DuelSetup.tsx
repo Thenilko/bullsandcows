@@ -21,7 +21,6 @@ export function DuelSetup({ mode }: { mode: SetupMode }) {
   const { t } = useTranslation()
   const form = useSetupForm(mode)
   const quick = mode === 'duel' && form.opponent === 'quick'
-  const friend = mode === 'duel' && form.opponent === 'friend'
   const cta =
     mode === 'bot' ? 'newGame.cta.bot' : quick ? 'newGame.cta.quick' : 'newGame.cta.invite'
   return (
@@ -33,12 +32,12 @@ export function DuelSetup({ mode }: { mode: SetupMode }) {
         >
           {t('newGame.title')}
         </h1>
+        {mode === 'duel' ? <JoinByCode /> : null}
         <ModeSwitch mode={mode} onPick={form.switchMode} />
         <Card style={{ ...COL, padding: 'var(--card-pad, 16px)' }}>
           <CommonFields form={form} />
           {mode === 'duel' ? <OpponentFields form={form} /> : <BotFields form={form} />}
         </Card>
-        {friend ? <JoinByCode /> : null}
         <PanelFooter>
           {form.error ? (
             <p role="alert" style={{ margin: 0, fontWeight: 800, color: '#8A1F0B' }}>
