@@ -50,6 +50,7 @@ jobs:
           VITE_AUTH_MODE: supabase
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_PUBLIC_URL: ${{ vars.VITE_PUBLIC_URL }}
         run: pnpm --filter web build
       - name: Guard - bundle carries the Supabase URL
         env:
