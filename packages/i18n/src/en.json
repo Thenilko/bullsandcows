@@ -370,7 +370,16 @@
       "placeholder": "ABCDE",
       "cta": "Join",
       "hint": "The five characters from the invite, or the whole link.",
-      "invalid": "The code has 5 characters: letters and digits, no O, I, 0 or 1."
+      "invalid": "The code has 5 characters: letters and digits, no O, I, 0 or 1.",
+      "scanTitle": "Scan the QR code",
+      "scanVideo": "Camera view",
+      "scan": {
+        "button": "Scan the QR code with the camera",
+        "starting": "Starting the camera…",
+        "scanning": "Point the camera at the QR code from the invite.",
+        "denied": "No access to the camera. Allow it in the browser settings or type the code.",
+        "unavailable": "The camera is not available. Type the code or open the link."
+      }
     },
     "queue": {
       "title": "Finding an opponent",
