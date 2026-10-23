@@ -84,7 +84,11 @@ const PublicPlayerBase = z.object({
   connected: z.boolean(),
   disconnectedAt: z.number().nullable(),
 })
-export const PublicMe = PublicPlayerBase.extend({ guesses: z.array(MyGuessDto) })
+export const PublicMe = PublicPlayerBase.extend({
+  guesses: z.array(MyGuessDto),
+  /** Once ended: the id of my game row (for `POST /api/shares`); null for a seat without a row. */
+  gameId: z.string().nullable().optional(),
+})
 export type PublicMe = z.infer<typeof PublicMe>
 export const PublicOpp = PublicPlayerBase.extend({ guesses: z.array(OppGuessDto) })
 export type PublicOpp = z.infer<typeof PublicOpp>
@@ -157,6 +161,8 @@ export const ServerMsg = z.discriminatedUnion('t', [
     xp: Int,
     /** Badge tiers this seat earned; absent when the result could not be recorded yet. */
     newBadges: z.array(NewBadgeDto).optional(),
+    /** The id of this seat's game row (for `POST /api/shares`); null when no row is written. */
+    gameId: z.string().nullable().optional(),
   }),
   RematchOfferDto.extend({ t: z.literal('rematchOffer') }),
   z.object({ t: z.literal('error'), code: ErrorCodeSchema }),

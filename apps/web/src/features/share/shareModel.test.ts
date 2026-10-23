@@ -53,14 +53,16 @@ describe('shareFromResult', () => {
 })
 
 describe('shareFromDuel', () => {
-  it('shares only my rows with the opponent and the outcome, and knows no game id', () => {
+  it('shares only my rows with the opponent and the outcome, with my game row from the snapshot', () => {
     const state = fixtureState({
       phase: 'ended',
       endedAt: 1_700_000_131_000,
-      me: fixtureMe({ guesses: [myGuess('1234', 1, 2), myGuess('5678', 4, 0)] }),
+      me: fixtureMe({ guesses: [myGuess('1234', 1, 2), myGuess('5678', 4, 0)], gameId: 'g-me' }),
     })
     const share = shareFromDuel(state, 'win', 'Боби')
-    expect(share.gameId).toBeNull()
+    expect(share.gameId).toBe('g-me')
+    expect(shareFromDuel(state, 'win', 'Боби', 'g-ended').gameId).toBe('g-ended')
+    expect(shareFromDuel(fixtureState({ phase: 'ended', endedAt: 1 }), 'win', 'Боби').gameId).toBeNull()
     expect(share.fileName).toBe('bikove-i-kravi-duel.png')
     expect(share.finishedAt).toBe(1_700_000_131_000)
     expect(share.text.split('\n')).toEqual([

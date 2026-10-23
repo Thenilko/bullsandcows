@@ -100,6 +100,6 @@ export function rematch(st: RoomState, seat: Seat, now: number): Advanced | Erro
     m.opponentKind === 'bot' ? { ...m, rematch: { ...m.rematch, b: now + REMATCH_MS } } : m
   const next = unwrap(st, acceptRematch(base, s, seat, now))
   if (typeof next === 'string') return next
-  const meta = { ...st.meta, resultRecorded: false }
+  const meta = { ...st.meta, resultRecorded: false, gameIds: undefined }
   return { state: { ...next.state, meta }, events: next.events }
 }

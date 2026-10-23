@@ -120,6 +120,7 @@ describe('DuelRoom bot: race', () => {
     await send(s, { t: 'guess', code: '1234' })
     await got(s.c, 'ended')
     expect(last(s.c, 'ended')).toMatchObject({ outcome: 'win', xp: 40, rating: null })
+    expect(typeof last(s.c, 'ended')?.gameId).toBe('string')
     await until(
       async () =>
         (await repo.games.history(s.userId, 10)).length > 0 &&

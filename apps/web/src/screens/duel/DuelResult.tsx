@@ -64,11 +64,12 @@ export function DuelResult({ roomId, state, send, sharing = false }: DuelResultP
     ? t('duel.result.kicker.bot', { level: t(`bot.level.${botLevelKey(state.botLevel)}.name`).toLocaleUpperCase(i18n.language) })
     : t('duel.result.kicker.duel', { format: formatLabel.toLocaleUpperCase(i18n.language) })
   const sub = outcome === 'win' ? t('duel.result.sub.winOpp', { name: oppName }) : outcome === 'draw' ? t('duel.result.sub.draw') : reason === 'solved' ? t('duel.result.sub.loseOpp', { name: oppName }) : t('duel.result.sub.lose')
-  const [share, setShare] = useState<ShareModel | null>(() => (sharing ? shareFromDuel(state, outcome, oppName) : null))
+  const gameId = ended?.gameId ?? state.me.gameId ?? null
+  const [share, setShare] = useState<ShareModel | null>(() => (sharing ? shareFromDuel(state, outcome, oppName, gameId) : null))
 
   function openShare() {
     sfx.play('tap')
-    setShare(shareFromDuel(state, outcome, oppName))
+    setShare(shareFromDuel(state, outcome, oppName, gameId))
   }
 
   function newGame() {

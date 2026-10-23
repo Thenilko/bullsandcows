@@ -31,6 +31,8 @@ export interface RoomMeta {
   readonly expired: boolean
   /** The current match's result has been claimed for recording (set before the write). */
   readonly resultRecorded: boolean
+  /** The game row ids of the claimed result, per seat (null: no row, e.g. the bot); for the snapshot. */
+  readonly gameIds?: { readonly a: string | null; readonly b: string | null }
   /** Invite rooms: the code, written to the duel row. */
   readonly inviteCode: string | null
   /** Dev/test E2E only: replaces the random race secret and the bot's classic secret. */

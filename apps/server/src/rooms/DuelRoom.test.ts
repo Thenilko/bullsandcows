@@ -213,6 +213,10 @@ describe('DuelRoom race', () => {
     // The winner's `ended` carries the tiers earned (+50 XP each), the loser's none.
     expect(endedA?.newBadges).toContainEqual({ key: 'duelist', tier: 1 })
     expect(last(cb, 'ended')?.newBadges).toBeUndefined()
+    // Each seat learns its own game row id (for „Сподели“), and it survives a reload in the snapshot.
+    const gamesA = await repo.games.history(s.a.info.id, 5)
+    expect(endedA?.gameId).toBe(gamesA[0]?.id)
+    expect(last(cb, 'ended')?.gameId).toBe((await repo.games.history(s.b.info.id, 5))[0]?.id)
     expect(pa?.xp).toBe(120 + 50 * (endedA?.newBadges?.length ?? 0))
     expect(pa?.rating.rating).toBeGreaterThan(s.a.info.rating.rating)
     expect(pb?.rating.rating).toBeLessThan(s.b.info.rating.rating)

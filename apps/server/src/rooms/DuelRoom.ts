@@ -280,15 +280,16 @@ export class DuelRoom extends DurableObject<CloudflareBindings> {
     forceState = false,
   ): Promise<RoomState> {
     const ended = adv.state.match.phase === 'ended' && !adv.state.meta.resultRecorded
-    const st = ended
+    const recorded = ended
       ? { ...adv.state, meta: { ...adv.state.meta, resultRecorded: true } }
       : adv.state
-    const claimed = ended ? claimResult(st, now) : null
+    const claimed = ended ? claimResult(recorded, now) : null
+    const st = claimed ? withGameIds(recorded, claimed) : recorded
     const pending = claimed ? { [pendingKey(claimed)]: claimed } : {}
     await this.ctx.storage.put({ ...st, timers: roomTimers(st.match, st.meta), ...pending })
     await this.arm(st, now)
     if (prev && !prev.meta.expired && st.meta.expired) closeAll(this.ctx, CLOSE.expired, 'expired')
-    if (forceState || prev?.match !== st.match) broadcastState(this.ctx, st.match, st.secrets)
+    if (forceState || prev?.match !== st.match) broadcastState(this.ctx, st)
     const held = claimed ? adv.events.filter(isEnded) : []
     route(
       this.ctx,
@@ -296,7 +297,7 @@ export class DuelRoom extends DurableObject<CloudflareBindings> {
     )
     if (claimed) {
       const badges = await this.writeClaimed(claimed, now)
-      route(this.ctx, withBadges(st.match, held, badges))
+      route(this.ctx, withResult(st.match, held, claimed, badges))
     }
     return st
   }
@@ -365,12 +366,28 @@ const stepOrError = (st: RoomState, step: Parameters<typeof fromStep>[1]): Advan
 
 const isEnded = (e: Emit): boolean => e.msg.t === 'ended'
 
-/** The seat's `ended` with the badges its player earned, when the result was written. */
-function withBadges(m: Match, held: readonly Emit[], badges: NewBadgesByUser | null): Emit[] {
+/** The claimed result's game row ids go to the meta, so a reloaded client's snapshot carries them. */
+const withGameIds = (st: RoomState, claimed: PendingResult): RoomState => ({
+  ...st,
+  meta: { ...st.meta, gameIds: { a: claimed.ids.gameA, b: claimed.ids.gameB } },
+})
+
+/**
+ * The seat's `ended` with its game row id and, when the result was written, the badges its
+ * player earned.
+ */
+function withResult(
+  m: Match,
+  held: readonly Emit[],
+  claimed: PendingResult,
+  badges: NewBadgesByUser | null,
+): Emit[] {
   return held.map((e) => {
-    if (!badges || e.msg.t !== 'ended' || e.to === 'both') return e
-    const earned = badges[m.players[e.to]?.id ?? ''] ?? []
-    return earned.length > 0 ? { ...e, msg: { ...e.msg, newBadges: [...earned] } } : e
+    if (e.msg.t !== 'ended' || e.to === 'both') return e
+    const gameId = e.to === 'a' ? claimed.ids.gameA : claimed.ids.gameB
+    const earned = badges?.[m.players[e.to]?.id ?? ''] ?? []
+    const msg = earned.length > 0 ? { ...e.msg, gameId, newBadges: [...earned] } : { ...e.msg, gameId }
+    return { ...e, msg }
   })
 }
 

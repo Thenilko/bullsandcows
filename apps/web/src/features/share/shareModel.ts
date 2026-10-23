@@ -42,8 +42,16 @@ export function shareFromResult(model: ResultModel): ShareModel {
   return build(input, model.id, model.finishedAt)
 }
 
-/** My side of a duel (human or bot): only my rows, the opponent's name and the outcome. */
-export function shareFromDuel(state: PublicState, outcome: Outcome, opponent: string): ShareModel {
+/**
+ * My side of a duel (human or bot): only my rows, the opponent's name and the outcome. `gameId` is my
+ * game row (from the `ended` event, or the snapshot after a reload); null means the share is not counted.
+ */
+export function shareFromDuel(
+  state: PublicState,
+  outcome: Outcome,
+  opponent: string,
+  gameId: string | null = state.me.gameId ?? null,
+): ShareModel {
   const rows: ShareRow[] = state.me.guesses.map((g) => ({ bulls: g.bulls, cows: g.cows }))
   const input: ShareTextInput = {
     kind: 'duel',
@@ -53,5 +61,5 @@ export function shareFromDuel(state: PublicState, outcome: Outcome, opponent: st
     opponent,
     outcome,
   }
-  return build(input, null, state.endedAt)
+  return build(input, gameId, state.endedAt)
 }
