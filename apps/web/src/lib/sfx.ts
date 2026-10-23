@@ -62,9 +62,30 @@ const SOUNDS: Readonly<Record<SfxName, SoundFn>> = {
   },
 }
 
+/**
+ * How long the audio output stays open after the last sound ends. A running AudioContext keeps the phone's
+ * audio path (and Chromium's audio thread) awake even when silent, so it is suspended between sounds;
+ * `ac()` resumes it on the next one.
+ */
+export const SFX_IDLE_SUSPEND_MS = 2000
+
 export function createSfx(ctxFactory: () => AudioContext | null = defaultFactory): Sfx {
   let muted = false
   let ctx: AudioContext | null = null
+  /** Context time (s) when the latest scheduled tone stops. */
+  let endsAt = 0
+  let sleepTimer: ReturnType<typeof setTimeout> | null = null
+
+  function scheduleSleep(): void {
+    const a = ctx
+    if (!a) return
+    if (sleepTimer) clearTimeout(sleepTimer)
+    const leftMs = Math.max(0, (endsAt - a.currentTime) * 1000)
+    sleepTimer = setTimeout(() => {
+      sleepTimer = null
+      if (a.state === 'running') void a.suspend().catch(() => {})
+    }, Math.round(leftMs) + SFX_IDLE_SUSPEND_MS)
+  }
 
   function ac(): AudioContext | null {
     if (muted) return null
@@ -94,6 +115,7 @@ export function createSfx(ctxFactory: () => AudioContext | null = defaultFactory
     g.connect(a.destination)
     o.start(t)
     o.stop(t + dur + 0.05)
+    endsAt = Math.max(endsAt, t + dur + 0.05)
   }
 
   function sound(n: SfxName, d: number): void {
@@ -104,6 +126,7 @@ export function createSfx(ctxFactory: () => AudioContext | null = defaultFactory
     play(name, delay = 0) {
       try {
         sound(name, delay)
+        scheduleSleep()
       } catch {
         // sound is never fatal
       }

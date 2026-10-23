@@ -3,15 +3,17 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useSession } from '../features/auth/session'
 import { startSupabaseSync } from '../features/auth/SupabaseSession'
 import { syncMuted } from '../lib/sound'
+import { startAmbientPause } from './ambientPause'
 import '../i18n'
 
-/** Side effects tied to the signed-in user: sound preference and token refresh. */
+/** App-wide side effects: sound preference, token refresh, and the idle pause of the scene's ambient loops. */
 function useSessionEffects() {
   const sound = useSession((s) => s.me?.profile.sound)
   useEffect(() => syncMuted(sound), [sound])
   useEffect(() => {
     void startSupabaseSync()
   }, [])
+  useEffect(() => startAmbientPause(), [])
 }
 
 export function Providers({ children }: { children: ReactNode }) {

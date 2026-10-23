@@ -123,6 +123,8 @@ input,textarea{font-family:inherit}
 .ps-smoke circle:nth-child(2){animation-delay:1.2s}.ps-smoke circle:nth-child(3){animation-delay:2.4s}
 .sc-sway{transform-box:fill-box;transform-origin:50% 100%;animation:ps-sway 4.5s ease-in-out infinite}
 .pw-sign{transform-box:fill-box;transform-origin:50% 0;animation:ps-signswing 1.2s ease-out both}
+/* idle (ambientPause.ts): the endless scene loops freeze in place after 20 s without input, so a phone draws no frames while the player thinks */
+[data-ambient=paused] :is(.ps-sprite,.ps-bird path,.ps-fogb,.ps-rays,.rig-tail,.a-idle .rig-body,.a-idle .rig-head,.rig-bell,.ps-cloudw,.ps-birdw,.ps-birdw path,.ps-smoke circle,.sc-sway,.float,.shine,.confetti){animation-play-state:paused!important}
 /* reduced motion: no run-in, gallop, walk, sway or swing; the animals stand in place, legs, tail and head still */
 @media (prefers-reduced-motion: reduce){
   .a-run,.a-walk,.rig .leg,.rig .low,.rig-body,.rig-head,.rig-tail,.rig-dust circle,.rig-bell,
