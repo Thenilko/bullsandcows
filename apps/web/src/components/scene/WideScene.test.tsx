@@ -95,6 +95,13 @@ describe('WideScene', () => {
     for (const c of INFINITE) expect(container.querySelector('.' + c)).toBeNull()
     expect(container.querySelectorAll('ellipse').length).toBeGreaterThan(20)
   })
+  it('draws the fog without an SVG filter (the blur is re-rasterized every frame on the CPU in WebKit)', () => {
+    const { container } = render(<WideScene {...base} />)
+    expect(container.querySelectorAll('feGaussianBlur').length).toBe(0)
+    expect(container.querySelectorAll('[data-layer="fog"] [filter]').length).toBe(0)
+    expect(container.querySelectorAll('[data-layer="fog"] .ps-fogb').length).toBe(4)
+  })
+
 })
 
 describe('tallyHeads', () => {

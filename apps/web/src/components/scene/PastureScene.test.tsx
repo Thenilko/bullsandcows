@@ -18,14 +18,21 @@ describe('PastureScene', () => {
     const { container } = render(<PastureScene {...base} label="Pasture" />)
     const img = container.querySelector('[role="img"]')!
     expect(img.getAttribute('aria-label')).toBe('Pasture')
-    const svgs = container.querySelectorAll('svg')
-    expect(svgs).toHaveLength(1)
-    expect(svgs[0]!.getAttribute('viewBox')).toBe('0 0 390 380')
-    expect(svgs[0]!.getAttribute('preserveAspectRatio')).toBe('xMidYMid slice')
+    // The drawing is stacked svgs on the same viewBox (sky, land, animals, front) so the sun's rays and the
+    // animals' motion repaint only their own plane; the sky sprites are small svgs inside the HTML sky layer.
+    const svgs = [...img.querySelectorAll(':scope > svg')]
+    expect(svgs.map((s) => s.getAttribute('data-plane'))).toEqual(['sky', 'land', 'animals', 'front'])
+    for (const svg of svgs) {
+      expect(svg.getAttribute('viewBox')).toBe('0 0 390 380')
+      expect(svg.getAttribute('preserveAspectRatio')).toBe('xMidYMid slice')
+    }
+    expect(svgs[0]!.querySelector('.ps-rays')).not.toBeNull()
+    for (const i of [0, 1, 3]) expect(svgs[i]!.querySelector('.rig')).toBeNull()
     // Paint order: sky and sun first, fog last.
-    const layers = [...svgs[0]!.querySelectorAll('[data-layer]')].map((e) => e.getAttribute('data-layer'))
+    const layers = [...img.querySelectorAll('[data-layer]')].map((e) => e.getAttribute('data-layer'))
     expect(layers.indexOf('sun')).toBeLessThan(layers.indexOf('animals-A'))
     expect(layers.at(-1)).toBe('fog')
+    expect(img.lastElementChild!.getAttribute('data-layer')).toBe('fog')
   })
 
   it('wires fog opacity, sun position and dawn opacity', () => {
@@ -75,5 +82,51 @@ describe('PastureScene', () => {
     const { container } = render(<PastureScene {...base} />)
     for (const c of INFINITE) expect(container.querySelector('.' + c)).toBeNull()
     expect(container.querySelectorAll('ellipse').length).toBeGreaterThan(10)
+  })
+
+  it('draws the fog as an HTML layer over the svg: no filter, and its drift is a composited transform, not an svg repaint', () => {
+    const { container } = render(<PastureScene {...base} />)
+    expect(container.querySelectorAll('feGaussianBlur').length).toBe(0)
+    expect(container.querySelectorAll('svg [data-layer="fog"]').length).toBe(0)
+    const fog = container.querySelector('div[data-layer="fog"]') as HTMLElement
+    expect(fog.style.opacity).toBe('0.4')
+    expect(fog.querySelectorAll('.ps-fogb').length).toBe(3)
+    const blob = fog.querySelector('.ps-fogb') as HTMLElement
+    // Artboard units (390x380) as percentages of the box, so the layer follows the svg's `.art` sizing.
+    expect(blob.style.left).toMatch(/%$/)
+    expect(blob.style.width).toMatch(/%$/)
+    expect(blob.style.getPropertyValue('--fog-shift')).toMatch(/%$/)
+  })
+
+  it('moves clouds and birds in an HTML layer over the drawing, under the fog, so their drift never repaints the svg', () => {
+    const { container } = render(<PastureScene {...base} />)
+    for (const drawing of container.querySelectorAll('[role="img"] > svg')) {
+      expect(drawing.querySelectorAll('.ps-cloud, .ps-bird').length).toBe(0)
+    }
+    const sky = container.querySelector('div[data-layer="sky"]') as HTMLElement
+    expect(sky.querySelectorAll('.ps-cloud').length).toBe(3)
+    expect(sky.querySelectorAll('.ps-bird').length).toBe(2)
+    const layers = [...container.querySelectorAll('[role="img"] > [data-layer]')].map((e) => e.getAttribute('data-layer'))
+    expect(layers).toEqual(['sky', 'fog'])
+    expect(container.querySelector('[role="img"] > svg[data-plane="sky"] + [data-layer="sky"] + svg[data-plane="land"]')).not.toBeNull()
+    const cloud = sky.querySelector('.ps-cloud') as HTMLElement
+    expect(cloud.style.top).toMatch(/%$/)
+    expect(cloud.style.width).toMatch(/%$/)
+  })
+
+  it('parks clouds and birds at their still spots under reduced motion', () => {
+    reduced.value = true
+    const { container } = render(<PastureScene {...base} />)
+    const sky = container.querySelector('div[data-layer="sky"]') as HTMLElement
+    expect(sky.querySelectorAll('.ps-sprite').length).toBe(5)
+    expect(sky.querySelectorAll('.ps-cloud, .ps-bird').length).toBe(0)
+    expect((sky.querySelector('.ps-sprite') as HTMLElement).style.transform).toMatch(/^translateX\(-?[\d.]+%\)$/)
+  })
+
+  it('keeps the fog blobs still under reduced motion', () => {
+    reduced.value = true
+    const { container } = render(<PastureScene {...base} />)
+    expect(container.querySelectorAll('div[data-layer="fog"] .ps-fogb').length).toBe(0)
+    expect(container.querySelectorAll('div[data-layer="fog"] .ps-fogs').length).toBe(3)
   })
 })

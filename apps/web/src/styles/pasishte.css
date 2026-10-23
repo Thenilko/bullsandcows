@@ -28,6 +28,19 @@ input,textarea{font-family:inherit}
 .ps-bird{animation:ps-fly linear infinite}
 .ps-bird path{animation:ps-flap .35s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 50%}
 .ps-fogb{animation:ps-fog ease-in-out infinite}
+/* fog over the mobile svg (FogLayer): HTML blobs, drift as a composited transform; --fog-shift = 26 artboard px of the blob's width */
+@keyframes ps-fogh{0%,100%{transform:translate3d(calc(-1 * var(--fog-shift)),0,0)}50%{transform:translate3d(var(--fog-shift),0,0)}}
+.ps-fogl{position:absolute;inset:0;pointer-events:none;background:rgba(238,244,247,.5)}
+.ps-fogl .ps-fogb,.ps-fogl .ps-fogs{position:absolute;display:block;background:radial-gradient(closest-side,#F4F8FA 0%,rgba(244,248,250,.9) 55%,rgba(244,248,250,.45) 80%,rgba(244,248,250,0) 100%)}
+/* clouds and birds over the mobile svg (SkyLayer): the design's ps-drift / ps-fly in % of the sprite box (cloud 80, bird 22x12 artboard px) */
+@keyframes ps-drift-h{from{transform:translateX(-200%)}to{transform:translateX(600%)}}
+@keyframes ps-fly-h{0%{transform:translate(-181.82%,0)}50%{transform:translate(909.09%,-116.67%)}100%{transform:translate(2000%,50%)}}
+.ps-skyl{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.ps-skyl .ps-sprite{position:absolute;display:block;overflow:visible}
+.ps-skyl .ps-cloud{animation-name:ps-drift-h}
+.ps-skyl .ps-bird{animation-name:ps-fly-h}
+/* no will-change: in WebKit it quadrupled the cost of this layer (29% vs 7% of a core) */
+.ps-fogl .ps-fogb{animation-name:ps-fogh}
 .ps-rays{animation:ps-rays 40s linear infinite;transform-box:fill-box;transform-origin:50% 50%}
 .ps-sun{transition:transform 1.6s cubic-bezier(.3,1.2,.5,1)}
 .ps-fade{transition:opacity 1.6s ease}

@@ -1,6 +1,6 @@
 import { COW_BODY } from './RigParts'
 
-/** Gradients and filters of the pasture scenes; `rigCowClip` (the cow rigs' spot clip) is defined only here. */
+/** Gradients of the pasture scenes (no filters, the fog is FogLayer); `rigCowClip` (the cow rigs' spot clip) is defined only here. */
 export function Defs() {
   return (
     <>
@@ -18,7 +18,6 @@ export function Defs() {
 <linearGradient id="psWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#B98650" /><stop offset="1" stopColor="#875B33" /></linearGradient>
 <radialGradient id="psCanopy" cx=".35" cy=".3" r=".8"><stop offset="0" stopColor="#86C462" /><stop offset=".6" stopColor="#4F8F3E" /><stop offset="1" stopColor="#346829" /></radialGradient>
 <clipPath id="rigCowClip"><path d={COW_BODY} /></clipPath>
-<filter id="psBlur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="12" /></filter>
 </defs>
     </>
   )
