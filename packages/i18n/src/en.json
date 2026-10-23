@@ -1,0 +1,632 @@
+{
+  "common": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "ok": "OK",
+    "close": "Close",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "copyFailed": "Couldn't copy",
+    "share": "Share",
+    "newGame": "New game",
+    "delete": "Delete",
+    "start": "Start",
+    "continue": "Continue",
+    "getReady": "Ready…",
+    "you": "you",
+    "youNamed": "{{name}} (you)",
+    "digits_one": "{{count}} digit",
+    "digits_other": "{{count}} digits",
+    "attempts_one": "{{count}} guess",
+    "attempts_other": "{{count}} guesses",
+    "attemptsShort_one": "{{count}} guess",
+    "attemptsShort_other": "{{count}} guesses",
+    "variantsShort": "{{count}} left",
+    "pointsShort": "{{count}} pts",
+    "bull_one": "{{count}} bull",
+    "bull_other": "{{count}} bulls",
+    "cow_one": "{{count}} cow",
+    "cow_other": "{{count}} cows",
+    "wasted_one": "{{count}} wasted move",
+    "wasted_other": "{{count}} wasted moves",
+    "digitAria": "Digit {{digit}}",
+    "practice": "practice",
+    "approx": "approximate",
+    "guestOnly": "This is for registered shepherds — create a profile",
+    "createProfile": "Create a profile",
+    "offline": "You're offline. The game picks up again once you're back.",
+    "reconnecting": "Reconnecting…",
+    "reconnected": "You're back online!",
+    "loading": "Loading…",
+    "lang": {
+      "bg": "Български",
+      "en": "English"
+    }
+  },
+  "nav": {
+    "main": "Main navigation",
+    "skip": "Skip to content",
+    "play": "Play",
+    "board": "Leaderboard",
+    "profile": "Profile",
+    "rules": "Rules"
+  },
+  "settings": {
+    "title": "Settings",
+    "sound": "Sounds",
+    "vibration": "Vibration",
+    "difficulty": "Difficulty",
+    "difficultyDefault": "Default difficulty",
+    "muteOn": "Mute sounds",
+    "muteOff": "Unmute sounds",
+    "lang": "Language",
+    "avatar": "Avatar"
+  },
+  "login": {
+    "title": "Bulls and Cows",
+    "subtitle": "A logic game for the whole family",
+    "welcome": "Welcome to the pasture",
+    "welcomeText": "A logic game for the whole family. Guess the number, herd the bulls into the barn and lift the fog.",
+    "area": "Sign in",
+    "tabs": {
+      "group": "Sign in or register",
+      "login": "Sign in",
+      "register": "New profile"
+    },
+    "name": "Player name",
+    "namePlaceholder": "e.g. Shepherd Sam",
+    "email": "Email",
+    "emailPlaceholder": "name@example.com",
+    "password": "Password",
+    "passwordPlaceholder": "••••••",
+    "submitLogin": "Sign in",
+    "submitRegister": "Create profile",
+    "guest": "Play as a guest",
+    "guestName": "Guest {{number}}",
+    "howTo": "How to play?",
+    "forgot": "Forgot your password?",
+    "resetSent": "If that email exists, we sent a reset link.",
+    "validation": {
+      "nameShort": "Enter a name (at least 2 characters)",
+      "passwordShort": "The password must be at least 6 characters"
+    },
+    "feature": {
+      "daily": { "title": "Daily number", "desc": "one for everyone" },
+      "board": { "title": "Leaderboard", "desc": "see your top %" },
+      "notebook": { "title": "Notebook", "desc": "your own notes" }
+    }
+  },
+  "reset": {
+    "title": "New password",
+    "text": "Choose a new password for your profile. Then you go straight to the pasture.",
+    "area": "Change password",
+    "password": "New password",
+    "confirm": "Repeat the password",
+    "submit": "Save password",
+    "noLink": "Open the link from the password reset email. If it has expired, request a new one from the sign-in screen.",
+    "checking": "Checking the link…",
+    "unavailable": "Password reset by email is not available in the test environment. Sign in with a name and password or as a guest.",
+    "back": "Back to sign in",
+    "validation": {
+      "short": "The password must be at least 6 characters",
+      "mismatch": "The passwords do not match"
+    },
+    "error": {
+      "same": "The new password must differ from the old one.",
+      "weak": "That password is too easy — pick a stronger one.",
+      "expired": "The link has expired or was already used. Request a new one from the sign-in screen.",
+      "failed": "We could not change the password. Try again."
+    }
+  },
+  "rules": {
+    "title": "How to play",
+    "area": "How to play",
+    "band": "in 1 minute",
+    "caption": "Welcome to the herd",
+    "step1": {
+      "title": "A number is hidden",
+      "text": "{{count}} different digits, the first one is not 0. Guess it in as few tries as you can."
+    },
+    "step2": {
+      "title": "Bulls and cows",
+      "bull": "Bull",
+      "bullDesc": "a right digit in the right place. It runs home to the barn.",
+      "cow": "Cow",
+      "cowDesc": "the digit is in the number, but in another place. It grazes outside."
+    },
+    "example": {
+      "title": "Example",
+      "secret": "Secret",
+      "attempt": "Guess",
+      "answer": "Answer",
+      "answerShort": "1 bull (2) 2 cows (1, 4)",
+      "answerLong": "1 bull (the digit 2) and 2 cows (1 and 4)"
+    },
+    "fog": {
+      "title": "The fog and the notebook",
+      "text": "The fog over the pasture lifts as the possibilities shrink. Use the <b>notebook</b> to mark which digits are out and which are certain.",
+      "textLong": "With every guess the possible numbers shrink and the fog over the pasture lifts. In the notebook you mark which digits are out and which are certain, and jot down notes. Points grow with fewer guesses and a faster time."
+    },
+    "start": "Start playing"
+  },
+  "newGame": {
+    "title": "New game",
+    "modeGroup": "Game mode",
+    "mode": {
+      "solo": { "name": "Solo", "desc": "just you and the number" },
+      "duel": { "name": "Duel", "desc": "against people" },
+      "bot": { "name": "Vs bot", "desc": "the Scarecrow" }
+    },
+    "digits": "Digits",
+    "zero": {
+      "label": "With zero",
+      "aria": "Allow the digit 0",
+      "on": "digits 0–9, 0 can come first",
+      "off": "digits 1–9 only"
+    },
+    "codes_one": "{{count}} possible number",
+    "codes_other": "{{count}} possible numbers",
+    "solo": {
+      "label": "Number",
+      "daily": "Daily",
+      "free": "Free play"
+    },
+    "format": {
+      "label": "Format",
+      "race": { "name": "Race", "desc": "One number for both. First to guess it wins." },
+      "classic": { "name": "Classic", "desc": "Each hides their own number. You take turns." }
+    },
+    "opponent": {
+      "label": "Opponent",
+      "quick": { "name": "Quick match", "desc": "A random player of a similar level." },
+      "friend": { "name": "Invite a friend", "desc": "With a code or a link." }
+    },
+    "botLevel": "Scarecrow level",
+    "quickNote": "Quick match pairs you only with real people of a similar level.",
+    "cta": {
+      "solo": "Start",
+      "bot": "Play the Scarecrow",
+      "invite": "Create invite",
+      "quick": "Find an opponent"
+    },
+    "chip": {
+      "zero": "with 0",
+      "noZero": "no 0",
+      "bot": "Scarecrow · {{level}}"
+    }
+  },
+  "play": {
+    "fog_one": "Fog · {{count}} possibility",
+    "fog_other": "Fog · {{count}} possibilities",
+    "fogLong": "Fog · {{count}} possible numbers",
+    "clockAttempt": "{{clock}} · guess {{attempt}}",
+    "attemptMode": "Guess {{attempt}} · {{mode}}",
+    "mode": { "daily": "daily number", "dailyN": "daily number #{{n}}", "free": "free play" },
+    "modeTitle": { "daily": "Daily number", "dailyN": "Daily number #{{n}}", "free": "Free play" },
+    "modeTab": { "daily": "Daily", "free": "Free" },
+    "modeGroup": "Mode",
+    "inputArea": "Enter a number",
+    "startInfo": "{{digits}} · {{mode}} · {{avg}} guesses on average",
+    "openNotebook": "Notebook",
+    "submit": "Release the herd!",
+    "prompt": "Enter {{count}} different digits",
+    "last": "Last {{guess}}: {{bulls}}, {{cows}}",
+    "keyboardHint": "You can also type: digits, Backspace, Enter.",
+    "hiddenTitle": "The number is hidden in the fog",
+    "exit": "Menu",
+    "exitAria": "Leave the game",
+    "fogLifts": "The fog lifts once you start",
+    "hiddenText": "The clock only starts when you press “Start”.",
+    "orEnter": "or press Enter",
+    "tried": "You already tried {{guess}}",
+    "practiceNote": "Today's number is already played — this game is just for practice.",
+    "offlineBanner": "You're offline. Your guesses are kept and sent once you're back."
+  },
+  "notebook": {
+    "title": "Notebook",
+    "left_one": "{{count}} possible number left",
+    "left_other": "{{count}} possible numbers left",
+    "digits": "Digits",
+    "hint": "tap: not in it → in it → ?",
+    "digitAria": "Digit {{digit}}: {{state}}",
+    "state": { "unknown": "?", "no": "not in it", "yes": "in it" },
+    "short": { "no": "no", "yes": "yes" },
+    "attempts": "Guesses",
+    "noGuesses": "No guesses yet.",
+    "wasted": "wasted",
+    "wastedTip": "This guess doesn't fit the earlier answers",
+    "myNotes": "My notes",
+    "notesPlaceholder": "e.g. “7 is somewhere in the middle”",
+    "clear": "Clear the digits",
+    "giveUp": "I give up",
+    "close": "Close"
+  },
+  "result": {
+    "area": "Result",
+    "kicker": {
+      "win": "THE NUMBER IS {{secret}}",
+      "lose": "THE NUMBER WAS {{secret}}"
+    },
+    "headline": {
+      "win": "The day has dawned!",
+      "lose": "The fog stayed…"
+    },
+    "top": "TOP {{top}}%",
+    "beat": "better than {{beat}}% of players",
+    "beatToday": "better than {{beat}}% of today's players",
+    "starsAria": "{{count}} out of 5 stars",
+    "stat": {
+      "attempts": "guesses",
+      "time": "time",
+      "points": "points",
+      "logic": "logic"
+    },
+    "distribution": "Player distribution",
+    "approxNote": "The distribution is approximate until more games are in.",
+    "practice": "practice",
+    "practiceNote": "This was practice — it doesn't count for the leaderboard and earns no points.",
+    "tip": {
+      "lose": "Try numbers that fit all the answers so far — that lifts the fog fastest.",
+      "wasted_one": "{{count}} wasted move — a number that no longer fit.",
+      "wasted_other": "{{count}} wasted moves — numbers that no longer fit.",
+      "none": "Not a single wasted move!",
+      "avg": "On average, people need {{avg}} guesses."
+    },
+    "again": "One more!",
+    "board": "See the leaderboard",
+    "boardShort": "Leaderboard",
+    "share": "Share",
+    "shareText": {
+      "win_one": "Bulls and Cows · {{len}} digits · {{count}} guess · top {{top}}%",
+      "win_other": "Bulls and Cows · {{len}} digits · {{count}} guesses · top {{top}}%",
+      "lose": "Bulls and Cows · {{count}} digits · the number held out"
+    }
+  },
+  "board": {
+    "title": "Leaderboard",
+    "titleDigits": "Leaderboard · {{count}} digits",
+    "caption": "Today's herd",
+    "period": "Period",
+    "tab": {
+      "today": "Today",
+      "week": "Week",
+      "all": "All",
+      "allTime": "All time"
+    },
+    "col": {
+      "place": "PLACE",
+      "player": "PLAYER",
+      "attempts": "GUESSES",
+      "time": "TIME",
+      "points": "POINTS"
+    },
+    "youRank": "You are #{{rank}}",
+    "youTop": "top {{top}}% of everyone",
+    "yourPlace": "Your place",
+    "rank": "#{{rank}}",
+    "top": "top {{top}}%",
+    "bestGame": "Your best game: {{best}}. Play today's number to climb higher.",
+    "bestGameValue_one": "{{count}} guess in {{time}}",
+    "bestGameValue_other": "{{count}} guesses in {{time}}",
+    "noBestGame": "none yet",
+    "playNow": "Play now",
+    "guestOnly": "The leaderboard is for registered shepherds.",
+    "createProfile": "Create a profile"
+  },
+  "profile": {
+    "area": "Profile",
+    "caption": "Your pasture",
+    "levelLine": "{{title}} · level {{level}}",
+    "xp": "{{xp}} / {{max}} pts to level {{level}}",
+    "rating": "rating {{rating}}",
+    "streakBand": "streak {{count}}",
+    "streakChip": "Streak {{count}}",
+    "stat": {
+      "played": "games",
+      "playedLong": "games played",
+      "winRate": "wins",
+      "streak": "streak",
+      "streakLong": "wins in a row",
+      "best": "record",
+      "bestLong": "record (guesses)"
+    },
+    "badges": "Badges",
+    "yourGames": "Your games",
+    "chartCaption": "number of guesses to solve",
+    "account": "Profile",
+    "logout": "Sign out",
+    "digitsOption": "{{count}} digits"
+  },
+  "duel": {
+    "title": {
+      "setup": "New game",
+      "invite": "Invite",
+      "queue": "Searching",
+      "found": "Duel",
+      "foundBot": "Vs the Scarecrow",
+      "secret": "Hide the number",
+      "play": "Duel · {{format}}",
+      "playBot": "Vs the Scarecrow",
+      "solo": "Solo",
+      "result": "Result"
+    },
+    "toSetup": "Back to new game",
+    "join": { "title": "Duel invite", "hostLevel": "level {{level}}", "cta": "Join" },
+    "invite": {
+      "title": "Invite a friend",
+      "text": "Send the code or the link. The duel starts as soon as your friend joins.",
+      "codeLabel": "DUEL CODE",
+      "validity": "The code is valid for 30 minutes or until the game starts.",
+      "copyLink": "Copy the link",
+      "waiting": "Waiting for your friend",
+      "cancel": "Cancel",
+      "expired": "The invite has expired. Create a new one.",
+      "qrAlt": "QR code with the duel link",
+      "qrHint": "or your friend scans it with the camera"
+    },
+    "joinCode": {
+      "area": "Join with a code",
+      "label": "Got a code from a friend?",
+      "placeholder": "ABCDE",
+      "cta": "Join",
+      "hint": "The five characters from the invite, or the whole link.",
+      "invalid": "The code has 5 characters: letters and digits, no O, I, 0 or 1.",
+      "scanTitle": "Scan the QR code",
+      "scanVideo": "Camera view",
+      "scan": {
+        "button": "Scan the QR code with the camera",
+        "starting": "Starting the camera…",
+        "scanning": "Point the camera at the QR code from the invite.",
+        "denied": "No access to the camera. Allow it in the browser settings or type the code.",
+        "unavailable": "The camera is not available. Type the code or open the link."
+      }
+    },
+    "queue": {
+      "title": "Finding an opponent",
+      "similarLevel": "Similar level",
+      "levelRange": "level {{lo}}–{{hi}}",
+      "widening": "We widen the search every 5 seconds. Real players only.",
+      "online": "Online now: {{online}} · in the queue: {{queued}}",
+      "noMatch": "No suitable opponent yet. You can keep waiting or invite a friend.",
+      "suggestInvite": "Invite a friend",
+      "cancel": "Cancel the search"
+    },
+    "found": {
+      "title": {
+        "human": "Opponent found!",
+        "friend": "{{name}} has joined!",
+        "bot": "The Scarecrow is waiting"
+      },
+      "level": "level {{level}} · {{rating}}",
+      "botSub": "bot · {{level}}",
+      "status": { "ready": "ready", "waiting": "waiting", "waitingDots": "waiting…" },
+      "rule": {
+        "race": "Race: the same number for both. First to guess it wins.",
+        "classic": "Classic: each hides their own number and you take turns. Equal number of moves — a draw."
+      },
+      "ready": "Ready!",
+      "waitingFor": "Waiting for {{name}}…",
+      "starting": "Here we go!",
+      "clockNote": "The clock starts once you're both ready.",
+      "opponentReady": "{{name}} is ready"
+    },
+    "secret": {
+      "title": "Hide your number",
+      "textNoZero": "{{count}} different digits, no 0. {{name}} will try to guess it.",
+      "textZero": "{{count}} different digits, 0 allowed. {{name}} will try to guess it.",
+      "confirm": "Hide the number",
+      "waiting": "Hidden — waiting…",
+      "oppHiding": "{{name}} is hiding a number…",
+      "oppHidden": "{{name}} has already hidden theirs",
+      "show": "Show",
+      "hide": "Hide",
+      "needDigits": "You need {{count}} different digits"
+    },
+    "play": {
+      "attempt": "Guess {{attempt}}",
+      "turn": { "me": "your turn", "opp": "their turn" },
+      "turnWarning_one": "{{count}} second left for your move!",
+      "turnWarning_other": "{{count}} seconds left for your move!",
+      "oppThinking": "{{name}} is thinking",
+      "botThinking": "The Scarecrow is thinking…",
+      "tryingToGuess": "Trying to guess your {{secret}}",
+      "myGuesses": "Your guesses",
+      "oppVs": "{{name}} vs your {{secret}}",
+      "noOppGuesses": "no guesses yet",
+      "raceNote": "{{name}} is guessing the same number. First to find it wins.",
+      "giveUp": "I give up",
+      "oppProgress": "guess {{attempt}} · {{left}} left",
+      "oppStatus": {
+        "solved": "got it!",
+        "thinking": "thinking…",
+        "waiting": "waiting",
+        "trying": "guessing"
+      },
+      "chip": { "bulls": "{{count}}B", "cows": "{{count}}C" },
+      "toast": {
+        "solved": "{{name}} guessed the number!",
+        "classic": "{{name}}: {{guess}} → {{bulls}}B {{cows}}C",
+        "race": "{{name}} made guess #{{attempt}}"
+      },
+      "promptNoZero": "Enter {{count}} different digits from 1 to 9",
+      "promptZero": "Enter {{count}} different digits (0 allowed)",
+      "last": "Last {{guess}}: {{bulls}}, {{cows}} · {{left}} left"
+    },
+    "result": {
+      "kicker": {
+        "solo": "SOLO",
+        "bot": "VS THE SCARECROW · {{level}}",
+        "duel": "DUEL · {{format}}"
+      },
+      "sub": {
+        "winOpp": "You beat {{name}}. The bulls are in the barn.",
+        "winSolo_one": "Solved in {{count}} guess.",
+        "winSolo_other": "Solved in {{count}} guesses.",
+        "loseOpp": "{{name}} got it first. Rematch?",
+        "lose": "Next time!",
+        "draw": "You both solved it in the same number of moves."
+      },
+      "solved": "solved",
+      "unsolved": "not solved",
+      "rating": "RATING",
+      "ratingChange": "{{from}} → {{to}}",
+      "secrets": {
+        "classic": "Theirs: {{theirs}} · yours: {{mine}}",
+        "race": "The number was {{secret}}"
+      },
+      "secretsXp": "{{secrets}} · +{{xp}} XP",
+      "rematch": "Rematch",
+      "again": "Once more",
+      "newGame": "New game",
+      "rematchOffered": "{{name}} offers a rematch",
+      "rematchOffer": "Offer a rematch",
+      "rematchWaiting": "Waiting for {{name}}…",
+      "rematchAccept": "Accept",
+      "rematchDecline": "Decline",
+      "rematchDeclined": "{{name}} declined the rematch",
+      "rematchExpired": "The rematch offer expired"
+    }
+  },
+  "outcome": {
+    "win": "Victory!",
+    "lose": "Defeat",
+    "draw": "Draw",
+    "reason": {
+      "forfeitSelf": "You gave up",
+      "forfeitOpp": "{{name}} gave up",
+      "timeoutSelf": "Your time for the move ran out",
+      "timeoutOpp": "{{name}} ran out of time",
+      "disconnectOpp": "{{name}} lost connection",
+      "disconnectSelf": "You lost connection",
+      "ceiling": "15 minutes passed — a draw, rating unchanged",
+      "abandoned": "The match never started — no XP, rating unchanged"
+    }
+  },
+  "bot": {
+    "name": "Scarecrow",
+    "thinking": "The Scarecrow is thinking…",
+    "level": {
+      "easy": {
+        "name": "Easy",
+        "desc": "The Scarecrow dozes off and sometimes slips — for little kids and first games."
+      },
+      "normal": {
+        "name": "Medium",
+        "desc": "Pays attention and only tries numbers that fit the hints."
+      },
+      "hard": {
+        "name": "Hard",
+        "desc": "Thinks like an old shepherd — picks guesses that narrow things down the most."
+      },
+      "expert": { "name": "Expert", "desc": "Never slips and plays fast. For masters only." }
+    }
+  },
+  "rank": {
+    "calf": "Calf",
+    "herdsman": "Cowherd",
+    "shepherd": "Shepherd",
+    "pastor": "Herder",
+    "steward": "Steward",
+    "chiefBull": "Chief Bull"
+  },
+  "species": {
+    "bull": "Bull",
+    "cow": "Cow"
+  },
+  "badge": {
+    "noWaste": { "name": "No wasted move", "desc": "A win without a single illogical guess" },
+    "sherlock": { "name": "Sherlock", "desc": "A 4-digit number solved in 4 guesses or fewer" },
+    "allCows": { "name": "All cows", "desc": "A guess with every digit right, all in the wrong place" },
+    "lucky": { "name": "Lucky", "desc": "Solved on the first or second guess" },
+    "five": { "name": "Five digits", "desc": "A win with 5 digits" },
+    "pure": { "name": "Pure logic", "desc": "A game of 100% logic" },
+    "underMinute": { "name": "Under a minute", "desc": "A win in under 60 seconds" },
+    "bolt": { "name": "Lightning", "desc": "A win in under 30 seconds" },
+    "streak": { "name": "Streak", "desc": "Days in a row with the number of the day solved" },
+    "early": { "name": "Early bird", "desc": "The number of the day before 8:00" },
+    "night": { "name": "Night shift", "desc": "The number of the day after 22:00" },
+    "month": { "name": "Whole month", "desc": "Every day of a calendar month" },
+    "duelist": { "name": "Duelist", "desc": "Duel wins against people" },
+    "unbeaten": { "name": "Unbeaten", "desc": "Duel wins in a row" },
+    "comeback": { "name": "Comeback", "desc": "A win after the opponent was down to 1 candidate" },
+    "rematch": { "name": "Rematch", "desc": "A rematch played" },
+    "bot1": { "name": "Scarecrow · Easy", "desc": "Beat the Scarecrow on Easy" },
+    "bot2": { "name": "Scarecrow · Medium", "desc": "Beat the Scarecrow on Medium" },
+    "bot3": { "name": "Scarecrow · Hard", "desc": "Beat the Scarecrow on Hard" },
+    "bot4": { "name": "Scarecrow · Expert", "desc": "Beat the Scarecrow on Expert" },
+    "formats": { "name": "All formats", "desc": "A win with 3, 4 and 5 digits, with and without zero" },
+    "notes": { "name": "Note-taker", "desc": "Games where you used the notebook" },
+    "invite": { "name": "Brought a friend", "desc": "An invited friend who played a game" },
+    "family": { "name": "Family farm", "desc": "Member of a family farm" },
+    "teller": { "name": "Storyteller", "desc": "Results shared" },
+    "weekly": { "name": "Weekly", "desc": "Weekly challenges completed" },
+    "mirror": { "name": "Mirror", "desc": "A guess that is the secret number reversed" },
+    "ladder": { "name": "Ladder", "desc": "A win over a secret with consecutive digits" },
+    "zeroHero": { "name": "Zero hero", "desc": "A win over a secret that starts with 0" },
+    "hidden": { "name": "???", "desc": "A hidden badge — find it yourself" }
+  },
+  "share": {
+    "title": "Share the result",
+    "daily": "Daily number #{{n}} · {{date}}",
+    "free": "Free play · {{digits}}",
+    "duel": "Duel with {{name}}",
+    "lost": "not solved",
+    "top": "TOP {{top}}% today",
+    "better": "Can you do better?",
+    "cardAria": "Result card",
+    "textLabel": "TEXT FOR THE CHAT",
+    "noSpoilers": "The digits are not shown — no spoilers for the others.",
+    "native": "Share…",
+    "copy": "Copy the text",
+    "save": "Save the picture",
+    "saved": "Saved!",
+    "failed": "That did not work — try again"
+  },
+  "badges": {
+    "profileTab": "Profile",
+    "tab": "Badges",
+    "collection": "Collection",
+    "summary": "{{earned}} badges · {{tiers}} tiers · {{left}} to go",
+    "count": "{{earned}} / {{total}}",
+    "category": { "logic": "Logic", "speed": "Speed", "consistency": "Consistency", "duel": "Duels", "bot": "The Scarecrow", "collector": "Collector", "together": "Together", "hidden": "Hidden" },
+    "tier": { "none": "not earned", "bronze": "bronze", "silver": "silver", "gold": "gold" },
+    "tileAria": "{{name}}: {{tier}}",
+    "need": { "times_one": "{{count}} time", "times_other": "{{count}} times", "days_one": "{{count}} day", "days_other": "{{count}} days", "formats_one": "{{count}} format", "formats_other": "{{count}} formats" },
+    "progress": "{{progress}} of {{next}} to the next tier",
+    "allDone": "Every tier collected",
+    "xpNote": "+50 XP for every tier",
+    "soon": "soon",
+    "soonNote": "This badge comes with a future part of the game.",
+    "guestNote": "Sign in to collect badges",
+    "detailAria": "Badge",
+    "newBadge": "New badge!",
+    "openDetail": "See the badge",
+    "dismiss": "Dismiss"
+  },
+  "error": {
+    "ERR_AUTH": "Sign in to continue.",
+    "ERR_GUEST": "This is for registered shepherds — create a profile",
+    "ERR_INPUT": "Something's off with what you entered. Check it and try again.",
+    "ERR_CODE": "You need {{count}} different digits",
+    "ERR_NOT_FOUND": "We can't find that. It may have expired.",
+    "ERR_NOT_STARTED": "The game hasn't started yet.",
+    "ERR_FINISHED": "This game is already over.",
+    "ERR_REPEAT": "You already tried that number.",
+    "ERR_NOT_YOUR_TURN": "It's not your turn — wait for your opponent's move.",
+    "ERR_USERNAME_TAKEN": "That name is taken — pick another one.",
+    "ERR_CREDENTIALS": "Wrong name or password.",
+    "ERR_INVITE_EXPIRED": "The invite has expired or the code is wrong.",
+    "ERR_ROOM_FULL": "This room already has two players.",
+    "ERR_RATE_LIMIT": "Slow down a little — wait a moment and try again.",
+    "ERR_INTERNAL": "Something went wrong. Try again.",
+    "network": "No connection. Check your internet and try again.",
+    "unknown": "Something went wrong. Try again."
+  },
+  "crash": {
+    "title": "Something went wrong",
+    "generic": "The page could not be shown. Reload and try again.",
+    "stale": "The game was updated while this page was open. Reload to get the new version.",
+    "notFound": "There is no such page.",
+    "reload": "Reload"
+  }
+}

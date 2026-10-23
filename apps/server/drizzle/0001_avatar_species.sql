@@ -1,0 +1,2 @@
+ALTER TABLE "profiles" ADD COLUMN "avatar_species" text DEFAULT 'bull' NOT NULL;--> statement-breakpoint
+ALTER TABLE "profiles" ADD CONSTRAINT "profiles_avatar_species_check" CHECK ("profiles"."avatar_species" in ('bull', 'cow'));

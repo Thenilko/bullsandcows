@@ -1,0 +1,27 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "noEmit": true,
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "jsx": "react-jsx",
+    "types": [
+      "vite/client",
+      "vite-plugin-pwa/client",
+      "node"
+    ],
+    "resolveJsonModule": true
+  },
+  "include": [
+    "src",
+    "build",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "../../packages/game-core/src/types"
+  ]
+}

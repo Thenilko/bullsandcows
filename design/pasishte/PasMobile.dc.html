@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<title>Пасището — мобилно приложение</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./pasishte.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="{{rootCls}}" style="width: {{rootW}}; height: {{rootH}}; position: relative; overflow: hidden; background: #F6F2E6; color: #2E3B24; font-family: 'Nunito', system-ui, sans-serif">
+
+<div style="position: absolute; left: 0; right: 0; top: 0; height: {{sceneH}}; overflow: hidden" aria-hidden="true">
+<svg width="100%" height="{{sceneHn}}" viewBox="0 0 390 380" preserveAspectRatio="{{sceneAR}}" style="display: block">
+<defs>
+<linearGradient id="psSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5FA8DD"></stop><stop offset=".55" stop-color="#A9D6F0"></stop><stop offset="1" stop-color="#EAF4E8"></stop></linearGradient>
+<linearGradient id="psDawn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2A88A"></stop><stop offset="1" stop-color="#F7D6AA" stop-opacity="0"></stop></linearGradient>
+<radialGradient id="psGlow"><stop offset="0" stop-color="#FFF8DA"></stop><stop offset=".35" stop-color="#FFE79A" stop-opacity=".8"></stop><stop offset="1" stop-color="#FFE28C" stop-opacity="0"></stop></radialGradient>
+<radialGradient id="psDust"><stop offset="0" stop-color="#E9D6AE"></stop><stop offset="1" stop-color="#E9D6AE" stop-opacity="0"></stop></radialGradient>
+<linearGradient id="psMtnA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9DB6CC"></stop><stop offset="1" stop-color="#C9DBE5"></stop></linearGradient>
+<linearGradient id="psMtnB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7F9DB6"></stop><stop offset="1" stop-color="#AFC7D4"></stop></linearGradient>
+<linearGradient id="psHillFar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9D18B"></stop><stop offset="1" stop-color="#84B96A"></stop></linearGradient>
+<linearGradient id="psHillMid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8DC66C"></stop><stop offset="1" stop-color="#5E9E46"></stop></linearGradient>
+<linearGradient id="psGrass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7DBE59"></stop><stop offset="1" stop-color="#4C8E36"></stop></linearGradient>
+<linearGradient id="psBarn" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C9563D"></stop><stop offset="1" stop-color="#9C3A28"></stop></linearGradient>
+<linearGradient id="psWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B98650"></stop><stop offset="1" stop-color="#875B33"></stop></linearGradient>
+<radialGradient id="psCanopy" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#86C462"></stop><stop offset=".6" stop-color="#4F8F3E"></stop><stop offset="1" stop-color="#346829"></stop></radialGradient>
+<linearGradient id="psBullBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6E4E3C"></stop><stop offset=".5" stop-color="#3D2B21"></stop><stop offset="1" stop-color="#20160F"></stop></linearGradient>
+<linearGradient id="psBullHead" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6A4B3B"></stop><stop offset="1" stop-color="#2B1E17"></stop></linearGradient>
+<linearGradient id="psBullLeg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3B2A20"></stop><stop offset="1" stop-color="#1C130E"></stop></linearGradient>
+<linearGradient id="psHorn" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#D3BD92"></stop><stop offset="1" stop-color="#FFF8E6"></stop></linearGradient>
+<linearGradient id="psCowBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"></stop><stop offset="1" stop-color="#DED7CA"></stop></linearGradient>
+<linearGradient id="psCowLeg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F3EFE7"></stop><stop offset="1" stop-color="#CBC2B2"></stop></linearGradient>
+<clipPath id="rigCowClip"><path d="M44 48 C46 36 58 31 74 31 C94 32 112 31 126 33 C140 35 146 46 144 58 C142 70 134 76 122 77 C102 80 78 80 60 78 C48 76 42 68 42 58 Z"></path></clipPath><filter id="psBlur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="12"></feGaussianBlur></filter>
+</defs>
+<rect width="390" height="272" fill="url(#psSky)"></rect>
+<rect class="ps-fade" width="390" height="272" fill="url(#psDawn)" style="opacity: {{dawn}}"></rect>
+<g class="ps-sun" style="transform: translate(322px, {{sunY}}px)"><circle r="60" fill="url(#psGlow)"></circle><circle class="ps-rays" r="34" fill="none" stroke="#FFF1B8" stroke-width="22" stroke-dasharray="4 10" opacity=".35"></circle><circle r="17" fill="#FFF3C4"></circle></g>
+<g class="ps-cloud" style="animation-duration: 38s; animation-delay: -6s"><g transform="translate(0 56)" fill="#FFFFFF" opacity=".95"><ellipse cx="0" cy="0" rx="32" ry="10"></ellipse><ellipse cx="-8" cy="-8" rx="15" ry="12"></ellipse><ellipse cx="12" cy="-10" rx="16" ry="13"></ellipse></g></g>
+<g class="ps-cloud" style="animation-duration: 52s; animation-delay: -30s"><g transform="translate(0 106)" fill="#FFFFFF" opacity=".8"><ellipse cx="0" cy="0" rx="24" ry="8"></ellipse><ellipse cx="6" cy="-7" rx="12" ry="10"></ellipse></g></g>
+<g class="ps-cloud" style="animation-duration: 46s; animation-delay: -18s"><g transform="translate(0 30)" fill="#FFFFFF" opacity=".7"><ellipse cx="0" cy="0" rx="26" ry="8"></ellipse><ellipse cx="-6" cy="-6" rx="12" ry="9"></ellipse><ellipse cx="10" cy="-7" rx="12" ry="10"></ellipse></g></g>
+<g class="ps-bird" style="animation-duration: 18s"><g transform="translate(0 92)"><path d="M1 6 Q5 1 9 5 Q13 1 17 6" stroke="#2E3B24" stroke-width="1.6" fill="none" stroke-linecap="round"></path></g></g>
+<g class="ps-bird" style="animation-duration: 18s; animation-delay: -.6s"><g transform="translate(6 110) scale(.7)"><path d="M1 6 Q5 1 9 5 Q13 1 17 6" stroke="#2E3B24" stroke-width="2" fill="none" stroke-linecap="round"></path></g></g>
+<path d="M0 196 L22 182 L40 188 L66 164 L88 176 L112 158 L138 172 L160 150 L186 168 L214 146 L240 162 L268 152 L296 170 L324 154 L352 168 L390 156 L390 236 L0 236Z" fill="url(#psMtnA)"></path>
+<path d="M154 156 L160 150 L167 157 L162 156 L160 159Z M207 153 L214 146 L221 153 L216 152 L214 155Z M107 162 L112 158 L117 163 L112 162Z" fill="#F5F9FB"></path>
+<path d="M0 212 L34 196 L70 205 L104 188 L140 201 L178 186 L214 199 L252 184 L290 199 L330 189 L390 203 L390 246 L0 246Z" fill="url(#psMtnB)"></path>
+<path d="M0 224 C60 206 130 208 190 220 C250 232 320 206 390 214 L390 272 L0 272Z" fill="url(#psHillFar)"></path>
+<g fill="#5A9747"><circle cx="176" cy="216" r="5"></circle><circle cx="184" cy="213" r="6"></circle><circle cx="193" cy="216" r="5"></circle><circle cx="201" cy="214" r="6"></circle><circle cx="210" cy="218" r="5"></circle><circle cx="274" cy="212" r="5"></circle><circle cx="282" cy="209" r="6"></circle><circle cx="291" cy="212" r="5"></circle><circle cx="24" cy="216" r="4"></circle><circle cx="31" cy="214" r="5"></circle></g>
+<path d="M0 248 C70 232 150 236 222 246 C292 256 344 238 390 242 L390 302 L0 302Z" fill="url(#psHillMid)"></path>
+<path d="M232 250 C262 254 300 252 334 245 L340 253 C306 261 266 262 236 258Z" fill="#C7CF74" opacity=".75"></path>
+<path d="M346 252 C348 238 347 224 344 212 L351 212 C351 226 353 240 356 252Z" fill="#5E4129"></path>
+<path d="M349 226 L338 216 M350 222 L362 212" stroke="#5E4129" stroke-width="2.5" stroke-linecap="round"></path>
+<circle cx="334" cy="200" r="20" fill="url(#psCanopy)"></circle><circle cx="357" cy="189" r="24" fill="url(#psCanopy)"></circle><circle cx="374" cy="206" r="18" fill="url(#psCanopy)"></circle><circle cx="350" cy="213" r="17" fill="url(#psCanopy)"></circle>
+<path d="M150 250 L152 232 L154 250Z" fill="#5E4129"></path><ellipse cx="152" cy="224" rx="9" ry="19" fill="url(#psCanopy)"></ellipse>
+<path d="M166 252 L167.5 238 L169 252Z" fill="#5E4129"></path><ellipse cx="167.5" cy="232" rx="7" ry="14" fill="url(#psCanopy)"></ellipse>
+<ellipse cx="80" cy="264" rx="74" ry="7" fill="#2F5A22" opacity=".35"></ellipse>
+<path d="M118 204 L148 214 L148 263 L118 263Z" fill="#88311F"></path>
+<path d="M70 164 L100 172 L154 216 L124 207Z" fill="#3E2A1F"></path>
+<rect x="127" y="226" width="12" height="12" fill="#3A2418" stroke="#F3EDE2" stroke-width="1.5"></rect>
+<path d="M22 263 L22 203 L70 167 L118 203 L118 263Z" fill="url(#psBarn)"></path>
+<path d="M34 194 V263 M46 185 V263 M58 176 V263 M82 176 V263 M94 185 V263 M106 194 V263" stroke="#8E3424" stroke-width="1" opacity=".55"></path>
+<path d="M15 208 L70 163 L125 208" stroke="#3E2A1F" stroke-width="7" fill="none" stroke-linejoin="round" stroke-linecap="round"></path>
+<path d="M22 203 L70 167 L118 203" stroke="#F3EDE2" stroke-width="2.5" fill="none"></path>
+<rect x="61" y="186" width="18" height="16" fill="#3A2418" stroke="#F3EDE2" stroke-width="2"></rect>
+<path d="M62 201 C66 196 72 197 78 201Z" fill="#E2B85A"></path>
+<rect x="48" y="221" width="44" height="42" fill="#8E3424" stroke="#F3EDE2" stroke-width="3"></rect>
+<path d="M48 221 L92 263 M92 221 L48 263 M70 221 V263" stroke="#F3EDE2" stroke-width="2.5"></path>
+<rect x="150" y="250" width="26" height="16" rx="5" fill="#E2B85A"></rect><path d="M154 254 H172 M154 258 H172 M154 262 H172" stroke="#C3943B" stroke-width="1"></path>
+<rect x="160" y="238" width="20" height="13" rx="4" fill="#EBC56B"></rect>
+<path d="M0 272 C80 264 180 268 260 264 C320 261 360 264 390 262 L390 380 L0 380Z" fill="url(#psGrass)"></path>
+<ellipse cx="98" cy="312" rx="100" ry="34" fill="#C7A56E" opacity=".5"></ellipse>
+<g fill="url(#psWood)"><rect x="2" y="272" width="196" height="4" rx="1.5"></rect><rect x="2" y="281" width="196" height="4" rx="1.5"></rect></g>
+<g fill="#7A5230"><rect x="4" y="266" width="5" height="24" rx="1"></rect><rect x="52" y="266" width="5" height="24" rx="1"></rect><rect x="100" y="266" width="5" height="24" rx="1"></rect><rect x="148" y="266" width="5" height="24" rx="1"></rect><rect x="193" y="266" width="5" height="24" rx="1"></rect></g>
+<g stroke="#3F7F2E" stroke-width="1.4" stroke-linecap="round" fill="none"><path d="M220 302 l-3 -7 M222 302 v-9 M224 302 l3 -7"></path><path d="M262 322 l-3 -7 M264 322 v-9 M266 322 l3 -7"></path><path d="M304 296 l-3 -6 M306 296 v-8 M308 296 l3 -6"></path><path d="M352 318 l-3 -7 M354 318 v-9 M356 318 l3 -7"></path><path d="M244 348 l-3 -7 M246 348 v-9 M248 348 l3 -7"></path><path d="M336 352 l-3 -7 M338 352 v-9 M340 352 l3 -7"></path><path d="M372 292 l-2 -6 M374 292 v-8 M376 292 l2 -6"></path></g>
+<g><circle cx="232" cy="314" r="2.2" fill="#FFFFFF"></circle><circle cx="232" cy="314" r=".9" fill="#F2C230"></circle><circle cx="318" cy="334" r="2.2" fill="#FFFFFF"></circle><circle cx="318" cy="334" r=".9" fill="#F2C230"></circle><circle cx="364" cy="306" r="2.2" fill="#FFFFFF"></circle><circle cx="276" cy="340" r="2.3" fill="#F2C230"></circle><circle cx="206" cy="320" r="2" fill="#F2C230"></circle><circle cx="342" cy="344" r="2.1" fill="#F29BB8"></circle><circle cx="256" cy="302" r="1.8" fill="#F29BB8"></circle><circle cx="380" cy="330" r="2" fill="#B9A7F0"></circle></g>
+
+<sc-if value="{{parityA}}" hint-placeholder-val="{{ true }}">
+<sc-for list="{{animals}}" as="a" hint-placeholder-count="0"><g transform="{{a.tf}}"><g class="{{a.cls}}" style="--d: {{a.d}}">
+<sc-if value="{{a.isBull}}" hint-placeholder-val="{{ false }}"><g class="rig rig-b" transform="scale(.5)">
+<ellipse class="rig-shadow" cx="90" cy="106" rx="56" ry="5" fill="#1E2A14" opacity=".22"></ellipse>
+<g class="rig-dust"><circle cx="134" cy="102" r="7" fill="#E9D6AE"></circle><circle cx="148" cy="98" r="5" fill="#E9D6AE"></circle><circle cx="122" cy="104" r="5" fill="#E9D6AE"></circle></g>
+<g class="rig-body"><g class="leg fh far"><path d="M102 50 C110 44 126 46 128 58 L124 88 L110 88 C108 76 102 66 102 50Z" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path><g class="low"><rect x="111" y="84" width="12" height="18" rx="4" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="109.5" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="leg ff far"><rect x="60" y="58" width="15" height="30" rx="6" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4"></rect><g class="low"><rect x="61.5" y="84" width="12" height="18" rx="4" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="60.0" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="rig-tail"><path d="M142 46 C152 52 155 66 152 82" stroke="#2E3B24" stroke-width="6" fill="none" stroke-linecap="round"></path><path d="M142 46 C152 52 155 66 152 82" stroke="#5E3E2C" stroke-width="2.6" fill="none" stroke-linecap="round"></path><path d="M148 80 C146 88 150 95 155 93 C159 89 157 82 152 79Z" fill="#26262B" stroke="#2E3B24" stroke-width="2.2"></path></g>
+<path d="M44 46 C46 31 60 24 76 26 C96 28 116 28 128 32 C142 36 147 48 145 60 C143 72 134 78 120 79 C100 81 76 81 60 79 C48 77 42 68 42 58 Z" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path>
+<path d="M60 31 C74 27 92 29 104 31" stroke="#7A5440" stroke-width="5" fill="none" stroke-linecap="round"></path>
+<g class="leg nh"><path d="M110 50 C118 44 134 46 136 58 L132 88 L118 88 C116 76 110 66 110 50Z" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path><g class="low"><rect x="119" y="84" width="12" height="18" rx="4" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="117.5" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="leg nf"><rect x="50" y="58" width="15" height="30" rx="6" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4"></rect><g class="low"><rect x="51.5" y="84" width="12" height="18" rx="4" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="50.0" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g>
+<g class="rig-head"><g transform="translate(32 39) scale(.58)"><g stroke="#2E3B24" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><path d="M-20 -30 C-34 -30 -47 -40 -52 -60 C-42 -51 -31 -47 -16 -45 Z" fill="#F3E6C8"/><path d="M20 -30 C34 -30 47 -40 52 -60 C42 -51 31 -47 16 -45 Z" fill="#F3E6C8"/><path d="M-23 -20 C-36 -28 -50 -24 -55 -14 C-46 -6 -33 -7 -22 -11 Z" fill="#4A3427"/><path d="M23 -20 C36 -28 50 -24 55 -14 C46 -6 33 -7 22 -11 Z" fill="#4A3427"/><path d="M-27 -38 C-14 -47 14 -47 27 -38 C33 -18 30 6 26 20 L-26 20 C-30 6 -33 -18 -27 -38 Z" fill="#5E3E2C"/><path d="M-13 -43 C-9 -54 -3 -47 0 -57 C3 -47 9 -54 13 -43 C6 -38 -6 -38 -13 -43 Z" fill="#3A2619"/><ellipse cx="0" cy="22" rx="27" ry="18" fill="#A07B64"/></g><ellipse cx="-10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><ellipse cx="10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><path d="M-7 29 C-7 39 7 39 7 29" fill="none" stroke="#E2B44A" stroke-width="4" stroke-linecap="round"/><g><circle cx="-12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="-11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="-12.4" cy="-10.6" r="1.4" fill="#FFFFFF"/><circle cx="12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="9.6" cy="-10.6" r="1.4" fill="#FFFFFF"/><path d="M-19 -20 L-6 -18 M19 -20 L6 -18" stroke="#2A1A10" stroke-width="3" stroke-linecap="round"/></g></g></g>
+</g></g></sc-if>
+<sc-if value="{{a.isCow}}" hint-placeholder-val="{{ false }}"><g class="rig rig-c" transform="scale(.5)">
+<ellipse class="rig-shadow" cx="90" cy="106" rx="54" ry="5" fill="#1E2A14" opacity=".2"></ellipse>
+<g class="rig-body"><g class="leg fh far"><path d="M102 50 C110 44 126 46 128 58 L124 88 L110 88 C108 76 102 66 102 50Z" fill="#E9E2D6" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path><g class="low"><rect x="111" y="84" width="12" height="18" rx="4" fill="#E9E2D6" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="109.5" y="99" width="15" height="7" rx="2.5" fill="#3A2A20" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="leg ff far"><rect x="60" y="58" width="15" height="30" rx="6" fill="#E9E2D6" stroke="#2E3B24" stroke-width="3.4"></rect><g class="low"><rect x="61.5" y="84" width="12" height="18" rx="4" fill="#E9E2D6" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="60.0" y="99" width="15" height="7" rx="2.5" fill="#3A2A20" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="rig-tail"><path d="M142 46 C152 52 155 66 152 82" stroke="#2E3B24" stroke-width="6" fill="none" stroke-linecap="round"></path><path d="M142 46 C152 52 155 66 152 82" stroke="#FFFDF6" stroke-width="2.6" fill="none" stroke-linecap="round"></path><path d="M148 80 C146 88 150 95 155 93 C159 89 157 82 152 79Z" fill="#26262B" stroke="#2E3B24" stroke-width="2.2"></path></g>
+<path d="M44 48 C46 36 58 31 74 31 C94 32 112 31 126 33 C140 35 146 46 144 58 C142 70 134 76 122 77 C102 80 78 80 60 78 C48 76 42 68 42 58 Z" fill="#FFFDF6"></path>
+<g clip-path="url(#rigCowClip)" fill="#26262B"><path d="M70 28 C84 26 96 34 94 46 C92 56 78 58 70 52 C62 46 62 34 70 28Z"></path><path d="M110 28 C124 26 142 34 146 48 C140 56 126 56 118 48 C112 42 106 34 110 28Z"></path><path d="M86 66 C94 62 104 66 104 74 C100 80 88 80 84 74Z"></path></g>
+<path d="M44 48 C46 36 58 31 74 31 C94 32 112 31 126 33 C140 35 146 46 144 58 C142 70 134 76 122 77 C102 80 78 80 60 78 C48 76 42 68 42 58 Z" fill="none" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path>
+<g class="rig-udder"><ellipse cx="110" cy="79" rx="10" ry="6" fill="#F4B9B2" stroke="#2E3B24" stroke-width="2.6"></ellipse><path d="M104 84 v3.5 M110 85 v4 M116 84 v3.5" stroke="#2E3B24" stroke-width="2.6" stroke-linecap="round"></path></g>
+<g class="leg nh"><path d="M110 50 C118 44 134 46 136 58 L132 88 L118 88 C116 76 110 66 110 50Z" fill="#FFFDF6" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path><g class="low"><rect x="119" y="84" width="12" height="18" rx="4" fill="#FFFDF6" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="117.5" y="99" width="15" height="7" rx="2.5" fill="#3A2A20" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="leg nf"><rect x="50" y="58" width="15" height="30" rx="6" fill="#FFFDF6" stroke="#2E3B24" stroke-width="3.4"></rect><g class="low"><rect x="51.5" y="84" width="12" height="18" rx="4" fill="#FFFDF6" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="50.0" y="99" width="15" height="7" rx="2.5" fill="#3A2A20" stroke="#2E3B24" stroke-width="3.4"></rect></g></g>
+<g class="rig-head"><g transform="translate(32 40) scale(.58)"><g stroke="#2E3B24" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><path d="M-15 -38 C-18 -48 -24 -55 -31 -58 C-30 -49 -27 -42 -23 -35 Z" fill="#EADBB8"/><path d="M15 -38 C18 -48 24 -55 31 -58 C30 -49 27 -42 23 -35 Z" fill="#EADBB8"/><path d="M-22 -20 C-37 -29 -51 -23 -56 -12 C-46 -4 -32 -6 -21 -11 Z" fill="#FFFDF6"/><path d="M22 -20 C37 -29 51 -23 56 -12 C46 -4 32 -6 21 -11 Z" fill="#26262B"/><path d="M-26 -36 C-13 -45 13 -45 26 -36 C32 -16 29 6 25 20 L-25 20 C-29 6 -32 -16 -26 -36 Z" fill="#FFFDF6"/></g><path d="M3 -42 C14 -44 25 -41 27 -34 C30 -18 28 -6 20 -3 C10 0 0 -10 3 -42 Z" fill="#26262B"/><path d="M-30 4 C-23 1 -17 8 -20 15 C-23 20 -28 19 -29 15 Z" fill="#26262B"/><path d="M-26 -36 C-13 -45 13 -45 26 -36 C32 -16 29 6 25 20 L-25 20 C-29 6 -32 -16 -26 -36 Z" fill="none" stroke="#2E3B24" stroke-width="6" stroke-linejoin="round"/><path d="M-30 -18 C-40 -23 -48 -20 -50 -14 C-43 -10 -35 -11 -29 -14 Z" fill="#F0B2AE"/><ellipse cx="0" cy="22" rx="26" ry="17" fill="#F4B9B2" stroke="#2E3B24" stroke-width="6"/><ellipse cx="-10" cy="21" rx="3.6" ry="5" fill="#A2504C"/><ellipse cx="10" cy="21" rx="3.6" ry="5" fill="#A2504C"/><path d="M-6 31 Q0 34 6 31" fill="none" stroke="#A2504C" stroke-width="2" stroke-linecap="round"/><g><circle cx="-12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="-11" cy="-8.6" r="3.8" fill="#3B2416"/><circle cx="-12.4" cy="-10.4" r="1.4" fill="#FFFFFF"/><circle cx="12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="11" cy="-8.6" r="3.8" fill="#3B2416"/><circle cx="9.6" cy="-10.4" r="1.4" fill="#FFFFFF"/><path d="M-17 -18 l-3 -3 M-13 -19.5 l-1.5 -3.8 M-8.5 -19 l0 -4 M17 -18 l3 -3 M13 -19.5 l1.5 -3.8 M8.5 -19 l0 -4" stroke="#2E3B24" stroke-width="1.8" stroke-linecap="round"/></g></g></g>
+</g></g></sc-if>
+</g></g></sc-for>
+</sc-if>
+<sc-if value="{{parityB}}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{animals}}" as="a" hint-placeholder-count="0"><g transform="{{a.tf}}"><g class="{{a.cls}}" style="--d: {{a.d}}">
+<sc-if value="{{a.isBull}}" hint-placeholder-val="{{ false }}"><g class="rig rig-b" transform="scale(.5)">
+<ellipse class="rig-shadow" cx="90" cy="106" rx="56" ry="5" fill="#1E2A14" opacity=".22"></ellipse>
+<g class="rig-dust"><circle cx="134" cy="102" r="7" fill="#E9D6AE"></circle><circle cx="148" cy="98" r="5" fill="#E9D6AE"></circle><circle cx="122" cy="104" r="5" fill="#E9D6AE"></circle></g>
+<g class="rig-body"><g class="leg fh far"><path d="M102 50 C110 44 126 46 128 58 L124 88 L110 88 C108 76 102 66 102 50Z" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path><g class="low"><rect x="111" y="84" width="12" height="18" rx="4" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="109.5" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="leg ff far"><rect x="60" y="58" width="15" height="30" rx="6" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4"></rect><g class="low"><rect x="61.5" y="84" width="12" height="18" rx="4" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="60.0" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="rig-tail"><path d="M142 46 C152 52 155 66 152 82" stroke="#2E3B24" stroke-width="6" fill="none" stroke-linecap="round"></path><path d="M142 46 C152 52 155 66 152 82" stroke="#5E3E2C" stroke-width="2.6" fill="none" stroke-linecap="round"></path><path d="M148 80 C146 88 150 95 155 93 C159 89 157 82 152 79Z" fill="#26262B" stroke="#2E3B24" stroke-width="2.2"></path></g>
+<path d="M44 46 C46 31 60 24 76 26 C96 28 116 28 128 32 C142 36 147 48 145 60 C143 72 134 78 120 79 C100 81 76 81 60 79 C48 77 42 68 42 58 Z" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path>
+<path d="M60 31 C74 27 92 29 104 31" stroke="#7A5440" stroke-width="5" fill="none" stroke-linecap="round"></path>
+<g class="leg nh"><path d="M110 50 C118 44 134 46 136 58 L132 88 L118 88 C116 76 110 66 110 50Z" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path><g class="low"><rect x="119" y="84" width="12" height="18" rx="4" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="117.5" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="leg nf"><rect x="50" y="58" width="15" height="30" rx="6" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4"></rect><g class="low"><rect x="51.5" y="84" width="12" height="18" rx="4" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="50.0" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g>
+<g class="rig-head"><g transform="translate(32 39) scale(.58)"><g stroke="#2E3B24" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><path d="M-20 -30 C-34 -30 -47 -40 -52 -60 C-42 -51 -31 -47 -16 -45 Z" fill="#F3E6C8"/><path d="M20 -30 C34 -30 47 -40 52 -60 C42 -51 31 -47 16 -45 Z" fill="#F3E6C8"/><path d="M-23 -20 C-36 -28 -50 -24 -55 -14 C-46 -6 -33 -7 -22 -11 Z" fill="#4A3427"/><path d="M23 -20 C36 -28 50 -24 55 -14 C46 -6 33 -7 22 -11 Z" fill="#4A3427"/><path d="M-27 -38 C-14 -47 14 -47 27 -38 C33 -18 30 6 26 20 L-26 20 C-30 6 -33 -18 -27 -38 Z" fill="#5E3E2C"/><path d="M-13 -43 C-9 -54 -3 -47 0 -57 C3 -47 9 -54 13 -43 C6 -38 -6 -38 -13 -43 Z" fill="#3A2619"/><ellipse cx="0" cy="22" rx="27" ry="18" fill="#A07B64"/></g><ellipse cx="-10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><ellipse cx="10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><path d="M-7 29 C-7 39 7 39 7 29" fill="none" stroke="#E2B44A" stroke-width="4" stroke-linecap="round"/><g><circle cx="-12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="-11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="-12.4" cy="-10.6" r="1.4" fill="#FFFFFF"/><circle cx="12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="9.6" cy="-10.6" r="1.4" fill="#FFFFFF"/><path d="M-19 -20 L-6 -18 M19 -20 L6 -18" stroke="#2A1A10" stroke-width="3" stroke-linecap="round"/></g></g></g>
+</g></g></sc-if>
+<sc-if value="{{a.isCow}}" hint-placeholder-val="{{ false }}"><g class="rig rig-c" transform="scale(.5)">
+<ellipse class="rig-shadow" cx="90" cy="106" rx="54" ry="5" fill="#1E2A14" opacity=".2"></ellipse>
+<g class="rig-body"><g class="leg fh far"><path d="M102 50 C110 44 126 46 128 58 L124 88 L110 88 C108 76 102 66 102 50Z" fill="#E9E2D6" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path><g class="low"><rect x="111" y="84" width="12" height="18" rx="4" fill="#E9E2D6" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="109.5" y="99" width="15" height="7" rx="2.5" fill="#3A2A20" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="leg ff far"><rect x="60" y="58" width="15" height="30" rx="6" fill="#E9E2D6" stroke="#2E3B24" stroke-width="3.4"></rect><g class="low"><rect x="61.5" y="84" width="12" height="18" rx="4" fill="#E9E2D6" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="60.0" y="99" width="15" height="7" rx="2.5" fill="#3A2A20" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="rig-tail"><path d="M142 46 C152 52 155 66 152 82" stroke="#2E3B24" stroke-width="6" fill="none" stroke-linecap="round"></path><path d="M142 46 C152 52 155 66 152 82" stroke="#FFFDF6" stroke-width="2.6" fill="none" stroke-linecap="round"></path><path d="M148 80 C146 88 150 95 155 93 C159 89 157 82 152 79Z" fill="#26262B" stroke="#2E3B24" stroke-width="2.2"></path></g>
+<path d="M44 48 C46 36 58 31 74 31 C94 32 112 31 126 33 C140 35 146 46 144 58 C142 70 134 76 122 77 C102 80 78 80 60 78 C48 76 42 68 42 58 Z" fill="#FFFDF6"></path>
+<g clip-path="url(#rigCowClip)" fill="#26262B"><path d="M70 28 C84 26 96 34 94 46 C92 56 78 58 70 52 C62 46 62 34 70 28Z"></path><path d="M110 28 C124 26 142 34 146 48 C140 56 126 56 118 48 C112 42 106 34 110 28Z"></path><path d="M86 66 C94 62 104 66 104 74 C100 80 88 80 84 74Z"></path></g>
+<path d="M44 48 C46 36 58 31 74 31 C94 32 112 31 126 33 C140 35 146 46 144 58 C142 70 134 76 122 77 C102 80 78 80 60 78 C48 76 42 68 42 58 Z" fill="none" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path>
+<g class="rig-udder"><ellipse cx="110" cy="79" rx="10" ry="6" fill="#F4B9B2" stroke="#2E3B24" stroke-width="2.6"></ellipse><path d="M104 84 v3.5 M110 85 v4 M116 84 v3.5" stroke="#2E3B24" stroke-width="2.6" stroke-linecap="round"></path></g>
+<g class="leg nh"><path d="M110 50 C118 44 134 46 136 58 L132 88 L118 88 C116 76 110 66 110 50Z" fill="#FFFDF6" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path><g class="low"><rect x="119" y="84" width="12" height="18" rx="4" fill="#FFFDF6" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="117.5" y="99" width="15" height="7" rx="2.5" fill="#3A2A20" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="leg nf"><rect x="50" y="58" width="15" height="30" rx="6" fill="#FFFDF6" stroke="#2E3B24" stroke-width="3.4"></rect><g class="low"><rect x="51.5" y="84" width="12" height="18" rx="4" fill="#FFFDF6" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="50.0" y="99" width="15" height="7" rx="2.5" fill="#3A2A20" stroke="#2E3B24" stroke-width="3.4"></rect></g></g>
+<g class="rig-head"><g transform="translate(32 40) scale(.58)"><g stroke="#2E3B24" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><path d="M-15 -38 C-18 -48 -24 -55 -31 -58 C-30 -49 -27 -42 -23 -35 Z" fill="#EADBB8"/><path d="M15 -38 C18 -48 24 -55 31 -58 C30 -49 27 -42 23 -35 Z" fill="#EADBB8"/><path d="M-22 -20 C-37 -29 -51 -23 -56 -12 C-46 -4 -32 -6 -21 -11 Z" fill="#FFFDF6"/><path d="M22 -20 C37 -29 51 -23 56 -12 C46 -4 32 -6 21 -11 Z" fill="#26262B"/><path d="M-26 -36 C-13 -45 13 -45 26 -36 C32 -16 29 6 25 20 L-25 20 C-29 6 -32 -16 -26 -36 Z" fill="#FFFDF6"/></g><path d="M3 -42 C14 -44 25 -41 27 -34 C30 -18 28 -6 20 -3 C10 0 0 -10 3 -42 Z" fill="#26262B"/><path d="M-30 4 C-23 1 -17 8 -20 15 C-23 20 -28 19 -29 15 Z" fill="#26262B"/><path d="M-26 -36 C-13 -45 13 -45 26 -36 C32 -16 29 6 25 20 L-25 20 C-29 6 -32 -16 -26 -36 Z" fill="none" stroke="#2E3B24" stroke-width="6" stroke-linejoin="round"/><path d="M-30 -18 C-40 -23 -48 -20 -50 -14 C-43 -10 -35 -11 -29 -14 Z" fill="#F0B2AE"/><ellipse cx="0" cy="22" rx="26" ry="17" fill="#F4B9B2" stroke="#2E3B24" stroke-width="6"/><ellipse cx="-10" cy="21" rx="3.6" ry="5" fill="#A2504C"/><ellipse cx="10" cy="21" rx="3.6" ry="5" fill="#A2504C"/><path d="M-6 31 Q0 34 6 31" fill="none" stroke="#A2504C" stroke-width="2" stroke-linecap="round"/><g><circle cx="-12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="-11" cy="-8.6" r="3.8" fill="#3B2416"/><circle cx="-12.4" cy="-10.4" r="1.4" fill="#FFFFFF"/><circle cx="12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="11" cy="-8.6" r="3.8" fill="#3B2416"/><circle cx="9.6" cy="-10.4" r="1.4" fill="#FFFFFF"/><path d="M-17 -18 l-3 -3 M-13 -19.5 l-1.5 -3.8 M-8.5 -19 l0 -4 M17 -18 l3 -3 M13 -19.5 l1.5 -3.8 M8.5 -19 l0 -4" stroke="#2E3B24" stroke-width="1.8" stroke-linecap="round"/></g></g></g>
+</g></g></sc-if>
+</g></g></sc-for>
+</sc-if>
+<sc-if value="{{isMiss}}" hint-placeholder-val="{{ false }}"><circle class="ps-puff" cx="262" cy="304" r="18" fill="url(#psDust)"></circle><circle class="ps-puff" cx="296" cy="314" r="16" fill="url(#psDust)" style="animation-delay: .14s"></circle><circle class="ps-puff" cx="236" cy="318" r="14" fill="url(#psDust)" style="animation-delay: .26s"></circle></sc-if>
+<g fill="url(#psWood)"><rect x="2" y="330" width="198" height="5" rx="2"></rect><rect x="2" y="343" width="198" height="5" rx="2"></rect></g>
+<g fill="#86592F"><rect x="3" y="320" width="7" height="40" rx="1.5"></rect><rect x="51" y="320" width="7" height="40" rx="1.5"></rect><rect x="99" y="320" width="7" height="40" rx="1.5"></rect><rect x="147" y="320" width="7" height="40" rx="1.5"></rect><rect x="194" y="320" width="7" height="40" rx="1.5"></rect></g>
+<g stroke="#3A7629" stroke-width="2" stroke-linecap="round" fill="none"><path d="M20 380 l-5 -12 M23 380 v-15 M26 380 l5 -12"></path><path d="M120 380 l-4 -10 M123 380 v-13 M126 380 l4 -10"></path><path d="M232 380 l-5 -12 M235 380 v-15 M238 380 l5 -12"></path><path d="M300 380 l-4 -10 M303 380 v-13 M306 380 l4 -10"></path><path d="M376 380 l-5 -12 M379 380 v-15 M382 380 l5 -12"></path></g>
+<g class="ps-fade" style="opacity: {{fog}}"><rect width="390" height="380" fill="#EEF4F7" opacity=".5"></rect><g filter="url(#psBlur)" fill="#F4F8FA"><ellipse class="ps-fogb" cx="90" cy="210" rx="130" ry="55" style="animation-duration: 14s"></ellipse><ellipse class="ps-fogb" cx="290" cy="290" rx="140" ry="60" style="animation-duration: 18s; animation-delay: -6s"></ellipse><ellipse class="ps-fogb" cx="160" cy="340" rx="120" ry="45" style="animation-duration: 16s; animation-delay: -3s"></ellipse></g></g>
+</svg>
+</div>
+
+<sc-if value="{{showHud}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 12px; right: 12px; top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px">
+<span style="display: flex; gap: 6px; align-items: center; min-width: 0"><sc-if value="{{focusMode}}" hint-placeholder-val="{{ false }}"><button class="ps-hud" onClick="{{exitPlay}}" aria-label="Изход от играта" style="display: flex; align-items: center; gap: 4px; min-height: 32px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Меню</button></sc-if><span class="ps-hud">Мъгла · {{left}} варианта</span></span>
+<span class="ps-hud" style="font-variant-numeric: tabular-nums">{{clock}}</span>
+</div>
+</sc-if>
+
+<sc-if value="{{isLogin}}" hint-placeholder-val="{{ true }}">
+<main class="panel" style="top: {{loginTop}}; padding: 24px 22px 24px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto">
+<div class="rise" style="display: flex; align-items: center; gap: 14px">
+<svg width="78" height="78" viewBox="10 10 280 280" aria-hidden="true" style="flex: none"><defs><linearGradient id="skylg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9FD3EC"/><stop offset=".7" stop-color="#E4F2F4"/></linearGradient><linearGradient id="hilllg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8CC665"/><stop offset="1" stop-color="#5E9E46"/></linearGradient><clipPath id="disclg"><circle cx="150" cy="150" r="128"/></clipPath></defs><circle cx="150" cy="150" r="140" fill="#F6F2E6"/><circle cx="150" cy="150" r="140" fill="none" stroke="#2E3B24" stroke-width="6"/><g clip-path="url(#disclg)"><rect x="0" y="0" width="300" height="300" fill="url(#skylg)"/><circle cx="222" cy="82" r="22" fill="#FFE59A"/><circle cx="222" cy="82" r="34" fill="#FFF6CF" opacity=".55"/><path d="M10 170 L70 116 L104 142 L150 104 L196 140 L232 118 L300 170 Z" fill="#9FB3C2"/><path d="M118 132 L150 104 L172 122 L160 120 L150 128 L140 122 Z" fill="#FFFFFF" opacity=".85"/><path d="M0 182 C60 160 110 168 150 176 C200 186 250 168 300 172 L300 300 L0 300 Z" fill="url(#hilllg)"/><path d="M0 222 C70 206 220 206 300 222 L300 300 L0 300Z" fill="#4E8A3A"/><g stroke="#7A5230" stroke-width="5" stroke-linecap="round"><path d="M20 238 L280 238"/><path d="M20 256 L280 256"/><path d="M40 228 L40 270 M90 228 L90 270 M210 228 L210 270 M260 228 L260 270"/></g></g><g transform="translate(103 176) rotate(-9) scale(1.02)"><g stroke="#2E3B24" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M-20 -30 C-34 -30 -47 -40 -52 -60 C-42 -51 -31 -47 -16 -45 Z" fill="#F3E6C8"/><path d="M20 -30 C34 -30 47 -40 52 -60 C42 -51 31 -47 16 -45 Z" fill="#F3E6C8"/><path d="M-23 -20 C-36 -28 -50 -24 -55 -14 C-46 -6 -33 -7 -22 -11 Z" fill="#4A3427"/><path d="M23 -20 C36 -28 50 -24 55 -14 C46 -6 33 -7 22 -11 Z" fill="#4A3427"/><path d="M-27 -38 C-14 -47 14 -47 27 -38 C33 -18 30 6 26 20 L-26 20 C-30 6 -33 -18 -27 -38 Z" fill="#5E3E2C"/><path d="M-13 -43 C-9 -54 -3 -47 0 -57 C3 -47 9 -54 13 -43 C6 -38 -6 -38 -13 -43 Z" fill="#3A2619"/><ellipse cx="0" cy="22" rx="27" ry="18" fill="#A07B64"/></g><ellipse cx="-10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><ellipse cx="10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><path d="M-7 29 C-7 39 7 39 7 29" fill="none" stroke="#E2B44A" stroke-width="4" stroke-linecap="round"/><g><circle cx="-12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="-11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="-12.4" cy="-10.6" r="1.4" fill="#FFFFFF"/><circle cx="12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="9.6" cy="-10.6" r="1.4" fill="#FFFFFF"/><path d="M-19 -20 L-6 -18 M19 -20 L6 -18" stroke="#2A1A10" stroke-width="3" stroke-linecap="round"/></g></g><g transform="translate(197 178) rotate(9) scale(1.0)"><defs><clipPath id="chlg"><path d="M-26 -36 C-13 -45 13 -45 26 -36 C32 -16 29 6 25 20 L-25 20 C-29 6 -32 -16 -26 -36 Z"/></clipPath></defs><g stroke="#2E3B24" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M-15 -38 C-18 -48 -24 -55 -31 -58 C-30 -49 -27 -42 -23 -35 Z" fill="#EADBB8"/><path d="M15 -38 C18 -48 24 -55 31 -58 C30 -49 27 -42 23 -35 Z" fill="#EADBB8"/><path d="M-22 -20 C-37 -29 -51 -23 -56 -12 C-46 -4 -32 -6 -21 -11 Z" fill="#FFFDF6"/><path d="M22 -20 C37 -29 51 -23 56 -12 C46 -4 32 -6 21 -11 Z" fill="#26262B"/><path d="M-26 -36 C-13 -45 13 -45 26 -36 C32 -16 29 6 25 20 L-25 20 C-29 6 -32 -16 -26 -36 Z" fill="#FFFDF6"/></g><path d="M-28 -60 L-28 60" /><g clip-path="url(#chlg)"><path d="M2 -48 C18 -50 34 -42 32 -22 C30 -6 20 0 10 -4 C0 -9 -4 -26 2 -48 Z" fill="#26262B"/><path d="M-30 4 C-22 0 -16 8 -20 16 C-24 22 -32 20 -32 14 Z" fill="#26262B"/></g><path d="M-26 -36 C-13 -45 13 -45 26 -36 C32 -16 29 6 25 20 L-25 20 C-29 6 -32 -16 -26 -36 Z" fill="none" stroke="#2E3B24" stroke-width="3" stroke-linejoin="round"/><path d="M-30 -18 C-40 -23 -48 -20 -50 -14 C-43 -10 -35 -11 -29 -14 Z" fill="#F0B2AE"/><ellipse cx="0" cy="22" rx="26" ry="17" fill="#F4B9B2" stroke="#2E3B24" stroke-width="3"/><ellipse cx="-10" cy="21" rx="3.6" ry="5" fill="#A2504C"/><ellipse cx="10" cy="21" rx="3.6" ry="5" fill="#A2504C"/><path d="M-6 31 Q0 34 6 31" fill="none" stroke="#A2504C" stroke-width="2" stroke-linecap="round"/><g><circle cx="-12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="-11" cy="-8.6" r="3.8" fill="#3B2416"/><circle cx="-12.4" cy="-10.4" r="1.4" fill="#FFFFFF"/><circle cx="12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="11" cy="-8.6" r="3.8" fill="#3B2416"/><circle cx="9.6" cy="-10.4" r="1.4" fill="#FFFFFF"/><path d="M-17 -18 l-3 -3 M-13 -19.5 l-1.5 -3.8 M-8.5 -19 l0 -4 M17 -18 l3 -3 M13 -19.5 l1.5 -3.8 M8.5 -19 l0 -4" stroke="#2E3B24" stroke-width="1.8" stroke-linecap="round"/></g></g><circle cx="150" cy="150" r="128" fill="none" stroke="#2E3B24" stroke-width="4"/></svg>
+<div style="min-width: 0">
+<h1 style="margin: 0; font-size: 32px; font-weight: 900; line-height: 1">Бикове <span style="color: #B5452F">и крави</span></h1>
+<p style="margin: 6px 0 0; font-size: 15px; font-weight: 700; color: #4A5640">Логическа игра за цялото семейство</p>
+</div>
+</div>
+<div class="inset" style="display: flex; gap: 4px; padding: 4px" role="group" aria-label="Вход или регистрация">
+<button class="seg {{tabLoginCls}}" onClick="{{showLogin}}">Вход</button>
+<button class="seg {{tabRegCls}}" onClick="{{showReg}}">Нов профил</button>
+</div>
+<input class="field" value="{{name}}" onChange="{{onName}}" placeholder="Име в играта" aria-label="Име в играта" autocomplete="username">
+<sc-if value="{{isReg}}" hint-placeholder-val="{{ false }}"><input class="field" value="{{email}}" onChange="{{onEmail}}" placeholder="Имейл" aria-label="Имейл" autocomplete="email"></sc-if>
+<input class="field" type="password" value="{{pass}}" onChange="{{onPass}}" placeholder="Парола" aria-label="Парола" autocomplete="current-password">
+<sc-if value="{{hasErr}}" hint-placeholder-val="{{ false }}"><p role="alert" style="margin: 0; font-weight: 800; font-size: 14px; color: #8A1F0B">{{err}}</p></sc-if>
+<button class="cta" onClick="{{doLogin}}">{{loginLabel}}</button>
+<button class="soft" onClick="{{doGuest}}">Играй като гост</button>
+<button onClick="{{goRules}}" style="min-height: 36px; font-weight: 800; color: #8E3424; text-decoration: underline">Как се играе?</button>
+</main>
+</sc-if>
+
+<sc-if value="{{isPlayLike}}" hint-placeholder-val="{{ false }}">
+<main class="panel ps-play" style="top: {{playTop}}; bottom: {{playBottom}}; border-radius: 26px 26px 0 0; padding: {{playPad}}; display: flex; flex-direction: column; gap: {{playGap}}">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+<div style="display: flex; flex-direction: column; min-width: 0">
+<span style="font-weight: 900; font-size: 15px">Опит {{attemptNo}} · {{modeShort}}</span>
+<span style="font-weight: 700; font-size: 13px; color: #4A5640; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{lastText}}</span>
+</div>
+<div style="display: flex; gap: 8px">
+<button class="iconbox icobtn" onClick="{{openNotes}}" aria-label="Тефтерче" style="position: relative"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E3B24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6z"></path><path d="M6 3v18M4 7h4M4 12h4M4 17h4M10 8h6M10 12h5"></path></svg><sc-if value="{{hasNotes}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #B5452F; color: #FFFFFF; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center">{{noteCount}}</span></sc-if></button>
+<button class="iconbox icobtn" onClick="{{toggleMute}}" aria-label="{{muteLabel}}">
+<sc-if value="{{soundOn}}" hint-placeholder-val="{{ true }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2E3B24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"></path></svg></sc-if>
+<sc-if value="{{soundOff}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2E3B24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"></path><path d="M22 9l-6 6M16 9l6 6"></path></svg></sc-if>
+</button>
+</div>
+</div>
+<div class="{{shakeCls}}" style="display: flex; gap: 10px; justify-content: center">
+<sc-for list="{{slots}}" as="s" hint-placeholder-count="4"><div class="sign {{s.cls}}"><sc-if value="{{s.filled}}" hint-placeholder-val="{{ false }}"><span class="boing">{{s.ch}}</span></sc-if></div></sc-for>
+</div>
+<p role="status" style="margin: -2px 0 0; min-height: 16px; text-align: center; font-weight: 800; font-size: 13px; color: #8A1F0B">{{err}}</p>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{keys}}" as="k" hint-placeholder-count="10"><button class="key {{k.cls}}" onClick="{{k.press}}" disabled="{{k.blocked}}" aria-label="Цифра {{k.d}}">{{k.d}}</button></sc-for>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 2.2fr; gap: 10px">
+<button class="soft icobtn" onClick="{{back}}" aria-label="Изтрий"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><path d="M18 9l-6 6M12 9l6 6"></path></svg></button>
+<button class="cta" onClick="{{submit}}">Пусни стадото!</button>
+</div>
+<sc-if value="{{showStartCard}}" hint-placeholder-val="{{ false }}">
+<div class="fadein" style="position: absolute; inset: 0; border-radius: 26px 26px 0 0; background: rgba(246,242,230,.95); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px; text-align: center">
+<sc-if value="{{notCounting}}" hint-placeholder-val="{{ true }}">
+<h2 class="rise" style="margin: 0; font-size: {{startH}}; font-weight: 900; line-height: 1.15">Числото е скрито<br>в мъглата</h2>
+<p style="margin: 0; font-weight: 700; color: #4A5640; line-height: 1.5">Часовникът тръгва чак когато натиснеш „Старт“.</p>
+<span style="font-size: 13px; font-weight: 800; color: #6B7560">{{startInfo}}</span>
+<button class="cta float" onClick="{{begin}}" style="min-width: 230px; min-height: {{startBtnH}}; font-size: 24px; letter-spacing: .04em">Старт</button>
+</sc-if>
+</div>
+</sc-if>
+</main>
+</sc-if>
+
+<sc-if value="{{isBand}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 16px; right: 16px; top: 16px; display: flex; align-items: center; justify-content: space-between">
+<span class="ps-hud" style="font-size: 15px">{{bandTitle}}</span>
+<span class="ps-hud">{{bandSub}}</span>
+</div>
+</sc-if>
+
+<sc-if value="{{isRules}}" hint-placeholder-val="{{ false }}">
+<main class="panel" style="top: {{bandTop}}; bottom: {{rulesBottom}}; padding: 22px 20px 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto">
+<h1 class="rise" style="margin: 0; font-size: 30px; font-weight: 900">Как се играе</h1>
+<div class="card rise" style="padding: 16px; display: flex; flex-direction: column; gap: 12px; animation-delay: .05s">
+<div style="display: flex; align-items: center; gap: 10px"><span style="width: 28px; height: 28px; border-radius: 50%; background: #2E3B24; color: #FFFFFF; font-weight: 900; display: flex; align-items: center; justify-content: center">1</span><b style="font-size: 17px">Скрито е число</b></div>
+<div style="display: flex; gap: 8px; justify-content: center"><div class="sign">?</div><div class="sign">?</div><div class="sign">?</div><div class="sign">?</div></div>
+<p style="margin: 0; color: #4A5640; font-weight: 600; line-height: 1.5">{{len}} различни цифри, първата не е 0. Ти трябва да го познаеш с възможно най-малко опити.</p>
+</div>
+<div class="card rise" style="padding: 16px; display: flex; flex-direction: column; gap: 12px; animation-delay: .1s">
+<div style="display: flex; align-items: center; gap: 10px"><span style="width: 28px; height: 28px; border-radius: 50%; background: #2E3B24; color: #FFFFFF; font-weight: 900; display: flex; align-items: center; justify-content: center">2</span><b style="font-size: 17px">Бикове и крави</b></div>
+<div style="display: flex; align-items: center; gap: 12px"><svg width="64" height="45" viewBox="0 0 80 56" aria-hidden="true"><g class="rig rig-b rig-static" transform="scale(.5)">
+<ellipse class="rig-shadow" cx="90" cy="106" rx="56" ry="5" fill="#1E2A14" opacity=".22"></ellipse>
+<g class="rig-dust"><circle cx="134" cy="102" r="7" fill="#E9D6AE"></circle><circle cx="148" cy="98" r="5" fill="#E9D6AE"></circle><circle cx="122" cy="104" r="5" fill="#E9D6AE"></circle></g>
+<g class="rig-body"><g class="leg fh far"><path d="M102 50 C110 44 126 46 128 58 L124 88 L110 88 C108 76 102 66 102 50Z" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path><g class="low"><rect x="111" y="84" width="12" height="18" rx="4" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="109.5" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="leg ff far"><rect x="60" y="58" width="15" height="30" rx="6" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4"></rect><g class="low"><rect x="61.5" y="84" width="12" height="18" rx="4" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="60.0" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="rig-tail"><path d="M142 46 C152 52 155 66 152 82" stroke="#2E3B24" stroke-width="6" fill="none" stroke-linecap="round"></path><path d="M142 46 C152 52 155 66 152 82" stroke="#5E3E2C" stroke-width="2.6" fill="none" stroke-linecap="round"></path><path d="M148 80 C146 88 150 95 155 93 C159 89 157 82 152 79Z" fill="#26262B" stroke="#2E3B24" stroke-width="2.2"></path></g>
+<path d="M44 46 C46 31 60 24 76 26 C96 28 116 28 128 32 C142 36 147 48 145 60 C143 72 134 78 120 79 C100 81 76 81 60 79 C48 77 42 68 42 58 Z" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path>
+<path d="M60 31 C74 27 92 29 104 31" stroke="#7A5440" stroke-width="5" fill="none" stroke-linecap="round"></path>
+<g class="leg nh"><path d="M110 50 C118 44 134 46 136 58 L132 88 L118 88 C116 76 110 66 110 50Z" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path><g class="low"><rect x="119" y="84" width="12" height="18" rx="4" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="117.5" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="leg nf"><rect x="50" y="58" width="15" height="30" rx="6" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4"></rect><g class="low"><rect x="51.5" y="84" width="12" height="18" rx="4" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="50.0" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g>
+<g class="rig-head"><g transform="translate(32 39) scale(.58)"><g stroke="#2E3B24" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><path d="M-20 -30 C-34 -30 -47 -40 -52 -60 C-42 -51 -31 -47 -16 -45 Z" fill="#F3E6C8"/><path d="M20 -30 C34 -30 47 -40 52 -60 C42 -51 31 -47 16 -45 Z" fill="#F3E6C8"/><path d="M-23 -20 C-36 -28 -50 -24 -55 -14 C-46 -6 -33 -7 -22 -11 Z" fill="#4A3427"/><path d="M23 -20 C36 -28 50 -24 55 -14 C46 -6 33 -7 22 -11 Z" fill="#4A3427"/><path d="M-27 -38 C-14 -47 14 -47 27 -38 C33 -18 30 6 26 20 L-26 20 C-30 6 -33 -18 -27 -38 Z" fill="#5E3E2C"/><path d="M-13 -43 C-9 -54 -3 -47 0 -57 C3 -47 9 -54 13 -43 C6 -38 -6 -38 -13 -43 Z" fill="#3A2619"/><ellipse cx="0" cy="22" rx="27" ry="18" fill="#A07B64"/></g><ellipse cx="-10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><ellipse cx="10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><path d="M-7 29 C-7 39 7 39 7 29" fill="none" stroke="#E2B44A" stroke-width="4" stroke-linecap="round"/><g><circle cx="-12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="-11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="-12.4" cy="-10.6" r="1.4" fill="#FFFFFF"/><circle cx="12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="9.6" cy="-10.6" r="1.4" fill="#FFFFFF"/><path d="M-19 -20 L-6 -18 M19 -20 L6 -18" stroke="#2A1A10" stroke-width="3" stroke-linecap="round"/></g></g></g>
+</g></g></svg><span style="font-weight: 700; line-height: 1.45"><b>Бик</b> — вярна цифра на вярното място. Тича в обора.</span></div>
+<div style="display: flex; align-items: center; gap: 12px"><svg width="64" height="45" viewBox="0 0 80 56" aria-hidden="true"><g class="rig rig-b rig-static" transform="scale(.5)">
+<ellipse class="rig-shadow" cx="90" cy="106" rx="56" ry="5" fill="#1E2A14" opacity=".22"></ellipse>
+<g class="rig-dust"><circle cx="134" cy="102" r="7" fill="#E9D6AE"></circle><circle cx="148" cy="98" r="5" fill="#E9D6AE"></circle><circle cx="122" cy="104" r="5" fill="#E9D6AE"></circle></g>
+<g class="rig-body"><g class="leg fh far"><path d="M102 50 C110 44 126 46 128 58 L124 88 L110 88 C108 76 102 66 102 50Z" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path><g class="low"><rect x="111" y="84" width="12" height="18" rx="4" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="109.5" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="leg ff far"><rect x="60" y="58" width="15" height="30" rx="6" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4"></rect><g class="low"><rect x="61.5" y="84" width="12" height="18" rx="4" fill="#4A3427" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="60.0" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="rig-tail"><path d="M142 46 C152 52 155 66 152 82" stroke="#2E3B24" stroke-width="6" fill="none" stroke-linecap="round"></path><path d="M142 46 C152 52 155 66 152 82" stroke="#5E3E2C" stroke-width="2.6" fill="none" stroke-linecap="round"></path><path d="M148 80 C146 88 150 95 155 93 C159 89 157 82 152 79Z" fill="#26262B" stroke="#2E3B24" stroke-width="2.2"></path></g>
+<path d="M44 46 C46 31 60 24 76 26 C96 28 116 28 128 32 C142 36 147 48 145 60 C143 72 134 78 120 79 C100 81 76 81 60 79 C48 77 42 68 42 58 Z" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path>
+<path d="M60 31 C74 27 92 29 104 31" stroke="#7A5440" stroke-width="5" fill="none" stroke-linecap="round"></path>
+<g class="leg nh"><path d="M110 50 C118 44 134 46 136 58 L132 88 L118 88 C116 76 110 66 110 50Z" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4" stroke-linejoin="round"></path><g class="low"><rect x="119" y="84" width="12" height="18" rx="4" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="117.5" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g><g class="leg nf"><rect x="50" y="58" width="15" height="30" rx="6" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4"></rect><g class="low"><rect x="51.5" y="84" width="12" height="18" rx="4" fill="#5E3E2C" stroke="#2E3B24" stroke-width="3.4"></rect><rect x="50.0" y="99" width="15" height="7" rx="2.5" fill="#2E1E16" stroke="#2E3B24" stroke-width="3.4"></rect></g></g>
+<g class="rig-head"><g transform="translate(32 39) scale(.58)"><g stroke="#2E3B24" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><path d="M-20 -30 C-34 -30 -47 -40 -52 -60 C-42 -51 -31 -47 -16 -45 Z" fill="#F3E6C8"/><path d="M20 -30 C34 -30 47 -40 52 -60 C42 -51 31 -47 16 -45 Z" fill="#F3E6C8"/><path d="M-23 -20 C-36 -28 -50 -24 -55 -14 C-46 -6 -33 -7 -22 -11 Z" fill="#4A3427"/><path d="M23 -20 C36 -28 50 -24 55 -14 C46 -6 33 -7 22 -11 Z" fill="#4A3427"/><path d="M-27 -38 C-14 -47 14 -47 27 -38 C33 -18 30 6 26 20 L-26 20 C-30 6 -33 -18 -27 -38 Z" fill="#5E3E2C"/><path d="M-13 -43 C-9 -54 -3 -47 0 -57 C3 -47 9 -54 13 -43 C6 -38 -6 -38 -13 -43 Z" fill="#3A2619"/><ellipse cx="0" cy="22" rx="27" ry="18" fill="#A07B64"/></g><ellipse cx="-10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><ellipse cx="10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><path d="M-7 29 C-7 39 7 39 7 29" fill="none" stroke="#E2B44A" stroke-width="4" stroke-linecap="round"/><g><circle cx="-12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="-11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="-12.4" cy="-10.6" r="1.4" fill="#FFFFFF"/><circle cx="12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="9.6" cy="-10.6" r="1.4" fill="#FFFFFF"/><path d="M-19 -20 L-6 -18 M19 -20 L6 -18" stroke="#2A1A10" stroke-width="3" stroke-linecap="round"/></g></g></g>
+</g></g></svg><span style="font-weight: 700; line-height: 1.45"><b>Крава</b> — цифрата я има, но е на друго място. Пасе отвън.</span></div>
+</div>
+<div class="card rise" style="padding: 16px; display: flex; flex-direction: column; gap: 10px; animation-delay: .15s">
+<div style="display: flex; align-items: center; gap: 10px"><span style="width: 28px; height: 28px; border-radius: 50%; background: #2E3B24; color: #FFFFFF; font-weight: 900; display: flex; align-items: center; justify-content: center">3</span><b style="font-size: 17px">Пример</b></div>
+<div style="display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; align-items: center; font-weight: 700">
+<span style="color: #4A5640">Тайно</span><span style="letter-spacing: .3em; font-weight: 900; font-size: 18px">4 2 7 1</span>
+<span style="color: #4A5640">Опит</span><span style="letter-spacing: .3em; font-weight: 900; font-size: 18px">1 2 3 4</span>
+<span style="color: #4A5640">Отговор</span><span style="display: flex; align-items: center; gap: 6px"><svg width="26" height="26" viewBox="-62 -66 124 124" aria-hidden="true"><g stroke="#2E3B24" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M-20 -30 C-34 -30 -47 -40 -52 -60 C-42 -51 -31 -47 -16 -45 Z" fill="#F3E6C8"/><path d="M20 -30 C34 -30 47 -40 52 -60 C42 -51 31 -47 16 -45 Z" fill="#F3E6C8"/><path d="M-23 -20 C-36 -28 -50 -24 -55 -14 C-46 -6 -33 -7 -22 -11 Z" fill="#4A3427"/><path d="M23 -20 C36 -28 50 -24 55 -14 C46 -6 33 -7 22 -11 Z" fill="#4A3427"/><path d="M-27 -38 C-14 -47 14 -47 27 -38 C33 -18 30 6 26 20 L-26 20 C-30 6 -33 -18 -27 -38 Z" fill="#5E3E2C"/><path d="M-13 -43 C-9 -54 -3 -47 0 -57 C3 -47 9 -54 13 -43 C6 -38 -6 -38 -13 -43 Z" fill="#3A2619"/><ellipse cx="0" cy="22" rx="27" ry="18" fill="#A07B64"/></g><ellipse cx="-10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><ellipse cx="10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><path d="M-7 29 C-7 39 7 39 7 29" fill="none" stroke="#E2B44A" stroke-width="4" stroke-linecap="round"/><g><circle cx="-12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="-11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="-12.4" cy="-10.6" r="1.4" fill="#FFFFFF"/><circle cx="12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="9.6" cy="-10.6" r="1.4" fill="#FFFFFF"/><path d="M-19 -20 L-6 -18 M19 -20 L6 -18" stroke="#2A1A10" stroke-width="3" stroke-linecap="round"/></g></svg>1 бик (2) <svg width="26" height="26" viewBox="-62 -66 124 124" aria-hidden="true"><g stroke="#2E3B24" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M-15 -38 C-18 -48 -24 -55 -31 -58 C-30 -49 -27 -42 -23 -35 Z" fill="#EADBB8"/><path d="M15 -38 C18 -48 24 -55 31 -58 C30 -49 27 -42 23 -35 Z" fill="#EADBB8"/><path d="M-22 -20 C-37 -29 -51 -23 -56 -12 C-46 -4 -32 -6 -21 -11 Z" fill="#FFFDF6"/><path d="M22 -20 C37 -29 51 -23 56 -12 C46 -4 32 -6 21 -11 Z" fill="#26262B"/><path d="M-26 -36 C-13 -45 13 -45 26 -36 C32 -16 29 6 25 20 L-25 20 C-29 6 -32 -16 -26 -36 Z" fill="#FFFDF6"/></g><path d="M3 -42 C14 -44 25 -41 27 -34 C30 -18 28 -6 20 -3 C10 0 0 -10 3 -42 Z" fill="#26262B"/><path d="M-30 4 C-23 1 -17 8 -20 15 C-23 20 -28 19 -29 15 Z" fill="#26262B"/><path d="M-26 -36 C-13 -45 13 -45 26 -36 C32 -16 29 6 25 20 L-25 20 C-29 6 -32 -16 -26 -36 Z" fill="none" stroke="#2E3B24" stroke-width="3" stroke-linejoin="round"/><path d="M-30 -18 C-40 -23 -48 -20 -50 -14 C-43 -10 -35 -11 -29 -14 Z" fill="#F0B2AE"/><ellipse cx="0" cy="22" rx="26" ry="17" fill="#F4B9B2" stroke="#2E3B24" stroke-width="3"/><ellipse cx="-10" cy="21" rx="3.6" ry="5" fill="#A2504C"/><ellipse cx="10" cy="21" rx="3.6" ry="5" fill="#A2504C"/><path d="M-6 31 Q0 34 6 31" fill="none" stroke="#A2504C" stroke-width="2" stroke-linecap="round"/><g><circle cx="-12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="-11" cy="-8.6" r="3.8" fill="#3B2416"/><circle cx="-12.4" cy="-10.4" r="1.4" fill="#FFFFFF"/><circle cx="12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="11" cy="-8.6" r="3.8" fill="#3B2416"/><circle cx="9.6" cy="-10.4" r="1.4" fill="#FFFFFF"/><path d="M-17 -18 l-3 -3 M-13 -19.5 l-1.5 -3.8 M-8.5 -19 l0 -4 M17 -18 l3 -3 M13 -19.5 l1.5 -3.8 M8.5 -19 l0 -4" stroke="#2E3B24" stroke-width="1.8" stroke-linecap="round"/></g></svg>2 крави (1, 4)</span>
+</div>
+</div>
+<div class="card rise" style="padding: 16px; display: flex; gap: 12px; align-items: flex-start; animation-delay: .2s">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8E3424" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6z"></path><path d="M6 3v18M4 7h4M4 12h4M4 17h4M10 8h6M10 12h5"></path></svg>
+<span style="font-weight: 700; line-height: 1.5; color: #4A5640">Мъглата над пасището се вдига, когато вариантите намаляват. Ползвай <b style="color: #2E3B24">тефтерчето</b>, за да отбелязваш кои цифри ги няма и кои са сигурни.</span>
+</div>
+<button class="cta" onClick="{{goPlay}}" style="min-height: 56px">Започни игра</button>
+</main>
+</sc-if>
+
+<sc-if value="{{isBoard}}" hint-placeholder-val="{{ false }}">
+<main class="panel" style="top: {{bandTop}}; bottom: 72px; padding: 18px 16px 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto">
+<div class="inset" style="display: flex; gap: 4px; padding: 4px" role="group" aria-label="Период"><sc-for list="{{boardTabs}}" as="t" hint-placeholder-count="3"><button class="seg {{t.cls}}" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; align-items: end; padding-top: 6px">
+<sc-for list="{{podium}}" as="p" hint-placeholder-count="3">
+<div class="rise" style="display: flex; flex-direction: column; align-items: center; gap: 6px; animation-delay: {{p.d}}">
+<sc-if value="{{p.first}}" hint-placeholder-val="{{ false }}"><svg class="shine" width="30" height="22" viewBox="0 0 32 24" fill="#F2C230" stroke="#7A5230" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M2 7l7 6 7-11 7 11 7-6-3 15H5z"></path></svg></sc-if>
+<span style="width: 52px; height: 52px; border-radius: 50%; background: {{p.bg}}; border: 3px solid #FFFFFF; box-shadow: 0 3px 8px rgba(30,40,20,.2); display: flex; align-items: center; justify-content: center">
+<sc-if value="{{p.bull}}" hint-placeholder-val="{{ true }}"><svg width="36" height="36" viewBox="-62 -66 124 124" aria-hidden="true"><g stroke="#2E3B24" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M-20 -30 C-34 -30 -47 -40 -52 -60 C-42 -51 -31 -47 -16 -45 Z" fill="#F3E6C8"/><path d="M20 -30 C34 -30 47 -40 52 -60 C42 -51 31 -47 16 -45 Z" fill="#F3E6C8"/><path d="M-23 -20 C-36 -28 -50 -24 -55 -14 C-46 -6 -33 -7 -22 -11 Z" fill="#4A3427"/><path d="M23 -20 C36 -28 50 -24 55 -14 C46 -6 33 -7 22 -11 Z" fill="#4A3427"/><path d="M-27 -38 C-14 -47 14 -47 27 -38 C33 -18 30 6 26 20 L-26 20 C-30 6 -33 -18 -27 -38 Z" fill="#5E3E2C"/><path d="M-13 -43 C-9 -54 -3 -47 0 -57 C3 -47 9 -54 13 -43 C6 -38 -6 -38 -13 -43 Z" fill="#3A2619"/><ellipse cx="0" cy="22" rx="27" ry="18" fill="#A07B64"/></g><ellipse cx="-10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><ellipse cx="10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><path d="M-7 29 C-7 39 7 39 7 29" fill="none" stroke="#E2B44A" stroke-width="4" stroke-linecap="round"/><g><circle cx="-12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="-11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="-12.4" cy="-10.6" r="1.4" fill="#FFFFFF"/><circle cx="12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="9.6" cy="-10.6" r="1.4" fill="#FFFFFF"/><path d="M-19 -20 L-6 -18 M19 -20 L6 -18" stroke="#2A1A10" stroke-width="3" stroke-linecap="round"/></g></svg></sc-if>
+<sc-if value="{{p.cow}}" hint-placeholder-val="{{ false }}"><svg width="36" height="36" viewBox="-62 -66 124 124" aria-hidden="true"><g stroke="#2E3B24" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M-15 -38 C-18 -48 -24 -55 -31 -58 C-30 -49 -27 -42 -23 -35 Z" fill="#EADBB8"/><path d="M15 -38 C18 -48 24 -55 31 -58 C30 -49 27 -42 23 -35 Z" fill="#EADBB8"/><path d="M-22 -20 C-37 -29 -51 -23 -56 -12 C-46 -4 -32 -6 -21 -11 Z" fill="#FFFDF6"/><path d="M22 -20 C37 -29 51 -23 56 -12 C46 -4 32 -6 21 -11 Z" fill="#26262B"/><path d="M-26 -36 C-13 -45 13 -45 26 -36 C32 -16 29 6 25 20 L-25 20 C-29 6 -32 -16 -26 -36 Z" fill="#FFFDF6"/></g><path d="M3 -42 C14 -44 25 -41 27 -34 C30 -18 28 -6 20 -3 C10 0 0 -10 3 -42 Z" fill="#26262B"/><path d="M-30 4 C-23 1 -17 8 -20 15 C-23 20 -28 19 -29 15 Z" fill="#26262B"/><path d="M-26 -36 C-13 -45 13 -45 26 -36 C32 -16 29 6 25 20 L-25 20 C-29 6 -32 -16 -26 -36 Z" fill="none" stroke="#2E3B24" stroke-width="3" stroke-linejoin="round"/><path d="M-30 -18 C-40 -23 -48 -20 -50 -14 C-43 -10 -35 -11 -29 -14 Z" fill="#F0B2AE"/><ellipse cx="0" cy="22" rx="26" ry="17" fill="#F4B9B2" stroke="#2E3B24" stroke-width="3"/><ellipse cx="-10" cy="21" rx="3.6" ry="5" fill="#A2504C"/><ellipse cx="10" cy="21" rx="3.6" ry="5" fill="#A2504C"/><path d="M-6 31 Q0 34 6 31" fill="none" stroke="#A2504C" stroke-width="2" stroke-linecap="round"/><g><circle cx="-12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="-11" cy="-8.6" r="3.8" fill="#3B2416"/><circle cx="-12.4" cy="-10.4" r="1.4" fill="#FFFFFF"/><circle cx="12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="11" cy="-8.6" r="3.8" fill="#3B2416"/><circle cx="9.6" cy="-10.4" r="1.4" fill="#FFFFFF"/><path d="M-17 -18 l-3 -3 M-13 -19.5 l-1.5 -3.8 M-8.5 -19 l0 -4 M17 -18 l3 -3 M13 -19.5 l1.5 -3.8 M8.5 -19 l0 -4" stroke="#2E3B24" stroke-width="1.8" stroke-linecap="round"/></g></svg></sc-if>
+</span>
+<span style="font-weight: 900; font-size: 13px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{p.name}}</span>
+<div class="bar" style="width: 100%; height: {{p.h}}; background-color: #C48E55; background-image: repeating-linear-gradient(0deg,rgba(90,50,20,.10) 0 2px,rgba(0,0,0,0) 2px 7px); border-radius: 12px 12px 4px 4px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 8px; color: #FFF8EA; animation-delay: {{p.d}}"><span style="font-size: 24px; font-weight: 900; text-shadow: 0 2px 0 rgba(70,40,15,.4)">{{p.rank}}</span><span style="font-size: 12px; font-weight: 800">{{p.score}} т.</span></div>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{rest}}" as="r" hint-placeholder-count="6">
+<div class="lbrow rise {{r.cls}}" style="animation-delay: {{r.d}}">
+<span style="font-weight: 900; color: #6B7560; text-align: center">{{r.rank}}</span>
+<span style="width: 30px; height: 30px; border-radius: 50%; background: {{r.bg}}; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color: #FFFFFF">{{r.initial}}</span>
+<span style="font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.name}}</span>
+<span style="font-weight: 700; color: #4A5640; text-align: right; font-size: 13px">{{r.n}} оп.</span>
+<span style="font-weight: 900; text-align: right">{{r.score}}</span>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{hasMe}}" hint-placeholder-val="{{ false }}"><div class="card" style="padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; font-weight: 800"><span>Ти си №{{myRank}}</span><span style="color: #8E3424">топ {{myTop}}% от всички</span></div></sc-if>
+</main>
+</sc-if>
+
+<sc-if value="{{isProfile}}" hint-placeholder-val="{{ false }}">
+<main class="panel" style="top: {{bandTop}}; bottom: 72px; padding: 0 16px 18px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 14px">
+<span class="float" style="width: 84px; height: 84px; border-radius: 50%; background: #F2C230; border: 4px solid #FFFFFF; box-shadow: 0 6px 16px rgba(30,40,20,.2); display: flex; align-items: center; justify-content: center"><svg width="60" height="60" viewBox="-62 -66 124 124" aria-hidden="true"><g stroke="#2E3B24" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M-20 -30 C-34 -30 -47 -40 -52 -60 C-42 -51 -31 -47 -16 -45 Z" fill="#F3E6C8"/><path d="M20 -30 C34 -30 47 -40 52 -60 C42 -51 31 -47 16 -45 Z" fill="#F3E6C8"/><path d="M-23 -20 C-36 -28 -50 -24 -55 -14 C-46 -6 -33 -7 -22 -11 Z" fill="#4A3427"/><path d="M23 -20 C36 -28 50 -24 55 -14 C46 -6 33 -7 22 -11 Z" fill="#4A3427"/><path d="M-27 -38 C-14 -47 14 -47 27 -38 C33 -18 30 6 26 20 L-26 20 C-30 6 -33 -18 -27 -38 Z" fill="#5E3E2C"/><path d="M-13 -43 C-9 -54 -3 -47 0 -57 C3 -47 9 -54 13 -43 C6 -38 -6 -38 -13 -43 Z" fill="#3A2619"/><ellipse cx="0" cy="22" rx="27" ry="18" fill="#A07B64"/></g><ellipse cx="-10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><ellipse cx="10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><path d="M-7 29 C-7 39 7 39 7 29" fill="none" stroke="#E2B44A" stroke-width="4" stroke-linecap="round"/><g><circle cx="-12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="-11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="-12.4" cy="-10.6" r="1.4" fill="#FFFFFF"/><circle cx="12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="9.6" cy="-10.6" r="1.4" fill="#FFFFFF"/><path d="M-19 -20 L-6 -18 M19 -20 L6 -18" stroke="#2A1A10" stroke-width="3" stroke-linecap="round"/></g></svg></span>
+<span style="font-size: 24px; font-weight: 900">{{user}}</span>
+<span style="font-weight: 800; color: #8E3424">{{levelTitle}} · ниво {{level}}</span>
+<div style="width: 70%; height: 10px; border-radius: 5px; background: #ECE5D2; overflow: hidden; margin-top: 4px"><div class="hbar" style="height: 100%; width: {{xpW}}; background: #5E9E46; border-radius: 5px"></div></div>
+<span style="font-size: 12px; font-weight: 700; color: #6B7560">{{xpText}}</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; text-align: center">
+<div class="card" style="padding: 10px 4px"><div style="font-size: 22px; font-weight: 900">{{played}}</div><div style="font-size: 11px; font-weight: 700; color: #6B7560">игри</div></div>
+<div class="card" style="padding: 10px 4px"><div style="font-size: 22px; font-weight: 900">{{winRate}}%</div><div style="font-size: 11px; font-weight: 700; color: #6B7560">победи</div></div>
+<div class="card" style="padding: 10px 4px"><div style="font-size: 22px; font-weight: 900">{{streak}}</div><div style="font-size: 11px; font-weight: 700; color: #6B7560">серия</div></div>
+<div class="card" style="padding: 10px 4px"><div style="font-size: 22px; font-weight: 900">{{best}}</div><div style="font-size: 11px; font-weight: 700; color: #6B7560">рекорд</div></div>
+</div>
+<h2 style="margin: 4px 0 0; font-size: 18px; font-weight: 900">Значки</h2>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{badges}}" as="b" hint-placeholder-count="6">
+<div class="badge {{b.cls}}" title="{{b.desc}}">
+<span style="width: 40px; height: 40px; border-radius: 50%; background: {{b.bg}}; display: flex; align-items: center; justify-content: center">
+<sc-if value="{{b.i1}}" hint-placeholder-val="{{ false }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E3B24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4v7a6 6 0 0 0 12 0V4"></path><path d="M4 4h4M16 4h4"></path></svg></sc-if>
+<sc-if value="{{b.i2}}" hint-placeholder-val="{{ false }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E3B24" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1.5" fill="#2E3B24"></circle></svg></sc-if>
+<sc-if value="{{b.i3}}" hint-placeholder-val="{{ false }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E3B24" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l3 2M9 2h6"></path></svg></sc-if>
+<sc-if value="{{b.i4}}" hint-placeholder-val="{{ false }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E3B24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-5.5 1-8.5z"></path></svg></sc-if>
+<sc-if value="{{b.i5}}" hint-placeholder-val="{{ false }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E3B24" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"></path></svg></sc-if>
+<sc-if value="{{b.i6}}" hint-placeholder-val="{{ false }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E3B24" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="7" width="18" height="10" rx="3"></rect><path d="M7 12h.01M10 12h.01M13 12h.01M16 12h.01M19 12h.01"></path></svg></sc-if>
+</span>
+<span>{{b.name}}</span>
+</div>
+</sc-for>
+</div>
+<h2 style="margin: 4px 0 0; font-size: 18px; font-weight: 900">Твоите игри</h2>
+<div class="card" style="padding: 14px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; align-items: flex-end; gap: 6px; height: 70px"><sc-for list="{{myBars}}" as="b" hint-placeholder-count="8"><div style="flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 2px"><span style="font-size: 10px; font-weight: 800; color: #6B7560">{{b.v}}</span><div class="bar" style="width: 100%; height: {{b.h}}; background: #86C462; animation-delay: {{b.d}}"></div></div></sc-for></div>
+<div style="display: flex; gap: 6px"><sc-for list="{{myBars}}" as="b" hint-placeholder-count="8"><span style="flex: 1; text-align: center; font-size: 11px; font-weight: 800; color: #4A5640">{{b.label}}</span></sc-for></div>
+<span style="font-size: 12px; font-weight: 700; color: #6B7560; text-align: center">брой опити до познаване</span>
+</div>
+<h2 style="margin: 4px 0 0; font-size: 18px; font-weight: 900">Настройки</h2>
+<div class="card" style="padding: 6px 14px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; justify-content: space-between; min-height: 52px; border-bottom: 1px solid #ECE5D2"><span style="font-weight: 800">Звуци</span><button class="toggle {{soundCls}}" onClick="{{toggleMute}}" aria-label="Звуци" aria-pressed="{{soundOn}}"></button></div>
+<div style="display: flex; align-items: center; justify-content: space-between; min-height: 52px; border-bottom: 1px solid #ECE5D2"><span style="font-weight: 800">Вибрация</span><button class="toggle {{vibeCls}}" onClick="{{toggleVibe}}" aria-label="Вибрация" aria-pressed="{{vibeOn}}"></button></div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 60px"><span style="font-weight: 800">Трудност</span><div style="display: flex; gap: 6px"><sc-for list="{{lens}}" as="l" hint-placeholder-count="3"><button class="pill {{l.cls}}" onClick="{{l.pick}}" style="min-height: 38px; padding: 0 12px">{{l.label}}</button></sc-for></div></div>
+</div>
+<button class="soft" onClick="{{logout}}">Изход</button>
+</main>
+</sc-if>
+
+<sc-if value="{{showTabbar}}" hint-placeholder-val="{{ false }}">
+<nav class="tabbar" aria-label="Основна навигация">
+<button class="tab {{tabPlay}}" onClick="{{goPlay}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9H3z"></path><path d="M9 20v-6h6v6"></path></svg>Игра</button>
+<button class="tab {{tabBoard}}" onClick="{{goBoard}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"></path><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"></path></svg>Класация</button>
+<button class="tab {{tabProfile}}" onClick="{{goProfile}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"></path></svg>Профил</button>
+<button class="tab {{tabRules}}" onClick="{{goRules}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"></circle><path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.4-2.7 4"></path><path d="M12 17.5h.01"></path></svg>Правила</button>
+</nav>
+</sc-if>
+
+<sc-if value="{{counting}}" hint-placeholder-val="{{ false }}">
+<div class="fadein" role="status" aria-live="assertive" style="position: absolute; inset: 0; z-index: 30; background: rgba(246,242,230,.72); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center">
+<span style="font-weight: 900; font-size: 15px; letter-spacing: .14em; color: #4A5640">ГОТОВИ…</span>
+<sc-if value="{{cd3}}" hint-placeholder-val="{{ false }}"><span class="boing" style="font-size: 150px; font-weight: 900; line-height: 1; color: #B5452F; text-shadow: 0 6px 0 #7E2E1E">3</span></sc-if>
+<sc-if value="{{cd2}}" hint-placeholder-val="{{ false }}"><span class="boing" style="font-size: 150px; font-weight: 900; line-height: 1; color: #B5452F; text-shadow: 0 6px 0 #7E2E1E">2</span></sc-if>
+<sc-if value="{{cd1}}" hint-placeholder-val="{{ false }}"><span class="boing" style="font-size: 150px; font-weight: 900; line-height: 1; color: #B5452F; text-shadow: 0 6px 0 #7E2E1E">1</span></sc-if>
+<span style="font-weight: 800; font-size: 14px; color: #4A5640">Мъглата се вдига щом започнеш</span>
+</div>
+</sc-if>
+
+<sc-if value="{{notesOpen}}" hint-placeholder-val="{{ false }}">
+<div class="fadein" onClick="{{closeNotes}}" style="position: absolute; inset: 0; background: rgba(30,40,20,.4)"></div>
+<section class="sheetup" style="position: absolute; left: 0; right: 0; top: {{notesTop}}; bottom: 0; background: #FFFDF6; border-radius: 26px 26px 0 0; padding: 10px 18px 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto" aria-label="Тефтерче">
+<span style="align-self: center; width: 44px; height: 5px; border-radius: 3px; background: #DCD4BF"></span>
+<div style="display: flex; align-items: center; justify-content: space-between">
+<div><h2 style="margin: 0; font-size: 24px; font-weight: 900">Тефтерче</h2><span style="font-weight: 700; color: #4A5640; font-size: 14px">Остават {{left}} възможни числа</span></div>
+<button class="iconbox icobtn" onClick="{{closeNotes}}" aria-label="Затвори"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2E3B24" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: baseline"><h3 style="margin: 0; font-size: 16px; font-weight: 900">Цифри</h3><span style="font-size: 12px; font-weight: 700; color: #6B7560">цъкни: няма я → има я → ?</span></div>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{notes}}" as="n" hint-placeholder-count="10"><button class="note {{n.cls}}" onClick="{{n.toggle}}" aria-label="Цифра {{n.d}}: {{n.state}}">{{n.d}}<small>{{n.short}}</small></button></sc-for>
+</div>
+<h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 900">Опити</h3>
+<sc-if value="{{noGuesses}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; color: #6B7560; font-weight: 700">Още няма опити.</p></sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<sc-for list="{{histRows}}" as="h" hint-placeholder-count="3">
+<div class="hrow {{h.cls}}">
+<span style="width: 22px; font-weight: 900; color: #6B7560">{{h.n}}</span>
+<span style="font-weight: 900; font-size: 18px; letter-spacing: .14em">{{h.g}}</span>
+<span style="display: flex; align-items: center; gap: 2px; margin-left: auto; font-weight: 900"><svg width="22" height="22" viewBox="-62 -66 124 124" aria-hidden="true"><g stroke="#2E3B24" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M-20 -30 C-34 -30 -47 -40 -52 -60 C-42 -51 -31 -47 -16 -45 Z" fill="#F3E6C8"/><path d="M20 -30 C34 -30 47 -40 52 -60 C42 -51 31 -47 16 -45 Z" fill="#F3E6C8"/><path d="M-23 -20 C-36 -28 -50 -24 -55 -14 C-46 -6 -33 -7 -22 -11 Z" fill="#4A3427"/><path d="M23 -20 C36 -28 50 -24 55 -14 C46 -6 33 -7 22 -11 Z" fill="#4A3427"/><path d="M-27 -38 C-14 -47 14 -47 27 -38 C33 -18 30 6 26 20 L-26 20 C-30 6 -33 -18 -27 -38 Z" fill="#5E3E2C"/><path d="M-13 -43 C-9 -54 -3 -47 0 -57 C3 -47 9 -54 13 -43 C6 -38 -6 -38 -13 -43 Z" fill="#3A2619"/><ellipse cx="0" cy="22" rx="27" ry="18" fill="#A07B64"/></g><ellipse cx="-10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><ellipse cx="10" cy="21" rx="4" ry="5.5" fill="#2E1E16"/><path d="M-7 29 C-7 39 7 39 7 29" fill="none" stroke="#E2B44A" stroke-width="4" stroke-linecap="round"/><g><circle cx="-12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="-11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="-12.4" cy="-10.6" r="1.4" fill="#FFFFFF"/><circle cx="12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="11" cy="-9" r="3.8" fill="#1A120C"/><circle cx="9.6" cy="-10.6" r="1.4" fill="#FFFFFF"/><path d="M-19 -20 L-6 -18 M19 -20 L6 -18" stroke="#2A1A10" stroke-width="3" stroke-linecap="round"/></g></svg>{{h.b}}</span>
+<span style="display: flex; align-items: center; gap: 2px; font-weight: 900"><svg width="22" height="22" viewBox="-62 -66 124 124" aria-hidden="true"><g stroke="#2E3B24" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M-15 -38 C-18 -48 -24 -55 -31 -58 C-30 -49 -27 -42 -23 -35 Z" fill="#EADBB8"/><path d="M15 -38 C18 -48 24 -55 31 -58 C30 -49 27 -42 23 -35 Z" fill="#EADBB8"/><path d="M-22 -20 C-37 -29 -51 -23 -56 -12 C-46 -4 -32 -6 -21 -11 Z" fill="#FFFDF6"/><path d="M22 -20 C37 -29 51 -23 56 -12 C46 -4 32 -6 21 -11 Z" fill="#26262B"/><path d="M-26 -36 C-13 -45 13 -45 26 -36 C32 -16 29 6 25 20 L-25 20 C-29 6 -32 -16 -26 -36 Z" fill="#FFFDF6"/></g><path d="M3 -42 C14 -44 25 -41 27 -34 C30 -18 28 -6 20 -3 C10 0 0 -10 3 -42 Z" fill="#26262B"/><path d="M-30 4 C-23 1 -17 8 -20 15 C-23 20 -28 19 -29 15 Z" fill="#26262B"/><path d="M-26 -36 C-13 -45 13 -45 26 -36 C32 -16 29 6 25 20 L-25 20 C-29 6 -32 -16 -26 -36 Z" fill="none" stroke="#2E3B24" stroke-width="3" stroke-linejoin="round"/><path d="M-30 -18 C-40 -23 -48 -20 -50 -14 C-43 -10 -35 -11 -29 -14 Z" fill="#F0B2AE"/><ellipse cx="0" cy="22" rx="26" ry="17" fill="#F4B9B2" stroke="#2E3B24" stroke-width="3"/><ellipse cx="-10" cy="21" rx="3.6" ry="5" fill="#A2504C"/><ellipse cx="10" cy="21" rx="3.6" ry="5" fill="#A2504C"/><path d="M-6 31 Q0 34 6 31" fill="none" stroke="#A2504C" stroke-width="2" stroke-linecap="round"/><g><circle cx="-12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="-11" cy="-8.6" r="3.8" fill="#3B2416"/><circle cx="-12.4" cy="-10.4" r="1.4" fill="#FFFFFF"/><circle cx="12" cy="-10" r="6.5" fill="#FFFFFF" stroke="#2E3B24" stroke-width="2"/><circle cx="11" cy="-8.6" r="3.8" fill="#3B2416"/><circle cx="9.6" cy="-10.4" r="1.4" fill="#FFFFFF"/><path d="M-17 -18 l-3 -3 M-13 -19.5 l-1.5 -3.8 M-8.5 -19 l0 -4 M17 -18 l3 -3 M13 -19.5 l1.5 -3.8 M8.5 -19 l0 -4" stroke="#2E3B24" stroke-width="1.8" stroke-linecap="round"/></g></svg>{{h.c}}</span>
+<span style="min-width: 54px; text-align: right; font-size: 12px; font-weight: 800; color: #6B7560">{{h.left}} вар.</span>
+<sc-if value="{{h.wasted}}" hint-placeholder-val="{{ false }}"><span title="Този опит не пасва на по-ранните отговори" style="width: 8px; height: 8px; border-radius: 50%; background: #B5452F; flex: none"></span></sc-if>
+</div>
+</sc-for>
+</div>
+<h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 900">Мои бележки</h3>
+<textarea class="notes-area" value="{{notesText}}" onChange="{{onNotes}}" placeholder="напр. „7 е някъде в средата“" aria-label="Мои бележки"></textarea>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+<button class="soft sm" onClick="{{clearMarks}}">Изчисти цифрите</button>
+<button class="soft sm" onClick="{{giveUp}}" style="color: #8A1F0B">Предавам се</button>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{isResult}}" hint-placeholder-val="{{ false }}">
+<div class="fadein" style="position: absolute; inset: 0; background: rgba(30,40,20,.4)"></div>
+<sc-if value="{{won}}" hint-placeholder-val="{{ false }}"><div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; pointer-events: none"><sc-for list="{{confetti}}" as="c" hint-placeholder-count="0"><span class="confetti" style="left: {{c.l}}; background: {{c.c}}; animation-duration: {{c.t}}; animation-delay: {{c.d}}"></span></sc-for></div></sc-if>
+<section class="sheetup" style="position: absolute; left: 10px; right: 10px; bottom: 10px; padding: 22px 18px 18px; border-radius: 28px; background: #FFFDF6; box-shadow: 0 18px 40px rgba(30,40,20,.3); display: flex; flex-direction: column; gap: 12px; text-align: center" aria-label="Резултат">
+<span style="font-size: 13px; font-weight: 900; letter-spacing: .12em; color: #6B7560">{{kicker}}</span>
+<h2 style="margin: -4px 0 0; font-size: 28px; font-weight: 900">{{headline}}</h2>
+<sc-if value="{{won}}" hint-placeholder-val="{{ true }}">
+<div style="align-self: center; padding: 10px 22px; border-radius: 20px; background: #B5452F; color: #FFFFFF; box-shadow: 0 4px 0 #7E2E1E; transform: rotate(-2deg)">
+<div style="font-size: 46px; font-weight: 900; line-height: 1">ТОП {{top}}%</div>
+<div style="font-weight: 800">по-добре от {{beat}}% от играчите</div>
+</div>
+</sc-if>
+<div style="display: flex; justify-content: center; align-items: center; gap: 4px" aria-label="{{stars}} от 5 звезди"><sc-for list="{{starList}}" as="s" hint-placeholder-count="5"><svg class="boing" width="28" height="28" viewBox="0 0 24 24" fill="{{s.c}}" stroke="#7A5230" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true" style="animation-delay: {{s.d}}"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"></path></svg></sc-for><span style="margin-left: 8px; font-weight: 900; color: #8E3424">{{rankTitle}}</span></div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+<div class="inset" style="padding: 8px 2px"><div style="font-size: 20px; font-weight: 900">{{attempts}}</div><div style="font-size: 11px; font-weight: 700; color: #4A5640">опита</div></div>
+<div class="inset" style="padding: 8px 2px"><div style="font-size: 20px; font-weight: 900">{{clock}}</div><div style="font-size: 11px; font-weight: 700; color: #4A5640">време</div></div>
+<div class="inset" style="padding: 8px 2px; background: #F6E3B4"><div style="font-size: 20px; font-weight: 900">{{score}}</div><div style="font-size: 11px; font-weight: 700; color: #4A5640">точки</div></div>
+<div class="inset" style="padding: 8px 2px"><div style="font-size: 20px; font-weight: 900">{{logic}}%</div><div style="font-size: 11px; font-weight: 700; color: #4A5640">логика</div></div>
+</div>
+<div style="display: flex; align-items: flex-end; gap: 3px; height: 50px" aria-label="Разпределение на играчите"><sc-for list="{{bars}}" as="b" hint-placeholder-count="12"><div class="bar" style="flex: 1; height: {{b.h}}; background: {{b.c}}; animation-delay: {{b.d}}"></div></sc-for></div>
+<p style="margin: 0; font-weight: 700; line-height: 1.45; color: #4A5640; font-size: 14px">{{tip}}</p>
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px">
+<button class="cta" onClick="{{again}}">Още веднъж!</button>
+<button class="soft" onClick="{{share}}">{{shareLabel}}</button>
+</div>
+<button onClick="{{goBoard}}" style="min-height: 36px; font-weight: 800; color: #8E3424; text-decoration: underline">Виж класацията</button>
+</section>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"start":{"editor":"enum","options":["login","rules","ready","countdown","play","notes","result","board","profile"],"default":"login"},"viewH":{"editor":"number","default":844},"viewW":{"editor":"number","default":390},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  state = { screen: 'login', authTab: 'login', name: '', pass: '', email: '', user: '', len: 4, mode: 'daily', secret: '', cur: '', guesses: [], cands: [], startedAt: 0, endedAt: 0, now: 0, err: '', shake: 0, muted: false, vibe: true, won: false, copied: '', notesOpen: false, marks: {}, notesText: '', board: 'today', history: [], started: false, countdown: 0 };
+
+  componentDidMount() {
+    this.timer = setInterval(() => { if (this.state.screen === 'play' && this.state.started && !this.state.endedAt) this.setState({ now: Date.now() }); }, 1000);
+    this.boot(this.props.start || 'login');
+  }
+  componentDidUpdate(prev) { if (prev.start !== this.props.start && this.props.start) this.boot(this.props.start); }
+  componentWillUnmount() { clearInterval(this.timer); (this.tos || []).forEach(clearTimeout); }
+  later(fn, ms) { this.tos = this.tos || []; this.tos.push(setTimeout(fn, ms)); }
+
+  ac() {
+    if (this.state.muted) return null;
+    try { if (!this._ac) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; this._ac = new C(); } if (this._ac.state === 'suspended') this._ac.resume(); return this._ac; } catch (e) { return null; }
+  }
+  tone(f, dur, type, vol, to, delay) {
+    const a = this.ac(); if (!a) return;
+    const t = a.currentTime + (delay || 0), o = a.createOscillator(), g = a.createGain();
+    o.type = type || 'sine'; o.frequency.setValueAtTime(f, t); if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.15, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + 0.05);
+  }
+  sfx(n, d) {
+    d = d || 0;
+    if (n === 'tap') this.tone(520, 0.06, 'triangle', 0.08, 380, d);
+    if (n === 'page') this.tone(900, 0.08, 'sine', 0.05, 1400, d);
+    if (n === 'chirp') [0, 0.12, 0.24, 0.6, 0.7].forEach((x, i) => this.tone(2600 + (i % 2) * 500, 0.07, 'sine', 0.05, 3600, d + x));
+    if (n === 'hooves') for (let i = 0; i < 7; i++) this.tone(90 + (i % 2) * 20, 0.06, 'triangle', 0.18, 60, d + i * 0.09);
+    if (n === 'bull') { this.tone(140, 0.55, 'sawtooth', 0.08, 85, d); this.tone(280, 0.55, 'sine', 0.06, 170, d); }
+    if (n === 'cow') { this.tone(250, 0.65, 'triangle', 0.13, 185, d); this.tone(500, 0.5, 'sine', 0.04, 370, d); }
+    if (n === 'bell') { this.tone(1320, 0.5, 'sine', 0.05, null, d); this.tone(1980, 0.35, 'sine', 0.025, null, d + 0.02); }
+    if (n === 'miss') this.tone(200, 0.3, 'sawtooth', 0.03, 60, d);
+    if (n === 'err') { this.tone(140, 0.18, 'square', 0.07, 110, d); this.tone(133, 0.18, 'square', 0.07, 100, d); }
+    if (n === 'win') { [392, 523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.22, 'triangle', 0.12, null, d + i * 0.1)); this.tone(1047, 0.9, 'sine', 0.08, null, d + 0.5); }
+    if (n === 'lose') [330, 294, 262, 196].forEach((f, i) => this.tone(f, 0.3, 'triangle', 0.1, null, d + i * 0.18));
+  }
+  buzz(p) { try { if (this.state.vibe && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+  bc(a, g) { let b = 0, c = 0; for (let i = 0; i < g.length; i++) { if (a[i] === g[i]) b++; else if (a.indexOf(g[i]) >= 0) c++; } return { b, c }; }
+  codes(len) {
+    this._codes = this._codes || {};
+    if (!this._codes[len]) { const out = []; const rec = (p, u) => { if (p.length === len) { out.push(p); return; } for (let n = 0; n < 10; n++) { if ((p === '' && n === 0) || (u & (1 << n))) continue; rec(p + n, u | (1 << n)); } }; rec('', 0); this._codes[len] = out; }
+    return this._codes[len];
+  }
+  play(secret, list) {
+    let cands = this.codes(secret.length).slice(); const guesses = [];
+    list.forEach((g) => { const r = this.bc(secret, g); const consistent = cands.indexOf(g) >= 0; cands = cands.filter((c) => { const q = this.bc(c, g); return q.b === r.b && q.c === r.c; }); guesses.push({ g, b: r.b, c: r.c, left: cands.length, consistent }); });
+    return { guesses, cands };
+  }
+  score(n, secs, len) { const f = { 3: 0.8, 4: 1, 5: 1.3 }[len]; return Math.max(50, Math.round((1200 - (n - 1) * 90 - secs * 1.5) * f)); }
+  boot(start) {
+    const now = Date.now();
+    const demoHist = [{ won: true, n: 6, secs: 132, score: this.score(6, 132, 4), len: 4, wasted: 1 }, { won: true, n: 5, secs: 74, score: this.score(5, 74, 4), len: 4, wasted: 0 }, { won: false, n: 9, secs: 300, score: 0, len: 4, wasted: 3 }, { won: true, n: 7, secs: 160, score: this.score(7, 160, 4), len: 4, wasted: 2 }, { won: true, n: 4, secs: 51, score: this.score(4, 51, 4), len: 4, wasted: 0 }, { won: true, n: 6, secs: 98, score: this.score(6, 98, 4), len: 4, wasted: 1 }];
+    const base = { user: 'Мира', name: 'Мира', len: 4, mode: 'daily', err: '', notesOpen: false, history: demoHist, copied: '' };
+    if (start === 'login') { this.setState({ screen: 'login', user: '', history: [] }); return; }
+    if (start === 'rules') { this.setState(Object.assign({}, base, { screen: 'rules' })); return; }
+    if (start === 'board') { this.setState(Object.assign({}, base, { screen: 'board' })); return; }
+    if (start === 'profile') { this.setState(Object.assign({}, base, { screen: 'profile' })); return; }
+    if (start === 'result') {
+      const p = this.play('5274', ['1234', '5603', '2814', '5247', '5274']);
+      const h = demoHist.concat([{ won: true, n: 5, secs: 96, score: this.score(5, 96, 4), len: 4, wasted: 0 }]);
+      this.setState(Object.assign({}, base, p, { screen: 'result', secret: '5274', cur: '', startedAt: now - 96000, endedAt: now, now, won: true, history: h }));
+      return;
+    }
+    if (start === 'countdown') { this.setState(Object.assign({}, base, { history: demoHist })); this.startGame(4); this.setState({ countdown: 2 }); return; }
+    if (start === 'ready') { this.setState(Object.assign({}, base, { history: demoHist })); this.startGame(4); return; }
+    const p = this.play('5274', ['1234', '5603', '2814']);
+    this.setState(Object.assign({}, base, p, { screen: 'play', secret: '5274', cur: '5', startedAt: now - 71000, endedAt: 0, now, won: false, marks: { '1': 1, '3': 1, '6': 1, '0': 1, '2': 2, '4': 2 }, notesText: '2 и 4 са вътре, но не там, където ги сложих.\nПробвай 5 отпред?', notesOpen: start === 'notes', started: true }));
+  }
+  isCompact() { return (Number(this.props.viewH) || 844) < 760; }
+  layout(sc, band, playLike) {
+    const H = Number(this.props.viewH) || 844, W = Number(this.props.viewW) || 390, cmp = H < 760;
+    const tiny = H < 640;
+    const panelH = cmp ? (tiny ? 290 : 312) : 416;
+    const playTopN = cmp ? H - panelH : 356;
+    const sceneN = band ? (cmp ? 150 : 210) : (playLike && cmp ? Math.min(380, playTopN + 26) : 380);
+    return {
+      rootW: W + 'px', rootH: H + 'px', rootCls: cmp ? (tiny ? 'cmp tiny' : 'cmp') : '',
+      sceneH: sceneN + 'px', sceneHn: sceneN, sceneAR: cmp ? 'xMidYMax slice' : 'xMidYMid slice',
+      playTop: playTopN + 'px', playBottom: cmp ? '0px' : '72px',
+      playPad: cmp ? '12px 14px calc(10px + env(safe-area-inset-bottom))' : '14px 16px 12px', playGap: cmp ? (tiny ? '6px' : '8px') : '10px',
+      loginTop: cmp ? Math.max(120, H - 540) + 'px' : '316px', bandTop: cmp ? '130px' : '190px', notesTop: cmp ? '48px' : '96px',
+      startH: cmp ? '22px' : '26px', startBtnH: cmp ? '56px' : '66px', focusMode: cmp && sc === 'play'
+    };
+  }
+  startGame(len) {
+    len = len || this.state.len;
+    const all = this.codes(len);
+    this.sfx('chirp');
+    this.setState({ screen: 'play', len, secret: all[Math.floor(Math.random() * all.length)], cur: '', guesses: [], cands: all.slice(), startedAt: 0, endedAt: 0, now: 0, started: false, countdown: 0, err: '', won: false, copied: '', marks: {}, notesText: '', notesOpen: false });
+  }
+  begin() {
+    if (this.state.started || this.state.countdown) return;
+    [3, 2, 1].forEach((n, i) => this.later(() => { this.tone(n === 1 ? 880 : 660, 0.14, 'sine', 0.12); this.buzz(15); this.setState({ countdown: n }); }, i * 700));
+    this.later(() => { this.sfx('chirp'); this.setState({ countdown: 0, started: true, startedAt: Date.now(), now: Date.now() }); }, 2100);
+  }
+  login(guest) {
+    const s = this.state; let n = s.name.trim();
+    if (guest) n = 'Гост ' + Math.floor(100 + Math.random() * 900);
+    else if (n.length < 2) { this.sfx('err'); this.setState({ err: 'Въведи име (поне 2 символа)' }); return; }
+    else if (s.authTab === 'register' && s.pass.length < 6) { this.sfx('err'); this.setState({ err: 'Паролата трябва да е поне 6 символа' }); return; }
+    this.setState({ user: n, err: '' });
+    this.startGame();
+  }
+  press(d) { const s = this.state; if (!s.started || s.screen !== 'play' || s.cur.length >= s.len || s.cur.indexOf(d) >= 0 || (d === '0' && !s.cur)) return; this.sfx('tap'); this.buzz(8); this.setState({ cur: s.cur + d, err: '' }); }
+  submit() {
+    const s = this.state, g = s.cur;
+    if (s.screen !== 'play' || s.endedAt || !s.started) return;
+    if (g.length !== s.len) { this.sfx('err'); this.buzz([30, 40, 30]); this.setState({ err: 'Трябват ' + s.len + ' различни цифри', shake: s.shake + 1 }); return; }
+    if (s.guesses.some((x) => x.g === g)) { this.sfx('err'); this.setState({ err: 'Вече пробва ' + g, shake: s.shake + 1 }); return; }
+    const r = this.bc(s.secret, g);
+    const cands = s.cands.filter((code) => { const q = this.bc(code, g); return q.b === r.b && q.c === r.c; });
+    const guesses = s.guesses.concat([{ g, b: r.b, c: r.c, left: cands.length, consistent: s.cands.indexOf(g) >= 0 }]);
+    if (r.b) { this.sfx('hooves'); this.sfx('bull', 0.75); }
+    if (r.c) { this.sfx('bell', r.b ? 1.2 : 0.4); this.sfx('cow', r.b ? 1.5 : 0.8); }
+    if (!r.b && !r.c) this.sfx('miss');
+    this.buzz(r.b ? [30, 40, 30, 40, 30] : 20);
+    this.setState({ guesses, cands, cur: '', err: '' });
+    if (r.b === s.len) {
+      const endedAt = Date.now(), secs = Math.max(1, Math.round((endedAt - s.startedAt) / 1000));
+      const entry = { won: true, n: guesses.length, secs, score: this.score(guesses.length, secs, s.len), len: s.len, wasted: guesses.filter((x) => !x.consistent).length };
+      this.setState({ endedAt, won: true });
+      this.later(() => { this.sfx('win'); this.sfx('chirp', 0.6); this.buzz([40, 60, 40, 60, 160]); this.setState({ screen: 'result', history: this.state.history.concat([entry]) }); }, 1800);
+    }
+  }
+  giveUp() {
+    const s = this.state; this.sfx('lose');
+    this.setState({ screen: 'result', won: false, endedAt: Date.now(), notesOpen: false, history: s.history.concat([{ won: false, n: s.guesses.length, secs: Math.round((Date.now() - s.startedAt) / 1000), score: 0, len: s.len, wasted: 0 }]) });
+  }
+  share(text) { const done = (m) => this.setState({ copied: m }); try { navigator.clipboard.writeText(text).then(() => done('Копирано!'), () => done('Неуспешно')); } catch (e) { done('Неуспешно'); } }
+  dist(len) { return { 3: [1.5, 5, 13, 23, 25, 17, 9, 4, 2.5], 4: [0.2, 0.8, 3, 8, 15, 20, 19, 14, 9, 5, 3, 3], 5: [0.1, 0.3, 1, 3, 7, 12, 16, 17, 15, 11, 8, 9.6] }[len]; }
+  topOf(n, len) { const d = this.dist(len), tot = d.reduce((a, b) => a + b, 0), idx = Math.min(Math.max(n, 1), d.length) - 1; let b = 0; for (let i = 0; i < idx; i++) b += d[i]; return { top: Math.max(1, Math.round((b + d[idx] / 2) / tot * 100)), beat: Math.round((tot - b - d[idx]) / tot * 100), idx, avg: d.reduce((a, v, i) => a + v * (i + 1), 0) / tot }; }
+
+  renderVals() {
+    const s = this.state, len = s.len, sc = s.screen;
+    const fmt = (t) => { t = Math.max(0, Math.round(t)); return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
+    const elapsed = s.startedAt ? ((s.endedAt || s.now || Date.now()) - s.startedAt) / 1000 : 0;
+    const total = this.codes(len).length, left = s.cands.length || total;
+    const playLike = sc === 'play' || sc === 'result';
+    const prog = !playLike ? 0.8 : s.won ? 1 : total > 1 ? 1 - Math.log(left) / Math.log(total) : 0;
+    const last = s.guesses[s.guesses.length - 1];
+    const bullSpots = [[10, 290], [68, 294], [126, 290], [38, 262], [96, 264]];
+    const cowSpots = [[214, 298], [298, 304], [252, 266], [330, 262], [206, 266]];
+    const mk = (kind, spot, cls, d) => { const back = spot[1] < 280; const k = back ? 0.725 : 0.875; return { isBull: kind === 'b', isCow: kind === 'c', tf: 'translate(' + spot[0] + ' ' + spot[1] + ') scale(' + k + ')', cls, d, z: spot[1] }; };
+    let animals = [];
+    if (!playLike) animals = [mk('b', bullSpots[1], 'a-idle', '0s'), mk('b', bullSpots[3], 'a-idle', '-1.3s'), mk('c', cowSpots[0], 'a-idle', '-1s'), mk('c', cowSpots[3], 'a-idle', '-3s')];
+    else if (sc === 'result') { for (let i = 0; i < (s.won ? len : last ? last.b : 0); i++) animals.push(mk('b', bullSpots[i], 'a-idle', (-i * 0.7) + 's')); animals.push(mk('c', cowSpots[0], 'a-idle', '-2s')); }
+    else if (last) {
+      const nb = s.won ? len : last.b;
+      for (let i = 0; i < nb; i++) animals.push(mk('b', bullSpots[i], 'a-run', (i * 0.16) + 's'));
+      for (let i = 0; i < last.c; i++) animals.push(mk('c', cowSpots[i], 'a-walk', (0.35 + i * 0.22) + 's'));
+    }
+    animals.sort((a, b) => a.z - b.z);
+    const band = sc === 'rules' || sc === 'board' || sc === 'profile';
+    const keys = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((n) => { const d = String(n), m = s.marks[d] || 0; return { d, cls: m === 1 ? 'nx' : m === 2 ? 'nok' : '', blocked: !s.started || sc !== 'play' || s.cur.indexOf(d) >= 0 || s.cur.length >= len || (d === '0' && !s.cur), press: () => this.press(d) }; });
+    const slots = []; for (let i = 0; i < len; i++) slots.push({ ch: s.cur[i] || '', filled: !!s.cur[i], cls: i === s.cur.length && sc === 'play' ? 'cur' : '' });
+    const word = (n, one, many) => n + ' ' + (n === 1 ? one : many);
+    const noteNames = ['?', 'няма я', 'има я'], noteShort = ['', 'няма', 'има'];
+    const notes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((n) => { const d = String(n), v = s.marks[d] || 0; return { d, state: noteNames[v], short: noteShort[v], cls: v === 1 ? 'nx' : v === 2 ? 'nok' : '', toggle: () => { this.sfx('page'); this.setState({ marks: Object.assign({}, s.marks, { [d]: (v + 1) % 3 }) }); } }; });
+    const noteCount = Object.keys(s.marks).filter((k) => s.marks[k]).length + (s.notesText ? 1 : 0);
+    const histRows = s.guesses.map((x, i) => ({ n: i + 1, g: x.g, b: x.b, c: x.c, left: x.left, wasted: !x.consistent, cls: i === s.guesses.length - 1 ? 'new' : '' })).reverse();
+    // result
+    const n = s.guesses.length, T = this.topOf(n, len), d = this.dist(len), maxD = Math.max.apply(null, d);
+    const top = s.won ? T.top : 100, beat = s.won ? T.beat : 0;
+    const stars = !s.won ? 0 : top <= 5 ? 5 : top <= 20 ? 4 : top <= 45 ? 3 : top <= 75 ? 2 : 1;
+    const ranks = ['Теленце', 'Говедар', 'Овчар', 'Пастир', 'Стопанин', 'Главен бик'];
+    const secs = Math.max(1, Math.round(elapsed));
+    const wasted = s.guesses.filter((x) => !x.consistent).length;
+    const pal = ['#B5452F', '#F2C230', '#FFFFFF', '#86C462', '#F29BB8'];
+    const confetti = []; for (let i = 0; i < 26; i++) confetti.push({ l: ((i * 37) % 100) + '%', c: pal[i % 5], t: (2.6 + (i % 5) * 0.4) + 's', d: ((i % 7) * 0.25) + 's' });
+    // history / profile
+    const H = s.history, wins = H.filter((h) => h.won);
+    let streak = 0; for (let i = H.length - 1; i >= 0 && H[i].won; i--) streak++;
+    const totalScore = H.reduce((a, h) => a + h.score, 0), level = 1 + Math.floor(totalScore / 1500), xp = totalScore % 1500;
+    const buckets = [3, 4, 5, 6, 7, 8, 9, 10].map((k) => ({ k, v: wins.filter((h) => (k === 10 ? h.n >= 10 : h.n === k)).length }));
+    const maxB = Math.max(1, Math.max.apply(null, buckets.map((b) => b.v)));
+    const myBars = buckets.map((b, i) => ({ label: b.k === 10 ? '10+' : String(b.k), v: b.v || '', h: Math.max(4, Math.round(b.v / maxB * 100)) + '%', d: (i * 0.05) + 's' }));
+    const has = (f) => H.some(f);
+    const badges = [
+      { name: 'Първи бик', desc: 'Първа победа', on: wins.length > 0, i: 1, bg: '#F6E3B4' },
+      { name: 'Без излишен ход', desc: 'Победа без нелогичен опит', on: has((h) => h.won && h.wasted === 0), i: 2, bg: '#DCEFD0' },
+      { name: 'Под минута', desc: 'Победа за под 60 секунди', on: has((h) => h.won && h.secs < 60), i: 3, bg: '#D7E9F7' },
+      { name: 'Серия 7 дни', desc: '7 поредни победи', on: streak >= 7, i: 4, bg: '#F9D7C8' },
+      { name: 'Главен бик', desc: 'Топ 5% в игра', on: has((h) => h.won && this.topOf(h.n, h.len).top <= 5), i: 5, bg: '#F6E3B4' },
+      { name: 'Пет цифри', desc: 'Победа на трудно ниво', on: has((h) => h.won && h.len === 5), i: 6, bg: '#E7DDF6' }
+    ].map((b) => ({ name: b.name, desc: b.desc, cls: b.on ? '' : 'locked', bg: b.bg, i1: b.i === 1, i2: b.i === 2, i3: b.i === 3, i4: b.i === 4, i5: b.i === 5, i6: b.i === 6 }));
+    // leaderboard
+    const mock = {
+      today: [['Ани', 4, 51], ['Боби', 5, 38], ['Цвети', 5, 72], ['Ники', 6, 44], ['Гери', 6, 95], ['Стенли', 7, 61], ['Вики', 7, 118], ['Калин', 8, 83], ['Дидо', 9, 140]],
+      week: [['Боби', 3, 41], ['Ани', 4, 33], ['Яна', 4, 58], ['Цвети', 5, 47], ['Ники', 5, 66], ['Гери', 5, 90], ['Стенли', 6, 52], ['Вики', 6, 77], ['Калин', 7, 64]],
+      all: [['Деди Петко', 2, 29], ['Боби', 3, 22], ['Ани', 3, 35], ['Яна', 3, 48], ['Цвети', 4, 31], ['Митко', 4, 44], ['Ники', 4, 59], ['Гери', 5, 40], ['Стенли', 5, 55]]
+    }[s.board];
+    let list = mock.map((m) => ({ name: m[0], n: m[1], score: this.score(m[1], m[2], len), you: false }));
+    const myWins = wins.filter((h) => h.len === len);
+    if (myWins.length) { const b = myWins.reduce((a, h) => (h.score > a.score ? h : a)); list.push({ name: (s.user || 'Ти') + ' (ти)', n: b.n, score: b.score, you: true }); }
+    list.sort((a, b) => b.score - a.score);
+    const avBg = ['#B5452F', '#5E9E46', '#C48E55', '#4A7FB0', '#8E5BA8', '#D08A2E'];
+    const order = [1, 0, 2];
+    const podium = order.filter((i) => list[i]).map((i, k) => ({ rank: i + 1, name: list[i].name, score: list[i].score, first: i === 0, bull: i !== 1, cow: i === 1, bg: ['#F2C230', '#E3E3DF', '#E9B07A'][i], h: [96, 70, 56][i] + 'px', d: (0.1 + k * 0.08) + 's' }));
+    const rest = list.slice(3).map((r, i) => ({ rank: i + 4, name: r.name, n: r.n, score: r.score, initial: r.name.charAt(0), bg: avBg[i % avBg.length], cls: r.you ? 'you' : '', d: (0.2 + i * 0.04) + 's' }));
+    const meIdx = list.findIndex((r) => r.you);
+    const myBest = myWins.length ? myWins.reduce((a, h) => (h.n < a.n ? h : a)) : null;
+    const tab = (key, label, cur, fn) => ({ label, cls: key === cur ? 'on' : '', pick: fn });
+    return {
+      ...this.layout(sc, band, playLike),
+      fog: sc === 'play' ? (s.won ? 0 : Math.max(0, 0.9 * (1 - prog))).toFixed(2) : '0', dawn: (sc === 'login' ? 0.4 : Math.max(0, 0.75 * (1 - prog))).toFixed(2), sunY: Math.round(176 - prog * 150),
+      parityA: s.guesses.length % 2 === 0, parityB: s.guesses.length % 2 === 1, animals, isMiss: sc === 'play' && !!last && !last.b && !last.c,
+      showHud: sc === 'play', left, clock: fmt(elapsed),
+      isLogin: sc === 'login', isPlayLike: playLike, isRules: sc === 'rules', isBoard: sc === 'board', isProfile: sc === 'profile', isResult: sc === 'result',
+      isBand: band, bandTitle: { rules: 'Правила', board: 'Класация', profile: 'Профил' }[sc] || '', bandSub: sc === 'board' ? len + ' цифри' : sc === 'profile' ? 'серия ' + streak : 'за 1 минута',
+      showTabbar: sc !== 'login' && !(sc === 'rules' && !s.user) && !(this.isCompact() && playLike), rulesBottom: s.user ? '72px' : '0px',
+      showStartCard: sc === 'play' && !s.started && !s.countdown, exitPlay: () => { this.sfx('tap'); this.setState({ screen: 'board', notesOpen: false }); },
+      tabPlay: playLike ? 'on' : '', tabBoard: sc === 'board' ? 'on' : '', tabProfile: sc === 'profile' ? 'on' : '', tabRules: sc === 'rules' ? 'on' : '',
+      goPlay: () => { this.sfx('tap'); if (s.secret && !s.endedAt) this.setState({ screen: 'play' }); else if (!s.user) this.setState({ screen: 'login' }); else this.startGame(); },
+      goBoard: () => { this.sfx('tap'); this.setState({ screen: 'board', notesOpen: false }); }, goProfile: () => { this.sfx('tap'); this.setState({ screen: 'profile' }); }, goRules: () => { this.sfx('tap'); this.setState({ screen: 'rules', err: '' }); },
+      name: s.name, pass: s.pass, email: s.email, user: s.user,
+      onName: (e) => this.setState({ name: e.target.value, err: '' }), onPass: (e) => this.setState({ pass: e.target.value, err: '' }), onEmail: (e) => this.setState({ email: e.target.value }),
+      isReg: s.authTab === 'register', tabLoginCls: s.authTab === 'login' ? 'on' : '', tabRegCls: s.authTab === 'register' ? 'on' : '',
+      showLogin: () => this.setState({ authTab: 'login', err: '' }), showReg: () => this.setState({ authTab: 'register', err: '' }),
+      loginLabel: s.authTab === 'register' ? 'Създай профил' : 'Влез', doLogin: () => this.login(false), doGuest: () => this.login(true),
+      logout: () => this.setState({ screen: 'login', user: '', pass: '', history: [], secret: '', guesses: [] }),
+      err: s.err, hasErr: !!s.err,
+      notStarted: sc === 'play' && !s.started, counting: s.countdown > 0, notCounting: !s.countdown, cd3: s.countdown === 3, cd2: s.countdown === 2, cd1: s.countdown === 1, begin: () => this.begin(),
+      startInfo: len + ' цифри · ' + (s.mode === 'daily' ? 'числото на деня' : 'свободна игра') + ' · средно ' + this.topOf(1, len).avg.toFixed(1) + ' опита',
+      attemptNo: s.guesses.length + (sc === 'play' ? 1 : 0), modeShort: s.mode === 'daily' ? 'числото на деня' : 'свободна игра',
+      lastText: last ? 'Последно ' + last.g + ': ' + word(last.b, 'бик', 'бика') + ', ' + word(last.c, 'крава', 'крави') : 'Въведи ' + len + ' различни цифри',
+      slots, keys, shakeCls: s.shake ? (s.shake % 2 ? 'shakeA' : 'shakeB') : '',
+      back: () => { this.sfx('tap'); this.setState({ cur: s.cur.slice(0, -1), err: '' }); }, submit: () => this.submit(), giveUp: () => this.giveUp(),
+      soundOn: !s.muted, soundOff: s.muted, soundCls: s.muted ? '' : 'on', muteLabel: s.muted ? 'Включи звука' : 'Изключи звука', toggleMute: () => this.setState({ muted: !s.muted }),
+      vibeOn: s.vibe, vibeCls: s.vibe ? 'on' : '', toggleVibe: () => this.setState({ vibe: !s.vibe }),
+      notesOpen: s.notesOpen, openNotes: () => { this.sfx('page'); this.setState({ notesOpen: true }); }, closeNotes: () => { this.sfx('page'); this.setState({ notesOpen: false }); },
+      notes, hasNotes: noteCount > 0, noteCount, histRows, noGuesses: !s.guesses.length,
+      notesText: s.notesText, onNotes: (e) => this.setState({ notesText: e.target.value }), clearMarks: () => { this.sfx('tap'); this.setState({ marks: {} }); },
+      won: s.won, kicker: s.won ? 'ЧИСЛОТО Е ' + s.secret : 'ЧИСЛОТО БЕШЕ ' + s.secret, headline: s.won ? 'Денят изгря!' : 'Мъглата остана…',
+      top, beat, stars, rankTitle: ranks[stars], attempts: n, score: s.won ? this.score(n, secs, len) : 0, logic: n ? Math.round((n - wasted) / n * 100) : 0, confetti,
+      starList: [0, 1, 2, 3, 4].map((i) => ({ c: i < stars ? '#F2C230' : '#F3EEDF', d: (0.4 + i * 0.1) + 's' })),
+      bars: d.map((v, i) => ({ h: Math.max(6, Math.round(v / maxD * 100)) + '%', c: s.won && i === T.idx ? '#B5452F' : '#A9D18B', d: (0.3 + i * 0.04) + 's' })),
+      tip: !s.won ? 'Опитвай числа, които пасват на всички досегашни отговори — така мъглата се вдига най-бързо.' : (wasted ? wasted + (wasted === 1 ? ' излишен ход' : ' излишни хода') + ' — числа, които вече не пасваха. ' : 'Нито един излишен ход! ') + 'Средно хората се справят за ' + T.avg.toFixed(1) + ' опита.',
+      again: () => this.startGame(), share: () => this.share('Бикове и крави · ' + len + ' цифри · ' + (s.won ? n + ' опита · топ ' + top + '%' : 'числото устоя')), shareLabel: s.copied || 'Сподели',
+      boardTabs: [tab('today', 'Днес', s.board, () => this.setState({ board: 'today' })), tab('week', 'Седмица', s.board, () => this.setState({ board: 'week' })), tab('all', 'Всички', s.board, () => this.setState({ board: 'all' }))],
+      podium, rest, hasMe: meIdx >= 0, myRank: meIdx + 1, myTop: myBest ? this.topOf(myBest.n, len).top : 0,
+      level, levelTitle: ranks[Math.min(5, level)], xpW: Math.round(xp / 1500 * 100) + '%', xpText: xp + ' / 1500 т. до ниво ' + (level + 1),
+      played: H.length, winRate: H.length ? Math.round(wins.length / H.length * 100) : 0, streak, best: wins.length ? Math.min.apply(null, wins.map((h) => h.n)) : '—',
+      badges, myBars,
+      lens: [3, 4, 5].map((k) => ({ label: String(k), cls: k === len ? 'on' : '', pick: () => { this.sfx('tap'); this.setState({ len: k }); } }))
+    };
+  }
+}
+</script>
+</body>
+</html>

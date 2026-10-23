@@ -1,0 +1,22 @@
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/*
+ * Phones (`.stickycta` in the prototype): the main button stays at the lower edge of the scrolling panel for
+ * every height; the settings above scroll underneath. The negative margins reach the panel's edge; the
+ * bottom padding equals the panel's own (`--panel-pb`, which carries the safe area when there is no tab bar).
+ */
+@media (max-width: 767px) {
+  .footer {
+    gap: 8px;
+    position: sticky;
+    bottom: calc(-1 * var(--panel-pb, 16px));
+    z-index: 3;
+    margin: 0 -16px calc(-1 * var(--panel-pb, 16px));
+    padding: 14px 16px var(--panel-pb, 16px);
+    background: linear-gradient(rgba(246, 242, 230, 0), #f6f2e6 22px);
+  }
+}
