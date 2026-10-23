@@ -7,6 +7,11 @@ describe('parseInviteCode', () => {
     expect(parseInviteCode(' AB-C 23 ')).toBe('ABC23')
   })
 
+  it('accepts Cyrillic look-alikes from a Bulgarian keyboard', () => {
+    expect(parseInviteCode('вк7q2')).toBe('BK7Q2')
+    expect(parseInviteCode('АВСЕН')).toBe('ABCEH')
+  })
+
   it('takes the code out of a pasted invite link', () => {
     expect(parseInviteCode('https://pasishte.example/d/XYZ89')).toBe('XYZ89')
     expect(parseInviteCode('https://pasishte.example/d/xyz89?s=share')).toBe('XYZ89')
@@ -21,8 +26,13 @@ describe('parseInviteCode', () => {
 })
 
 describe('sanitizeTyping', () => {
-  it('upper-cases, drops foreign characters and caps at five', () => {
+  it('upper-cases, swaps Cyrillic look-alikes and caps at five', () => {
     expect(sanitizeTyping('ab c2-3x')).toBe('ABC23')
     expect(sanitizeTyping('https://x.test/d/qwe45')).toBe('QWE45')
+    expect(sanitizeTyping('вк7')).toBe('BK7')
+  })
+
+  it('keeps a wrong key visible instead of dropping it', () => {
+    expect(sanitizeTyping('ab0')).toBe('AB0')
   })
 })

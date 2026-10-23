@@ -22,7 +22,7 @@ test('friend duel: invite, join, race to the win, reconnect after reload', async
     // B: guest → duel setup → types the code (lower case is fine) → the invite page → join.
     await guestLogin(guest)
     await guest.getByRole('button', { name: /^Дуел/ }).click()
-    await guest.getByLabel('Имаш код от приятел?').fill(code.toLowerCase())
+    await guest.getByLabel('Имаш код от приятел?').pressSequentially(code.toLowerCase(), { delay: 40 })
     await guest.getByRole('button', { name: 'Влез' }).click()
     await expect(guest).toHaveURL(new RegExp(`/d/${code}$`))
     await guest.getByRole('button', { name: 'Присъедини се' }).click()

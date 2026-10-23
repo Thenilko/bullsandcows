@@ -1,6 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderWithI18n } from '../../../test/render'
 import { JoinByCode } from './JoinByCode'
 
@@ -16,6 +16,17 @@ function show() {
 }
 
 describe('JoinByCode', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('offers the camera only where getUserMedia exists', () => {
+    const { unmount } = show()
+    expect(screen.queryByRole('button', { name: 'Сканирай QR код с камерата' })).toBeNull()
+    unmount()
+    vi.stubGlobal('navigator', { ...navigator, mediaDevices: { getUserMedia: vi.fn() } })
+    show()
+    expect(screen.getByRole('button', { name: 'Сканирай QR код с камерата' })).toBeInTheDocument()
+  })
+
   it('goes to the invite page for a typed code, whatever the case', () => {
     show()
     fireEvent.change(screen.getByLabelText('Имаш код от приятел?'), { target: { value: 'abc23' } })

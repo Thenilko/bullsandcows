@@ -152,6 +152,15 @@ export function NotebookIcon({ size = 22, stroke = '#2E3B24', ...p }: IconProps 
   )
 }
 
+export function CameraIcon({ size = 20, ...p }: IconProps) {
+  return (
+    <Stroke size={size} {...p}>
+      <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </Stroke>
+  )
+}
+
 export function CloseIcon({ size = 20, ...p }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#2E3B24" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true" {...p}>
