@@ -7,7 +7,7 @@ VITE_SUPABASE_ANON_KEY="$(devvar SUPABASE_ANON_KEY)"
 test -n "$VITE_SUPABASE_URL" && test -n "$VITE_SUPABASE_ANON_KEY" \
   || { echo "Липсват SUPABASE_URL/SUPABASE_ANON_KEY в apps/server/.dev.vars"; exit 1; }
 # Публичният адрес на играта за текста „Сподели“ (…/?s=share); може да се подаде отвън.
-export VITE_PUBLIC_URL="${VITE_PUBLIC_URL:-https://pasishte.danailsimeonov89.workers.dev}"
+export VITE_PUBLIC_URL="${VITE_PUBLIC_URL:-https://bullsandcows.nilkospace.app}"
 export VITE_AUTH_MODE=supabase VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY VITE_PUBLIC_URL
 cd "$ROOT" && pnpm --filter web build >/dev/null
 # Проверка: бъндълът трябва да носи адреса на Supabase проекта (иначе клиентът е без Supabase режим).

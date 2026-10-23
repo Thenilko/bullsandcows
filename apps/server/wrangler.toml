@@ -1,5 +1,8 @@
 # One Worker: SPA static assets + /api (Hono) + /ws (Durable Objects).
 name = "pasishte"
+# The game's own address; pasishte.danailsimeonov89.workers.dev keeps working too.
+routes = [{ pattern = "bullsandcows.nilkospace.app", custom_domain = true }]
+workers_dev = true
 main = "src/index.ts"
 compatibility_date = "2026-09-01"
 # postgres.js needs the Node compatibility layer (net/tls shims over Workers sockets).
@@ -35,7 +38,7 @@ id = "6660123b9e744a6db01bf27c1924a467"
 AUTH_MODE = "supabase"
 REPO_MODE = "postgres"
 ENVIRONMENT = "production"
-APP_ORIGIN = "https://pasishte.danailsimeonov89.workers.dev"
+APP_ORIGIN = "https://bullsandcows.nilkospace.app"
 
 # Local development: fake auth + in-memory repo.
 # Durable Object bindings and vars are not inherited by environments.
