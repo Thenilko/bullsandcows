@@ -40,6 +40,9 @@ const COMPACT: readonly [key: string, screen: string, w: number, h: number][] = 
   // Danail's 390x630 check: the fence and the animals plus the whole keypad, no scroll.
   ['mk12-630', 'duel-play-classic', 390, 630],
   ['mk11-630', 'duel-play-race', 390, 630],
+  // „Твоето пасище“ and the unlock modal on the compact phone (ЧАСТ 1).
+  ['mk-pasture', 'pasture', 390, 660],
+  ['mk-unlock', 'unlock', 390, 660],
 ]
 
 for (const [key, screen, w, h] of COMPACT) {

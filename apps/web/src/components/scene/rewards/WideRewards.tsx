@@ -22,7 +22,7 @@ export function WideBackRewards({ pasture }: Props) {
         </g>
       ) : null}
       {has(pasture, 'beehive') ? (
-        <g data-reward="beehive" transform="translate(1320 560) scale(2.2)">
+        <g data-reward="beehive" transform="translate(1270 560) scale(2.2)">
           <Beehive />
         </g>
       ) : null}

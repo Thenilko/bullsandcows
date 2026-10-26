@@ -63,7 +63,7 @@ export default defineConfig({
     {
       // Screenshot regression and axe over the dev gallery (a build with VITE_DEV_SCREENS=1).
       name: 'gallery',
-      testMatch: /(screens|a11y)\.spec\.ts/,
+      testMatch: /(screens|a11y|pasture)\.spec\.ts/,
       // Baselines are rendered on macOS; Linux CI skips the pixel comparison (axe still runs)
       // unless CI_SCREENSHOTS=1 (after regenerating them in the Playwright Docker image, see README).
       ignoreSnapshots: !!process.env.CI && !process.env.CI_SCREENSHOTS,
