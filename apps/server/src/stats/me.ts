@@ -35,6 +35,7 @@ export const toProfileDto = (p: Profile): ProfileDto => ({
   vibrate: p.vibrate,
   defaultLen: p.defaultLen,
   avatarSpecies: p.avatarSpecies,
+  reminderTime: p.reminderTime,
 })
 
 /** Level and title from xp; a guest is a calf whatever the level. */

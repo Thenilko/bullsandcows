@@ -2,6 +2,7 @@ import { systemClock, type Clock } from '../../../ports/clock'
 import type { RepoHandle } from '../../../ports/repo'
 import { memoryBadges } from './badges'
 import { memoryDuels } from './duels'
+import { memoryFarms } from './farms'
 import { memoryGames } from './games'
 import { memoryProfiles } from './profiles'
 import { memoryPasture } from './pasture'
@@ -19,6 +20,7 @@ export function createMemoryRepo(
     badges: memoryBadges(store),
     shares: memoryShares(store),
     pasture: memoryPasture(store),
+    farms: memoryFarms(store),
     close: async () => undefined,
   }
 }

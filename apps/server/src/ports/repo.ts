@@ -28,6 +28,8 @@ export interface Profile {
   readonly streakDate: string | null
   /** Version of the one-time progression backfill this profile has had (docs/PROGRESSION.md). */
   readonly progressVersion: number
+  /** „Напомняне всеки ден?“ 'HH:MM' or null; only stored. */
+  readonly reminderTime: string | null
   readonly createdAt: number
 }
 
@@ -39,7 +41,15 @@ export type NewProfile = Pick<Profile, 'id' | 'username' | 'email' | 'isGuest'> 
 export type ProfilePatch = Partial<
   Pick<
     Profile,
-    'username' | 'email' | 'isGuest' | 'lang' | 'sound' | 'vibrate' | 'defaultLen' | 'avatarSpecies'
+    | 'username'
+    | 'email'
+    | 'isGuest'
+    | 'lang'
+    | 'sound'
+    | 'vibrate'
+    | 'defaultLen'
+    | 'avatarSpecies'
+    | 'reminderTime'
   >
 >
 
@@ -263,6 +273,12 @@ export interface GamesRepo {
   history(userId: string, limit: number): Promise<PublicGameRow[]>
   /** Counted (non-practice) free games of a user finished on a Sofia calendar date. */
   countFreeGamesOn(userId: string, sofiaDate: string): Promise<number>
+  /** Finished counted daily games of these players with `dailyDate` in [fromDate, toDate] (any settings). */
+  countedDailies(
+    userIds: readonly string[],
+    fromDate: string,
+    toDate: string,
+  ): Promise<PublicGameRow[]>
 }
 
 /** What one player gets from a finished duel. */
@@ -309,6 +325,75 @@ export interface PastureRepo {
   save(userId: string, settings: PastureSettings): Promise<void>
 }
 
+export interface FarmRow {
+  readonly id: string
+  readonly name: string
+  readonly inviteCode: string
+  readonly ownerId: string
+  readonly createdAt: number
+}
+
+export interface FarmMemberRow {
+  readonly farmId: string
+  readonly userId: string
+  readonly joinedAt: number
+  /** The owner whose code was used (null for the founder). */
+  readonly invitedBy: string | null
+}
+
+export type NewFarm = Pick<FarmRow, 'name' | 'inviteCode' | 'ownerId'>
+
+/** `joined`; `full` at the limit; `already` when the user is in a farm (this or another); `missing` farm gone. */
+export type FarmJoinOutcome = 'joined' | 'full' | 'already' | 'missing'
+
+/** `left` (a member), `handed` (the owner left, the oldest member owns it now), `deleted` (last one), `none`. */
+export type FarmLeaveOutcome = 'left' | 'handed' | 'deleted' | 'none'
+
+export interface NudgeRow {
+  readonly fromUser: string
+  readonly toUser: string
+  /** Sofia date 'YYYY-MM-DD'. */
+  readonly day: string
+  readonly createdAt: number
+  readonly readAt: number | null
+}
+
+/**
+ * „Семейна ферма“. Every write that could break „one farm per user“ or „at most N members“ is atomic (a
+ * transaction with the farm row locked, plus the unique index on `farm_members.user_id`).
+ */
+export interface FarmsRepo {
+  /**
+   * The farm and its owner as the first member, together. Null when the invite code is taken (pick another);
+   * `already` when the owner is in a farm.
+   */
+  create(farm: NewFarm, now: number): Promise<FarmRow | null | 'already'>
+  get(id: string): Promise<FarmRow | null>
+  byCode(code: string): Promise<FarmRow | null>
+  /** The user's farm and membership row, or null. */
+  membershipOf(userId: string): Promise<{ farm: FarmRow; member: FarmMemberRow } | null>
+  /** Oldest first (joined_at, then user id). */
+  members(farmId: string): Promise<FarmMemberRow[]>
+  /** Adds the user unless the farm is full or the user is in a farm already; `invitedBy` is the owner now. */
+  join(farmId: string, userId: string, max: number, now: number): Promise<FarmJoinOutcome>
+  rename(farmId: string, name: string): Promise<void>
+  /** False (nothing changed) when the code is taken. */
+  setCode(farmId: string, code: string): Promise<boolean>
+  /** Removes a member other than the owner; false when they were not in this farm. */
+  removeMember(farmId: string, userId: string): Promise<boolean>
+  /** The user leaves; an owner hands the farm to the oldest member, the last one deletes it. */
+  leave(userId: string): Promise<FarmLeaveOutcome>
+  /** Distinct users who joined a farm with a code while `userId` owned it. */
+  inviteesOf(userId: string): Promise<string[]>
+  /** False when this (from, to, day) exists already. */
+  addNudge(from: string, to: string, day: string, now: number): Promise<boolean>
+  /** Nudges sent by `from` on `day`. */
+  nudgesFrom(from: string, day: string): Promise<NudgeRow[]>
+  /** Unread nudges to `to` on `day`, newest first. */
+  unreadNudgesTo(to: string, day: string): Promise<NudgeRow[]>
+  markNudgesRead(to: string, day: string, now: number): Promise<void>
+}
+
 export interface Repo {
   readonly profiles: ProfilesRepo
   readonly games: GamesRepo
@@ -316,6 +401,7 @@ export interface Repo {
   readonly badges: BadgesRepo
   readonly shares: SharesRepo
   readonly pasture: PastureRepo
+  readonly farms: FarmsRepo
 }
 
 /** A repo bound to resources that must be released when the request ends. */

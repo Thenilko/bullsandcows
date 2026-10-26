@@ -217,13 +217,14 @@ export class StatsService implements DistributionSource {
   async updateSettings(user: AuthUser, patch: SettingsPatch): Promise<MeDto> {
     await ensureProfile(this.deps.repo, user)
     // Picked field by field: nothing else (xp, rating, username) can ride along.
-    const { sound, vibrate, defaultLen, lang, avatarSpecies } = patch
+    const { sound, vibrate, defaultLen, lang, avatarSpecies, reminderTime } = patch
     await this.deps.repo.profiles.update(user.id, {
       sound,
       vibrate,
       defaultLen,
       lang,
       avatarSpecies,
+      reminderTime,
     })
     return this.me(user)
   }

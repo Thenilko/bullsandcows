@@ -2,6 +2,7 @@ import type { RepoHandle } from '../../../ports/repo'
 import { drizzleBadges } from './badges'
 import type { DbHandle } from './client'
 import { drizzleDuels } from './duels'
+import { drizzleFarms } from './farms'
 import { drizzleGames } from './games'
 import { drizzleProfiles } from './profiles'
 import { drizzlePasture } from './pasture'
@@ -16,6 +17,7 @@ export function createDrizzleRepo(handle: DbHandle): RepoHandle {
     badges: drizzleBadges(handle.db),
     shares: drizzleShares(handle.db),
     pasture: drizzlePasture(handle.db),
+    farms: drizzleFarms(handle.db),
     close: () => handle.close(),
   }
 }

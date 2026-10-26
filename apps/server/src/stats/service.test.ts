@@ -228,6 +228,7 @@ describe('me', () => {
       vibrate: true,
       defaultLen: 4,
       avatarSpecies: 'bull',
+      reminderTime: null,
     })
   })
 

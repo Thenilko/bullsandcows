@@ -7,6 +7,8 @@ import {
   getTableColumns,
   gte,
   inArray,
+  isNotNull,
+  lte,
   sql,
   type SQL,
 } from 'drizzle-orm'
@@ -155,6 +157,23 @@ export function drizzleGames(db: Db): GamesRepo {
           ),
         )
       return row?.n ?? 0
+    },
+    countedDailies: async (userIds, from, to) => {
+      if (userIds.length === 0) return []
+      const rows = await db
+        .select(publicColumns)
+        .from(games)
+        .where(
+          and(
+            inArray(games.userId, [...userIds]),
+            eq(games.kind, 'daily'),
+            eq(games.practice, false),
+            isNotNull(games.finishedAt),
+            gte(games.dailyDate, from),
+            lte(games.dailyDate, to),
+          ),
+        )
+      return rows.map(toPublicGame)
     },
   }
 }

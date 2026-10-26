@@ -84,6 +84,7 @@ describe('scopes and facts', () => {
   it('leaves the „together“ group to shares and everything else to games', () => {
     expect(badgesInScope('share')).toEqual(['invite', 'family', 'teller', 'weekly'])
     expect(badgesInScope('game')).not.toContain('teller')
+    expect(badgesInScope('game')).toContain('invite')
     expect(badgesInScope('game')).toContain('mirror')
     expect(badgesInScope('all')).toHaveLength(BADGES.length)
   })
@@ -115,12 +116,19 @@ describe('scopes and facts', () => {
     const facts = toDuelFacts('me', [
       row({ id: 'newest', winner: 'you', comeback: true }),
       row({ id: 'bot', opponentKind: 'bot', botLevel: 2, playerB: null }),
-      row({ id: 'oldest', isRematch: true, comeback: true }),
+      row({ id: 'oldest', isRematch: true, comeback: true, inviteCode: 'ABCDE' }),
     ])
     expect(facts).toEqual([
-      { vsHuman: true, won: true, botLevel: null, isRematch: true, comeback: true },
-      { vsHuman: false, won: true, botLevel: 2, isRematch: false, comeback: false },
-      { vsHuman: true, won: false, botLevel: null, isRematch: false, comeback: false },
+      { vsHuman: true, won: true, botLevel: null, isRematch: true, comeback: true, invitee: 'you' },
+      { vsHuman: false, won: true, botLevel: 2, isRematch: false, comeback: false, invitee: null },
+      {
+        vsHuman: true,
+        won: false,
+        botLevel: null,
+        isRematch: false,
+        comeback: false,
+        invitee: null,
+      },
     ])
   })
 

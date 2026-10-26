@@ -2,8 +2,11 @@ import type { BadgeKey } from '@bc/protocol'
 import type {
   BadgeState,
   DuelRow,
+  FarmMemberRow,
+  FarmRow,
   GameRow,
   GuessRow,
+  NudgeRow,
   PastureSettings,
   Profile,
   PublicGameRow,
@@ -23,6 +26,11 @@ export interface MemoryStore {
   readonly shares: Map<string, ShareRow>
   /** Per user: the pasture choices. */
   readonly pasture: Map<string, PastureSettings>
+  readonly farms: Map<string, FarmRow>
+  /** Per user (one farm each). */
+  readonly farmMembers: Map<string, FarmMemberRow>
+  /** Key `<from>|<to>|<day>`. */
+  readonly nudges: Map<string, NudgeRow>
   nextGuessId: number
 }
 
@@ -35,6 +43,9 @@ export const createStore = (): MemoryStore => ({
   badges: new Map(),
   shares: new Map(),
   pasture: new Map(),
+  farms: new Map(),
+  farmMembers: new Map(),
+  nudges: new Map(),
   nextGuessId: 1,
 })
 

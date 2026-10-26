@@ -6,6 +6,7 @@ import {
   type AnyPgColumn,
   bigint,
   boolean,
+  char,
   check,
   date,
   doublePrecision,
@@ -55,6 +56,8 @@ export const profiles = pgTable(
     streakDate: date('streak_date', { mode: 'string' }),
     /** Version of the progression backfill applied to this profile (see docs/PROGRESSION.md). */
     progressVersion: smallint('progress_version').notNull().default(0),
+    /** „Напомняне всеки ден?“: 'HH:MM' (Sofia), only stored for now (no push yet). */
+    reminderTime: text('reminder_time'),
     createdAt: ts('created_at').notNull().defaultNow(),
   },
   (t) => [
@@ -231,5 +234,66 @@ export const userPasture = pgTable(
       'user_pasture_barn_color_check',
       sql`${t.barnColor} in ('red', 'blue', 'green', 'yellow', 'purple')`,
     ),
+  ],
+).enableRLS()
+
+/**
+ * „Семейна ферма“: a closed board of up to 12 players. `invite_code` (5 characters of the duel alphabet) is
+ * unique; the owner is always a member too.
+ */
+export const farms = pgTable(
+  'farms',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull(),
+    inviteCode: char('invite_code', { length: 5 }).notNull(),
+    ownerId: uuid('owner_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    createdAt: ts('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('farms_invite_code_idx').on(t.inviteCode),
+    check('farms_name_check', sql`char_length(${t.name}) between 1 and 40`),
+  ],
+).enableRLS()
+
+/** One row per member; `user_id` is unique, so nobody is in two farms. `invited_by`: the owner whose code was used. */
+export const farmMembers = pgTable(
+  'farm_members',
+  {
+    farmId: uuid('farm_id')
+      .notNull()
+      .references(() => farms.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    joinedAt: ts('joined_at').notNull().defaultNow(),
+    invitedBy: uuid('invited_by').references(() => profiles.id, { onDelete: 'set null' }),
+  },
+  (t) => [
+    uniqueIndex('farm_members_user_idx').on(t.userId),
+    index('farm_members_farm_idx').on(t.farmId, t.joinedAt),
+    index('farm_members_invited_by_idx').on(t.invitedBy),
+  ],
+).enableRLS()
+
+/** „Напомни“: at most one per (from, to, Sofia day); `read_at` once the × was pressed. */
+export const nudges = pgTable(
+  'nudges',
+  {
+    fromUser: uuid('from_user')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    toUser: uuid('to_user')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    day: date('day', { mode: 'string' }).notNull(),
+    createdAt: ts('created_at').notNull().defaultNow(),
+    readAt: ts('read_at'),
+  },
+  (t) => [
+    primaryKey({ columns: [t.fromUser, t.toUser, t.day] }),
+    index('nudges_to_day_idx').on(t.toUser, t.day),
   ],
 ).enableRLS()

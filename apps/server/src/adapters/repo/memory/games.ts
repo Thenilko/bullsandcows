@@ -121,5 +121,17 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
           g.finishedAt !== null &&
           sofiaDate(new Date(g.finishedAt)) === date,
       ).length,
+    countedDailies: async (userIds, from, to) =>
+      all()
+        .filter(
+          (g) =>
+            userIds.includes(g.userId) &&
+            isCountedDaily(g) &&
+            g.finishedAt !== null &&
+            g.dailyDate !== null &&
+            g.dailyDate >= from &&
+            g.dailyDate <= to,
+        )
+        .map(publicGame),
   }
 }
