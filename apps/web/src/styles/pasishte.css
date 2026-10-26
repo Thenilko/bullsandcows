@@ -290,3 +290,9 @@ input,textarea{font-family:inherit}
 .pw-sails{transform-box:fill-box;transform-origin:50% 50%;animation:pw-spin 6s linear infinite}
 .pw-duck{animation:pw-bob 1.8s ease-in-out infinite}
 .pw-vane{transform-box:fill-box;transform-origin:50% 100%;animation:pw-nod 4s ease-in-out infinite}
+/* ===== семейна ферма (PasExtras Р5 / П3, ПД5 / ПД6) ===== */
+.codebox{width:48px;height:56px;border-radius:12px;border:2px solid #DCD4BF;background:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#2E3B24}
+.codebox.cur{border-color:#B5452F;box-shadow:0 0 0 4px rgba(181,69,47,.15)}
+.codebox.gold{border-color:#E0B27A;background:#FFF6E2}
+.dk .codebox{width:56px;height:64px;font-size:28px}
+.nudge{display:flex;align-items:center;gap:12px;padding:10px 10px 10px 12px;border-radius:18px;background:#FFF6E2;border:2px solid #E0B27A;box-shadow:0 8px 20px rgba(30,40,20,.12)}

@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router'
 import { Shell } from '../app/layouts/Shell'
 import { Card, Cta, PanelFooter, Pill, Soft, Toggle } from '../components/ui'
 import { useSession } from '../features/auth/session'
+import { NudgeBanner } from '../features/farm/NudgeBanner'
 import { ME_KEY, useMe } from '../features/stats/useMe'
 import { createGame, type GameKind } from '../features/solo/api'
 import { useAverageAttempts } from '../features/solo/useDistribution'
@@ -140,6 +141,7 @@ export function NewGame({ initial }: { initial?: NewGameInitial }) {
   return (
     <Shell scene={IDLE_SCENE} screen="new">
       <section aria-label={t('newGame.title')} style={COL}>
+        <NudgeBanner />
         <h1
           className="rise"
           style={{ margin: 0, fontSize: desktop ? 40 : 'var(--h1-size, 30px)', fontWeight: 900 }}

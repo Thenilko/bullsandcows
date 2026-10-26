@@ -133,3 +133,39 @@ export function useShare(model: ShareModel, labels: ShareLabels): ShareActions {
 
   return { notice, share, copy, save }
 }
+
+export interface TextShareActions {
+  readonly notice: ShareNotice | null
+  /** Native share of the text, or the clipboard where there is none (or it failed). */
+  share(): Promise<void>
+  copy(value?: string): Promise<void>
+}
+
+/**
+ * The same share-or-copy flow for a plain text that is not a game (the farm invitation): no picture and
+ * nothing to report, the „Копирано!“ notice included.
+ */
+export function useShareText(text: string): TextShareActions {
+  const [notice, show] = useNotice()
+  const copy = useCallback(
+    async (value: string = text) => {
+      try {
+        await navigator.clipboard.writeText(value)
+        show('copied')
+      } catch {
+        show('failed')
+      }
+    },
+    [text, show],
+  )
+  const share = useCallback(async () => {
+    sfx.play('tap')
+    if (typeof navigator.share !== 'function') return copy()
+    try {
+      await navigator.share({ text })
+    } catch (e) {
+      if (!isAbort(e)) await copy()
+    }
+  }, [copy, text])
+  return { notice, share, copy }
+}

@@ -726,5 +726,101 @@
       },
       "later": "Later"
     }
+  },
+  "farm": {
+    "switch": {
+      "aria": "Leaderboard",
+      "all": "All players",
+      "farm": "Family farm"
+    },
+    "hud": {
+      "board": "Leaderboard",
+      "farm": "family farm",
+      "title": "Family farm"
+    },
+    "kicker": "Farm",
+    "count": "{{count}} / {{max}}",
+    "settingsAria": "Farm settings",
+    "invite": "Invite · {{code}}",
+    "copied": "Copied",
+    "today": {
+      "title": "Number of the day #{{number}}",
+      "hud": "Number of the day",
+      "play": "Play now"
+    },
+    "todayRow": "Today · number of the day #{{number}}",
+    "todayAria": "Today's number of the day in the farm",
+    "played": "{{played}} of {{total}} played",
+    "owner": "Owner",
+    "notPlayed": "{{role}} · has not played yet",
+    "you": "{{name}} (you)",
+    "attempts": "{{count}} tries",
+    "lost": "missed",
+    "nudge": "Nudge",
+    "nudged": "Nudged",
+    "nudgeAria": "Nudge {{name}}",
+    "week": "The week",
+    "weekEnd": "until Sunday 23:59",
+    "weekEmpty": "Nobody has points this week yet — the number of the day brings them.",
+    "loadFailed": "The farm did not load. Try again in a moment.",
+    "guest": "A farm is a closed leaderboard for family and friends. You need a profile to create a farm or join one.",
+    "join": {
+      "title": "Play together",
+      "text": "A farm is a closed leaderboard for family and friends — up to 12 people. Every day you compare the number of the day, and on Sunday the winner of the week comes out.",
+      "create": "Create a farm",
+      "name": "Farm name",
+      "placeholder": "e.g. The Petrovs' farm",
+      "nameEmpty": "Give the farm a name.",
+      "createCta": "Create and get a code",
+      "code": "Join with a code",
+      "codeAria": "Code of 5 characters",
+      "hint": "The code is in the invitation you got — 5 characters, upper or lower case.",
+      "invalid": "The code has 5 characters — Latin letters and digits.",
+      "cta": "Join the farm"
+    },
+    "created": {
+      "title": "The farm is ready!",
+      "sub": "“{{name}}” · you are the owner",
+      "codeLabel": "Invite code",
+      "codeAria": "Invite code: {{code}}",
+      "validity": "Valid until you change it in the settings.",
+      "inviteLabel": "THE INVITATION",
+      "inviteText": "Join our farm in “Bulls and Cows” — every day we guess one number and see who is best.",
+      "inviteCode": "Code: {{code}} · {{link}}",
+      "send": "Send the invitation…",
+      "copyCode": "Copy the code",
+      "copyFailed": "Could not copy — write the code down by hand.",
+      "toFarm": "To the farm"
+    },
+    "settings": {
+      "title": "Farm settings",
+      "save": "Save",
+      "code": "Invite code",
+      "newCode": "New code",
+      "qr": "QR code",
+      "members": "Members",
+      "count": "{{count}} of {{max}}",
+      "ownerRole": "Owner of the farm",
+      "memberRole": "member",
+      "remove": "Remove",
+      "removeAria": "Remove {{name}} from the farm",
+      "leave": "Leave the farm",
+      "leaveConfirm": "Yes, leave the farm",
+      "leaveNote": "If the owner leaves, the farm passes to the longest-standing member.",
+      "back": "To the farm"
+    },
+    "nudgeBanner": {
+      "title": "{{name}} is nudging you",
+      "text": "The number of the day is waiting · {{played}} of {{total}} in the farm have played",
+      "close": "Hide"
+    },
+    "reminder": {
+      "title": "A reminder every day?",
+      "set": "Reminder at {{time}}",
+      "text": "One notification a day, only if you have not played yet. On iPhone it works once the game is added to the home screen.",
+      "timeAria": "Time of the reminder",
+      "on": "Turn the reminder on",
+      "off": "Turn the reminder off"
+    }
   }
 }

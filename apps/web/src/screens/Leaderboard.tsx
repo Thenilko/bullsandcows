@@ -6,6 +6,7 @@ import { useLeaderboard } from '../features/stats/useLeaderboard'
 import { ApiError } from '../lib/api'
 import type { BoardFilterState } from './board/BoardFilters'
 import { BoardView, type BoardStatus } from './board/BoardView'
+import { BoardSwitch } from './farm/BoardSwitch'
 import { IDLE_SCENE } from './idleScene'
 
 const DEFAULT_FILTERS: BoardFilterState = { period: 'today', len: 4, zero: false }
@@ -22,6 +23,7 @@ export function Leaderboard() {
     guestSession || refused ? 'guest' : board.isError ? 'error' : board.data ? 'ready' : 'loading'
   return (
     <Shell scene={IDLE_SCENE} screen="board">
+      <BoardSwitch value="all" />
       <BoardView
         status={status}
         filters={filters}

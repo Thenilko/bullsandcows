@@ -51,4 +51,9 @@ export const DEV_SCREEN_KEYS: readonly string[] = [
   'pasture',
   'pasture-full',
   'unlock',
+  'farm',
+  'farm-join',
+  'farm-created',
+  'farm-nudge',
+  'farm-settings',
 ]

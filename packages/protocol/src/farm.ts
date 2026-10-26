@@ -86,6 +86,8 @@ export type FarmJoinedDto = z.infer<typeof FarmJoinedDto>
 export const NudgeDto = z.object({
   fromUserId: z.string(),
   fromUsername: z.string(),
+  fromRankKey: RankKeySchema,
+  fromSpecies: SpeciesSchema,
   played: z.number().int(),
   members: z.number().int(),
 })

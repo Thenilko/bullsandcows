@@ -1,6 +1,8 @@
 import { isInviteCode } from '@bc/game-core'
 
-const LINK_CODE = /\/d\/([A-Za-z0-9]{5})(?:[/?#]|$)/
+/** The invite link of a duel (`/d/…`) or of a family farm (`/ferma/…`). */
+export type CodeLink = 'd' | 'ferma'
+const linkCode = (prefix: CodeLink) => new RegExp(`/${prefix}/([A-Za-z0-9]{5})(?:[/?#]|$)`)
 const CODE_LENGTH = 5
 
 /** Cyrillic letters that look like the Latin ones a code may hold (a Bulgarian keyboard types these). */
@@ -16,8 +18,8 @@ const normalize = (raw: string): string =>
  * ignored, Cyrillic look-alikes accepted) or the whole invite link (`…/d/ABCDE`). Null when
  * it is not a valid code.
  */
-export function parseInviteCode(raw: string): string | null {
-  const link = LINK_CODE.exec(raw.trim())
+export function parseInviteCode(raw: string, prefix: CodeLink = 'd'): string | null {
+  const link = linkCode(prefix).exec(raw.trim())
   const candidate = normalize(link ? link[1] : raw)
   return isInviteCode(candidate) ? candidate : null
 }
@@ -27,7 +29,7 @@ export function parseInviteCode(raw: string): string | null {
  * characters. Other characters stay visible, so a wrong key is seen and explained on submit
  * rather than silently dropped.
  */
-export function sanitizeTyping(raw: string): string {
-  const link = LINK_CODE.exec(raw)
+export function sanitizeTyping(raw: string, prefix: CodeLink = 'd'): string {
+  const link = linkCode(prefix).exec(raw)
   return normalize(link ? link[1] : raw).slice(0, CODE_LENGTH)
 }

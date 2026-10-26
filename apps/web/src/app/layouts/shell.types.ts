@@ -12,7 +12,18 @@ export interface SceneProps extends Omit<PastureSceneProps, 'className' | 'label
  * Desktop screen key, the `sc-<screen>` class of the shell root (Desk.dc.html, PasDuel.dc.html). `new` covers
  * the PasDuel setup screens (new game, duel setup, queue, invite, found), `duel` the match itself.
  */
-export type ScreenKey = 'login' | 'rules' | 'play' | 'result' | 'board' | 'profile' | 'new' | 'duel' | 'pasture'
+export type ScreenKey =
+  | 'login'
+  | 'rules'
+  | 'play'
+  | 'result'
+  | 'board'
+  | 'profile'
+  | 'new'
+  | 'duel'
+  | 'pasture'
+  | 'farm'
+  | 'today'
 
 export interface ShellProps {
   scene: SceneProps
@@ -50,9 +61,15 @@ export const TABS = [
 ] as const
 
 /** Route prefixes that belong to the "Игра" tab, so it stays highlighted on them. */
-const PLAY_PREFIXES = ['/new', '/play', '/result'] as const
+const PLAY_PREFIXES = ['/new', '/play', '/result', '/today'] as const
+/** The family farm lives under „Класация“. */
+const BOARD_PREFIXES = ['/farm', '/ferma'] as const
+
+const under = (pathname: string, prefixes: readonly string[]) =>
+  prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))
 
 export function isTabActive(tab: (typeof TABS)[number], pathname: string, routerActive: boolean): boolean {
+  if (tab.to === '/board') return routerActive || under(pathname, BOARD_PREFIXES)
   if (tab.to !== '/') return routerActive
-  return pathname === '/' || PLAY_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))
+  return pathname === '/' || under(pathname, PLAY_PREFIXES)
 }

@@ -387,3 +387,62 @@
   width: 640px;
   box-shadow: 0 1px 0 #e7e0cc, 0 12px 30px rgba(30, 40, 20, 0.1);
 }
+
+/*
+ * ===== „Семейна ферма“ (PasExtrasDesk ПД4–ПД7, `.xd-col`): immersive — the panel with the wooden frame on the
+ * right (right 36, top 104, bottom 36, 600 wide); split — the scene card and the 640px column. „Фермата е
+ * готова“ is a modal either way (Sheet `card`).
+ */
+.dk.sc-farm .dk-col {
+  gap: 14px;
+  padding: 22px;
+  border-radius: 24px;
+  background: #f6f2e6;
+}
+
+.dk-imm.sc-farm .dk-col {
+  right: 36px;
+  top: 104px;
+  bottom: 36px;
+  width: 600px;
+  box-shadow: 0 0 0 8px #8b5e34, 0 0 0 11px #4e321a, 0 30px 60px rgba(20, 30, 10, 0.35);
+}
+
+.dk-split.sc-farm .dk-scene,
+.dk-split.sc-today .dk-scene {
+  right: 688px;
+}
+
+.dk-split.sc-farm .dk-col {
+  width: 640px;
+  box-shadow: 0 1px 0 #e7e0cc, 0 12px 30px rgba(30, 40, 20, 0.1);
+}
+
+/* ===== „Число на деня“ with the nudge (ПД8, `.xd-hang`): the hanging board; split: the 640px column ===== */
+.dk-imm.sc-today .dk-col {
+  inset: 0;
+  width: auto;
+  overflow: visible;
+  pointer-events: none;
+  padding: 0;
+}
+
+.dk-today {
+  border-radius: 24px;
+  background: #f6f2e6;
+  gap: 12px;
+}
+
+.dk-imm .dk-today {
+  padding: 20px 22px;
+  max-height: calc(100% - 116px);
+  overflow-y: auto;
+}
+
+.dk-split.sc-today .dk-col {
+  width: 640px;
+}
+
+.dk-split .dk-today {
+  box-shadow: 0 1px 0 #e7e0cc, 0 12px 30px rgba(30, 40, 20, 0.1);
+}

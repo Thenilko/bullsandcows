@@ -189,6 +189,8 @@ export class FarmService {
       nudge: {
         fromUserId: sender.id,
         fromUsername: sender.username,
+        fromRankKey: rankKeyForLevel(levelFromXp(sender.xp)),
+        fromSpecies: sender.avatarSpecies,
         played: playedBy.size,
         members: ids.length,
       },
