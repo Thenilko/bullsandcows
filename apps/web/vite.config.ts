@@ -1,3 +1,5 @@
+import { execSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
@@ -47,8 +49,8 @@ const pwa = VitePWA({
     // API, WebSocket and dev pages are never served from the shell cache.
     navigateFallbackDenylist: [/^\/api\//, /^\/ws\//, /^\/dev\//],
     globPatterns: ['**/*.{js,css,html,png,svg,webmanifest}'],
-    // The share image is for link previews only, never part of the offline shell.
-    globIgnores: ['**/og-image.png'],
+    // The share image and the press kit are downloads, never part of the offline shell.
+    globIgnores: ['**/og-image.png', '**/press/**'],
     runtimeCaching: [
       {
         urlPattern: ({ url }) => url.pathname.startsWith('/fonts/'),
@@ -65,6 +67,20 @@ const pwa = VitePWA({
 
 const fromRoot = (p: string) => fileURLToPath(new URL(p, import.meta.url))
 
+/** The version and short commit shown in the footer (`v0.2.0 · abc1234`). */
+function buildInfo(): { version: string; commit: string } {
+  const pkg = JSON.parse(readFileSync(fromRoot('../../package.json'), 'utf8')) as { version?: string }
+  let commit = (process.env.GITHUB_SHA ?? process.env.CF_PAGES_COMMIT_SHA ?? '').slice(0, 7)
+  if (!commit) {
+    try {
+      commit = execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+    } catch {
+      commit = ''
+    }
+  }
+  return { version: pkg.version ?? '0.0.0', commit }
+}
+
 /** Writes Cloudflare's `_headers` (CSP and friends) into the build output. */
 const securityHeaders = (supabaseUrl: string | undefined): Plugin => ({
   name: 'pasishte-security-headers',
@@ -78,7 +94,12 @@ export default defineConfig(({ command, mode }) => {
   // Files plus process.env (process.env wins), as the client bundle will see them.
   const env = loadEnv(mode, fileURLToPath(new URL('.', import.meta.url)), 'VITE_')
   if (command === 'build') assertProdAuthEnv(env, mode)
+  const info = buildInfo()
   return {
+    define: {
+      __APP_VERSION__: JSON.stringify(info.version),
+      __APP_COMMIT__: JSON.stringify(info.commit),
+    },
     plugins: [react(), pwa, securityHeaders(env.VITE_SUPABASE_URL)],
     resolve: {
       alias: {
