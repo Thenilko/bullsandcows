@@ -16,12 +16,25 @@ import {
   type PastureFacts,
 } from './pasture'
 
-const facts = (level: number, badges: PastureFacts['badges'] = {}): PastureFacts => ({ level, badges })
+const facts = (level: number, badges: PastureFacts['badges'] = {}): PastureFacts => ({
+  level,
+  badges,
+})
 
 describe('PASTURE_ITEMS', () => {
   it('lists the nine rewards of the spec in catalog order', () => {
     expect(PASTURE_ITEMS.map((i) => i.key)).toEqual([...PASTURE_KEYS])
-    expect(PASTURE_KEYS).toEqual(['dog', 'sunflowers', 'beehive', 'rooster', 'windmill', 'pond', 'barnColor', 'shed', 'goldenVane'])
+    expect(PASTURE_KEYS).toEqual([
+      'dog',
+      'sunflowers',
+      'beehive',
+      'rooster',
+      'windmill',
+      'pond',
+      'barnColor',
+      'shed',
+      'goldenVane',
+    ])
   })
 
   it('uses the requirements of the spec', () => {
@@ -42,7 +55,12 @@ describe('PASTURE_ITEMS', () => {
   it('has the barn colours of the spec, red first and default', () => {
     expect(BARN_COLOR_KEYS).toEqual(['red', 'blue', 'green', 'yellow', 'purple'])
     expect(DEFAULT_BARN_COLOR).toBe('red')
-    expect(BARN_COLORS).toMatchObject({ blue: '#3B76B8', green: '#5E9E46', yellow: '#E2B44A', purple: '#8E5BA8' })
+    expect(BARN_COLORS).toMatchObject({
+      blue: '#3B76B8',
+      green: '#5E9E46',
+      yellow: '#E2B44A',
+      purple: '#8E5BA8',
+    })
   })
 
   it('only the barn colour is not a toggle', () => {
@@ -68,12 +86,18 @@ describe('isPastureUnlocked', () => {
 
   it('unlocks the beehive with „Ранобудник“ at bronze', () => {
     expect(isPastureUnlocked(pastureItem('beehive'), facts(1))).toBe(false)
-    expect(isPastureUnlocked(pastureItem('beehive'), facts(1, { early: { tier: 1, progress: 1 } }))).toBe(true)
+    expect(
+      isPastureUnlocked(pastureItem('beehive'), facts(1, { early: { tier: 1, progress: 1 } })),
+    ).toBe(true)
   })
 
   it('unlocks the rooster only with a 30-day streak (the silver tier), whatever the level', () => {
-    expect(isPastureUnlocked(pastureItem('rooster'), facts(50, { streak: { tier: 1, progress: 29 } }))).toBe(false)
-    expect(isPastureUnlocked(pastureItem('rooster'), facts(1, { streak: { tier: 2, progress: 30 } }))).toBe(true)
+    expect(
+      isPastureUnlocked(pastureItem('rooster'), facts(50, { streak: { tier: 1, progress: 29 } })),
+    ).toBe(false)
+    expect(
+      isPastureUnlocked(pastureItem('rooster'), facts(1, { streak: { tier: 2, progress: 30 } })),
+    ).toBe(true)
   })
 })
 
@@ -81,7 +105,9 @@ describe('pastureProgress', () => {
   it('counts levels and badge progress towards the target, capped at it', () => {
     expect(pastureProgress(pastureItem('windmill'), facts(12))).toEqual({ current: 12, target: 15 })
     expect(pastureProgress(pastureItem('windmill'), facts(40))).toEqual({ current: 15, target: 15 })
-    expect(pastureProgress(pastureItem('rooster'), facts(3, { streak: { tier: 1, progress: 9 } }))).toEqual({ current: 9, target: 30 })
+    expect(
+      pastureProgress(pastureItem('rooster'), facts(3, { streak: { tier: 1, progress: 9 } })),
+    ).toEqual({ current: 9, target: 30 })
     expect(pastureProgress(pastureItem('beehive'), facts(3))).toEqual({ current: 0, target: 1 })
   })
 })
@@ -89,10 +115,16 @@ describe('pastureProgress', () => {
 describe('unlockedPastureKeys / newPastureUnlocks', () => {
   it('lists what the facts unlock, in catalog order', () => {
     expect(unlockedPastureKeys(facts(1))).toEqual([])
-    expect(unlockedPastureKeys(facts(12, { early: { tier: 1, progress: 2 } }))).toEqual(['dog', 'sunflowers', 'beehive'])
-    expect(unlockedPastureKeys(facts(38, { early: { tier: 3, progress: 40 }, streak: { tier: 3, progress: 120 } }))).toEqual([
-      ...PASTURE_KEYS,
+    expect(unlockedPastureKeys(facts(12, { early: { tier: 1, progress: 2 } }))).toEqual([
+      'dog',
+      'sunflowers',
+      'beehive',
     ])
+    expect(
+      unlockedPastureKeys(
+        facts(38, { early: { tier: 3, progress: 40 }, streak: { tier: 3, progress: 120 } }),
+      ),
+    ).toEqual([...PASTURE_KEYS])
   })
 
   it('returns only what is unlocked now and was not before', () => {

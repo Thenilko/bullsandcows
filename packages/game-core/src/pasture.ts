@@ -53,7 +53,9 @@ export const PASTURE_ITEMS: readonly PastureItemDef[] = [
   level('goldenVane', 35),
 ]
 
-const BY_KEY: ReadonlyMap<PastureKey, PastureItemDef> = new Map(PASTURE_ITEMS.map((i) => [i.key, i]))
+const BY_KEY: ReadonlyMap<PastureKey, PastureItemDef> = new Map(
+  PASTURE_ITEMS.map((i) => [i.key, i]),
+)
 
 export function pastureItem(key: PastureKey): PastureItemDef {
   const found = BY_KEY.get(key)
@@ -73,7 +75,13 @@ export const BARN_COLORS = {
   purple: '#8E5BA8',
 } as const
 export type BarnColor = keyof typeof BARN_COLORS
-export const BARN_COLOR_KEYS = ['red', 'blue', 'green', 'yellow', 'purple'] as const satisfies readonly BarnColor[]
+export const BARN_COLOR_KEYS = [
+  'red',
+  'blue',
+  'green',
+  'yellow',
+  'purple',
+] as const satisfies readonly BarnColor[]
 export const DEFAULT_BARN_COLOR: BarnColor = 'red'
 
 export const isBarnColor = (value: unknown): value is BarnColor =>
@@ -104,7 +112,10 @@ export function isPastureUnlocked(item: PastureItemDef, facts: PastureFacts): bo
 }
 
 /** Where the player stands: the level or the badge progress, capped at the target. */
-export function pastureProgress(item: PastureItemDef, facts: PastureFacts): { current: number; target: number } {
+export function pastureProgress(
+  item: PastureItemDef,
+  facts: PastureFacts,
+): { current: number; target: number } {
   const req = item.requirement
   const target = requirementTarget(req)
   const raw = req.kind === 'level' ? facts.level : (facts.badges[req.badge]?.progress ?? 0)
@@ -116,14 +127,19 @@ export function unlockedPastureKeys(facts: PastureFacts): PastureKey[] {
 }
 
 /** Unlocked in `after` and not in `before`, in catalog order. */
-export function newPastureUnlocks(before: readonly PastureKey[], after: readonly PastureKey[]): PastureKey[] {
+export function newPastureUnlocks(
+  before: readonly PastureKey[],
+  after: readonly PastureKey[],
+): PastureKey[] {
   const had = new Set(before)
   return PASTURE_KEYS.filter((k) => after.includes(k) && !had.has(k))
 }
 
 /** The reward that the next level milestone above `current` brings (for „Следващата награда: …“). */
 export function nextLevelUnlock(current: number): PastureItemDef | null {
-  const ahead = PASTURE_ITEMS.filter((i) => i.requirement.kind === 'level' && i.requirement.level > current)
+  const ahead = PASTURE_ITEMS.filter(
+    (i) => i.requirement.kind === 'level' && i.requirement.level > current,
+  )
   const levelOf = (i: PastureItemDef) => (i.requirement.kind === 'level' ? i.requirement.level : 0)
   return [...ahead].sort((a, b) => levelOf(a) - levelOf(b))[0] ?? null
 }
