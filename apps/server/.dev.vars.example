@@ -1,0 +1,5 @@
+# Copy to .dev.vars (git-ignored) for `wrangler dev`. Never commit real values.
+SUPABASE_URL="https://YOUR-PROJECT.supabase.co"
+SUPABASE_ANON_KEY="replace-with-anon-key"
+SUPABASE_SERVICE_ROLE_KEY="replace-with-service-role-key"
+DAILY_SALT="replace-with-a-long-random-string"

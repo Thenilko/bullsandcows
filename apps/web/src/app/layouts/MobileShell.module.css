@@ -1,0 +1,221 @@
+/*
+ * Mobile shell: a 100dvh flex column (scene, panel, tab bar), never the page scroll.
+ *
+ * Above 760px of visible height the screens keep the 390x844 artboard values. Below it the compact rules of
+ * the MK1–MK12 reference row apply (PasMobile.layout, PasDuel.frame, `.cmp` / `.tiny` in pasishte.css).
+ * The threshold is a container query on `.frame` (sized 100dvh), so it follows the height the browser really
+ * shows: iOS evaluates `@media (max-height)` against the viewport with its toolbars hidden, which is why a
+ * media query never switched on a phone whose visible height was 560–660px.
+ */
+.frame {
+  container: shell / size;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #f6f2e6;
+}
+
+.root {
+  --overlap: 26px;
+  --tabbar-h: calc(72px + env(safe-area-inset-bottom, 0px));
+  /* Band screens (rules, board, profile, setup): panel top 190 on the artboard, plus the overlap. */
+  --scene-h: 216px;
+  --panel-pad: 18px 16px;
+  --panel-pb: 16px;
+  --panel-gap: 14px;
+  --hud-bottom: 36px;
+  /* Compact typography and spacing hooks read by the screens. */
+  --h1-size: 30px;
+  --card-pad: 16px;
+  --start-h1: 26px;
+  --start-btn: 66px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: #2e3b24;
+}
+
+/* Signed-out screens have no tab bar: the panel reaches the bottom and carries the safe area. */
+.bare {
+  --panel-pb: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Play-like screens (solo play, duel play, hide secret): `--panel-top` comes inline from the screen. */
+.play {
+  --scene-h: min(380px, calc(var(--panel-top) + var(--overlap)));
+  --panel-pad: 14px 16px;
+  --panel-pb: 12px;
+  --panel-gap: 10px;
+}
+
+.scene {
+  position: relative;
+  flex: none;
+  height: var(--scene-h);
+  overflow: hidden;
+  background: #a9d6f0;
+  container: scene / size;
+}
+
+/*
+ * The artboard box: PasScene's `xMidYMid slice` done in CSS, so the alignment can follow the container query.
+ * The 390x380 drawing covers the scene (never smaller than it in either direction) and sits centred; a band
+ * therefore shows the middle of the artboard (mountains, barn, meadow), a 380px play scene shows all of it.
+ */
+.art {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100cqw, calc(100cqh * 390 / 380));
+  aspect-ratio: 390 / 380;
+  translate: -50% -50%;
+}
+
+/* HUD rows over the scene: chips / PasDuel top row at the top, the opponent strip just above the panel's edge. */
+.hudTop,
+.hudBottom {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  z-index: 2;
+}
+
+.hudTop {
+  top: 12px;
+}
+
+.hudBottom {
+  bottom: var(--hud-bottom);
+}
+
+.panelBody {
+  position: relative;
+  inset: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: calc(-1 * var(--overlap));
+  padding: var(--panel-pad);
+  padding-bottom: var(--panel-pb);
+  display: flex;
+  flex-direction: column;
+  gap: var(--panel-gap);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.tabbar {
+  position: relative;
+  inset: auto;
+  flex: none;
+  height: var(--tabbar-h);
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ---- compact: the browser shows less than 760px ---- */
+@container shell (max-height: 759px) {
+  .root {
+    --scene-h: 156px;
+    --panel-gap: 10px;
+    --h1-size: 26px;
+    --card-pad: 12px;
+    --start-h1: 22px;
+    --start-btn: 56px;
+  }
+
+  /* Login: the panel starts at max(120, H - 540), never lower than on tall phones. */
+  .bare {
+    --scene-h: calc(clamp(120px, 100cqh - 540px, 190px) + var(--overlap));
+  }
+
+  /* Focus mode: the scene takes what is left above the panel, the tab bar hides („Меню“ in the HUD leads back). */
+  .play {
+    --panel-pad: 12px 14px;
+    --panel-pb: calc(10px + env(safe-area-inset-bottom, 0px));
+    --panel-gap: 8px;
+    --hud-bottom: 30px;
+  }
+
+  /* Never below 230px (200px under 640), so the fence and the animals of the bottom-aligned scene stay in view. */
+  .play .scene {
+    flex: 1 0 230px;
+    height: auto;
+    min-height: 230px;
+    max-height: 380px;
+  }
+
+  /* PasDuel: the opponent strip moves under the top row instead of covering the meadow. */
+  .play .hudBottom {
+    top: 60px;
+    bottom: auto;
+  }
+
+  .play .panelBody {
+    flex: 0 1 auto;
+  }
+
+  /* `xMidYMax slice`: the meadow and the animals stay above the panel, the sky is what gets cut. */
+  .art {
+    top: auto;
+    bottom: 0;
+    translate: -50% 0;
+  }
+
+  /* Solo play: the panel keeps its natural height (about 312px) and never scrolls. */
+  .play.fit .panelBody {
+    flex: none;
+  }
+
+  .play .tabbar {
+    display: none;
+  }
+
+  .hudBottom :global(.ostrip) {
+    padding: 6px 10px;
+  }
+
+  .play :global(.sign) {
+    width: 50px;
+    height: 50px;
+    font-size: 27px;
+    border-radius: 9px;
+  }
+
+  .play :global(.key) {
+    height: 44px;
+    font-size: 20px;
+    border-radius: 12px;
+  }
+
+  .play :global(.panel .cta),
+  .play :global(.panel .soft) {
+    min-height: 46px;
+  }
+}
+
+/* ---- tiny: under 640px (iPhone SE with both browser bars) ---- */
+@container shell (max-height: 639px) {
+  .play {
+    --panel-gap: 6px;
+  }
+
+  .play .scene {
+    flex-basis: 200px;
+    min-height: 200px;
+  }
+
+  .play :global(.sign) {
+    width: 46px;
+    height: 44px;
+    font-size: 24px;
+  }
+
+  .play :global(.key) {
+    height: 40px;
+  }
+
+  .play :global(.panel .cta),
+  .play :global(.panel .soft) {
+    min-height: 42px;
+  }
+}

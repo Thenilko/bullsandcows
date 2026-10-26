@@ -1,26 +1,35 @@
 {
   "name": "bullsandcows",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+  "packageManager": "pnpm@10.22.0",
+  "engines": {
+    "node": ">=22"
   },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.49.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+  "scripts": {
+    "dev": "concurrently -n web,server \"pnpm --filter web dev\" \"pnpm --filter server dev\"",
+    "build": "VITE_AUTH_MODE=${VITE_AUTH_MODE:-fake} pnpm --filter web build && pnpm --filter server build",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage --project '!server'",
+    "e2e": "pnpm --filter web exec playwright test --project=mobile --project=desktop --project=mk-660 --project=mk-667 --project=mk-600 --project=mk-630 --project=gallery",
+    "e2e:full": "pnpm --filter web exec playwright test",
+    "typecheck": "tsc -b && tsc -p packages/game-core/tsconfig.test.json && tsc -p packages/i18n/tsconfig.test.json && tsc -p packages/protocol/tsconfig.test.json && tsc -p apps/web/tsconfig.test.json && tsc -p apps/server/tsconfig.test.json",
+    "lint": "eslint ."
   },
   "devDependencies": {
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^4.3.4",
-    "typescript": "~5.7.0",
-    "vite": "^6.0.0",
-    "vitest": "^3.0.0"
+    "@vitest/coverage-v8": "4.1.11",
+    "concurrently": "10.0.6",
+    "eslint": "9.39.5",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "prettier": "3.9.10",
+    "typescript": "5.7.3",
+    "typescript-eslint": "8.72.0",
+    "vitest": "4.1.11"
+  },
+  "pnpm": {
+    "overrides": {
+      "vite": "6.4.4"
+    }
   }
 }

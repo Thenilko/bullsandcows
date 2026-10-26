@@ -1,0 +1,71 @@
+name: Deploy
+
+# Runs only after CI succeeded for a push to main (or by hand from main).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.conclusion == 'success')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Deploy exactly the commit CI tested.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - name: Guard - Hyperdrive id must be set
+        run: |
+          # Only the top-level block; [[env.dev.hyperdrive]] keeps its placeholder on purpose.
+          if awk '/^\[\[hyperdrive\]\]/{f=1;next} /^\[/{f=0} f&&/REPLACE_ME/{found=1} END{exit !found}' apps/server/wrangler.toml; then
+            echo "::error file=apps/server/wrangler.toml::Top-level [[hyperdrive]] id is still REPLACE_ME. Create it with 'wrangler hyperdrive create' and commit the id (docs/DEPLOY.md, step 3)."
+            exit 1
+          fi
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Public client values (Supabase mode); the build fails without them (apps/web/build/prodEnv.ts).
+      - name: Build web
+        env:
+          VITE_AUTH_MODE: supabase
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_PUBLIC_URL: ${{ vars.VITE_PUBLIC_URL }}
+        run: pnpm --filter web build
+      - name: Guard - bundle carries the Supabase URL
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+        run: grep -lqF "$VITE_SUPABASE_URL" apps/web/dist/assets/*.js
+      - name: Apply database migrations (Supavisor session pooler, port 5432)
+        working-directory: apps/server
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: pnpm exec drizzle-kit migrate
+      # Worker secrets (SUPABASE_*, DAILY_SALT) are set once by hand; see docs/DEPLOY.md.
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/server
+          command: deploy --env=""
