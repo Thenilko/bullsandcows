@@ -37,15 +37,16 @@ describe('BadgeDetail', () => {
     expect(screen.getByTestId('badge-progress')).toHaveTextContent('4 от 6 до следващата степен')
   })
 
-  it('keeps a hidden badge secret and marks an unavailable one „скоро“', () => {
-    const { unmount } = renderWithI18n(<BadgeDetail view={view('mirror')} onClose={() => undefined} />)
+  it('keeps a hidden badge secret', () => {
+    renderWithI18n(<BadgeDetail view={view('mirror')} onClose={() => undefined} />)
     expect(screen.getByRole('dialog')).toHaveTextContent('???')
     expect(screen.getByRole('dialog')).toHaveTextContent('Скрита значка — открий я сама')
     expect(screen.queryByText('Огледало')).toBeNull()
-    unmount()
+  })
+
+  it('shows the weekly badge as available (ЧАСТ 3)', () => {
     renderWithI18n(<BadgeDetail view={badgeView({ key: 'weekly', tier: 0, progress: 0, next: 1, earnedAt: null })} onClose={() => undefined} />)
-    expect(screen.getByText('скоро')).toBeInTheDocument()
-    expect(screen.getByText('Тази значка идва с бъдеща част от играта.')).toBeInTheDocument()
+    expect(screen.queryByText('скоро')).toBeNull()
   })
 
   it('closes from the button', () => {

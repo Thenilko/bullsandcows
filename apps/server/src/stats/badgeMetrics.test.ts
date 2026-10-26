@@ -136,6 +136,7 @@ const CASES: Readonly<Record<string, readonly [BadgeFacts, BadgeFacts]>> = {
   teller: [facts({ shares: 5 }), facts({ shares: 4 })],
   invite: [facts({ farmInvitees: ['u2'] }), duels(duel({ invitee: null }))],
   family: [facts({ inFarm: true }), facts({ inFarm: false, farmInvitees: ['u2'] })],
+  weekly: [facts({ weeksWon: 1 }), facts({ weeksWon: 0, inFarm: true })],
   mirror: [facts({ events: ['mirror'] }), facts({ events: ['allCows'] })],
   ladder: [facts({ events: ['ladder'] }), EMPTY_FACTS],
   zeroHero: [facts({ events: ['zeroHero'] }), EMPTY_FACTS],

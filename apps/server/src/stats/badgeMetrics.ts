@@ -49,6 +49,8 @@ export interface BadgeFacts {
   readonly farmInvitees: readonly string[]
   /** In a family farm now (created or joined). */
   readonly inFarm: boolean
+  /** Finalised weekly challenges with at least one won game. */
+  readonly weeksWon: number
 }
 
 export const EMPTY_FACTS: BadgeFacts = {
@@ -59,6 +61,7 @@ export const EMPTY_FACTS: BadgeFacts = {
   events: [],
   farmInvitees: [],
   inFarm: false,
+  weeksWon: 0,
 }
 
 /** Different people brought in: farm joins by your code and friends who played your duel invite. */
@@ -155,7 +158,7 @@ const METRICS: Readonly<Record<BadgeKey, (facts: BadgeFacts) => number>> = {
   invite: invitedPeople,
   family: (f) => (f.inFarm ? 1 : 0),
   teller: (f) => f.shares,
-  weekly: () => 0,
+  weekly: (f) => f.weeksWon,
   mirror: (f) => eventSeen(f, 'mirror'),
   ladder: (f) => eventSeen(f, 'ladder'),
   zeroHero: (f) => eventSeen(f, 'zeroHero'),

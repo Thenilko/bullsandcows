@@ -74,7 +74,7 @@ describe('BADGES', () => {
   })
 
   it('marks the unavailable and the hidden ones', () => {
-    expect(BADGES.filter((b) => !b.available).map((b) => b.key)).toEqual(['weekly'])
+    expect(BADGES.filter((b) => !b.available).map((b) => b.key)).toEqual([])
     expect(BADGES.filter((b) => b.hidden).map((b) => b.key)).toEqual([
       'mirror',
       'ladder',

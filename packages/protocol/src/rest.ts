@@ -188,6 +188,10 @@ export const GuessResultDto = z.object({
   newBadges: z.array(NewBadgeDto).optional(),
   /** Pasture rewards the end of the game unlocked; absent unless the game ended. */
   newUnlocks: NewUnlocksSchema.optional(),
+  /** Weekly games: the last allowed attempt missed (or the time ran out); the game is lost. */
+  over: z.boolean().optional(),
+  /** Revealed only together with `over`. */
+  secret: z.string().optional(),
 })
 export type GuessResultDto = z.infer<typeof GuessResultDto>
 
@@ -202,9 +206,40 @@ export const GiveUpResultDto = z.object({
 })
 export type GiveUpResultDto = z.infer<typeof GiveUpResultDto>
 
+/** Mirrors `WEEKLY_RULE_KEYS` in game-core; the client translates them (`weekly.rule.<key>`). */
+export const WEEKLY_RULE_KEYS = ['fiveZero', 'threeNoZero', 'quickFour', 'fourZero'] as const
+export const WeeklyRuleKeySchema = z.enum(WEEKLY_RULE_KEYS)
+export type WeeklyRuleKey = z.infer<typeof WeeklyRuleKeySchema>
+
+/** '2026-W44'; whether the year has that week is checked by the server (`parseWeekId`). */
+export const WeekIdSchema = z.string().regex(/^\d{4}-W\d{2}$/)
+
+export const WeeklyRuleDto = z.object({
+  key: WeeklyRuleKeySchema,
+  len: LenSchema,
+  zero: z.boolean(),
+  maxAttempts: z.number().int().min(1),
+  /** Null: no time limit. */
+  timeLimitSecs: z.number().int().nullable(),
+})
+export type WeeklyRuleDto = z.infer<typeof WeeklyRuleDto>
+
+/** What a weekly game carries next to the solo `GameViewDto`: its week, the rule and the week's end. */
+export const WeeklyGameInfoDto = z.object({
+  weekId: z.string(),
+  week: z.number().int(),
+  rule: WeeklyRuleDto,
+  /** The week ends (Unix ms): a guess after it loses the game. */
+  endsAt: z.number(),
+})
+export type WeeklyGameInfoDto = z.infer<typeof WeeklyGameInfoDto>
+
+/** Kinds a solo game view can have: the weekly challenge runs on the solo machinery too. */
+export const GameViewKindSchema = z.enum(['daily', 'free', 'weekly'])
+
 export const GameViewDto = z.object({
   id: z.string(),
-  kind: KindSchema,
+  kind: GameViewKindSchema,
   len: LenSchema,
   zero: ZeroSchema,
   practice: z.boolean(),
@@ -219,11 +254,13 @@ export const GameViewDto = z.object({
   secret: z.string().optional(),
   /** Daily games: „#N“, days since the launch date in Europe/Sofia plus one. */
   dailyNumber: z.number().int().optional(),
+  /** Weekly games only: the week and its rule (attempt and time limits). */
+  weekly: WeeklyGameInfoDto.optional(),
 })
 export type GameViewDto = z.infer<typeof GameViewDto>
 
 export const LangSchema = z.enum(['bg', 'en'])
-export const GameKindSchema = z.enum(['daily', 'free', 'duel_race', 'duel_classic', 'bot'])
+export const GameKindSchema = z.enum(['daily', 'free', 'duel_race', 'duel_classic', 'bot', 'weekly'])
 export const PeriodSchema = z.enum(['today', 'week', 'all'])
 /** Mirrors `RANK_KEYS` in game-core; the client translates them. */
 export const RankKeySchema = z.enum([
@@ -256,6 +293,8 @@ export const LeaderboardRowDto = z.object({
   level: z.number().int(),
   rankKey: RankKeySchema,
   avatarSpecies: SpeciesSchema,
+  /** A top-10 finish in the weekly challenge: the gold frame until the end of the next week. */
+  goldFrame: z.boolean().optional(),
 })
 export type LeaderboardRowDto = z.infer<typeof LeaderboardRowDto>
 
@@ -307,6 +346,8 @@ export const MeDto = z.object({
   xpForNextLevel: z.number().int(),
   rankKey: RankKeySchema,
   rating: z.number().int(),
+  /** The weekly challenge's gold frame is active (top 10 of the previous week). */
+  goldFrame: z.boolean().optional(),
   /** The most recent unfinished solo game, to resume after a reload. */
   currentGameId: z.string().nullable(),
   stats: z.object({

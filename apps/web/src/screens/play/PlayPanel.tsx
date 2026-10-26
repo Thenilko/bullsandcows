@@ -14,6 +14,7 @@ import { Notebook } from '../../features/notebook/Notebook'
 import { NotebookSheet } from '../../features/notebook/NotebookSheet'
 import { NotesButton } from '../../features/notebook/NotesButton'
 import { useNotebook } from '../../features/notebook/store'
+import { distributionKind } from '../../features/solo/api'
 import type { GameApi } from '../../features/solo/useGame'
 import { useAverageAttempts } from '../../features/solo/useDistribution'
 import { useDesktopMode } from '../../hooks/useDesktopMode'
@@ -46,7 +47,7 @@ const TITLE_ROW = {
 
 function useStartInfo(game: GameViewDto): string {
   const { t } = useTranslation()
-  const avg = useAverageAttempts(game.len, game.zero, game.kind)
+  const avg = useAverageAttempts(game.len, game.zero, distributionKind(game.kind))
   const digits = t('common.digits', { count: game.len })
   const mode = t(`play.mode.${game.kind}`)
   return avg === undefined

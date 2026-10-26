@@ -149,7 +149,7 @@ export const BADGES: readonly BadgeDef[] = [
   def('invite', 'together', 'userplus', [1, 5, 20]),
   def('family', 'together', 'house', [1]),
   def('teller', 'together', 'share', [5, 25, 100]),
-  def('weekly', 'together', 'star', [1, 4, 12], { available: false }),
+  def('weekly', 'together', 'star', [1, 4, 12]),
   // Скрити
   def('mirror', 'hidden', 'question', [1], { hidden: true }),
   def('ladder', 'hidden', 'question', [1], { hidden: true }),

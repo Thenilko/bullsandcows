@@ -58,6 +58,8 @@ export const FarmMemberDto = z.object({
   weekPoints: z.number().int(),
   /** You already nudged this member today (one per day). */
   nudged: z.boolean(),
+  /** The weekly challenge's gold frame is active. */
+  goldFrame: z.boolean().optional(),
 })
 export type FarmMemberDto = z.infer<typeof FarmMemberDto>
 

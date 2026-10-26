@@ -23,6 +23,7 @@ describe('error codes', () => {
       'ERR_FARM_CODE',
       'ERR_ALREADY_IN_FARM',
       'ERR_FORBIDDEN',
+      'ERR_WEEKLY_PLAYED',
       'ERR_INTERNAL',
     ])
   })
