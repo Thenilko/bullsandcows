@@ -628,5 +628,99 @@
     "stale": "The game was updated while this page was open. Reload to get the new version.",
     "notFound": "There is no such page.",
     "reload": "Reload"
+  },
+  "pasture": {
+    "title": "Your pasture",
+    "open": "Your pasture",
+    "openNote": "{{count}} of {{total}} rewards",
+    "rewards": "Pasture rewards",
+    "count": "{{count}} of {{total}}",
+    "level": "level {{level}}",
+    "levelRank": "level {{level}} · {{rank}}",
+    "locked": "locked",
+    "show": "Show: {{name}}",
+    "req": {
+      "level": "level {{level}}",
+      "badge": "badge “{{badge}}”",
+      "streak": "{{days}}-day streak"
+    },
+    "progress": "{{current}} / {{target}}",
+    "barnColor": "Barn colour",
+    "colorAria": "Barn colour: {{color}}",
+    "color": {
+      "red": "red",
+      "blue": "blue",
+      "green": "green",
+      "yellow": "yellow",
+      "purple": "purple"
+    },
+    "allTitle": "Everything unlocked",
+    "allText": "Windmill, duck pond, second barn, rooster on the fence, golden weathervane, puppy, sunflowers and beehive.",
+    "allColor": "The barn is painted {{color}}.",
+    "colorIn": {
+      "red": "red",
+      "blue": "blue",
+      "green": "green",
+      "yellow": "yellow",
+      "purple": "purple"
+    },
+    "saveFailed": "Could not save. Please try again.",
+    "loadFailed": "The pasture did not load. Please try again.",
+    "item": {
+      "dog": {
+        "name": "Sharo the puppy",
+        "desc": "Guards the herd and wags its tail when you solve one."
+      },
+      "sunflowers": {
+        "name": "Sunflowers",
+        "desc": "Three sunflowers in front of the pen, turned to the sun."
+      },
+      "beehive": {
+        "name": "Beehive",
+        "desc": "Early bees buzzing under the trees."
+      },
+      "rooster": {
+        "name": "Rooster on the fence",
+        "desc": "Thirty days in a row — the rooster knows."
+      },
+      "windmill": {
+        "name": "Windmill",
+        "desc": "It turns while the fog lifts."
+      },
+      "pond": {
+        "name": "Duck pond",
+        "desc": "Two ducks paddling in the pond by the meadow."
+      },
+      "barnColor": {
+        "name": "Barn colour",
+        "desc": "Paint the barn blue, green, yellow or purple."
+      },
+      "shed": {
+        "name": "Second barn",
+        "desc": "The herd is growing — build it another barn."
+      },
+      "goldenVane": {
+        "name": "Golden weathervane",
+        "desc": "For the chief bull only: gold on the barn's ridge."
+      }
+    },
+    "unlock": {
+      "aria": "New in your pasture",
+      "kickerLevel": "Level {{level}} · new in your pasture",
+      "kickerBadge": "Badge “{{badge}}” · new in your pasture",
+      "next": "Next reward: {{name}} at level {{level}}.",
+      "put": {
+        "dog": "Put it in the pasture",
+        "beehive": "Put it in the pasture",
+        "rooster": "Put it in the pasture",
+        "windmill": "Put it in the pasture",
+        "pond": "Put it in the pasture",
+        "shed": "Put it in the pasture",
+        "goldenVane": "Put it in the pasture",
+        "sunflowers": "Put them in the pasture",
+        "barnColor": "Choose a colour"
+      },
+      "later": "Later"
+    }
   }
 }

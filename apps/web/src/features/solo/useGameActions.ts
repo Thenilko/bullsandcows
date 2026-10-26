@@ -1,4 +1,4 @@
-import type { GameViewDto, MeDto, NewBadgeDto } from '@bc/protocol'
+import type { GameViewDto, MeDto, NewBadgeDto, PastureKey } from '@bc/protocol'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router'
@@ -7,6 +7,8 @@ import { api } from '../auth/client'
 import { useSession } from '../auth/session'
 import { useBadgeToasts } from '../badges/toastStore'
 import { hasNotes } from '../notebook/store'
+import { invalidatePasture } from '../pasture/usePasture'
+import { useUnlocks } from '../pasture/unlockStore'
 import { invalidateBadges } from '../stats/useBadges'
 import { giveUpGame, sendGuess, startGame } from './api'
 import { withGuess } from './derive'
@@ -46,19 +48,21 @@ function useGameEffects(gameId: string) {
   )
 
   /**
-   * The cached game, the badges and the profile's current game are stale once a game ends; the new badge
-   * tiers pop up over the result.
+   * The cached game, the badges, the pasture and the profile's current game are stale once a game ends; the
+   * new badge tiers pop up over the result, then the new pasture rewards.
    */
   const toResult = useCallback(
-    (newBadges: readonly NewBadgeDto[] | undefined) => {
+    (newBadges: readonly NewBadgeDto[] | undefined, newUnlocks?: readonly PastureKey[]) => {
       void qc.invalidateQueries({ queryKey: gameKey(gameId) })
       invalidateBadges(qc)
+      invalidatePasture(qc)
       api.get<MeDto>('/api/me').then(
         (me) => useSession.getState().setMe(me),
         () => void qc.invalidateQueries({ queryKey: ['me'] }),
       )
       void navigate(`/result/${gameId}`)
       useBadgeToasts.getState().push(newBadges)
+      useUnlocks.getState().push(newUnlocks)
     },
     [qc, gameId, navigate],
   )
@@ -130,7 +134,7 @@ function useSubmit(gameId: string, { game, started, finished }: GameFlags, busyR
       if (r.solved) {
         winTimer.current = setTimeout(() => {
           playWin(vibrate)
-          toResult(r.newBadges)
+          toResult(r.newBadges, r.newUnlocks)
         }, WIN_DELAY_MS)
       }
     } catch (e) {
@@ -149,7 +153,7 @@ function useGiveUp(gameId: string, { started, finished }: GameFlags, busyRef: Re
     try {
       const r = await giveUpGame(gameId, hasNotes(gameId))
       sfx.play('lose')
-      toResult(r.newBadges)
+      toResult(r.newBadges, r.newUnlocks)
     } catch (e) {
       onError(e)
     } finally {

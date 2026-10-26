@@ -1,3 +1,4 @@
+import { useUnlocks } from '../pasture/unlockStore'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
@@ -31,9 +32,10 @@ function setNavigator(key: 'share' | 'canShare' | 'clipboard', value: unknown) {
 }
 
 beforeEach(() => {
-  postShare.mockReset().mockResolvedValue({ counted: true, newBadges: [{ key: 'teller', tier: 1 }] })
+  postShare.mockReset().mockResolvedValue({ counted: true, newBadges: [{ key: 'teller', tier: 1 }], newUnlocks: ['dog'] })
   renderSharePng.mockReset().mockResolvedValue(PNG)
   useBadgeToasts.getState().clear()
+  useUnlocks.getState().clear()
   setNavigator('share', undefined)
   setNavigator('canShare', undefined)
   setNavigator('clipboard', { writeText: vi.fn(async () => undefined) })
@@ -55,6 +57,8 @@ describe('useShare', () => {
     expect(postShare).toHaveBeenCalledWith({ gameId: 'g1', channel: 'copy' })
     await waitFor(() => expect(useBadgeToasts.getState().queue).toEqual([{ key: 'teller', tier: 1 }]))
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['badges'] })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['pasture'] })
+    expect(useUnlocks.getState().queue).toEqual(['dog'])
   })
 
   it('shows „failed“ when the clipboard is unavailable and reports nothing', async () => {

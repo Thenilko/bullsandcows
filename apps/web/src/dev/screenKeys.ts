@@ -48,4 +48,7 @@ export const DEV_SCREEN_KEYS: readonly string[] = [
   'badges-guest',
   'badge-detail',
   'badge-toast',
+  'pasture',
+  'pasture-full',
+  'unlock',
 ]

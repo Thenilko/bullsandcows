@@ -3,6 +3,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { sfx } from '../../lib/sound'
 import { useBadgeToasts } from '../badges/toastStore'
+import { invalidatePasture } from '../pasture/usePasture'
+import { useUnlocks } from '../pasture/unlockStore'
 import { invalidateBadges } from '../stats/useBadges'
 import { postShare } from './api'
 import type { ShareLabels } from './shareLabels'
@@ -85,7 +87,9 @@ export function useShare(model: ShareModel, labels: ShareLabels): ShareActions {
         .then((r) => {
           if (!r.counted) return
           invalidateBadges(qc)
+          invalidatePasture(qc)
           useBadgeToasts.getState().push(r.newBadges)
+          useUnlocks.getState().push(r.newUnlocks)
         })
         .catch(() => undefined)
     },

@@ -21,6 +21,7 @@ type DuelScreenName = keyof typeof import('./DuelScreens')
 type StatsScreenName = keyof typeof import('./StatsScreens')
 type ResetScreenName = keyof typeof import('./ResetScreens')
 type ExtrasScreenName = keyof typeof import('./ExtrasScreens')
+type PastureScreenName = keyof typeof import('./PastureScreens')
 
 /**
  * Duel and reset gallery screens load on demand so they stay out of the gallery entry chunk (Lighthouse
@@ -30,6 +31,7 @@ const lazyDuel = (name: DuelScreenName) => lazyScreen(async () => (await import(
 const lazyStats = (name: StatsScreenName) => lazyScreen(async () => (await import('./StatsScreens'))[name])
 const lazyReset = (name: ResetScreenName) => lazyScreen(async () => (await import('./ResetScreens'))[name])
 const lazyExtras = (name: ExtrasScreenName) => lazyScreen(async () => (await import('./ExtrasScreens'))[name])
+const lazyPasture = (name: PastureScreenName) => lazyScreen(async () => (await import('./PastureScreens'))[name])
 
 /** Dev-only screen registry; later tasks add their screens here. */
 export const devScreens: Record<string, () => ReactElement> = {
@@ -78,4 +80,7 @@ export const devScreens: Record<string, () => ReactElement> = {
   'badges-guest': lazyExtras('BadgesGuestScreen'),
   'badge-detail': lazyExtras('BadgeDetailScreen'),
   'badge-toast': lazyExtras('BadgeToastScreen'),
+  pasture: lazyPasture('PastureGalleryScreen'),
+  'pasture-full': lazyPasture('PastureFullScreen'),
+  unlock: lazyPasture('UnlockScreen'),
 }

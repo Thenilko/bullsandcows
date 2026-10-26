@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { Shell } from '../app/layouts/Shell'
 import { useAuth } from '../features/auth/useAuth'
 import { useBadges } from '../features/stats/useBadges'
@@ -25,6 +25,7 @@ export function Profile() {
   const badges = useBadges(me.data !== undefined)
   const update = useUpdateSettings()
   const [tab, setTab] = useProfileTab()
+  const navigate = useNavigate()
   return (
     <Shell scene={IDLE_SCENE} screen="profile">
       {me.data ? (
@@ -35,6 +36,7 @@ export function Profile() {
           onTab={setTab}
           onPatch={(patch) => update.mutate(patch)}
           onLogout={logout}
+          onPasture={() => void navigate('/profile/pasture')}
         />
       ) : (
         <p role={me.isError ? 'alert' : 'status'} style={{ fontWeight: 800, textAlign: 'center' }}>

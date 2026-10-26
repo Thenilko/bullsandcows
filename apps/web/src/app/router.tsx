@@ -50,6 +50,7 @@ const routes: RouteObject[] = [
       { path: '/result/:gameId', lazy: page(() => import('../screens/Result'), 'Result') },
       { path: '/board', lazy: page(() => import('../screens/Leaderboard'), 'Leaderboard') },
       { path: '/profile', lazy: page(() => import('../screens/Profile'), 'Profile') },
+      { path: '/profile/pasture', lazy: page(() => import('../screens/Pasture'), 'Pasture') },
       { path: '/duel/new', lazy: duelSetup('duel') },
       { path: '/bot/new', lazy: duelSetup('bot') },
       { path: '/duel/queue', lazy: page(() => import('../screens/duel/Queue'), 'Queue') },

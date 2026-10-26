@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { RouterProvider } from 'react-router'
 import { BadgeToastHost } from '../features/badges/BadgeToastHost'
+import { UnlockHost } from '../features/pasture/UnlockHost'
 import { logShareLanding } from '../features/share/landing'
 import { OfflineBanner } from './OfflineBanner'
 import { Providers } from './providers'
@@ -23,6 +24,7 @@ export function App() {
       <OfflineBanner />
       <RouterProvider router={router} />
       <BadgeToastHost />
+      <UnlockHost onOpenPasture={() => void router.navigate('/profile/pasture')} />
     </Providers>
   )
 }
