@@ -88,6 +88,56 @@ export const BadgeStateDto = z.object({
 })
 export type BadgeStateDto = z.infer<typeof BadgeStateDto>
 
+/** Mirrors `PASTURE_KEYS` in game-core (the rewards of „Твоето пасище“); the client translates them. */
+export const PASTURE_KEYS = [
+  'dog',
+  'sunflowers',
+  'beehive',
+  'rooster',
+  'windmill',
+  'pond',
+  'barnColor',
+  'shed',
+  'goldenVane',
+] as const
+export const PastureKeySchema = z.enum(PASTURE_KEYS)
+export type PastureKey = z.infer<typeof PastureKeySchema>
+
+export const BarnColorSchema = z.enum(['red', 'blue', 'green', 'yellow', 'purple'])
+export type BarnColor = z.infer<typeof BarnColorSchema>
+
+/**
+ * One reward of `GET /api/me/pasture`: `unlocked` follows from the level and the badges, `shown` is unlocked
+ * and not hidden by the player; `progress` (level or badge progress towards the target) only while locked.
+ */
+export const PastureItemDto = z.object({
+  key: PastureKeySchema,
+  unlocked: z.boolean(),
+  shown: z.boolean(),
+  progress: z.object({ current: z.number().int().min(0), target: z.number().int().min(1) }).optional(),
+})
+export type PastureItemDto = z.infer<typeof PastureItemDto>
+
+/** `barnColor` is the colour in effect: red while the colour choice is locked. */
+export const PastureDto = z.object({
+  items: z.array(PastureItemDto),
+  barnColor: BarnColorSchema,
+  level: z.number().int(),
+})
+export type PastureDto = z.infer<typeof PastureDto>
+
+/** `PATCH /api/me/pasture`: a colour other than red is accepted only once it is unlocked. */
+export const PasturePatch = z
+  .object({
+    hiddenItems: z.array(PastureKeySchema).max(PASTURE_KEYS.length).optional(),
+    barnColor: BarnColorSchema.optional(),
+  })
+  .strict()
+export type PasturePatch = z.infer<typeof PasturePatch>
+
+/** Rewards a finished game unlocked (catalog order), next to `newBadges`. */
+export const NewUnlocksSchema = z.array(PastureKeySchema)
+
 export const ShareChannelSchema = z.enum(['native', 'copy', 'image'])
 export type ShareChannel = z.infer<typeof ShareChannelSchema>
 
@@ -99,6 +149,7 @@ export type ShareBody = z.infer<typeof ShareBody>
 export const ShareResultDto = z.object({
   counted: z.boolean(),
   newBadges: z.array(NewBadgeDto).optional(),
+  newUnlocks: NewUnlocksSchema.optional(),
 })
 export type ShareResultDto = z.infer<typeof ShareResultDto>
 
@@ -135,6 +186,8 @@ export const GuessResultDto = z.object({
   score: z.number().int().optional(),
   /** Badge tiers this (counted, winning) guess earned; absent unless the game ended. */
   newBadges: z.array(NewBadgeDto).optional(),
+  /** Pasture rewards the end of the game unlocked; absent unless the game ended. */
+  newUnlocks: NewUnlocksSchema.optional(),
 })
 export type GuessResultDto = z.infer<typeof GuessResultDto>
 
@@ -145,6 +198,7 @@ export type GiveUpBody = z.infer<typeof GiveUpBody>
 export const GiveUpResultDto = z.object({
   secret: z.string(),
   newBadges: z.array(NewBadgeDto).optional(),
+  newUnlocks: NewUnlocksSchema.optional(),
 })
 export type GiveUpResultDto = z.infer<typeof GiveUpResultDto>
 

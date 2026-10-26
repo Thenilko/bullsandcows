@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { ERROR_CODES } from './errors'
-import { BotLevelSchema, LenSchema, NewBadgeDto, SpeciesSchema, ZeroSchema } from './rest'
+import { BotLevelSchema, LenSchema, NewBadgeDto, NewUnlocksSchema, SpeciesSchema, ZeroSchema } from './rest'
 
 /** WebSocket message schemas shared by the duel/queue rooms and the client. */
 export const WS_PROTOCOL_VERSION = 1
@@ -161,6 +161,8 @@ export const ServerMsg = z.discriminatedUnion('t', [
     xp: Int,
     /** Badge tiers this seat earned; absent when the result could not be recorded yet. */
     newBadges: z.array(NewBadgeDto).optional(),
+    /** Pasture rewards this seat unlocked; absent when nothing new (or the result is not recorded yet). */
+    newUnlocks: NewUnlocksSchema.optional(),
     /** The id of this seat's game row (for `POST /api/shares`); null when no row is written. */
     gameId: z.string().nullable().optional(),
   }),
