@@ -4,6 +4,7 @@ import { memoryBadges } from './badges'
 import { memoryDuels } from './duels'
 import { memoryGames } from './games'
 import { memoryProfiles } from './profiles'
+import { memoryPasture } from './pasture'
 import { memoryShares } from './shares'
 import { createStore, type MemoryStore } from './store'
 
@@ -17,6 +18,7 @@ export function createMemoryRepo(
     duels: memoryDuels(store, clock),
     badges: memoryBadges(store),
     shares: memoryShares(store),
+    pasture: memoryPasture(store),
     close: async () => undefined,
   }
 }

@@ -4,6 +4,7 @@ import type {
   DuelRow,
   GameRow,
   GuessRow,
+  PastureSettings,
   Profile,
   PublicGameRow,
   ShareRow,
@@ -20,6 +21,8 @@ export interface MemoryStore {
   readonly badges: Map<string, ReadonlyMap<BadgeKey, BadgeState>>
   /** Key `<userId>|<gameId>`. */
   readonly shares: Map<string, ShareRow>
+  /** Per user: the pasture choices. */
+  readonly pasture: Map<string, PastureSettings>
   nextGuessId: number
 }
 
@@ -31,6 +34,7 @@ export const createStore = (): MemoryStore => ({
   dailyNumbers: new Map(),
   badges: new Map(),
   shares: new Map(),
+  pasture: new Map(),
   nextGuessId: 1,
 })
 

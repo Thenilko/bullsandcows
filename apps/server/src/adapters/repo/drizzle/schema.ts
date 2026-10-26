@@ -1,6 +1,6 @@
 import type { Len } from '@bc/game-core'
 import type { Lang } from '@bc/i18n'
-import type { AvatarSpecies, BadgeKey, ShareChannel } from '@bc/protocol'
+import type { AvatarSpecies, BadgeKey, BarnColor, PastureKey, ShareChannel } from '@bc/protocol'
 import { sql } from 'drizzle-orm'
 import {
   type AnyPgColumn,
@@ -210,4 +210,26 @@ export const dailyNumbers = pgTable(
     idx: integer('idx').notNull(),
   },
   (t) => [primaryKey({ columns: [t.date, t.len, t.zero] })],
+).enableRLS()
+
+/**
+ * The player's choices for „Твоето пасище“: rewards hidden from the scene and the barn colour. What is
+ * unlocked is never stored (it follows from the level and `user_badges`); no row means the defaults.
+ */
+export const userPasture = pgTable(
+  'user_pasture',
+  {
+    userId: uuid('user_id')
+      .primaryKey()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    hiddenItems: text('hidden_items').array().$type<PastureKey[]>().notNull().default(sql`'{}'::text[]`),
+    barnColor: text('barn_color').$type<BarnColor>().notNull().default('red'),
+    updatedAt: ts('updated_at').notNull().defaultNow(),
+  },
+  (t) => [
+    check(
+      'user_pasture_barn_color_check',
+      sql`${t.barnColor} in ('red', 'blue', 'green', 'yellow', 'purple')`,
+    ),
+  ],
 ).enableRLS()

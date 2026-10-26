@@ -1,6 +1,6 @@
 import type { Len, Outcome, Rating } from '@bc/game-core'
 import type { Lang } from '@bc/i18n'
-import type { AvatarSpecies, BadgeKey, ShareChannel } from '@bc/protocol'
+import type { AvatarSpecies, BadgeKey, BarnColor, PastureKey, ShareChannel } from '@bc/protocol'
 
 export type GameKind = 'daily' | 'free' | 'duel_race' | 'duel_classic' | 'bot'
 export type SoloKind = Extract<GameKind, 'daily' | 'free'>
@@ -296,12 +296,26 @@ export interface DuelsRepo {
   listOf(userId: string, limit: number): Promise<DuelRow[]>
 }
 
+/** The player's pasture choices; unlocking is derived, never stored. */
+export interface PastureSettings {
+  readonly hiddenItems: readonly PastureKey[]
+  readonly barnColor: BarnColor
+}
+
+export interface PastureRepo {
+  /** Null when the player never changed anything (the defaults apply). */
+  get(userId: string): Promise<PastureSettings | null>
+  /** Inserts or overwrites the row. */
+  save(userId: string, settings: PastureSettings): Promise<void>
+}
+
 export interface Repo {
   readonly profiles: ProfilesRepo
   readonly games: GamesRepo
   readonly duels: DuelsRepo
   readonly badges: BadgesRepo
   readonly shares: SharesRepo
+  readonly pasture: PastureRepo
 }
 
 /** A repo bound to resources that must be released when the request ends. */

@@ -1,5 +1,5 @@
 import type { RepoHandle } from '../ports/repo'
-import { recordResult, resultIds, type NewBadgesByUser } from './persist'
+import { recordResult, resultIds, type EarnedByUser } from './persist'
 import { PERSIST_MAX_ATTEMPTS, retryDelay, type PendingResult, type RoomState } from './state'
 
 /** Storage keys of claimed, not yet written results: `pending:<duelId>`. */
@@ -23,7 +23,7 @@ export function claimResult(st: RoomState, now: number): PendingResult | null {
   }
 }
 
-async function write(openRepo: () => RepoHandle, p: PendingResult): Promise<NewBadgesByUser> {
+async function write(openRepo: () => RepoHandle, p: PendingResult): Promise<EarnedByUser> {
   const repo = openRepo()
   try {
     return await recordResult(repo, p)
@@ -43,7 +43,7 @@ export async function attemptWrite(
   openRepo: () => RepoHandle,
   p: PendingResult,
   now: number,
-): Promise<NewBadgesByUser | null> {
+): Promise<EarnedByUser | null> {
   const key = pendingKey(p)
   try {
     const badges = await write(openRepo, p)
