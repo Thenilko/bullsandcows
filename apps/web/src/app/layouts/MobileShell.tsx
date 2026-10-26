@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, useLocation } from 'react-router'
 import { PastureScene } from '../../components/scene'
+import { useScenePasture } from '../../features/pasture/usePasture'
 import { HomeIcon, QuestionIcon, TrophyIcon, UserIcon } from '../../components/ui/icons'
 import { cx } from '../../components/ui/cx'
 import styles from './MobileShell.module.css'
@@ -18,11 +19,18 @@ export function MobileShell({
   hud,
   hudAt = 'top',
   topHud,
+  sceneTop,
 }: ShellProps) {
   const { t } = useTranslation()
   const { pathname } = useLocation()
+  const pasture = useScenePasture(scene.pasture)
   const play = panelTop !== undefined
-  const vars = play ? ({ '--panel-top': `${panelTop}px` } as CSSProperties) : undefined
+  const tall = !play && sceneTop !== undefined
+  const vars = play
+    ? ({ '--panel-top': `${panelTop}px` } as CSSProperties)
+    : tall
+      ? ({ '--scene-top': `${sceneTop}px` } as CSSProperties)
+      : undefined
   return (
     <div className={cx('ps-frame', styles.frame)}>
       <div
@@ -30,13 +38,14 @@ export function MobileShell({
           styles.root,
           play && styles.play,
           play && fit && styles.fit,
+          tall && styles.tall,
           bare && styles.bare,
         )}
         style={vars}
       >
         <div className={styles.scene} data-testid="scene">
           <div className={styles.art}>
-            <PastureScene {...scene} label={t('nav.play')} />
+            <PastureScene {...scene} pasture={pasture} label={t('nav.play')} />
           </div>
           {topHud ? <div className={styles.hudTop}>{topHud}</div> : null}
           {hud ? <div className={hudAt === 'bottom' ? styles.hudBottom : styles.hudTop}>{hud}</div> : null}

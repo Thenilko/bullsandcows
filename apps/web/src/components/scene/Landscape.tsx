@@ -1,5 +1,11 @@
-/** The red barn with its shadow, drawn on the mobile artboard coordinates; the wide scene scales the same shapes. */
-export function BarnShapes() {
+import type { ReactNode } from 'react'
+import { BarnTint } from './rewards/BarnTint'
+
+/**
+ * The red barn with its shadow, drawn on the mobile artboard coordinates; the wide scene scales the same shapes.
+ * `tint`: the player's barn colour, laid over the walls.
+ */
+export function BarnShapes({ tint = null }: { tint?: string | null }) {
   return (
     <>
 <ellipse cx="80" cy="264" rx="74" ry="7" fill="#2F5A22" opacity=".35" />
@@ -14,12 +20,13 @@ export function BarnShapes() {
 <path d="M62 201 C66 196 72 197 78 201Z" fill="#E2B85A" />
 <rect x="48" y="221" width="44" height="42" fill="#8E3424" stroke="#F3EDE2" strokeWidth="3" />
 <path d="M48 221 L92 263 M92 221 L48 263 M70 221 V263" stroke="#F3EDE2" strokeWidth="2.5" />
+{tint ? <BarnTint color={tint} /> : null}
     </>
   )
 }
 
-/** Static hills, barn, trees and meadow (everything between the sky and the animals). */
-export function Landscape() {
+/** Static hills, barn, trees and meadow (everything between the sky and the animals); `children` after the back fence. */
+export function Landscape({ barnTint = null, children }: { barnTint?: string | null; children?: ReactNode }) {
   return (
     <>
 <path d="M0 196 L22 182 L40 188 L66 164 L88 176 L112 158 L138 172 L160 150 L186 168 L214 146 L240 162 L268 152 L296 170 L324 154 L352 168 L390 156 L390 236 L0 236Z" fill="url(#psMtnA)" />
@@ -34,7 +41,7 @@ export function Landscape() {
 <circle cx="334" cy="200" r="20" fill="url(#psCanopy)" /><circle cx="357" cy="189" r="24" fill="url(#psCanopy)" /><circle cx="374" cy="206" r="18" fill="url(#psCanopy)" /><circle cx="350" cy="213" r="17" fill="url(#psCanopy)" />
 <path d="M150 250 L152 232 L154 250Z" fill="#5E4129" /><ellipse cx="152" cy="224" rx="9" ry="19" fill="url(#psCanopy)" />
 <path d="M166 252 L167.5 238 L169 252Z" fill="#5E4129" /><ellipse cx="167.5" cy="232" rx="7" ry="14" fill="url(#psCanopy)" />
-<BarnShapes />
+<BarnShapes tint={barnTint} />
 <rect x="150" y="250" width="26" height="16" rx="5" fill="#E2B85A" /><path d="M154 254 H172 M154 258 H172 M154 262 H172" stroke="#C3943B" strokeWidth="1" />
 <rect x="160" y="238" width="20" height="13" rx="4" fill="#EBC56B" />
 <path d="M0 272 C80 264 180 268 260 264 C320 261 360 264 390 262 L390 380 L0 380Z" fill="url(#psGrass)" />
@@ -43,6 +50,7 @@ export function Landscape() {
 <g fill="#7A5230"><rect x="4" y="266" width="5" height="24" rx="1" /><rect x="52" y="266" width="5" height="24" rx="1" /><rect x="100" y="266" width="5" height="24" rx="1" /><rect x="148" y="266" width="5" height="24" rx="1" /><rect x="193" y="266" width="5" height="24" rx="1" /></g>
 <g stroke="#3F7F2E" strokeWidth="1.4" strokeLinecap="round" fill="none"><path d="M220 302 l-3 -7 M222 302 v-9 M224 302 l3 -7" /><path d="M262 322 l-3 -7 M264 322 v-9 M266 322 l3 -7" /><path d="M304 296 l-3 -6 M306 296 v-8 M308 296 l3 -6" /><path d="M352 318 l-3 -7 M354 318 v-9 M356 318 l3 -7" /><path d="M244 348 l-3 -7 M246 348 v-9 M248 348 l3 -7" /><path d="M336 352 l-3 -7 M338 352 v-9 M340 352 l3 -7" /><path d="M372 292 l-2 -6 M374 292 v-8 M376 292 l2 -6" /></g>
 <g><circle cx="232" cy="314" r="2.2" fill="#FFFFFF" /><circle cx="232" cy="314" r=".9" fill="#F2C230" /><circle cx="318" cy="334" r="2.2" fill="#FFFFFF" /><circle cx="318" cy="334" r=".9" fill="#F2C230" /><circle cx="364" cy="306" r="2.2" fill="#FFFFFF" /><circle cx="276" cy="340" r="2.3" fill="#F2C230" /><circle cx="206" cy="320" r="2" fill="#F2C230" /><circle cx="342" cy="344" r="2.1" fill="#F29BB8" /><circle cx="256" cy="302" r="1.8" fill="#F29BB8" /><circle cx="380" cy="330" r="2" fill="#B9A7F0" /></g>
+{children}
     </>
   )
 }

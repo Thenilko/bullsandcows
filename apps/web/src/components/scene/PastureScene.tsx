@@ -4,6 +4,7 @@ import { AnimalLayer } from './Animals'
 import { Defs } from './Defs'
 import { FogLayer } from './FogLayer'
 import { Foreground, Landscape } from './Landscape'
+import { barnTint, MobileBackRewards, MobileFrontRewards, MobilePenRewards, type ScenePasture } from './rewards'
 import type { SceneAnimal } from './sceneAnimals'
 import { Sky } from './Sky'
 import { SkyLayer } from './SkyLayer'
@@ -18,6 +19,8 @@ export interface PastureSceneProps {
   miss: boolean
   label?: string
   className?: string
+  /** The player's pasture rewards and barn colour; absent: the plain pasture. */
+  pasture?: ScenePasture
 }
 
 const PUFFS = [
@@ -65,7 +68,7 @@ function Plane({ name, children }: { name: 'sky' | 'land' | 'animals' | 'front';
  * middle of the artboard. The mobile shell sizes the box itself (MobileShell.module.css `.art`), so compact
  * phones get the design's `xMidYMax slice` (meadow and animals kept, sky cut) without a second render.
  */
-export function PastureScene({ fog, sunY, dawn, animals, parity, miss, label = 'Пасището', className }: PastureSceneProps) {
+export function PastureScene({ fog, sunY, dawn, animals, parity, miss, label = 'Пасището', className, pasture }: PastureSceneProps) {
   const reduced = useReducedMotion()
   return (
     <div className={className} role="img" aria-label={label} style={SVG_STYLE}>
@@ -75,14 +78,18 @@ export function PastureScene({ fog, sunY, dawn, animals, parity, miss, label = '
       </Plane>
       <SkyLayer reduced={reduced} />
       <Plane name="land">
-        <Landscape />
+        <Landscape barnTint={barnTint(pasture)}>
+          <MobileBackRewards pasture={pasture} />
+        </Landscape>
       </Plane>
       <Plane name="animals">
+        <MobilePenRewards pasture={pasture} />
         {parity ? <AnimalLayer layer="A" animals={animals} /> : <AnimalLayer layer="B" animals={animals} />}
         {miss ? <Puffs /> : null}
       </Plane>
       <Plane name="front">
         <Foreground />
+        <MobileFrontRewards pasture={pasture} />
       </Plane>
       <FogLayer fog={fog} reduced={reduced} />
     </div>

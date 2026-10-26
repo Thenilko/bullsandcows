@@ -12,7 +12,7 @@ export interface SceneProps extends Omit<PastureSceneProps, 'className' | 'label
  * Desktop screen key, the `sc-<screen>` class of the shell root (Desk.dc.html, PasDuel.dc.html). `new` covers
  * the PasDuel setup screens (new game, duel setup, queue, invite, found), `duel` the match itself.
  */
-export type ScreenKey = 'login' | 'rules' | 'play' | 'result' | 'board' | 'profile' | 'new' | 'duel'
+export type ScreenKey = 'login' | 'rules' | 'play' | 'result' | 'board' | 'profile' | 'new' | 'duel' | 'pasture'
 
 export interface ShellProps {
   scene: SceneProps
@@ -27,6 +27,11 @@ export interface ShellProps {
    * screen as play-like: on compact phones the scene takes what is left above the panel and the tab bar hides.
    */
   panelTop?: number
+  /**
+   * Mobile only, not play-like: the panel's top on the 390x844 artboard for a screen that shows the whole scene
+   * („Твоето пасище“: 356, everything unlocked: 516); compact phones shrink the scene first.
+   */
+  sceneTop?: number
   /** Mobile play-like screens: the panel keeps its natural height and never scrolls (solo play, MK3). */
   fit?: boolean
   /** Overlay rendered on top of the scene (HUD chips), as in the prototypes. */

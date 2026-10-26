@@ -358,3 +358,32 @@
 .dk-split.sc-duel .dk-col {
   width: 540px;
 }
+
+/*
+ * ===== „Твоето пасище“ (PasExtrasDesk ПД1/ПД2, `.xd-narrow`): immersive — a narrow panel with the wooden frame
+ * at the top right, so the scene and its rewards stay in view; split — the scene card and the 640px column.
+ */
+.dk.sc-pasture .dk-col {
+  gap: 14px;
+  padding: 22px;
+  border-radius: 24px;
+  background: #f6f2e6;
+}
+
+.dk-imm.sc-pasture .dk-col {
+  right: 36px;
+  top: 104px;
+  bottom: auto;
+  width: 380px;
+  max-height: min(520px, calc(100% - 128px));
+  box-shadow: 0 0 0 8px #8b5e34, 0 0 0 11px #4e321a, 0 30px 60px rgba(20, 30, 10, 0.35);
+}
+
+.dk-split.sc-pasture .dk-scene {
+  right: 688px;
+}
+
+.dk-split.sc-pasture .dk-col {
+  width: 640px;
+  box-shadow: 0 1px 0 #e7e0cc, 0 12px 30px rgba(30, 40, 20, 0.1);
+}
