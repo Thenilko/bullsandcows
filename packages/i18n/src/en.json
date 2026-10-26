@@ -618,6 +618,10 @@
     "ERR_INVITE_EXPIRED": "The invite has expired or the code is wrong.",
     "ERR_ROOM_FULL": "This room already has two players.",
     "ERR_RATE_LIMIT": "Slow down a little — wait a moment and try again.",
+    "ERR_FARM_FULL": "This farm is full — it already has 12 people.",
+    "ERR_FARM_CODE": "There is no farm with this code. Check it and try again.",
+    "ERR_ALREADY_IN_FARM": "You are in a farm already. Leave it from its settings first.",
+    "ERR_FORBIDDEN": "Only the owner of the farm can do this.",
     "ERR_INTERNAL": "Something went wrong. Try again.",
     "network": "No connection. Check your internet and try again.",
     "unknown": "Something went wrong. Try again."

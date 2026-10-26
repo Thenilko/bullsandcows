@@ -276,6 +276,8 @@ export const ProfileDto = z.object({
   vibrate: z.boolean(),
   defaultLen: LenSchema,
   avatarSpecies: SpeciesSchema,
+  /** „Напомняне всеки ден?“: 'HH:MM' (Sofia) or null; only stored, nothing is sent yet. */
+  reminderTime: z.string().nullable().optional(),
 })
 export type ProfileDto = z.infer<typeof ProfileDto>
 
@@ -322,6 +324,9 @@ export const MeDto = z.object({
 export type MeDto = z.infer<typeof MeDto>
 
 /** Only these fields; anything else (xp, rating, username...) is rejected. */
+/** A wall-clock time 'HH:MM' (00:00–23:59). */
+export const ReminderTimeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+
 export const SettingsPatch = z
   .object({
     sound: z.boolean().optional(),
@@ -329,6 +334,7 @@ export const SettingsPatch = z
     defaultLen: LenSchema.optional(),
     lang: LangSchema.optional(),
     avatarSpecies: SpeciesSchema.optional(),
+    reminderTime: ReminderTimeSchema.nullable().optional(),
   })
   .strict()
 export type SettingsPatch = z.infer<typeof SettingsPatch>

@@ -43,7 +43,7 @@ describe('BadgeDetail', () => {
     expect(screen.getByRole('dialog')).toHaveTextContent('Скрита значка — открий я сама')
     expect(screen.queryByText('Огледало')).toBeNull()
     unmount()
-    renderWithI18n(<BadgeDetail view={badgeView({ key: 'invite', tier: 0, progress: 0, next: 1, earnedAt: null })} onClose={() => undefined} />)
+    renderWithI18n(<BadgeDetail view={badgeView({ key: 'weekly', tier: 0, progress: 0, next: 1, earnedAt: null })} onClose={() => undefined} />)
     expect(screen.getByText('скоро')).toBeInTheDocument()
     expect(screen.getByText('Тази значка идва с бъдеща част от играта.')).toBeInTheDocument()
   })
