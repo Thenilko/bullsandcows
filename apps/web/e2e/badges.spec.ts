@@ -42,7 +42,7 @@ test('badges: the collection with 29 tiles, the detail from a tile on phone and 
   await expect(dialog).toBeHidden()
 
   // „скоро“ for a badge whose feature is not shipped yet.
-  await page.getByRole('button', { name: 'Семейна ферма: не е спечелена' }).click()
+  await page.getByRole('button', { name: 'Седмичник: не е спечелена' }).click()
   await expect(page.getByRole('dialog', { name: 'Значка' })).toContainText('скоро')
   await page.getByRole('button', { name: 'Затвори' }).click()
 

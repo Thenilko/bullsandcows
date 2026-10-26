@@ -43,6 +43,9 @@ const COMPACT: readonly [key: string, screen: string, w: number, h: number][] = 
   // „Твоето пасище“ and the unlock modal on the compact phone (ЧАСТ 1).
   ['mk-pasture', 'pasture', 390, 660],
   ['mk-unlock', 'unlock', 390, 660],
+  // „Семейна ферма“ and the nudge on the compact phone (ЧАСТ 2).
+  ['mk-farm', 'farm', 390, 660],
+  ['mk-farm-nudge', 'farm-nudge', 390, 660],
 ]
 
 for (const [key, screen, w, h] of COMPACT) {

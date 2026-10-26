@@ -53,7 +53,8 @@ export default defineConfig({
     },
     {
       name: 'desktop',
-      testMatch: /(solo|duel|bot|share|badges)\.spec\.ts/,
+      // farm.spec sets its own artboard sizes (390×844 … 1440×900), so it runs once, here.
+      testMatch: /(solo|duel|bot|share|badges|farm)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
     },
     compact('mk-660', 390, 660),
