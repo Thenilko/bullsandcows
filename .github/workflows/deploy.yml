@@ -51,6 +51,8 @@ jobs:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_PUBLIC_URL: ${{ vars.VITE_PUBLIC_URL }}
+          # Optional: the footer hides „Контакт“ while it is empty.
+          VITE_CONTACT_EMAIL: ${{ vars.VITE_CONTACT_EMAIL }}
         run: pnpm --filter web build
       - name: Guard - bundle carries the Supabase URL
         env:
