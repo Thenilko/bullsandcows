@@ -6,11 +6,13 @@ import { securityHeaders } from './middleware/headers'
 import { fail, ok } from './respond'
 import { authRoutes } from './routes/auth'
 import { botsRoutes, duelsRoutes } from './routes/duels'
+import { farmsRoutes } from './routes/farms'
 import { gamesRoutes } from './routes/games'
 import { leaderboardRoutes } from './routes/leaderboard'
 import { meRoutes } from './routes/me'
 import { sharesRoutes } from './routes/shares'
 import { statsRoutes } from './routes/stats'
+import { weeklyRoutes } from './routes/weekly'
 import type { AppDeps, AppEnv } from './types'
 
 export type { AppDeps, AppEnv } from './types'
@@ -40,6 +42,8 @@ export function createApp(deps: AppDeps): Hono<AppEnv> {
   app.route('/api/leaderboard', leaderboardRoutes())
   app.route('/api/me', meRoutes())
   app.route('/api/shares', sharesRoutes())
+  app.route('/api/farms', farmsRoutes())
+  app.route('/api/weekly', weeklyRoutes())
   app.route('/api/auth', authRoutes())
   app.notFound((c) => fail(c, 'ERR_NOT_FOUND', 404))
   app.onError(handleError)

@@ -9,7 +9,8 @@
     "test": "vitest run",
     "types": "wrangler types --env-interface CloudflareBindings",
     "db:generate": "drizzle-kit generate --name init",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "test:pg": "vitest run --config vitest.pg.config.ts"
   },
   "dependencies": {
     "@bc/game-core": "workspace:*",

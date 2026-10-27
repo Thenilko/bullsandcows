@@ -9,6 +9,7 @@ import { TallySign, type Tally } from './wide/Tally'
 import { WideDefs, WideFog, WidePuffs } from './wide/WideFog'
 import { Hills, Meadow, PenBack, WideForeground } from './wide/WideLandscape'
 import { WideSky } from './wide/WideSky'
+import { barnTint, has, WideBackRewards, WideFrontRewards, WideVane } from './rewards'
 
 export type { Tally }
 
@@ -31,7 +32,7 @@ const SVG_STYLE = { display: 'block', position: 'absolute', inset: 0 } as const
  * The wide desktop pasture (PasWideScene): one SVG on the 1600×900 artboard, `xMidYMax slice` so the meadow and the
  * animals stay in view whatever the box ratio. The sun height comes from the caller (`wideSunY` in game-core).
  */
-export function WideScene({ fog, sunY, dawn, animals, parity, miss, tally, viewBox, label = 'Пасището', className }: WideSceneProps) {
+export function WideScene({ fog, sunY, dawn, animals, parity, miss, tally, viewBox, label = 'Пасището', className, pasture }: WideSceneProps) {
   const reduced = useReducedMotion()
   return (
     <div className={className} role="img" aria-label={label} style={SVG_STYLE}>
@@ -48,7 +49,9 @@ export function WideScene({ fog, sunY, dawn, animals, parity, miss, tally, viewB
         <Poplar x={1370} y={520} scale={1.4} />
         <Poplar x={1392} y={524} scale={1.1} />
         <Meadow />
-        <Barn />
+        <WideBackRewards pasture={pasture} />
+        <Barn tint={barnTint(pasture)} plainVane={!has(pasture, 'goldenVane')} />
+        <WideVane pasture={pasture} />
         <HayBales />
         <PenBack />
         <Scarecrow reduced={reduced} />
@@ -57,6 +60,7 @@ export function WideScene({ fog, sunY, dawn, animals, parity, miss, tally, viewB
         {parity ? <AnimalLayer layer="A" animals={animals} /> : <AnimalLayer layer="B" animals={animals} />}
         {miss ? <WidePuffs /> : null}
         <WideForeground />
+        <WideFrontRewards pasture={pasture} />
         <WideFog fog={fog} reduced={reduced} />
       </svg>
     </div>

@@ -41,6 +41,11 @@
   --panel-pb: calc(16px + env(safe-area-inset-bottom, 0px));
 }
 
+/* Showcase screens („Твоето пасище“): the whole 390x380 scene above the panel, `--scene-top` inline (356 / 516). */
+.tall {
+  --scene-h: calc(var(--scene-top) + var(--overlap));
+}
+
 /* Play-like screens (solo play, duel play, hide secret): `--panel-top` comes inline from the screen. */
 .play {
   --scene-h: min(380px, calc(var(--panel-top) + var(--overlap)));
@@ -121,6 +126,11 @@
     --card-pad: 12px;
     --start-h1: 22px;
     --start-btn: 56px;
+  }
+
+  /* Showcase: the scene gives way to the panel (at least about 360px of list), never below 200px. */
+  .tall {
+    --scene-h: clamp(200px, calc(100cqh - 420px), calc(var(--scene-top) + var(--overlap)));
   }
 
   /* Login: the panel starts at max(120, H - 540), never lower than on tall phones. */

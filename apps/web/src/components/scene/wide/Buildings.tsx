@@ -64,16 +64,19 @@ export function Oak() {
   )
 }
 
-/** The mobile barn scaled ×2 at the pen, with a weathervane (`ps-vane`) on the ridge. */
-export function Barn() {
+/**
+ * The mobile barn scaled ×2 at the pen, with a weathervane (`ps-vane`) on the ridge; `tint` is the player's barn
+ * colour, `plainVane: false` leaves the ridge to the golden vane.
+ */
+export function Barn({ tint = null, plainVane = true }: { tint?: string | null; plainVane?: boolean }) {
   return (
     <g transform="translate(440 640) scale(2.0) translate(-15 -263)">
-      <BarnShapes />
-      <g className="ps-vane">
+      <BarnShapes tint={tint} />
+      {plainVane ? <g className="ps-vane">
         <path d="M70 163 V150" stroke="#3E2A1F" strokeWidth="1.6" />
         <path d="M62 150 L78 150 L74 146 Z" fill="#3E2A1F" />
         <path d="M64 146 C66 140 72 140 74 144" fill="#3E2A1F" />
-      </g>
+      </g> : null}
     </g>
   )
 }

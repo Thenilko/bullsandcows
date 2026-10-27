@@ -24,7 +24,8 @@ export const HISTORY_LIMIT = 1_000
 
 /**
  * Which badges an event can move: a finished game (solo, duel or bot) touches everything but
- * the „together“ group, a share only that group, the backfill all of them.
+ * the „together“ group (except `invite`, which a duel by invite code moves), a share, a farm event or a
+ * finalised week only that group, the backfill all of them.
  */
 export type BadgeScope = 'game' | 'share' | 'all'
 
@@ -34,8 +35,16 @@ const SCOPE_CATEGORIES: Readonly<Record<BadgeScope, readonly BadgeCategory[]>> =
   all: ['logic', 'speed', 'consistency', 'duel', 'bot', 'collector', 'together', 'hidden'],
 }
 
+const SCOPE_EXTRA: Readonly<Record<BadgeScope, readonly BadgeKey[]>> = {
+  game: ['invite'],
+  share: [],
+  all: [],
+}
+
 export const badgesInScope = (scope: BadgeScope): BadgeKey[] =>
-  BADGES.filter((b) => SCOPE_CATEGORIES[scope].includes(b.category)).map((b) => b.key)
+  BADGES.filter(
+    (b) => SCOPE_CATEGORIES[scope].includes(b.category) || SCOPE_EXTRA[scope].includes(b.key),
+  ).map((b) => b.key)
 
 export interface BadgeProgressEntry {
   readonly key: BadgeKey
@@ -133,12 +142,14 @@ export function toGameFacts(games: readonly PublicGameRow[]): GameFact[] {
 export function toDuelFacts(userId: string, duels: readonly DuelRow[]): DuelFact[] {
   return [...duels].reverse().map((d) => {
     const won = d.winner === userId
+    const hosted = d.inviteCode !== null && d.playerA === userId && d.finishedAt !== null
     return {
       vsHuman: d.opponentKind !== 'bot' && d.playerB !== null,
       won,
       botLevel: d.botLevel,
       isRematch: d.isRematch,
       comeback: won && d.comeback,
+      invitee: hosted ? d.playerB : null,
     }
   })
 }
@@ -159,11 +170,15 @@ async function gatherFacts(repo: Repo, input: RecomputeInput): Promise<BadgeFact
   const { userId, scope } = input
   const withGames = scope !== 'share'
   const withShares = scope !== 'game'
-  const [games, profile, duels, shares] = await Promise.all([
+  // Every scope moves `invite` (duel invites and farm joins), so the duels and the farm are always read.
+  const [games, profile, duels, shares, invitees, farm, weeksWon] = await Promise.all([
     withGames ? (input.games ?? repo.games.history(userId, HISTORY_LIMIT)) : [],
     withGames ? repo.profiles.get(userId) : null,
-    withGames ? repo.duels.listOf(userId, HISTORY_LIMIT) : [],
+    repo.duels.listOf(userId, HISTORY_LIMIT),
     withShares ? repo.shares.countOf(userId) : 0,
+    repo.farms.inviteesOf(userId),
+    withShares ? repo.farms.membershipOf(userId) : null,
+    withShares ? repo.weekly.weeksWon(userId) : 0,
   ])
   return {
     ...EMPTY_FACTS,
@@ -172,6 +187,9 @@ async function gatherFacts(repo: Repo, input: RecomputeInput): Promise<BadgeFact
     duels: toDuelFacts(userId, duels),
     shares,
     events: input.events ?? [],
+    farmInvitees: invitees,
+    inFarm: farm !== null,
+    weeksWon,
   }
 }
 

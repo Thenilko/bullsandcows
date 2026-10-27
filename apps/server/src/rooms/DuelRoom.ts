@@ -9,7 +9,7 @@ import { parseEnv, type Env } from '../env'
 import type { Profile, RepoHandle } from '../ports/repo'
 import { advance, fromStep, isAbandoned, type Advanced } from './lifecycle'
 import { acceptsRematch, applyClient, parseClient, refreshPlayers, rematch } from './messages'
-import { BOT_ID, type NewBadgesByUser } from './persist'
+import { BOT_ID, type EarnedByUser } from './persist'
 import { attemptWrite, claimResult, earliestRetry, pendingKey, retryDue } from './results'
 import {
   CreateBody,
@@ -318,7 +318,7 @@ export class DuelRoom extends DurableObject<CloudflareBindings> {
    * it in practice; if it did, the machine still emits a corrected `ended`, but the stored
    * result is not rewritten.
    */
-  private async writeClaimed(claimed: PendingResult, now: number): Promise<NewBadgesByUser | null> {
+  private async writeClaimed(claimed: PendingResult, now: number): Promise<EarnedByUser | null> {
     const badges = await attemptWrite(this.ctx.storage, () => this.repo(), claimed, now)
     const st = await this.load()
     if (st) await this.arm(st, now)
@@ -373,20 +373,27 @@ const withGameIds = (st: RoomState, claimed: PendingResult): RoomState => ({
 })
 
 /**
- * The seat's `ended` with its game row id and, when the result was written, the badges its
- * player earned.
+ * The seat's `ended` with its game row id and, when the result was written, the badges and
+ * pasture rewards its player earned.
  */
 function withResult(
   m: Match,
   held: readonly Emit[],
   claimed: PendingResult,
-  badges: NewBadgesByUser | null,
+  badges: EarnedByUser | null,
 ): Emit[] {
   return held.map((e) => {
     if (e.msg.t !== 'ended' || e.to === 'both') return e
     const gameId = e.to === 'a' ? claimed.ids.gameA : claimed.ids.gameB
-    const earned = badges?.[m.players[e.to]?.id ?? ''] ?? []
-    const msg = earned.length > 0 ? { ...e.msg, gameId, newBadges: [...earned] } : { ...e.msg, gameId }
+    const earned = badges?.[m.players[e.to]?.id ?? '']
+    const newBadges = earned?.newBadges ?? []
+    const newUnlocks = earned?.newUnlocks ?? []
+    const msg = {
+      ...e.msg,
+      gameId,
+      ...(newBadges.length > 0 && { newBadges: [...newBadges] }),
+      ...(newUnlocks.length > 0 && { newUnlocks: [...newUnlocks] }),
+    }
     return { ...e, msg }
   })
 }

@@ -40,6 +40,15 @@ const COMPACT: readonly [key: string, screen: string, w: number, h: number][] = 
   // Danail's 390x630 check: the fence and the animals plus the whole keypad, no scroll.
   ['mk12-630', 'duel-play-classic', 390, 630],
   ['mk11-630', 'duel-play-race', 390, 630],
+  // „Твоето пасище“ and the unlock modal on the compact phone (ЧАСТ 1).
+  ['mk-pasture', 'pasture', 390, 660],
+  ['mk-unlock', 'unlock', 390, 660],
+  // „Семейна ферма“ and the nudge on the compact phone (ЧАСТ 2).
+  ['mk-farm', 'farm', 390, 660],
+  ['mk-farm-nudge', 'farm-nudge', 390, 660],
+  // The weekly challenge on the compact phone (ЧАСТ 3): the week and the game.
+  ['mk-weekly', 'weekly', 390, 660],
+  ['mk-weekly-play', 'weekly-play', 390, 660],
 ]
 
 for (const [key, screen, w, h] of COMPACT) {

@@ -8,6 +8,7 @@ import { systemClock } from './ports/clock'
 import { DuelRoom } from './rooms/DuelRoom'
 import { QueueRoom } from './rooms/QueueRoom'
 import { authenticateWs, forwardWithIdentity } from './rooms/wsAuth'
+import { finalizeDueWeeks } from './weekly/finalize'
 
 /** Any id works: the cron only needs one cheap query so Supabase sees activity. */
 const KEEP_ALIVE_PROFILE_ID = '00000000-0000-0000-0000-000000000000'
@@ -141,6 +142,27 @@ async function keepAlive(raw: CloudflareBindings, ctx: ExecutionContext): Promis
   }
 }
 
+/**
+ * The weekly challenge closes at Monday 00:00 Sofia. Cron Triggers run in UTC, so there are two (21:01 and
+ * 22:01 UTC on Sunday: 00:01 in summer and in winter time); the one an hour early finds nothing due yet.
+ */
+export const WEEKLY_CRONS: readonly string[] = ['1 21 * * SUN', '1 22 * * SUN']
+
+/** Finalises every ended week; idempotent per week, so an extra run (or a lazy one) changes nothing. */
+export async function finalizeWeeks(raw: CloudflareBindings, ctx: ExecutionContext, now: number) {
+  try {
+    const repo = makeRepo(loadEnv(raw))
+    try {
+      const done = await finalizeDueWeeks(repo, now)
+      if (done.length > 0) console.info(`weekly finalised: ${done.join(', ')}`)
+    } finally {
+      ctx.waitUntil(repo.close())
+    }
+  } catch (err) {
+    console.error(`weekly finalisation failed: ${errorText(err)}`)
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const { pathname } = new URL(request.url)
@@ -152,7 +174,11 @@ export default {
     if (pathname.startsWith('/assets/')) return serveAsset(request, env)
     return env.ASSETS.fetch(request)
   },
-  async scheduled(_controller, env, ctx) {
+  async scheduled(controller, env, ctx) {
+    if (WEEKLY_CRONS.includes(controller.cron)) {
+      await finalizeWeeks(env, ctx, controller.scheduledTime)
+      return
+    }
     await keepAlive(env, ctx)
   },
 } satisfies ExportedHandler<CloudflareBindings>

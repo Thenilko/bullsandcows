@@ -1,4 +1,4 @@
-import { dailySecret, sofiaDate } from '@bc/game-core'
+import { dailySecret, sofiaDate, xpForLevel } from '@bc/game-core'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createMemoryRepo } from '../adapters/repo/memory'
 import type { AuthUser } from '../ports/auth'
@@ -301,6 +301,17 @@ describe('day streak and badges', () => {
     expect(result.newBadges?.every((b) => b.tier === 1)).toBe(true)
     expect((await profile())?.xp).toBe(100 + BADGE_XP * keys.length)
     expect(await held()).toEqual(expect.arrayContaining(keys))
+  })
+
+  it('returns the pasture rewards the win unlocked (newUnlocks), and none when nothing new', async () => {
+    await repo.profiles.addXp('alice', xpForLevel(5) - 1)
+    const win = await free('1234')
+    await solo.start(alice, win.id)
+    now += 5_000
+    const result = await solo.guess(alice, win.id, '1234')
+    expect(result.newUnlocks).toEqual(['dog'])
+    const lost = await solo.giveUp(alice, (await free('5678')).id)
+    expect(lost.newUnlocks).toEqual([])
   })
 
   it('keeps badges after a loss and gives none for a practice win', async () => {

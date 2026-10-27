@@ -19,6 +19,11 @@ describe('error codes', () => {
       'ERR_INVITE_EXPIRED',
       'ERR_ROOM_FULL',
       'ERR_RATE_LIMIT',
+      'ERR_FARM_FULL',
+      'ERR_FARM_CODE',
+      'ERR_ALREADY_IN_FARM',
+      'ERR_FORBIDDEN',
+      'ERR_WEEKLY_PLAYED',
       'ERR_INTERNAL',
     ])
   })

@@ -14,6 +14,7 @@ import {
 } from '../../components/ui/icons'
 import { LangSwitch } from '../../components/ui/LangSwitch'
 import { Soft } from '../../components/ui/Soft'
+import { useScenePasture } from '../../features/pasture/usePasture'
 import { useSoundToggle } from '../../features/stats/useSoundToggle'
 import { useDesktopMode } from '../../hooks/useDesktopMode'
 import './dk.css'
@@ -37,6 +38,7 @@ export function tallyOf(mode: SceneMode): Tally {
 function Scene({ scene, viewBox, label }: { scene: SceneProps; viewBox: string; label: string }) {
   const { mode, prog, fog, dawn, parity, miss } = scene
   const animals = useMemo(() => wideSceneAnimals(mode), [mode])
+  const pasture = useScenePasture(scene.pasture)
   return (
     <WideScene
       fog={fog}
@@ -48,6 +50,7 @@ function Scene({ scene, viewBox, label }: { scene: SceneProps; viewBox: string; 
       tally={tallyOf(mode)}
       viewBox={viewBox}
       label={label}
+      pasture={pasture}
     />
   )
 }

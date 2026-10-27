@@ -3,6 +3,7 @@ import { AppError } from '../http/errors'
 import type { AuthUser } from '../ports/auth'
 import type { Repo } from '../ports/repo'
 import { recomputeBadges } from './badgeService'
+import { unlockedNow, unlocksSince } from './pasture'
 
 /**
  * `POST /api/shares`: records that the user shared one of their finished games (any channel;
@@ -26,11 +27,12 @@ export async function recordShare(
     createdAt: now,
   })
   if (!added) return { counted: false }
+  const before = await unlockedNow(repo, user.id)
   const newBadges = await recomputeBadges(repo, {
     userId: user.id,
     scope: 'share',
     now,
     payXp: true,
   })
-  return { counted: true, newBadges }
+  return { counted: true, newBadges, newUnlocks: await unlocksSince(repo, user.id, before) }
 }

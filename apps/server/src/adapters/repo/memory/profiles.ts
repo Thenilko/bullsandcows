@@ -55,6 +55,8 @@ export function memoryProfiles(store: MemoryStore, clock: Clock): ProfilesRepo {
         bestStreak: 0,
         streakDate: null,
         progressVersion: 0,
+        reminderTime: null,
+        goldFrameUntil: null,
         createdAt: clock.now(),
       })
     },

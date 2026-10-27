@@ -3,6 +3,9 @@ import { api } from '../auth/client'
 
 export type GameKind = CreateGameBody['kind']
 
+/** The distribution a game is measured against: the weekly challenge is compared with free play. */
+export const distributionKind = (kind: GameViewDto['kind']): GameKind => (kind === 'weekly' ? 'free' : kind)
+
 export const createGame = (body: CreateGameBody) => api.post<GameViewDto>('/api/games', body)
 
 export const fetchGame = (id: string) => api.get<GameViewDto>(`/api/games/${id}`)

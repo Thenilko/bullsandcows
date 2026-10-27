@@ -53,7 +53,8 @@ export default defineConfig({
     },
     {
       name: 'desktop',
-      testMatch: /(solo|duel|bot|share|badges)\.spec\.ts/,
+      // farm.spec and weekly.spec set their own artboard sizes (390×844 … 1440×900), so they run once, here.
+      testMatch: /(solo|duel|bot|share|badges|farm|weekly)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
     },
     compact('mk-660', 390, 660),
@@ -63,7 +64,7 @@ export default defineConfig({
     {
       // Screenshot regression and axe over the dev gallery (a build with VITE_DEV_SCREENS=1).
       name: 'gallery',
-      testMatch: /(screens|a11y)\.spec\.ts/,
+      testMatch: /(screens|a11y|pasture)\.spec\.ts/,
       // Baselines are rendered on macOS; Linux CI skips the pixel comparison (axe still runs)
       // unless CI_SCREENSHOTS=1 (after regenerating them in the Playwright Docker image, see README).
       ignoreSnapshots: !!process.env.CI && !process.env.CI_SCREENSHOTS,

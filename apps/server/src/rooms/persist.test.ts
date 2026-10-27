@@ -1,4 +1,4 @@
-import { bullsCows, codes, filterCandidates } from '@bc/game-core'
+import { bullsCows, codes, filterCandidates, xpForLevel } from '@bc/game-core'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createMemoryRepo } from '../adapters/repo/memory'
 import { applyGuess } from '../duel/guess'
@@ -87,7 +87,8 @@ describe('recordResult', () => {
     const noted = { ...cornered, match: withPlayer(cornered.match, 'a', { usedNotes: true }) }
     const won = guess(noted, 'a', SECRET, PLAY_AT + 60_000)
     const r = pending({ ...won, match: { ...won.match, isRematch: true } })
-    const badges = await recordResult(repo, r)
+    const earned = await recordResult(repo, r)
+    const badges = { [alice.id]: earned[alice.id]?.newBadges, [bob.id]: earned[bob.id]?.newBadges }
     expect(badges[alice.id]).toEqual(
       expect.arrayContaining([
         { key: 'duelist', tier: 1 },
@@ -105,6 +106,14 @@ describe('recordResult', () => {
     expect((await repo.profiles.get(bob.id))?.xp).toBe(40 + 50)
   })
 
+  it('returns the pasture rewards the duel unlocked per player', async () => {
+    await repo.profiles.addXp(alice.id, xpForLevel(5) - 1)
+    const won = guess(raceInPlay('friend'), 'a', SECRET, PLAY_AT + 1_000)
+    const earned = await recordResult(repo, pending(won))
+    expect(earned[alice.id]?.newUnlocks).toEqual(['dog'])
+    expect(earned[bob.id]?.newUnlocks).toEqual([])
+  })
+
   it('is idempotent on a retry: same rows, no extra XP, nothing new', async () => {
     const won = guess(raceInPlay('friend'), 'a', SECRET, PLAY_AT + 1_000)
     const r = pending(won)
@@ -112,8 +121,9 @@ describe('recordResult', () => {
     const xp = (await repo.profiles.get(alice.id))?.xp
     const states = await repo.badges.listOf(alice.id)
     const again = await recordResult(repo, r)
-    expect(first[alice.id]?.length).toBeGreaterThan(0)
-    expect(again).toEqual({ [alice.id]: [], [bob.id]: [] })
+    expect(first[alice.id]?.newBadges.length).toBeGreaterThan(0)
+    const nothing = { newBadges: [], newUnlocks: [] }
+    expect(again).toEqual({ [alice.id]: nothing, [bob.id]: nothing })
     expect((await repo.profiles.get(alice.id))?.xp).toBe(xp)
     expect(await repo.badges.listOf(alice.id)).toEqual(states)
     expect(await repo.games.history(alice.id, 10)).toHaveLength(1)

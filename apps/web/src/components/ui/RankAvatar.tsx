@@ -64,14 +64,16 @@ export interface RankAvatarProps {
   size?: number
   /** Rocks the avatar with the `think` animation (the opponent is choosing a guess). */
   thinking?: boolean
+  /** The weekly challenge's gold frame (top 10 of the previous week) is active. */
+  gold?: boolean
 }
 
 /** Round avatar: ring in the title's colour, tinted inner disc, the head with its accessory. */
-export function RankAvatar({ species, rankKey, size = 52, thinking = false }: RankAvatarProps) {
+export function RankAvatar({ species, rankKey, size = 52, thinking = false, gold = false }: RankAvatarProps) {
   const { t } = useTranslation()
-  const label = `${t(`species.${species}`)}, ${t(`rank.${rankKey}`)}`
+  const label = `${t(`species.${species}`)}, ${t(`rank.${rankKey}`)}${gold ? `, ${t('weekly.goldFrame')}` : ''}`
   return (
-    <span className={cx('rav', thinking && 'think')} style={{ width: size, height: size }}>
+    <span className={cx('rav', thinking && 'think', gold && 'gold')} style={{ width: size, height: size }} data-gold={gold || undefined}>
       <svg width={size} height={size} viewBox="-80 -80 160 160" role="img" aria-label={label}>
         <circle r="76" fill={RANK_RING[rankKey]} stroke="#2E3B24" strokeWidth="4" />
         <circle r="66" fill={INNER_BG[species]} stroke="#2E3B24" strokeWidth="3" />

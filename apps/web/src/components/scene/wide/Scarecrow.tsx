@@ -56,7 +56,7 @@ function ScarecrowHead() {
 /** „Плашилото“ on its pole by the oak; sways (`sc-sway`) unless motion is reduced. */
 export function Scarecrow({ reduced }: { reduced: boolean }) {
   return (
-    <g transform="translate(1400 700) scale(1.15)">
+    <g data-layer="scarecrow" transform="translate(1400 700) scale(1.15)">
       <g className={reduced ? undefined : 'sc-sway'}>
         <rect x="-4" y="-122" width="8" height="122" rx="2" fill="#86592F" stroke="#2E3B24" strokeWidth="3" />
         <rect x="-52" y="-96" width="104" height="9" rx="3" fill="#86592F" stroke="#2E3B24" strokeWidth="3" />

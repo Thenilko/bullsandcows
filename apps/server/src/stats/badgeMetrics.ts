@@ -31,6 +31,8 @@ export interface DuelFact {
   readonly isRematch: boolean
   /** The player won after the opponent had exactly one candidate left. */
   readonly comeback: boolean
+  /** The friend who came through this player's invite code (host side only), else null. */
+  readonly invitee?: string | null
 }
 
 /** Things only the guesses and the secret of a game reveal; seen once, kept for good. */
@@ -43,6 +45,12 @@ export interface BadgeFacts {
   readonly duels: readonly DuelFact[]
   readonly shares: number
   readonly events: readonly BadgeEvent[]
+  /** Users who joined a farm with this player's code. */
+  readonly farmInvitees: readonly string[]
+  /** In a family farm now (created or joined). */
+  readonly inFarm: boolean
+  /** Finalised weekly challenges with at least one won game. */
+  readonly weeksWon: number
 }
 
 export const EMPTY_FACTS: BadgeFacts = {
@@ -51,7 +59,14 @@ export const EMPTY_FACTS: BadgeFacts = {
   duels: [],
   shares: 0,
   events: [],
+  farmInvitees: [],
+  inFarm: false,
+  weeksWon: 0,
 }
+
+/** Different people brought in: farm joins by your code and friends who played your duel invite. */
+const invitedPeople = (f: BadgeFacts): number =>
+  new Set([...f.farmInvitees, ...f.duels.flatMap((d) => (d.invitee ? [d.invitee] : []))]).size
 
 const UNDER_MINUTE_MS = 60_000
 const BOLT_MS = 30_000
@@ -140,10 +155,10 @@ const METRICS: Readonly<Record<BadgeKey, (facts: BadgeFacts) => number>> = {
   bot4: (f) => botWins(f, 4),
   formats: formatsWon,
   notes: (f) => f.games.filter((g) => g.usedNotes).length,
-  invite: () => 0,
-  family: () => 0,
+  invite: invitedPeople,
+  family: (f) => (f.inFarm ? 1 : 0),
   teller: (f) => f.shares,
-  weekly: () => 0,
+  weekly: (f) => f.weeksWon,
   mirror: (f) => eventSeen(f, 'mirror'),
   ladder: (f) => eventSeen(f, 'ladder'),
   zeroHero: (f) => eventSeen(f, 'zeroHero'),

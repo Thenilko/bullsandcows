@@ -7,6 +7,8 @@ import {
   getTableColumns,
   gte,
   inArray,
+  isNotNull,
+  lte,
   sql,
   type SQL,
 } from 'drizzle-orm'
@@ -22,6 +24,7 @@ const SOFIA_TZ = 'Europe/Sofia'
 /** Every column except `secret`: the default projection for all game reads and writes. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { secret: _secretColumn, ...publicColumns } = getTableColumns(games)
+export { publicColumns }
 
 function patchColumns(patch: GamePatch): Partial<typeof games.$inferInsert> {
   const { startedAt, finishedAt, ...rest } = patch
@@ -155,6 +158,23 @@ export function drizzleGames(db: Db): GamesRepo {
           ),
         )
       return row?.n ?? 0
+    },
+    countedDailies: async (userIds, from, to) => {
+      if (userIds.length === 0) return []
+      const rows = await db
+        .select(publicColumns)
+        .from(games)
+        .where(
+          and(
+            inArray(games.userId, [...userIds]),
+            eq(games.kind, 'daily'),
+            eq(games.practice, false),
+            isNotNull(games.finishedAt),
+            gte(games.dailyDate, from),
+            lte(games.dailyDate, to),
+          ),
+        )
+      return rows.map(toPublicGame)
     },
   }
 }

@@ -26,9 +26,11 @@ class_name = "DuelRoom"
 tag = "v1"
 new_sqlite_classes = ["QueueRoom", "DuelRoom"]
 
-# Daily keep-alive query so the free Supabase project is not paused.
+# Daily keep-alive query so the free Supabase project is not paused; the weekly challenge is finalised at
+# Monday 00:01 Sofia, which is 21:01 UTC (summer time) or 22:01 UTC (winter time) on Sunday — both run, the
+# finalisation is idempotent per week.
 [triggers]
-crons = ["0 6 * * *"]
+crons = ["0 6 * * *", "1 21 * * SUN", "1 22 * * SUN"]
 
 [[hyperdrive]]
 binding = "HYPERDRIVE"

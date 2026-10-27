@@ -26,7 +26,7 @@ const STATUS: Partial<Record<ErrorCode, ContentfulStatusCode>> = {
 }
 
 /** Runs a service call and turns its `SoloError` into the API error with the right status. */
-async function run<T>(action: () => Promise<T>): Promise<T> {
+export async function run<T>(action: () => Promise<T>): Promise<T> {
   try {
     return await action()
   } catch (err) {

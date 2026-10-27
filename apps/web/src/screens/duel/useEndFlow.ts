@@ -4,6 +4,8 @@ import { useEffect } from 'react'
 import { useBadgeToasts } from '../../features/badges/toastStore'
 import { useDuelStore } from '../../features/duel/store'
 import { invalidateBadges } from '../../features/stats/useBadges'
+import { invalidatePasture } from '../../features/pasture/usePasture'
+import { useUnlocks } from '../../features/pasture/unlockStore'
 import { useBuzz } from '../../features/duel/useFeedback'
 import { sfx } from '../../lib/sound'
 import { outcomeOf } from './duelUtils'
@@ -30,7 +32,10 @@ export function useEndFlow(roomId: string, state: PublicState, go: (to: string) 
     const id = setTimeout(() => {
       go(`/duel/${encodeURIComponent(roomId)}/result`)
       invalidateBadges(qc)
-      useBadgeToasts.getState().push(useDuelStore.getState().ended?.newBadges)
+      invalidatePasture(qc)
+      const ended = useDuelStore.getState().ended
+      useBadgeToasts.getState().push(ended?.newBadges)
+      useUnlocks.getState().push(ended?.newUnlocks)
     }, RESULT_DELAY_MS)
     return () => clearTimeout(id)
     // `go` and `buzz` are stable enough for a one-shot ending; re-running would restart the delay

@@ -13,6 +13,11 @@ export interface SheetProps {
   centered?: boolean
   testId?: string
   className?: string
+  /**
+   * `card`: a one-off event (PasExtras П2 / ПД3) — on phones a card over the scene (16px from the edges, top 150),
+   * on desktop the modal in the wooden frame at top 110. Default `sheet`: bottom sheet / plain modal at top 60.
+   */
+  variant?: 'sheet' | 'card'
 }
 
 // Phones: above the result sheet (10/11) and the notebook (40/41) it may open over. Desktop: above the
@@ -49,6 +54,26 @@ const DESKTOP: CSSProperties = {
   borderRadius: 30,
   boxShadow: '0 24px 60px rgba(30,40,20,.35)',
 }
+const MOBILE_CARD: CSSProperties = {
+  ...BASE,
+  left: 16,
+  right: 16,
+  top: 'min(150px, max(16px, calc(100dvh - 620px)))',
+  maxHeight: 'calc(100dvh - 32px)',
+  borderRadius: 26,
+  padding: '26px 22px 22px',
+  gap: 12,
+  boxShadow: '0 24px 60px rgba(30,40,20,.35)',
+}
+const DESKTOP_CARD: CSSProperties = {
+  ...DESKTOP,
+  top: 110,
+  maxHeight: 'calc(100dvh - 130px)',
+  padding: '26px 24px 22px',
+  borderRadius: 26,
+  gap: 12,
+  boxShadow: '0 0 0 8px #8B5E34, 0 0 0 11px #4E321A, 0 30px 60px rgba(20,30,10,.4)',
+}
 const GRIP = {
   alignSelf: 'center',
   width: 44,
@@ -59,15 +84,16 @@ const GRIP = {
 } as const
 
 /** A bottom sheet on phones, a centred modal on desktop: dim, focus trap, Escape and backdrop close. */
-export function Sheet({ label, onClose, children, width = 520, centered = false, testId, className }: SheetProps) {
+export function Sheet({ label, onClose, children, width = 520, centered = false, testId, className, variant = 'sheet' }: SheetProps) {
   const desktop = useIsDesktop()
   const ref = useRef<HTMLElement>(null)
   useDialogFocus(ref)
   useEscape(onClose)
   const z = desktop ? DESKTOP_Z : MOBILE_Z
+  const card = variant === 'card'
   const style: CSSProperties = desktop
-    ? { ...DESKTOP, zIndex: z + 1, width: `min(${width}px, calc(100% - 32px))` }
-    : { ...MOBILE, zIndex: z + 1 }
+    ? { ...(card ? DESKTOP_CARD : DESKTOP), zIndex: z + 1, width: `min(${width}px, calc(100% - 32px))` }
+    : { ...(card ? MOBILE_CARD : MOBILE), zIndex: z + 1 }
   return (
     <>
       <div className="fadein" data-testid={testId ? `${testId}-backdrop` : undefined} style={{ ...DIM, zIndex: z }} onClick={onClose} />
@@ -82,7 +108,7 @@ export function Sheet({ label, onClose, children, width = 520, centered = false,
         style={centered ? { ...style, alignItems: 'center', textAlign: 'center' } : style}
         onKeyDown={trapTab}
       >
-        {desktop ? null : <span style={GRIP} />}
+        {desktop || card ? null : <span style={GRIP} />}
         {children}
       </section>
     </>

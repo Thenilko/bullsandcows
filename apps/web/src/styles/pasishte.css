@@ -124,11 +124,12 @@ input,textarea{font-family:inherit}
 .sc-sway{transform-box:fill-box;transform-origin:50% 100%;animation:ps-sway 4.5s ease-in-out infinite}
 .pw-sign{transform-box:fill-box;transform-origin:50% 0;animation:ps-signswing 1.2s ease-out both}
 /* idle (ambientPause.ts): the endless scene loops freeze in place after 20 s without input, so a phone draws no frames while the player thinks */
-[data-ambient=paused] :is(.ps-sprite,.ps-bird path,.ps-fogb,.ps-rays,.rig-tail,.a-idle .rig-body,.a-idle .rig-head,.rig-bell,.ps-cloudw,.ps-birdw,.ps-birdw path,.ps-smoke circle,.sc-sway,.float,.shine,.confetti){animation-play-state:paused!important}
+[data-ambient=paused] :is(.pw-tailwag,.pw-nod,.pw-bees circle,.pw-sails,.pw-duck,.pw-vane,.ps-sprite,.ps-bird path,.ps-fogb,.ps-rays,.rig-tail,.a-idle .rig-body,.a-idle .rig-head,.rig-bell,.ps-cloudw,.ps-birdw,.ps-birdw path,.ps-smoke circle,.sc-sway,.float,.shine,.confetti){animation-play-state:paused!important}
 /* reduced motion: no run-in, gallop, walk, sway or swing; the animals stand in place, legs, tail and head still */
 @media (prefers-reduced-motion: reduce){
   .a-run,.a-walk,.rig .leg,.rig .low,.rig-body,.rig-head,.rig-tail,.rig-dust circle,.rig-bell,
-  .ps-cloudw,.ps-birdw,.ps-birdw path,.ps-smoke circle,.sc-sway,.pw-sign{animation:none!important}
+  .ps-cloudw,.ps-birdw,.ps-birdw path,.ps-smoke circle,.sc-sway,.pw-sign,
+  .pw-tailwag,.pw-nod,.pw-bees circle,.pw-sails,.pw-duck,.pw-vane{animation:none!important}
   .a-run .rig-dust{opacity:0}
 }
 
@@ -268,3 +269,37 @@ input,textarea{font-family:inherit}
 .step{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border-radius:14px;background:#F3EEDF;font-size:12px;font-weight:800;color:var(--c-muted-aa)}
 .step b{font-size:14px;color:#2E3B24}.step.done{background:#E7F2DD;color:#2E5C20}
 @media (prefers-reduced-motion: reduce){.bdg,.bdg:hover,.bdg:active{transform:none;transition:none}}
+
+/* „Твоето пасище“ (PasExtras Р6/П1): the reward list, the barn colour swatches and the rewards' loops */
+.unl{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;background:#FFFFFF;border:1.5px solid #ECE5D2}
+.unl.off{background:#F3EEDF}.unl-ic{width:48px;height:48px;border-radius:12px;background:#E7F2DD;display:flex;align-items:center;justify-content:center;flex:none}
+.unl.off .unl-ic{background:#ECE7D8}
+.swatch{width:36px;height:36px;padding:0;border-radius:10px;box-shadow:inset 0 0 0 2px rgba(0,0,0,.15);opacity:.45;transition:box-shadow .15s,opacity .15s}
+.swatch.on{opacity:1;box-shadow:0 0 0 3px #FFFFFF,0 0 0 5px #2E3B24}
+.swatch:disabled{cursor:not-allowed}
+.swatch:not(:disabled){opacity:1}
+.swatch:focus-visible{outline:3px solid #4A7FB0;outline-offset:4px}
+@keyframes pw-wag{0%,100%{transform:rotate(0)}50%{transform:rotate(-24deg)}}
+@keyframes pw-nod{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@keyframes pw-buzz{0%{transform:translate(0,0)}25%{transform:translate(3px,-2px)}50%{transform:translate(-2px,2px)}75%{transform:translate(2px,3px)}100%{transform:translate(0,0)}}
+@keyframes pw-spin{to{transform:rotate(360deg)}}
+@keyframes pw-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
+.pw-tailwag{transform-box:fill-box;transform-origin:0 100%;animation:pw-wag .5s ease-in-out infinite}
+.pw-nod{transform-box:fill-box;transform-origin:50% 100%;animation:pw-nod 3s ease-in-out infinite}
+.pw-bees circle{animation:pw-buzz 1s linear infinite}.pw-bees circle:nth-child(2){animation-duration:1.3s}.pw-bees circle:nth-child(3){animation-duration:.8s}
+.pw-sails{transform-box:fill-box;transform-origin:50% 50%;animation:pw-spin 6s linear infinite}
+.pw-duck{animation:pw-bob 1.8s ease-in-out infinite}
+.pw-vane{transform-box:fill-box;transform-origin:50% 100%;animation:pw-nod 4s ease-in-out infinite}
+/* ===== семейна ферма (PasExtras Р5 / П3, ПД5 / ПД6) ===== */
+.codebox{width:48px;height:56px;border-radius:12px;border:2px solid #DCD4BF;background:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#2E3B24}
+.codebox.cur{border-color:#B5452F;box-shadow:0 0 0 4px rgba(181,69,47,.15)}
+.codebox.gold{border-color:#E0B27A;background:#FFF6E2}
+.dk .codebox{width:56px;height:64px;font-size:28px}
+.nudge{display:flex;align-items:center;gap:12px;padding:10px 10px 10px 12px;border-radius:18px;background:#FFF6E2;border:2px solid #E0B27A;box-shadow:0 8px 20px rgba(30,40,20,.12)}
+/* ===== седмично предизвикателство (PasExtras Р7 / П6 / П7, ПД9–ПД11) ===== */
+.wk-plank{margin-top:-6px;align-self:center;padding:10px 26px 12px;border-radius:16px;text-align:center;display:flex;flex-direction:column;color:#FFF8EA;background-color:#C48E55;background-image:repeating-linear-gradient(0deg,rgba(90,50,20,.10) 0 2px,rgba(0,0,0,0) 2px 7px);border:3px solid #6A4426;box-shadow:0 5px 0 #6A4426;text-shadow:0 2px 0 rgba(70,40,15,.45);transform:rotate(-1.5deg)}
+.wk-chip{background:#FFFFFF;border:1.5px solid #DCD4BF;color:#2E3B24}
+.wk-card{padding:16px 18px;border-radius:22px;color:#FFF8EA;display:flex;flex-direction:column;gap:6px;background-color:#C48E55;background-image:repeating-linear-gradient(0deg,rgba(90,50,20,.10) 0 2px,rgba(0,0,0,0) 2px 7px);border:3px solid #6A4426;box-shadow:0 5px 0 #6A4426;text-shadow:0 1px 0 rgba(70,40,15,.4)}
+.wk-dots{display:flex;gap:5px}.wk-dots i{width:12px;height:12px;border-radius:50%;background:#E4DDCB}.wk-dots i.used{background:#2E3B24}.wk-dots i.cur{background:#B5452F;box-shadow:0 0 0 3px rgba(181,69,47,.25)}
+/* The gold frame of a top-10 week: a second ring around the avatar while it lasts. */
+.rav.gold{border-radius:50%;box-shadow:0 0 0 2px #FFF3C4,0 0 0 4px #E2B44A,0 0 0 5px #8A6510,0 0 10px 4px rgba(242,194,48,.55)}

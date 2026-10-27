@@ -37,6 +37,7 @@ function bestPerPlayer(db: Db, q: LeaderboardQuery) {
       score: games.score,
       xp: profiles.xp,
       avatarSpecies: profiles.avatarSpecies,
+      goldFrameUntil: profiles.goldFrameUntil,
       finishedAt: games.finishedAt,
     })
     .from(games)
@@ -59,7 +60,7 @@ function bestPerPlayer(db: Db, q: LeaderboardQuery) {
 /** Same semantics as the memory repo: score desc, earlier finish, then user id. */
 export async function drizzleLeaderboard(db: Db, q: LeaderboardQuery): Promise<LeaderboardRow[]> {
   const best = bestPerPlayer(db, q)
-  return db
+  const rows = await db
     .select({
       userId: best.userId,
       username: best.username,
@@ -67,10 +68,12 @@ export async function drizzleLeaderboard(db: Db, q: LeaderboardQuery): Promise<L
       score: best.score,
       xp: best.xp,
       avatarSpecies: best.avatarSpecies,
+      goldFrameUntil: best.goldFrameUntil,
     })
     .from(best)
     .orderBy(desc(best.score), asc(best.finishedAt), asc(best.userId))
     .limit(LEADERBOARD_LIMIT)
+  return rows.map((r) => ({ ...r, goldFrameUntil: r.goldFrameUntil ? new Date(r.goldFrameUntil).getTime() : null }))
 }
 
 /** The player's place: 1 + the number of players ahead of them in the same order. */

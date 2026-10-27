@@ -6,9 +6,10 @@ export const toDate = (value: number | null | undefined): Date | null | undefine
   value === undefined ? undefined : value === null ? null : new Date(value)
 
 export function toProfile(row: typeof profiles.$inferSelect): Profile {
-  const { rating, ratingDev, volatility, createdAt, ...rest } = row
+  const { rating, ratingDev, volatility, createdAt, goldFrameUntil, ...rest } = row
   return {
     ...rest,
+    goldFrameUntil: ms(goldFrameUntil),
     rating: { rating, rd: ratingDev, vol: volatility },
     createdAt: createdAt.getTime(),
   }

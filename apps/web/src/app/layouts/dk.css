@@ -358,3 +358,104 @@
 .dk-split.sc-duel .dk-col {
   width: 540px;
 }
+
+/*
+ * ===== „Твоето пасище“ (PasExtrasDesk ПД1/ПД2, `.xd-narrow`): immersive — a narrow panel with the wooden frame
+ * at the top right, so the scene and its rewards stay in view; split — the scene card and the 640px column.
+ */
+.dk.sc-pasture .dk-col {
+  gap: 14px;
+  padding: 22px;
+  border-radius: 24px;
+  background: #f6f2e6;
+}
+
+.dk-imm.sc-pasture .dk-col {
+  right: 36px;
+  top: 104px;
+  bottom: auto;
+  width: 380px;
+  max-height: min(520px, calc(100% - 128px));
+  box-shadow: 0 0 0 8px #8b5e34, 0 0 0 11px #4e321a, 0 30px 60px rgba(20, 30, 10, 0.35);
+}
+
+.dk-split.sc-pasture .dk-scene {
+  right: 688px;
+}
+
+.dk-split.sc-pasture .dk-col {
+  width: 640px;
+  box-shadow: 0 1px 0 #e7e0cc, 0 12px 30px rgba(30, 40, 20, 0.1);
+}
+
+/*
+ * ===== „Семейна ферма“ and the weekly challenge (PasExtrasDesk ПД4–ПД7, ПД9, `.xd-col`): immersive — the panel with the wooden frame on the
+ * right (right 36, top 104, bottom 36, 600 wide); split — the scene card and the 640px column. „Фермата е
+ * готова“ is a modal either way (Sheet `card`).
+ */
+.dk.sc-farm .dk-col,
+.dk.sc-weekly .dk-col {
+  gap: 14px;
+  padding: 22px;
+  border-radius: 24px;
+  background: #f6f2e6;
+}
+
+.dk-imm.sc-farm .dk-col,
+.dk-imm.sc-weekly .dk-col {
+  right: 36px;
+  top: 104px;
+  bottom: 36px;
+  width: 600px;
+  box-shadow: 0 0 0 8px #8b5e34, 0 0 0 11px #4e321a, 0 30px 60px rgba(20, 30, 10, 0.35);
+}
+
+.dk-split.sc-farm .dk-scene,
+.dk-split.sc-weekly .dk-scene,
+.dk-split.sc-today .dk-scene {
+  right: 688px;
+}
+
+.dk-split.sc-farm .dk-col,
+.dk-split.sc-weekly .dk-col {
+  width: 640px;
+  box-shadow: 0 1px 0 #e7e0cc, 0 12px 30px rgba(30, 40, 20, 0.1);
+}
+
+/* ===== „Число на деня“ with the nudge (ПД8, `.xd-hang`): the hanging board; split: the 640px column ===== */
+.dk-imm.sc-today .dk-col {
+  inset: 0;
+  width: auto;
+  overflow: visible;
+  pointer-events: none;
+  padding: 0;
+}
+
+.dk-today {
+  border-radius: 24px;
+  background: #f6f2e6;
+  gap: 12px;
+}
+
+.dk-imm .dk-today {
+  padding: 20px 22px;
+  max-height: calc(100% - 116px);
+  overflow-y: auto;
+}
+
+.dk-split.sc-today .dk-col {
+  width: 640px;
+}
+
+.dk-split .dk-today {
+  box-shadow: 0 1px 0 #e7e0cc, 0 12px 30px rgba(30, 40, 20, 0.1);
+}
+
+/* ===== the weekly game (ПДН3, `.xd-split .xd-hang`): split keeps the 640px column of the new screens ===== */
+.dk-split.sc-play:has(.dk-weekly) .dk-scene {
+  right: 688px;
+}
+
+.dk-split.sc-play:has(.dk-weekly) .dk-col {
+  width: 640px;
+}

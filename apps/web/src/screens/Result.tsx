@@ -5,6 +5,7 @@ import { FALLBACK_HISTOGRAM } from '@bc/game-core'
 import { Shell } from '../app/layouts/Shell'
 import { shareFromResult } from '../features/share/shareModel'
 import { ShareSheet } from '../features/share/ShareSheet'
+import { distributionKind } from '../features/solo/api'
 import { useDistribution } from '../features/stats/useDistribution'
 import { useGameResult } from '../features/stats/useGameResult'
 import { sfx } from '../lib/sound'
@@ -58,7 +59,7 @@ export function Result() {
   const dist = useDistribution(
     game.data?.len ?? 4,
     game.data?.zero ?? false,
-    game.data?.kind ?? 'free',
+    distributionKind(game.data?.kind ?? 'free'),
     finished !== null,
   )
 

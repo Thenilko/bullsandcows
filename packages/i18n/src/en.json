@@ -201,8 +201,8 @@
     "fogLong": "Fog · {{count}} possible numbers",
     "clockAttempt": "{{clock}} · guess {{attempt}}",
     "attemptMode": "Guess {{attempt}} · {{mode}}",
-    "mode": { "daily": "daily number", "dailyN": "daily number #{{n}}", "free": "free play" },
-    "modeTitle": { "daily": "Daily number", "dailyN": "Daily number #{{n}}", "free": "Free play" },
+    "mode": { "daily": "daily number", "dailyN": "daily number #{{n}}", "free": "free play", "weekly": "weekly challenge" },
+    "modeTitle": { "daily": "Daily number", "dailyN": "Daily number #{{n}}", "free": "Free play", "weekly": "Weekly challenge" },
     "modeTab": { "daily": "Daily", "free": "Free" },
     "modeGroup": "Mode",
     "inputArea": "Enter a number",
@@ -618,6 +618,11 @@
     "ERR_INVITE_EXPIRED": "The invite has expired or the code is wrong.",
     "ERR_ROOM_FULL": "This room already has two players.",
     "ERR_RATE_LIMIT": "Slow down a little — wait a moment and try again.",
+    "ERR_FARM_FULL": "This farm is full — it already has 12 people.",
+    "ERR_FARM_CODE": "There is no farm with this code. Check it and try again.",
+    "ERR_ALREADY_IN_FARM": "You are in a farm already. Leave it from its settings first.",
+    "ERR_FORBIDDEN": "Only the owner of the farm can do this.",
+    "ERR_WEEKLY_PLAYED": "You have played the weekly challenge today. Come back tomorrow!",
     "ERR_INTERNAL": "Something went wrong. Try again.",
     "network": "No connection. Check your internet and try again.",
     "unknown": "Something went wrong. Try again."
@@ -628,6 +633,289 @@
     "stale": "The game was updated while this page was open. Reload to get the new version.",
     "notFound": "There is no such page.",
     "reload": "Reload"
+  },
+  "pasture": {
+    "title": "Your pasture",
+    "open": "Your pasture",
+    "openNote": "{{count}} of {{total}} rewards",
+    "rewards": "Pasture rewards",
+    "count": "{{count}} of {{total}}",
+    "level": "level {{level}}",
+    "levelRank": "level {{level}} · {{rank}}",
+    "locked": "locked",
+    "show": "Show: {{name}}",
+    "req": {
+      "level": "level {{level}}",
+      "badge": "badge “{{badge}}”",
+      "streak": "{{days}}-day streak"
+    },
+    "progress": "{{current}} / {{target}}",
+    "barnColor": "Barn colour",
+    "colorAria": "Barn colour: {{color}}",
+    "color": {
+      "red": "red",
+      "blue": "blue",
+      "green": "green",
+      "yellow": "yellow",
+      "purple": "purple"
+    },
+    "allTitle": "Everything unlocked",
+    "allText": "Windmill, duck pond, second barn, rooster on the fence, golden weathervane, puppy, sunflowers and beehive.",
+    "allColor": "The barn is painted {{color}}.",
+    "colorIn": {
+      "red": "red",
+      "blue": "blue",
+      "green": "green",
+      "yellow": "yellow",
+      "purple": "purple"
+    },
+    "saveFailed": "Could not save. Please try again.",
+    "loadFailed": "The pasture did not load. Please try again.",
+    "item": {
+      "dog": {
+        "name": "Sharo the puppy",
+        "desc": "Guards the herd and wags its tail when you solve one."
+      },
+      "sunflowers": {
+        "name": "Sunflowers",
+        "desc": "Three sunflowers in front of the pen, turned to the sun."
+      },
+      "beehive": {
+        "name": "Beehive",
+        "desc": "Early bees buzzing under the trees."
+      },
+      "rooster": {
+        "name": "Rooster on the fence",
+        "desc": "Thirty days in a row — the rooster knows."
+      },
+      "windmill": {
+        "name": "Windmill",
+        "desc": "It turns while the fog lifts."
+      },
+      "pond": {
+        "name": "Duck pond",
+        "desc": "Two ducks paddling in the pond by the meadow."
+      },
+      "barnColor": {
+        "name": "Barn colour",
+        "desc": "Paint the barn blue, green, yellow or purple."
+      },
+      "shed": {
+        "name": "Second barn",
+        "desc": "The herd is growing — build it another barn."
+      },
+      "goldenVane": {
+        "name": "Golden weathervane",
+        "desc": "For the chief bull only: gold on the barn's ridge."
+      }
+    },
+    "unlock": {
+      "aria": "New in your pasture",
+      "kickerLevel": "Level {{level}} · new in your pasture",
+      "kickerBadge": "Badge “{{badge}}” · new in your pasture",
+      "next": "Next reward: {{name}} at level {{level}}.",
+      "put": {
+        "dog": "Put it in the pasture",
+        "beehive": "Put it in the pasture",
+        "rooster": "Put it in the pasture",
+        "windmill": "Put it in the pasture",
+        "pond": "Put it in the pasture",
+        "shed": "Put it in the pasture",
+        "goldenVane": "Put it in the pasture",
+        "sunflowers": "Put them in the pasture",
+        "barnColor": "Choose a colour"
+      },
+      "later": "Later"
+    }
+  },
+  "farm": {
+    "switch": {
+      "aria": "Leaderboard",
+      "all": "All players",
+      "farm": "Family farm"
+    },
+    "hud": {
+      "board": "Leaderboard",
+      "farm": "family farm",
+      "title": "Family farm"
+    },
+    "kicker": "Farm",
+    "count": "{{count}} / {{max}}",
+    "settingsAria": "Farm settings",
+    "invite": "Invite · {{code}}",
+    "copied": "Copied",
+    "today": {
+      "title": "Number of the day #{{number}}",
+      "hud": "Number of the day",
+      "play": "Play now"
+    },
+    "todayRow": "Today · number of the day #{{number}}",
+    "todayAria": "Today's number of the day in the farm",
+    "played": "{{played}} of {{total}} played",
+    "owner": "Owner",
+    "notPlayed": "{{role}} · has not played yet",
+    "you": "{{name}} (you)",
+    "attempts": "{{count}} tries",
+    "lost": "missed",
+    "nudge": "Nudge",
+    "nudged": "Nudged",
+    "nudgeAria": "Nudge {{name}}",
+    "week": "The week",
+    "weekEnd": "until Sunday 23:59",
+    "weekEmpty": "Nobody has points this week yet — the number of the day brings them.",
+    "loadFailed": "The farm did not load. Try again in a moment.",
+    "guest": "A farm is a closed leaderboard for family and friends. You need a profile to create a farm or join one.",
+    "join": {
+      "title": "Play together",
+      "text": "A farm is a closed leaderboard for family and friends — up to 12 people. Every day you compare the number of the day, and on Sunday the winner of the week comes out.",
+      "create": "Create a farm",
+      "name": "Farm name",
+      "placeholder": "e.g. The Petrovs' farm",
+      "nameEmpty": "Give the farm a name.",
+      "createCta": "Create and get a code",
+      "code": "Join with a code",
+      "codeAria": "Code of 5 characters",
+      "hint": "The code is in the invitation you got — 5 characters, upper or lower case.",
+      "invalid": "The code has 5 characters — Latin letters and digits.",
+      "cta": "Join the farm"
+    },
+    "created": {
+      "title": "The farm is ready!",
+      "sub": "“{{name}}” · you are the owner",
+      "codeLabel": "Invite code",
+      "codeAria": "Invite code: {{code}}",
+      "validity": "Valid until you change it in the settings.",
+      "inviteLabel": "THE INVITATION",
+      "inviteText": "Join our farm in “Bulls and Cows” — every day we guess one number and see who is best.",
+      "inviteCode": "Code: {{code}} · {{link}}",
+      "send": "Send the invitation…",
+      "copyCode": "Copy the code",
+      "copyFailed": "Could not copy — write the code down by hand.",
+      "toFarm": "To the farm"
+    },
+    "settings": {
+      "title": "Farm settings",
+      "save": "Save",
+      "code": "Invite code",
+      "newCode": "New code",
+      "qr": "QR code",
+      "members": "Members",
+      "count": "{{count}} of {{max}}",
+      "ownerRole": "Owner of the farm",
+      "memberRole": "member",
+      "remove": "Remove",
+      "removeAria": "Remove {{name}} from the farm",
+      "leave": "Leave the farm",
+      "leaveConfirm": "Yes, leave the farm",
+      "leaveNote": "If the owner leaves, the farm passes to the longest-standing member.",
+      "back": "To the farm"
+    },
+    "nudgeBanner": {
+      "title": "{{name}} is nudging you",
+      "text": "The number of the day is waiting · {{played}} of {{total}} in the farm have played",
+      "close": "Hide"
+    },
+    "reminder": {
+      "title": "A reminder every day?",
+      "set": "Reminder at {{time}}",
+      "text": "One notification a day, only if you have not played yet. On iPhone it works once the game is added to the home screen.",
+      "timeAria": "Time of the reminder",
+      "on": "Turn the reminder on",
+      "off": "Turn the reminder off"
+    }
+  },
+  "weekly": {
+    "goldFrame": "gold frame",
+    "hud": {
+      "title": "Challenge",
+      "week": "week {{week}}"
+    },
+    "range": "Week {{week}} · {{dates}}",
+    "kicker": "Week {{week}}",
+    "rule": {
+      "fiveZero": "Five with zero",
+      "threeNoZero": "Three, no zero",
+      "quickFour": "Quick four",
+      "fourZero": "Four with zero"
+    },
+    "chip": {
+      "zero": "0 allowed",
+      "noZero": "no 0",
+      "attempts": "up to {{count}} tries",
+      "time": "up to {{count}} min",
+      "same": "one number for all"
+    },
+    "left": {
+      "label": "left",
+      "days": "{{d}}d {{h}}h",
+      "hours": "{{h}}h {{m}}m",
+      "minutes": "{{m}} min"
+    },
+    "best": {
+      "label": "best",
+      "none": "—",
+      "lost": "not solved"
+    },
+    "place": {
+      "label": "place",
+      "of": " / {{count}}"
+    },
+    "leaders": "Leaders this week",
+    "noLeaders": "Nobody has found this week's number yet. Be the first!",
+    "rewardLabel": "Reward:",
+    "reward": "{{xp}} XP and the Weekly badge. The top 10 also get a gold frame for a week.",
+    "cta": {
+      "play": "Play the challenge",
+      "resume": "Continue the challenge",
+      "tomorrow": "Again tomorrow"
+    },
+    "note": "Your best game counts. You can play once a day.",
+    "loadFailed": "The week did not load. Try again in a moment.",
+    "card": {
+      "aria": "Weekly challenge",
+      "left": "{{time}} left",
+      "you": "You: {{attempts}} · place {{place}}",
+      "youNoPlace": "You: not solved yet",
+      "none": "One number for everyone until Sunday",
+      "play": "Play",
+      "resume": "Continue",
+      "played": "Again tomorrow"
+    },
+    "play": {
+      "title": "Week {{week}} · {{rule}}",
+      "attempt": "Try {{n}} of {{max}}",
+      "dotsAria": "Tries: {{used}} of {{max}}",
+      "zeroHint": "Here 0 may also be the first digit.",
+      "noZeroHint": "No 0 in the number.",
+      "limit": "The game ends after {{count}} tries.",
+      "time": "You have {{count}} minutes from the start.",
+      "timeLeft": "{{clock}} left"
+    },
+    "award": {
+      "aria": "End of the week",
+      "kicker": "Week {{week}} is over",
+      "place": "Place {{place}} of {{count}}",
+      "noPlace": "No solve this week",
+      "best": "Best: {{attempts}} · {{time}}",
+      "better": "better than {{pct}}% of the players",
+      "xp": "XP",
+      "badge": "Weekly",
+      "badgeLabel_one": "badge · {{count}} week",
+      "badgeLabel_other": "badge · {{count}} weeks",
+      "toFrame_one": "One place from the gold frame of the top 10.",
+      "toFrame_other": "{{count}} places from the gold frame of the top 10.",
+      "framed": "A gold frame until the end of next week!",
+      "tryNext": "Try again this week — one number for everyone.",
+      "next": "On to week {{week}} · {{rule}}",
+      "board": "See the leaderboard"
+    },
+    "board": {
+      "title": "Leaderboard · week {{week}}",
+      "empty": "Nobody found this week's number.",
+      "participants_one": "{{count}} player",
+      "participants_other": "{{count}} players",
+      "final": "final"
+    }
   },
   "footer": {
     "area": "About this site",

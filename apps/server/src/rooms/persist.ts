@@ -1,4 +1,4 @@
-import { isSuspicious } from '@bc/game-core'
+import { isSuspicious, type PastureKey } from '@bc/game-core'
 import type { NewBadgeDto } from '@bc/protocol'
 import { settle, type Settlement } from '../duel/settle'
 import {
@@ -13,6 +13,7 @@ import type { DuelReward, GameKind, Repo } from '../ports/repo'
 import { leftAfterEach } from '../solo/evaluate'
 import { guessEvents, type BadgeEvent } from '../stats/badgeMetrics'
 import { recomputeBadges } from '../stats/badgeService'
+import { unlockedNow, unlocksSince } from '../stats/pasture'
 import type { PendingResult, ResultIds } from './state'
 
 /** The synthetic id of the bot seat; it has no profile and no rows. */
@@ -20,8 +21,17 @@ export const BOT_ID = 'bot'
 
 const SEATS: readonly Seat[] = ['a', 'b']
 
-/** Badge tiers each human player earned from a recorded result, by user id. */
-export type NewBadgesByUser = Readonly<Record<string, readonly NewBadgeDto[]>>
+/** What one player got from a recorded result: badge tiers and pasture rewards. */
+export interface Earned {
+  readonly newBadges: readonly NewBadgeDto[]
+  readonly newUnlocks: readonly PastureKey[]
+}
+
+/** What each human player earned from a recorded result, by user id. */
+export type EarnedByUser = Readonly<Record<string, Earned>>
+
+/** Pasture rewards unlocked per human player before the result's XP and badges were written. */
+type UnlockedBefore = Readonly<Record<string, readonly PastureKey[] | null>>
 
 const isHuman = (p: Player | null): p is Player => p !== null && p.id !== BOT_ID
 
@@ -109,27 +119,37 @@ function rewardsOf(m: Match, result: Settlement): DuelReward[] {
   })
 }
 
+async function unlockedBefore(repo: Repo, m: Match): Promise<UnlockedBefore> {
+  const entries: [string, readonly PastureKey[] | null][] = []
+  for (const seat of SEATS) {
+    const p = m.players[seat]
+    if (isHuman(p)) entries.push([p.id, await unlockedNow(repo, p.id)])
+  }
+  return Object.fromEntries(entries)
+}
+
 /**
- * Badges of every human seat once the rows and the rewards are in: a retry recomputes the
- * same facts, so it finds nothing new. A user without a profile row gets nothing.
+ * Badges of every human seat once the rows and the rewards are in, with the pasture rewards
+ * unlocked since `before`: a retry recomputes the same facts, so it finds nothing new. A user
+ * without a profile row gets nothing.
  */
 async function badgesOf(
   repo: Repo,
   r: PendingResult,
   result: Settlement,
-): Promise<NewBadgesByUser> {
+  before: UnlockedBefore,
+): Promise<EarnedByUser> {
   const { match: m, secrets: s } = r
   const now = m.endedAt ?? m.createdAt
-  const entries: [string, readonly NewBadgeDto[]][] = []
+  const entries: [string, Earned][] = []
   for (const seat of SEATS) {
     const p = m.players[seat]
     if (!isHuman(p) || !(await repo.profiles.get(p.id))) continue
     const won = result.outcome[seat] === 'win'
     const events = eventsOf(m, s, seat, won)
-    entries.push([
-      p.id,
-      await recomputeBadges(repo, { userId: p.id, scope: 'game', now, events, payXp: true }),
-    ])
+    const newBadges = await recomputeBadges(repo, { userId: p.id, scope: 'game', now, events, payXp: true })
+    const newUnlocks = await unlocksSince(repo, p.id, before[p.id] ?? null)
+    entries.push([p.id, { newBadges, newUnlocks }])
   }
   return Object.fromEntries(entries)
 }
@@ -138,11 +158,12 @@ async function badgesOf(
  * Writes an ended match: a game per human seat and one duel row (all with the ids chosen at
  * claim time, so a retry rewrites the same rows), then XP and (quick matches only, via
  * `settle`) the new ratings, which the repo credits exactly once per duel, and finally the
- * badges. Returns the badge tiers earned per user.
+ * badges. Returns the badge tiers and pasture rewards earned per user.
  */
-export async function recordResult(repo: Repo, r: PendingResult): Promise<NewBadgesByUser> {
+export async function recordResult(repo: Repo, r: PendingResult): Promise<EarnedByUser> {
   const { match: m, secrets: s, ids } = r
   const result = settle(m)
+  const before = await unlockedBefore(repo, m)
   const b = m.players.b
   const gameA = ids.gameA && (await recordGame(repo, m, s, 'a', result, ids.gameA))
   const gameB = ids.gameB && (await recordGame(repo, m, s, 'b', result, ids.gameB))
@@ -170,5 +191,5 @@ export async function recordResult(repo: Repo, r: PendingResult): Promise<NewBad
     finishedAt: m.endedAt ?? undefined,
   })
   await repo.duels.applyRewards(ids.duelId, rewardsOf(m, result))
-  return badgesOf(repo, r, result)
+  return badgesOf(repo, r, result, before)
 }

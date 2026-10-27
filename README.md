@@ -29,6 +29,16 @@ pnpm build          # web build (по подразбиране VITE_AUTH_MODE=fa
 pnpm e2e            # Playwright (вдига wrangler dev + vite preview)
 ```
 
+Postgres репотата (транзакциите на фермата, една седмична игра на ден, приключването на седмицата)
+имат тестове по избор срещу истинска база, която се изтрива и мигрира отначало — никога не ги
+пускай срещу база с данни:
+
+```sh
+docker run -d --rm --name bc-pg-test -e POSTGRES_PASSWORD=pgtest -p 127.0.0.1:55499:5432 postgres:16
+PG_TEST_URL=postgres://postgres:pgtest@127.0.0.1:55499/postgres pnpm --filter server test:pg
+docker stop bc-pg-test
+```
+
 E2E: първия път `pnpm --filter web exec playwright install chromium`. Иконите на PWA се
 генерират с `pnpm --filter web icons` (резултатът е в `apps/web/public/icons`).
 

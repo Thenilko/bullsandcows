@@ -20,8 +20,8 @@ export interface GameApi extends GameActions {
   scene: SceneProps
 }
 
-/** One solo game: server state (TanStack Query) + transient UI state + actions. */
-export function useGame(gameId: string): GameApi {
+/** One solo game: server state (TanStack Query) + transient UI state + actions; `resultPath` is where its end leads. */
+export function useGame(gameId: string, resultPath = `/result/${gameId}`): GameApi {
   const ui = useGameUi(gameId)
   const query = useQuery({ queryKey: gameKey(gameId), queryFn: () => fetchGame(gameId), staleTime: Infinity, refetchOnWindowFocus: false })
   const game = query.data
@@ -33,7 +33,7 @@ export function useGame(gameId: string): GameApi {
   useEffect(() => () => useSolo.getState().reset(gameId), [gameId])
 
   return {
-    ...useGameActions(gameId, { game, started, finished }),
+    ...useGameActions(gameId, { game, started, finished, resultPath }),
     game,
     ui,
     loadFailed: query.isError,

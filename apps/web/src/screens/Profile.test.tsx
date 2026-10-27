@@ -155,4 +155,10 @@ describe('Profile', () => {
     await waitFor(() => expect(patch).toHaveBeenCalledWith('/api/me/settings', { avatarSpecies: 'cow' }))
     expect(await screen.findByRole('img', { name: 'Крава, Говедар' })).toBeInTheDocument()
   })
+
+  it('leads to „Твоето пасище“', async () => {
+    show()
+    fireEvent.click(await screen.findByTestId('pasture-link'))
+    expect(await screen.findByText('elsewhere')).toBeInTheDocument()
+  })
 })

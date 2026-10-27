@@ -134,6 +134,9 @@ const CASES: Readonly<Record<string, readonly [BadgeFacts, BadgeFacts]>> = {
     games(...Array.from({ length: 9 }, () => game({ usedNotes: true })), game()),
   ],
   teller: [facts({ shares: 5 }), facts({ shares: 4 })],
+  invite: [facts({ farmInvitees: ['u2'] }), duels(duel({ invitee: null }))],
+  family: [facts({ inFarm: true }), facts({ inFarm: false, farmInvitees: ['u2'] })],
+  weekly: [facts({ weeksWon: 1 }), facts({ weeksWon: 0, inFarm: true })],
   mirror: [facts({ events: ['mirror'] }), facts({ events: ['allCows'] })],
   ladder: [facts({ events: ['ladder'] }), EMPTY_FACTS],
   zeroHero: [facts({ events: ['zeroHero'] }), EMPTY_FACTS],
@@ -151,10 +154,25 @@ describe('badgeProgress', () => {
   })
 
   it('stays at zero for the badges that are not available yet, whatever the facts', () => {
-    const rich = facts({ shares: 999, bestDayStreak: 999, games: [game()], duels: [duel()] })
+    const rich = facts({
+      shares: 999,
+      bestDayStreak: 999,
+      games: [game()],
+      duels: [duel()],
+      farmInvitees: ['x'],
+      inFarm: true,
+    })
     for (const def of BADGES.filter((b) => !b.available)) {
       expect(badgeProgress(def.key, rich), def.key).toBe(0)
     }
+  })
+
+  it('counts invited people once, from farm joins and duel invites together', () => {
+    const f = facts({
+      farmInvitees: ['a', 'b'],
+      duels: [duel({ invitee: 'b' }), duel({ invitee: 'c' }), duel({ invitee: null })],
+    })
+    expect(badgeProgress('invite', f)).toBe(3)
   })
 
   it('counts, so the tiers come from the thresholds', () => {

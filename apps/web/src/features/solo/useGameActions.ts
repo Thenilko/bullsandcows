@@ -1,4 +1,4 @@
-import type { GameViewDto, MeDto, NewBadgeDto } from '@bc/protocol'
+import type { GameViewDto, MeDto, NewBadgeDto, PastureKey } from '@bc/protocol'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router'
@@ -7,6 +7,8 @@ import { api } from '../auth/client'
 import { useSession } from '../auth/session'
 import { useBadgeToasts } from '../badges/toastStore'
 import { hasNotes } from '../notebook/store'
+import { invalidatePasture } from '../pasture/usePasture'
+import { useUnlocks } from '../pasture/unlockStore'
 import { invalidateBadges } from '../stats/useBadges'
 import { giveUpGame, sendGuess, startGame } from './api'
 import { withGuess } from './derive'
@@ -27,12 +29,14 @@ export interface GameFlags {
   game: GameViewDto | undefined
   started: boolean
   finished: boolean
+  /** Where the end of the game leads: the result page, or `/weekly` for the weekly challenge. */
+  resultPath: string
 }
 
 const readUi = (id: string) => useSolo.getState().ui[id] ?? INITIAL_UI
 
-/** Shared plumbing: error reporting and leaving for the result page. */
-function useGameEffects(gameId: string) {
+/** Shared plumbing: error reporting and leaving for the result page (or `resultPath`). */
+function useGameEffects(gameId: string, resultPath = `/result/${gameId}`) {
   const navigate = useNavigate()
   const qc = useQueryClient()
 
@@ -46,21 +50,23 @@ function useGameEffects(gameId: string) {
   )
 
   /**
-   * The cached game, the badges and the profile's current game are stale once a game ends; the new badge
-   * tiers pop up over the result.
+   * The cached game, the badges, the pasture and the profile's current game are stale once a game ends; the
+   * new badge tiers pop up over the result, then the new pasture rewards.
    */
   const toResult = useCallback(
-    (newBadges: readonly NewBadgeDto[] | undefined) => {
+    (newBadges: readonly NewBadgeDto[] | undefined, newUnlocks?: readonly PastureKey[]) => {
       void qc.invalidateQueries({ queryKey: gameKey(gameId) })
       invalidateBadges(qc)
+      invalidatePasture(qc)
       api.get<MeDto>('/api/me').then(
         (me) => useSession.getState().setMe(me),
         () => void qc.invalidateQueries({ queryKey: ['me'] }),
       )
-      void navigate(`/result/${gameId}`)
+      void navigate(resultPath)
       useBadgeToasts.getState().push(newBadges)
+      useUnlocks.getState().push(newUnlocks)
     },
-    [qc, gameId, navigate],
+    [qc, gameId, navigate, resultPath],
   )
 
   return { qc, onError, toResult }
@@ -106,8 +112,8 @@ function useInputActions(gameId: string, { game, started, finished }: GameFlags)
   return { press, back }
 }
 
-function useSubmit(gameId: string, { game, started, finished }: GameFlags, busyRef: React.RefObject<boolean>) {
-  const { qc, onError, toResult } = useGameEffects(gameId)
+function useSubmit(gameId: string, { game, started, finished, resultPath }: GameFlags, busyRef: React.RefObject<boolean>) {
+  const { qc, onError, toResult } = useGameEffects(gameId, resultPath)
   const vibrate = useSession((s) => s.me?.profile.vibrate ?? false)
   const winTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   useEffect(() => () => clearTimeout(winTimer.current), [])
@@ -124,13 +130,25 @@ function useSubmit(gameId: string, { game, started, finished }: GameFlags, busyR
     busyRef.current = true
     try {
       const r = await sendGuess(gameId, cur.cur, hasNotes(gameId))
-      qc.setQueryData<GameViewDto>(gameKey(gameId), (g) => (g ? withGuess(g, cur.cur, r) : g))
-      useSolo.getState().verdict(gameId, r, r.solved)
+      qc.setQueryData<GameViewDto>(gameKey(gameId), (g) => {
+        if (!g) return g
+        const next = withGuess(g, cur.cur, r)
+        // A lost weekly game is over right away: the input locks and the secret is known.
+        return r.over ? { ...next, finishedAt: Date.now(), won: false, secret: r.secret } : next
+      })
+      // A lost weekly game locks the input like a win does (`solved` only gates input and leaving).
+      useSolo.getState().verdict(gameId, r, r.solved || r.over === true)
       playVerdict(r, vibrate)
       if (r.solved) {
         winTimer.current = setTimeout(() => {
           playWin(vibrate)
-          toResult(r.newBadges)
+          toResult(r.newBadges, r.newUnlocks)
+        }, WIN_DELAY_MS)
+      } else if (r.over) {
+        // The weekly challenge's last allowed try missed: the game is lost.
+        winTimer.current = setTimeout(() => {
+          sfx.play('lose')
+          toResult(r.newBadges, r.newUnlocks)
         }, WIN_DELAY_MS)
       }
     } catch (e) {
@@ -141,15 +159,15 @@ function useSubmit(gameId: string, { game, started, finished }: GameFlags, busyR
   }, [game, started, finished, gameId, qc, vibrate, onError, toResult, busyRef])
 }
 
-function useGiveUp(gameId: string, { started, finished }: GameFlags, busyRef: React.RefObject<boolean>) {
-  const { onError, toResult } = useGameEffects(gameId)
+function useGiveUp(gameId: string, { started, finished, resultPath }: GameFlags, busyRef: React.RefObject<boolean>) {
+  const { onError, toResult } = useGameEffects(gameId, resultPath)
   return useCallback(async () => {
     if (!started || finished || busyRef.current) return
     busyRef.current = true
     try {
       const r = await giveUpGame(gameId, hasNotes(gameId))
       sfx.play('lose')
-      toResult(r.newBadges)
+      toResult(r.newBadges, r.newUnlocks)
     } catch (e) {
       onError(e)
     } finally {

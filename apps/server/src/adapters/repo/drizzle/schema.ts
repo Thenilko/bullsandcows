@@ -1,11 +1,12 @@
-import type { Len } from '@bc/game-core'
+import type { Len, WeeklyRuleKey } from '@bc/game-core'
 import type { Lang } from '@bc/i18n'
-import type { AvatarSpecies, BadgeKey, ShareChannel } from '@bc/protocol'
+import type { AvatarSpecies, BadgeKey, BarnColor, PastureKey, ShareChannel } from '@bc/protocol'
 import { sql } from 'drizzle-orm'
 import {
   type AnyPgColumn,
   bigint,
   boolean,
+  char,
   check,
   date,
   doublePrecision,
@@ -55,6 +56,10 @@ export const profiles = pgTable(
     streakDate: date('streak_date', { mode: 'string' }),
     /** Version of the progression backfill applied to this profile (see docs/PROGRESSION.md). */
     progressVersion: smallint('progress_version').notNull().default(0),
+    /** „Напомняне всеки ден?“: 'HH:MM' (Sofia), only stored for now (no push yet). */
+    reminderTime: text('reminder_time'),
+    /** The weekly challenge's gold frame (top 10) is worn until then. */
+    goldFrameUntil: ts('gold_frame_until'),
     createdAt: ts('created_at').notNull().defaultNow(),
   },
   (t) => [
@@ -99,7 +104,7 @@ export const games = pgTable(
       .where(sql`${t.kind} = 'daily' and not ${t.practice}`),
     check(
       'games_kind_check',
-      sql`${t.kind} in ('daily', 'free', 'duel_race', 'duel_classic', 'bot')`,
+      sql`${t.kind} in ('daily', 'free', 'duel_race', 'duel_classic', 'bot', 'weekly')`,
     ),
     lenCheck('games', t.len),
   ],
@@ -210,4 +215,164 @@ export const dailyNumbers = pgTable(
     idx: integer('idx').notNull(),
   },
   (t) => [primaryKey({ columns: [t.date, t.len, t.zero] })],
+).enableRLS()
+
+/**
+ * The player's choices for „Твоето пасище“: rewards hidden from the scene and the barn colour. What is
+ * unlocked is never stored (it follows from the level and `user_badges`); no row means the defaults.
+ */
+export const userPasture = pgTable(
+  'user_pasture',
+  {
+    userId: uuid('user_id')
+      .primaryKey()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    hiddenItems: text('hidden_items').array().$type<PastureKey[]>().notNull().default(sql`'{}'::text[]`),
+    barnColor: text('barn_color').$type<BarnColor>().notNull().default('red'),
+    updatedAt: ts('updated_at').notNull().defaultNow(),
+  },
+  (t) => [
+    check(
+      'user_pasture_barn_color_check',
+      sql`${t.barnColor} in ('red', 'blue', 'green', 'yellow', 'purple')`,
+    ),
+  ],
+).enableRLS()
+
+/**
+ * „Семейна ферма“: a closed board of up to 12 players. `invite_code` (5 characters of the duel alphabet) is
+ * unique; the owner is always a member too.
+ */
+export const farms = pgTable(
+  'farms',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull(),
+    inviteCode: char('invite_code', { length: 5 }).notNull(),
+    ownerId: uuid('owner_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    createdAt: ts('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('farms_invite_code_idx').on(t.inviteCode),
+    check('farms_name_check', sql`char_length(${t.name}) between 1 and 40`),
+  ],
+).enableRLS()
+
+/** One row per member; `user_id` is unique, so nobody is in two farms. `invited_by`: the owner whose code was used. */
+export const farmMembers = pgTable(
+  'farm_members',
+  {
+    farmId: uuid('farm_id')
+      .notNull()
+      .references(() => farms.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    joinedAt: ts('joined_at').notNull().defaultNow(),
+    invitedBy: uuid('invited_by').references(() => profiles.id, { onDelete: 'set null' }),
+  },
+  (t) => [
+    uniqueIndex('farm_members_user_idx').on(t.userId),
+    index('farm_members_farm_idx').on(t.farmId, t.joinedAt),
+    index('farm_members_invited_by_idx').on(t.invitedBy),
+  ],
+).enableRLS()
+
+/** „Напомни“: at most one per (from, to, Sofia day); `read_at` once the × was pressed. */
+export const nudges = pgTable(
+  'nudges',
+  {
+    fromUser: uuid('from_user')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    toUser: uuid('to_user')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    day: date('day', { mode: 'string' }).notNull(),
+    createdAt: ts('created_at').notNull().defaultNow(),
+    readAt: ts('read_at'),
+  },
+  (t) => [
+    primaryKey({ columns: [t.fromUser, t.toUser, t.day] }),
+    index('nudges_to_day_idx').on(t.toUser, t.day),
+  ],
+).enableRLS()
+
+/**
+ * „Седмично предизвикателство“: one row per week, created on first need with the one secret for everyone
+ * (never sent to a client). `finalized_at` is set once, in the transaction that pays the week's rewards.
+ */
+export const weekly = pgTable(
+  'weekly',
+  {
+    weekId: text('week_id').primaryKey(),
+    ruleKey: text('rule_key').$type<WeeklyRuleKey>().notNull(),
+    secret: text('secret').notNull(),
+    endsAt: ts('ends_at').notNull(),
+    createdAt: ts('created_at').notNull().defaultNow(),
+    finalizedAt: ts('finalized_at'),
+    participants: integer('participants'),
+  },
+  (t) => [
+    check('weekly_week_id_check', sql`${t.weekId} ~ '^[0-9]{4}-W[0-9]{2}$'`),
+    check(
+      'weekly_rule_key_check',
+      sql`${t.ruleKey} in ('fiveZero', 'threeNoZero', 'quickFour', 'fourZero')`,
+    ),
+    index('weekly_due_idx').on(t.endsAt).where(sql`${t.finalizedAt} is null`),
+  ],
+).enableRLS()
+
+/** One weekly game per player and Sofia day (`weekly_plays_user_day_idx`); `secs` is set when it ends. */
+export const weeklyPlays = pgTable(
+  'weekly_plays',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    weekId: text('week_id')
+      .notNull()
+      .references(() => weekly.weekId, { onDelete: 'cascade' }),
+    day: date('day', { mode: 'string' }).notNull(),
+    gameId: uuid('game_id')
+      .primaryKey()
+      .references(() => games.id, { onDelete: 'cascade' }),
+    attempts: integer('attempts').notNull().default(0),
+    secs: integer('secs'),
+    won: boolean('won').notNull().default(false),
+    finishedAt: ts('finished_at'),
+    createdAt: ts('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('weekly_plays_user_day_idx').on(t.userId, t.day),
+    index('weekly_plays_week_idx').on(t.weekId, t.userId),
+  ],
+).enableRLS()
+
+/** The outcome of a finalised week per participant (П8); `seen_at` once the modal was shown. */
+export const weeklyResults = pgTable(
+  'weekly_results',
+  {
+    weekId: text('week_id')
+      .notNull()
+      .references(() => weekly.weekId, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    place: integer('place'),
+    participants: integer('participants').notNull(),
+    won: boolean('won').notNull(),
+    attempts: integer('attempts'),
+    secs: integer('secs'),
+    xp: integer('xp').notNull().default(0),
+    goldFrame: boolean('gold_frame').notNull().default(false),
+    seenAt: ts('seen_at'),
+    createdAt: ts('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.weekId, t.userId] }),
+    index('weekly_results_user_idx').on(t.userId, t.weekId),
+  ],
 ).enableRLS()
