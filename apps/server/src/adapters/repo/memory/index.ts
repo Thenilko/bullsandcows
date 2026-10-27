@@ -8,6 +8,7 @@ import { memoryProfiles } from './profiles'
 import { memoryPasture } from './pasture'
 import { memoryShares } from './shares'
 import { createStore, type MemoryStore } from './store'
+import { memoryWeekly } from './weekly'
 
 export function createMemoryRepo(
   clock: Clock = systemClock,
@@ -21,6 +22,7 @@ export function createMemoryRepo(
     shares: memoryShares(store),
     pasture: memoryPasture(store),
     farms: memoryFarms(store),
+    weekly: memoryWeekly(store, clock),
     close: async () => undefined,
   }
 }

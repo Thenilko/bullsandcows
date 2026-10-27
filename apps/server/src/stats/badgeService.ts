@@ -24,8 +24,8 @@ export const HISTORY_LIMIT = 1_000
 
 /**
  * Which badges an event can move: a finished game (solo, duel or bot) touches everything but
- * the „together“ group (except `invite`, which a duel by invite code moves), a share or a farm
- * event only that group, the backfill all of them.
+ * the „together“ group (except `invite`, which a duel by invite code moves), a share, a farm event or a
+ * finalised week only that group, the backfill all of them.
  */
 export type BadgeScope = 'game' | 'share' | 'all'
 
@@ -171,13 +171,14 @@ async function gatherFacts(repo: Repo, input: RecomputeInput): Promise<BadgeFact
   const withGames = scope !== 'share'
   const withShares = scope !== 'game'
   // Every scope moves `invite` (duel invites and farm joins), so the duels and the farm are always read.
-  const [games, profile, duels, shares, invitees, farm] = await Promise.all([
+  const [games, profile, duels, shares, invitees, farm, weeksWon] = await Promise.all([
     withGames ? (input.games ?? repo.games.history(userId, HISTORY_LIMIT)) : [],
     withGames ? repo.profiles.get(userId) : null,
     repo.duels.listOf(userId, HISTORY_LIMIT),
     withShares ? repo.shares.countOf(userId) : 0,
     repo.farms.inviteesOf(userId),
     withShares ? repo.farms.membershipOf(userId) : null,
+    withShares ? repo.weekly.weeksWon(userId) : 0,
   ])
   return {
     ...EMPTY_FACTS,
@@ -188,6 +189,7 @@ async function gatherFacts(repo: Repo, input: RecomputeInput): Promise<BadgeFact
     events: input.events ?? [],
     farmInvitees: invitees,
     inFarm: farm !== null,
+    weeksWon,
   }
 }
 

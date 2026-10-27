@@ -11,6 +11,9 @@ import type {
   Profile,
   PublicGameRow,
   ShareRow,
+  WeeklyPlayRow,
+  WeeklyResultRow,
+  WeekRow,
 } from '../../../ports/repo'
 
 /** The in-memory "database". Only the memory repo touches it; callers get copies. */
@@ -31,6 +34,11 @@ export interface MemoryStore {
   readonly farmMembers: Map<string, FarmMemberRow>
   /** Key `<from>|<to>|<day>`. */
   readonly nudges: Map<string, NudgeRow>
+  readonly weeks: Map<string, WeekRow>
+  /** Per game id. */
+  readonly weeklyPlays: Map<string, WeeklyPlayRow>
+  /** Key `<weekId>|<userId>`. */
+  readonly weeklyResults: Map<string, WeeklyResultRow>
   nextGuessId: number
 }
 
@@ -46,6 +54,9 @@ export const createStore = (): MemoryStore => ({
   farms: new Map(),
   farmMembers: new Map(),
   nudges: new Map(),
+  weeks: new Map(),
+  weeklyPlays: new Map(),
+  weeklyResults: new Map(),
   nextGuessId: 1,
 })
 

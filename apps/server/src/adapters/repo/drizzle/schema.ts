@@ -1,4 +1,4 @@
-import type { Len } from '@bc/game-core'
+import type { Len, WeeklyRuleKey } from '@bc/game-core'
 import type { Lang } from '@bc/i18n'
 import type { AvatarSpecies, BadgeKey, BarnColor, PastureKey, ShareChannel } from '@bc/protocol'
 import { sql } from 'drizzle-orm'
@@ -58,6 +58,8 @@ export const profiles = pgTable(
     progressVersion: smallint('progress_version').notNull().default(0),
     /** „Напомняне всеки ден?“: 'HH:MM' (Sofia), only stored for now (no push yet). */
     reminderTime: text('reminder_time'),
+    /** The weekly challenge's gold frame (top 10) is worn until then. */
+    goldFrameUntil: ts('gold_frame_until'),
     createdAt: ts('created_at').notNull().defaultNow(),
   },
   (t) => [
@@ -102,7 +104,7 @@ export const games = pgTable(
       .where(sql`${t.kind} = 'daily' and not ${t.practice}`),
     check(
       'games_kind_check',
-      sql`${t.kind} in ('daily', 'free', 'duel_race', 'duel_classic', 'bot')`,
+      sql`${t.kind} in ('daily', 'free', 'duel_race', 'duel_classic', 'bot', 'weekly')`,
     ),
     lenCheck('games', t.len),
   ],
@@ -295,5 +297,82 @@ export const nudges = pgTable(
   (t) => [
     primaryKey({ columns: [t.fromUser, t.toUser, t.day] }),
     index('nudges_to_day_idx').on(t.toUser, t.day),
+  ],
+).enableRLS()
+
+/**
+ * „Седмично предизвикателство“: one row per week, created on first need with the one secret for everyone
+ * (never sent to a client). `finalized_at` is set once, in the transaction that pays the week's rewards.
+ */
+export const weekly = pgTable(
+  'weekly',
+  {
+    weekId: text('week_id').primaryKey(),
+    ruleKey: text('rule_key').$type<WeeklyRuleKey>().notNull(),
+    secret: text('secret').notNull(),
+    endsAt: ts('ends_at').notNull(),
+    createdAt: ts('created_at').notNull().defaultNow(),
+    finalizedAt: ts('finalized_at'),
+    participants: integer('participants'),
+  },
+  (t) => [
+    check('weekly_week_id_check', sql`${t.weekId} ~ '^[0-9]{4}-W[0-9]{2}$'`),
+    check(
+      'weekly_rule_key_check',
+      sql`${t.ruleKey} in ('fiveZero', 'threeNoZero', 'quickFour', 'fourZero')`,
+    ),
+    index('weekly_due_idx').on(t.endsAt).where(sql`${t.finalizedAt} is null`),
+  ],
+).enableRLS()
+
+/** One weekly game per player and Sofia day (`weekly_plays_user_day_idx`); `secs` is set when it ends. */
+export const weeklyPlays = pgTable(
+  'weekly_plays',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    weekId: text('week_id')
+      .notNull()
+      .references(() => weekly.weekId, { onDelete: 'cascade' }),
+    day: date('day', { mode: 'string' }).notNull(),
+    gameId: uuid('game_id')
+      .primaryKey()
+      .references(() => games.id, { onDelete: 'cascade' }),
+    attempts: integer('attempts').notNull().default(0),
+    secs: integer('secs'),
+    won: boolean('won').notNull().default(false),
+    finishedAt: ts('finished_at'),
+    createdAt: ts('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('weekly_plays_user_day_idx').on(t.userId, t.day),
+    index('weekly_plays_week_idx').on(t.weekId, t.userId),
+  ],
+).enableRLS()
+
+/** The outcome of a finalised week per participant (П8); `seen_at` once the modal was shown. */
+export const weeklyResults = pgTable(
+  'weekly_results',
+  {
+    weekId: text('week_id')
+      .notNull()
+      .references(() => weekly.weekId, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    place: integer('place'),
+    participants: integer('participants').notNull(),
+    won: boolean('won').notNull(),
+    attempts: integer('attempts'),
+    secs: integer('secs'),
+    xp: integer('xp').notNull().default(0),
+    goldFrame: boolean('gold_frame').notNull().default(false),
+    seenAt: ts('seen_at'),
+    createdAt: ts('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.weekId, t.userId] }),
+    index('weekly_results_user_idx').on(t.userId, t.weekId),
   ],
 ).enableRLS()

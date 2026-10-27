@@ -21,13 +21,29 @@ import type { ErrorCode, NewBadgeDto } from '@bc/protocol'
 import type { AuthUser } from '../ports/auth'
 import type { Clock } from '../ports/clock'
 import { isDuplicate } from '../ports/errors'
-import type { GamePatch, GameRow, GuessRow, NewGuess, PublicGameRow, Repo } from '../ports/repo'
+import type {
+  GamePatch,
+  GameRow,
+  GuessRow,
+  NewGuess,
+  Profile,
+  PublicGameRow,
+  Repo,
+} from '../ports/repo'
 import { guessEvents } from '../stats/badgeMetrics'
 import { recomputeBadges } from '../stats/badgeService'
 import { StatsService } from '../stats/service'
 import { nextDayStreak } from '../stats/streak'
 import { topOfGame, type DistributionSource } from '../stats/top'
 import { unlockedNow, unlocksSince } from '../stats/pasture'
+import {
+  deadlineOf,
+  isOverdue,
+  recordWeeklyEnd,
+  weeklyInfoDto,
+  weeklyLimitsOf,
+  type WeeklyLimits,
+} from '../weekly/game'
 import { candidatesAfter, leftAfterEach } from './evaluate'
 import type { CreateInput, GameView, GiveUpResult, GuessResult } from './types'
 
@@ -54,7 +70,16 @@ interface Earned {
   readonly newUnlocks: PastureKey[]
 }
 
-const isSoloKind = (kind: string): kind is SoloKind => kind === 'daily' || kind === 'free'
+/** Daily, free and the weekly challenge (which runs on the same machinery with its limits). */
+const isSoloKind = (kind: string): kind is SoloKind =>
+  kind === 'daily' || kind === 'free' || kind === 'weekly'
+
+/** What a lost game is closed with: the counts of the last guess, when there was one. */
+interface LossInput {
+  readonly attempts?: number
+  readonly wasted?: number
+  readonly usedNotes: boolean
+}
 
 /**
  * Uniform pick from `list`. A 32-bit value modulo at most 30240 codes has a bias below 1e-5,
@@ -157,6 +182,12 @@ export class SoloService {
     const game = await this.ownedWithSecret(user, gameId)
     if (game.startedAt === null) throw new SoloError('ERR_NOT_STARTED')
     if (game.finishedAt !== null) throw new SoloError('ERR_FINISHED')
+    const limits = await weeklyLimitsOf(repo, game)
+    if (limits && isOverdue(limits, game, clock.now())) {
+      // The time (or the week) ran out before this guess: the game is lost, the guess is not judged.
+      await this.expire(game, limits)
+      throw new SoloError('ERR_FINISHED')
+    }
     if (!isValidCode(guess, game.len, game.zero)) throw new SoloError('ERR_CODE')
     const previous = await repo.games.guesses(gameId)
     if (previous.some((p) => p.guess === guess)) throw new SoloError('ERR_REPEAT')
@@ -170,6 +201,11 @@ export class SoloService {
     const wasted = [...previous, row].filter((r) => !r.consistent).length
     const solved = verdict.bulls === game.len
     const notes = usedNotes ? { usedNotes: true } : {}
+    if (!solved && limits && attempts >= limits.rule.maxAttempts) {
+      // The last allowed attempt missed: the weekly game is lost and the secret may be shown now.
+      const lost = await this.lose(user, game, { attempts, wasted, usedNotes })
+      return { ...verdict, consistent, left, solved, over: true, ...lost }
+    }
     if (!solved) {
       await repo.games.update(gameId, { attempts, wasted, ...notes })
       return { ...verdict, consistent, left, solved }
@@ -181,17 +217,30 @@ export class SoloService {
 
   /** A loss still moves badges („pure“, „notes“, the hidden ones); practice games move nothing. */
   async giveUp(user: AuthUser, gameId: string, usedNotes = false): Promise<GiveUpResult> {
-    const { repo, clock } = this.deps
     const game = await this.ownedWithSecret(user, gameId)
     if (game.finishedAt !== null) throw new SoloError('ERR_FINISHED')
-    await repo.games.update(gameId, {
-      finishedAt: clock.now(),
+    return this.lose(user, game, { usedNotes })
+  }
+
+  /** Closes a game as lost (giving up, or the weekly attempt limit) and moves the badges a loss can move. */
+  private async lose(user: AuthUser, game: GameRow, input: LossInput): Promise<GiveUpResult> {
+    const { repo, clock } = this.deps
+    const finishedAt = clock.now()
+    const counts = input.attempts === undefined ? {} : { attempts: input.attempts, wasted: input.wasted }
+    await repo.games.update(game.id, {
+      finishedAt,
       won: false,
       score: 0,
-      ...(usedNotes ? { usedNotes: true } : {}),
+      ...counts,
+      ...(input.usedNotes ? { usedNotes: true } : {}),
+    })
+    await recordWeeklyEnd(repo, game, {
+      attempts: input.attempts ?? game.attempts,
+      won: false,
+      finishedAt,
     })
     if (game.practice || !(await repo.profiles.get(user.id))) return { secret: game.secret }
-    const rows = await repo.games.guesses(gameId)
+    const rows = await repo.games.guesses(game.id)
     const before = await unlockedNow(repo, user.id)
     const newBadges = await recomputeBadges(repo, {
       userId: user.id,
@@ -235,6 +284,7 @@ export class SoloService {
       suspicious,
       ...notes,
     })
+    await recordWeeklyEnd(repo, game, { attempts, won: true, finishedAt })
     const earned = game.practice ? null : await this.reward(user, finished, game.secret, rows)
     return { score, earned }
   }
@@ -257,6 +307,20 @@ export class SoloService {
     const profile = await repo.profiles.get(user.id)
     if (!profile) return null
     const before = await unlockedNow(repo, user.id)
+    // The weekly challenge pays its 300 XP when the week is finalised, not per game.
+    if (game.kind !== 'weekly') await this.payXp(user, profile, game)
+    const newBadges = await recomputeBadges(repo, {
+      userId: user.id,
+      scope: 'game',
+      now: clock.now(),
+      events: guessEvents(secret, rows, game.len, true),
+      payXp: true,
+    })
+    return { newBadges, newUnlocks: await unlocksSince(repo, user.id, before) }
+  }
+
+  private async payXp(user: AuthUser, profile: Profile, game: PublicGameRow): Promise<void> {
+    const { repo, clock } = this.deps
     const today = sofiaDate(new Date(clock.now()))
     const top = await topOfGame(this.distributions, game, today)
     const stars = starsFromTop(top)
@@ -266,14 +330,15 @@ export class SoloService {
       ? dailyXp(stars, streak.currentStreak)
       : freeXp(stars, await repo.games.countFreeGamesOn(user.id, today))
     await repo.profiles.addXp(user.id, xp)
-    const newBadges = await recomputeBadges(repo, {
-      userId: user.id,
-      scope: 'game',
-      now: clock.now(),
-      events: guessEvents(secret, rows, game.len, true),
-      payXp: true,
-    })
-    return { newBadges, newUnlocks: await unlocksSince(repo, user.id, before) }
+  }
+
+  /** A weekly game whose time (or week) is up: lost at the deadline, without judging anything more. */
+  private async expire(game: PublicGameRow, limits: WeeklyLimits): Promise<PublicGameRow> {
+    const { repo, clock } = this.deps
+    const finishedAt = Math.min(clock.now(), deadlineOf(limits, game.startedAt))
+    const closed = await repo.games.update(game.id, { finishedAt, won: false, score: 0 })
+    await recordWeeklyEnd(repo, game, { attempts: game.attempts, won: false, finishedAt })
+    return closed
   }
 
   /** The same guess sent twice at once passes the repeat check twice; the unique index decides. */
@@ -303,16 +368,19 @@ export class SoloService {
   }
 
   /** The secret is fetched, explicitly, only for a finished game. */
-  private async view(game: PublicGameRow): Promise<GameView> {
-    const { repo } = this.deps
-    if (!isSoloKind(game.kind)) throw new SoloError('ERR_NOT_FOUND')
+  async view(current: PublicGameRow): Promise<GameView> {
+    const { repo, clock } = this.deps
+    if (!isSoloKind(current.kind)) throw new SoloError('ERR_NOT_FOUND')
+    const limits = await weeklyLimitsOf(repo, current)
+    const game =
+      limits && isOverdue(limits, current, clock.now()) ? await this.expire(current, limits) : current
     const rows = await repo.games.guesses(game.id)
     const lefts = leftAfterEach(game.len, game.zero, rows)
     const finished = game.finishedAt !== null
     const secret = finished ? (await repo.games.getWithSecret(game.id))?.secret : undefined
     return {
       id: game.id,
-      kind: game.kind,
+      kind: current.kind,
       len: game.len as Len,
       zero: game.zero,
       practice: game.practice,
@@ -325,6 +393,7 @@ export class SoloService {
       guesses: toGuessEntries(rows, lefts),
       ...(secret === undefined ? {} : { secret }),
       ...(game.dailyDate === null ? {} : { dailyNumber: dailyNumber(game.dailyDate) }),
+      ...(limits ? { weekly: weeklyInfoDto(limits) } : {}),
     }
   }
 }

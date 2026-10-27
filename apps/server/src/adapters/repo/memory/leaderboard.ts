@@ -60,6 +60,7 @@ export function rankLeaderboard(
       score: g.score,
       xp: profiles.get(g.userId)?.xp ?? 0,
       avatarSpecies: profiles.get(g.userId)?.avatarSpecies ?? 'bull',
+      goldFrameUntil: profiles.get(g.userId)?.goldFrameUntil ?? null,
     }))
 }
 

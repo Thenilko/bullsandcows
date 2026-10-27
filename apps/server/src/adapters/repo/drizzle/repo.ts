@@ -7,6 +7,7 @@ import { drizzleGames } from './games'
 import { drizzleProfiles } from './profiles'
 import { drizzlePasture } from './pasture'
 import { drizzleShares } from './shares'
+import { drizzleWeekly } from './weekly'
 
 /** Postgres-backed repo; mirrors the memory repo method for method. */
 export function createDrizzleRepo(handle: DbHandle): RepoHandle {
@@ -18,6 +19,7 @@ export function createDrizzleRepo(handle: DbHandle): RepoHandle {
     shares: drizzleShares(handle.db),
     pasture: drizzlePasture(handle.db),
     farms: drizzleFarms(handle.db),
+    weekly: drizzleWeekly(handle.db),
     close: () => handle.close(),
   }
 }

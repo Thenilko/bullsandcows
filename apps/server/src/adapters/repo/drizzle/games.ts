@@ -24,6 +24,7 @@ const SOFIA_TZ = 'Europe/Sofia'
 /** Every column except `secret`: the default projection for all game reads and writes. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { secret: _secretColumn, ...publicColumns } = getTableColumns(games)
+export { publicColumns }
 
 function patchColumns(patch: GamePatch): Partial<typeof games.$inferInsert> {
   const { startedAt, finishedAt, ...rest } = patch

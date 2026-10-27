@@ -39,6 +39,7 @@ import {
   toRecent,
 } from './me'
 import { dayStreakFromDates } from './streak'
+import { hasGoldFrame } from '../weekly/model'
 import { sofiaWeekStart } from './time'
 import { cacheKey, type DistributionQuery, type DistributionSource } from './top'
 
@@ -132,6 +133,7 @@ export class StatsService implements DistributionSource {
         level,
         rankKey: rankKeyForLevel(level),
         avatarSpecies: r.avatarSpecies,
+        goldFrame: hasGoldFrame(r.goldFrameUntil, this.deps.clock.now()),
       }
     })
     // Below the repo's list the caller's place is counted separately.
@@ -164,6 +166,7 @@ export class StatsService implements DistributionSource {
     return {
       profile: toProfileDto(current),
       ...levelInfo(current),
+      goldFrame: hasGoldFrame(current.goldFrameUntil, this.deps.clock.now()),
       currentGameId: games.find((g) => isSolo(g) && g.finishedAt === null)?.id ?? null,
       stats: summaryOf(counted, streakOf(counted)),
       buckets: bucketsOf(counted.filter((g) => g.won === true)),

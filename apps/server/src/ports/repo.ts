@@ -1,8 +1,8 @@
-import type { Len, Outcome, Rating } from '@bc/game-core'
+import type { Len, Outcome, Rating, WeeklyRuleKey } from '@bc/game-core'
 import type { Lang } from '@bc/i18n'
 import type { AvatarSpecies, BadgeKey, BarnColor, PastureKey, ShareChannel } from '@bc/protocol'
 
-export type GameKind = 'daily' | 'free' | 'duel_race' | 'duel_classic' | 'bot'
+export type GameKind = 'daily' | 'free' | 'duel_race' | 'duel_classic' | 'bot' | 'weekly'
 export type SoloKind = Extract<GameKind, 'daily' | 'free'>
 export type DuelFormat = 'race' | 'classic'
 export type OpponentKind = 'quick' | 'friend' | 'bot'
@@ -30,6 +30,8 @@ export interface Profile {
   readonly progressVersion: number
   /** „Напомняне всеки ден?“ 'HH:MM' or null; only stored. */
   readonly reminderTime: string | null
+  /** The weekly challenge's gold frame (top 10) is worn until then (Unix ms); null: never earned. */
+  readonly goldFrameUntil: number | null
   readonly createdAt: number
 }
 
@@ -181,6 +183,7 @@ export interface LeaderboardRow {
   /** The player's total xp, for their level and title next to the name. */
   readonly xp: number
   readonly avatarSpecies: AvatarSpecies
+  readonly goldFrameUntil: number | null
 }
 
 /** Won counted daily games of several days at once (for "top X%" of past days). */
@@ -394,6 +397,110 @@ export interface FarmsRepo {
   markNudgesRead(to: string, day: string, now: number): Promise<void>
 }
 
+/** One week of the weekly challenge: created on first need, with the one secret for everyone. */
+export interface WeekRow {
+  /** '2026-W44'. */
+  readonly weekId: string
+  readonly ruleKey: WeeklyRuleKey
+  /** Never sent to a client: guesses are checked on the server. */
+  readonly secret: string
+  /** Next Monday 00:00 Sofia (Unix ms). */
+  readonly endsAt: number
+  readonly createdAt: number
+  readonly finalizedAt: number | null
+  /** Players with a finished game; set at finalisation. */
+  readonly participants: number | null
+}
+
+export type NewWeek = Pick<WeekRow, 'weekId' | 'ruleKey' | 'secret' | 'endsAt'>
+
+/** One weekly game: at most one per player and Sofia day (unique index on user and day). */
+export interface WeeklyPlayRow {
+  readonly userId: string
+  readonly weekId: string
+  /** Sofia date 'YYYY-MM-DD' of the start. */
+  readonly day: string
+  readonly gameId: string
+  readonly attempts: number
+  /** Null until finished or when the start is unknown. */
+  readonly secs: number | null
+  readonly won: boolean
+  readonly finishedAt: number | null
+  readonly createdAt: number
+}
+
+export type NewWeeklyPlay = Pick<WeeklyPlayRow, 'userId' | 'weekId' | 'day' | 'gameId'>
+
+export type WeeklyPlayFinish = Pick<WeeklyPlayRow, 'attempts' | 'secs' | 'won'> & {
+  readonly finishedAt: number
+}
+
+/** A finished play with what a board row shows of its player. */
+export interface WeeklyPlayEntry extends WeeklyPlayRow {
+  readonly username: string
+  readonly xp: number
+  readonly avatarSpecies: AvatarSpecies
+  readonly goldFrameUntil: number | null
+}
+
+/** A player's stored outcome of a finalised week (П8). */
+export interface WeeklyResultRow {
+  readonly weekId: string
+  readonly userId: string
+  /** Null without a win. */
+  readonly place: number | null
+  readonly participants: number
+  readonly won: boolean
+  readonly attempts: number | null
+  readonly secs: number | null
+  readonly xp: number
+  readonly goldFrame: boolean
+  readonly seenAt: number | null
+  readonly createdAt: number
+}
+
+export type NewWeeklyResult = Omit<WeeklyResultRow, 'seenAt' | 'createdAt'>
+
+/** Everything one finalisation writes, in one transaction. */
+export interface WeeklyFinalization {
+  readonly weekId: string
+  readonly now: number
+  readonly participants: number
+  readonly results: readonly NewWeeklyResult[]
+  /** `xp` of each result is added to the profile; `goldFrame` ones get this `gold_frame_until`. */
+  readonly goldFrameUntil: number
+}
+
+export interface WeeklyRepo {
+  /** Inserts the week unless it exists; returns the stored row (a concurrent first insert wins). */
+  ensureWeek(week: NewWeek, now: number): Promise<WeekRow>
+  week(weekId: string): Promise<WeekRow | null>
+  /**
+   * Creates the game and its play together; null (nothing written) when the player has a play on that day
+   * already. The game must carry its `id`.
+   */
+  startPlay(game: NewGame & { readonly id: string }, play: NewWeeklyPlay): Promise<PublicGameRow | null>
+  playOn(userId: string, day: string): Promise<WeeklyPlayRow | null>
+  playByGame(gameId: string): Promise<WeeklyPlayRow | null>
+  /** Unfinished plays of a player in a week. */
+  openPlays(userId: string, weekId: string): Promise<WeeklyPlayRow[]>
+  finishPlay(gameId: string, finish: WeeklyPlayFinish): Promise<void>
+  /** Finished plays of a week (any order) with the player's profile; guests are left out. */
+  finishedPlays(weekId: string): Promise<WeeklyPlayEntry[]>
+  /** Weeks that ended at or before `now` and are not finalised yet. */
+  dueWeeks(now: number): Promise<WeekRow[]>
+  /**
+   * Atomically writes the results, pays their XP, sets the gold frames and marks the week finalised. False
+   * (and nothing written) when it was finalised already.
+   */
+  finalize(input: WeeklyFinalization): Promise<boolean>
+  /** The newest unseen result of a player. */
+  unseenResult(userId: string): Promise<WeeklyResultRow | null>
+  markSeen(userId: string, now: number): Promise<void>
+  /** Finalised weeks the player won at least once. */
+  weeksWon(userId: string): Promise<number>
+}
+
 export interface Repo {
   readonly profiles: ProfilesRepo
   readonly games: GamesRepo
@@ -402,6 +509,7 @@ export interface Repo {
   readonly shares: SharesRepo
   readonly pasture: PastureRepo
   readonly farms: FarmsRepo
+  readonly weekly: WeeklyRepo
 }
 
 /** A repo bound to resources that must be released when the request ends. */

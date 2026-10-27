@@ -13,6 +13,7 @@ import type { AuthUser } from '../ports/auth'
 import type { Clock } from '../ports/clock'
 import type { FarmRow, Profile, Repo } from '../ports/repo'
 import { recomputeBadges } from '../stats/badgeService'
+import { hasGoldFrame } from '../weekly/model'
 import { bestToday, mayDo, weekMonday, weekPoints, type FarmAction } from './model'
 
 /** Tries for a free invite code before giving up (32^5 codes: a clash is rare, two in a row rarer still). */
@@ -234,6 +235,7 @@ export class FarmService {
           today: bestToday(own, today),
           weekPoints: weekPoints(own, monday),
           nudged: nudged.has(m.userId),
+          goldFrame: hasGoldFrame(p.goldFrameUntil, this.deps.clock.now()),
         },
       ]
     })
