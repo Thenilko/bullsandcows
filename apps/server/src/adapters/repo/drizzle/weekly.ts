@@ -144,7 +144,8 @@ export function drizzleWeekly(db: Db): WeeklyRepo {
         }
         const framed = results.filter((r) => r.goldFrame).map((r) => r.userId)
         if (framed.length > 0) {
-          const until = new Date(goldFrameUntil)
+          // A raw parameter inside `sql` is not mapped by the column: pass the instant as text and cast it.
+          const until = sql`${new Date(goldFrameUntil).toISOString()}::timestamptz`
           await tx
             .update(profiles)
             .set({

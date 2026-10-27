@@ -1,0 +1,268 @@
+import { readdirSync, readFileSync } from 'node:fs'
+import { drizzle } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import type { RepoHandle } from '../../../ports/repo'
+import { createDrizzleRepo } from './repo'
+import * as schema from './schema'
+
+/**
+ * Opt-in integration tests of the Postgres repos (`PG_TEST_URL`, see vitest.pg.config.ts): the transactions
+ * and unique indexes that keep a farm at 12 members and a player in one farm, one weekly game per Sofia day
+ * and one finalisation per week, under real concurrency. The database is wiped and migrated first.
+ */
+const URL_ENV = process.env.PG_TEST_URL
+const MIGRATIONS = new URL('../../../../drizzle/', import.meta.url)
+const NOW = Date.parse('2026-10-26T09:00:00Z')
+const WEEK = '2026-W44'
+const WEEK_END = Date.parse('2026-11-01T22:00:00Z')
+
+let sql: postgres.Sql
+let repo: RepoHandle
+
+async function migrate(client: postgres.Sql): Promise<void> {
+  await client.unsafe('drop schema if exists public cascade; create schema public;')
+  const files = readdirSync(MIGRATIONS)
+    .filter((f) => f.endsWith('.sql'))
+    .sort()
+  for (const file of files) {
+    const text = readFileSync(new URL(file, MIGRATIONS), 'utf8')
+    for (const statement of text.split('--> statement-breakpoint')) {
+      if (statement.trim()) await client.unsafe(statement)
+    }
+  }
+}
+
+let n = 0
+async function profile(name = 'p'): Promise<string> {
+  n += 1
+  const id = crypto.randomUUID()
+  await repo.profiles.create({ id, username: `${name}${n}`, email: null, isGuest: false })
+  return id
+}
+
+describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
+  beforeAll(async () => {
+    sql = postgres(URL_ENV ?? '', { max: 20, onnotice: () => undefined })
+    await migrate(sql)
+    repo = createDrizzleRepo({ db: drizzle(sql, { schema }), close: async () => undefined })
+  })
+
+  afterAll(async () => {
+    await sql?.end()
+  })
+
+  describe('farms', () => {
+    it('never lets concurrent joins go beyond 12 members', async () => {
+      const owner = await profile('owner')
+      const farm = await repo.farms.create(
+        { name: 'Петрови', inviteCode: 'K7Q2M', ownerId: owner },
+        NOW,
+      )
+      if (!farm || farm === 'already') throw new Error('farm not created')
+      const joiners = await Promise.all(Array.from({ length: 20 }, () => profile('j')))
+      const outcomes = await Promise.all(joiners.map((u) => repo.farms.join(farm.id, u, 12, NOW)))
+      expect(outcomes.filter((o) => o === 'joined')).toHaveLength(11)
+      expect(outcomes.filter((o) => o === 'full')).toHaveLength(9)
+      expect(await repo.farms.members(farm.id)).toHaveLength(12)
+    })
+
+    it('keeps a player in one farm, also when two joins race', async () => {
+      const [a, b, u] = [await profile('a'), await profile('b'), await profile('u')]
+      const fa = await repo.farms.create({ name: 'A', inviteCode: 'AAAA3', ownerId: a }, NOW)
+      const fb = await repo.farms.create({ name: 'B', inviteCode: 'BBBB3', ownerId: b }, NOW)
+      if (!fa || fa === 'already' || !fb || fb === 'already') throw new Error('farms not created')
+      const outcomes = await Promise.all([
+        repo.farms.join(fa.id, u, 12, NOW),
+        repo.farms.join(fb.id, u, 12, NOW),
+      ])
+      expect([...outcomes].sort()).toEqual(['already', 'joined'])
+      // Founding a farm while in one maps the unique violation to `already`.
+      expect(await repo.farms.create({ name: 'C', inviteCode: 'CCCC3', ownerId: u }, NOW)).toBe(
+        'already',
+      )
+    })
+
+    it('maps a taken invite code to null (pick another)', async () => {
+      const [a, b] = [await profile('a'), await profile('b')]
+      expect(
+        await repo.farms.create({ name: 'X', inviteCode: 'DDDD3', ownerId: a }, NOW),
+      ).not.toBeNull()
+      expect(
+        await repo.farms.create({ name: 'Y', inviteCode: 'DDDD3', ownerId: b }, NOW),
+      ).toBeNull()
+      expect(await repo.farms.membershipOf(b)).toBeNull()
+    })
+  })
+
+  describe('weekly', () => {
+    const game = (userId: string, id: string) => ({
+      id,
+      userId,
+      kind: 'weekly' as const,
+      len: 4 as const,
+      zero: false,
+      secret: '1234',
+      dailyDate: null,
+      practice: false,
+    })
+
+    it('creates the week once and keeps the first secret', async () => {
+      const first = await repo.weekly.ensureWeek(
+        { weekId: WEEK, ruleKey: 'quickFour', secret: '1234', endsAt: WEEK_END },
+        NOW,
+      )
+      const again = await repo.weekly.ensureWeek(
+        { weekId: WEEK, ruleKey: 'quickFour', secret: '9876', endsAt: WEEK_END },
+        NOW,
+      )
+      expect(again.secret).toBe(first.secret)
+      expect(again.endsAt).toBe(WEEK_END)
+    })
+
+    it('allows one game per player and Sofia day, also when two starts race', async () => {
+      const u = await profile('w')
+      const ids = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()]
+      const started = await Promise.all(
+        ids.map((id) =>
+          repo.weekly.startPlay(game(u, id), {
+            userId: u,
+            weekId: WEEK,
+            day: '2026-10-26',
+            gameId: id,
+          }),
+        ),
+      )
+      expect(started.filter((g) => g !== null)).toHaveLength(1)
+      // The losers' games were rolled back with their plays.
+      const [{ count }] = await sql<
+        { count: number }[]
+      >`select count(*)::int as count from games where user_id = ${u}`
+      expect(count).toBe(1)
+      const next = crypto.randomUUID()
+      expect(
+        await repo.weekly.startPlay(game(u, next), {
+          userId: u,
+          weekId: WEEK,
+          day: '2026-10-27',
+          gameId: next,
+        }),
+      ).not.toBeNull()
+    })
+
+    it('finalises a week once: XP, the gold frame and the results, however many runs race', async () => {
+      const winner = await profile('win')
+      const loser = await profile('lose')
+      for (const [u, won] of [
+        [winner, true],
+        [loser, false],
+      ] as const) {
+        const id = crypto.randomUUID()
+        await repo.weekly.startPlay(game(u, id), {
+          userId: u,
+          weekId: WEEK,
+          day: '2026-10-28',
+          gameId: id,
+        })
+        await repo.weekly.finishPlay(id, { attempts: 5, secs: 90, won, finishedAt: NOW + 1000 })
+      }
+      const plays = await repo.weekly.finishedPlays(WEEK)
+      expect(plays.map((p) => p.userId)).toEqual(expect.arrayContaining([winner, loser]))
+      expect((await repo.weekly.dueWeeks(WEEK_END - 1)).map((w) => w.weekId)).not.toContain(WEEK)
+      expect((await repo.weekly.dueWeeks(WEEK_END)).map((w) => w.weekId)).toContain(WEEK)
+
+      const before = (await repo.profiles.get(winner))?.xp ?? 0
+      const results = [
+        {
+          weekId: WEEK,
+          userId: winner,
+          place: 1,
+          participants: 2,
+          won: true,
+          attempts: 5,
+          secs: 90,
+          xp: 300,
+          goldFrame: true,
+        },
+        {
+          weekId: WEEK,
+          userId: loser,
+          place: null,
+          participants: 2,
+          won: false,
+          attempts: null,
+          secs: null,
+          xp: 0,
+          goldFrame: false,
+        },
+      ]
+      const until = Date.parse('2026-11-08T22:00:00Z')
+      const runs = await Promise.all(
+        Array.from({ length: 4 }, () =>
+          repo.weekly.finalize({
+            weekId: WEEK,
+            now: WEEK_END,
+            participants: 2,
+            results,
+            goldFrameUntil: until,
+          }),
+        ),
+      )
+      expect(runs.filter(Boolean)).toHaveLength(1)
+      const after = await repo.profiles.get(winner)
+      expect((after?.xp ?? 0) - before).toBe(300)
+      expect(after?.goldFrameUntil).toBe(until)
+      expect((await repo.profiles.get(loser))?.goldFrameUntil).toBeNull()
+      expect(await repo.weekly.weeksWon(winner)).toBe(1)
+      expect(await repo.weekly.unseenResult(winner)).toMatchObject({
+        weekId: WEEK,
+        place: 1,
+        xp: 300,
+        goldFrame: true,
+      })
+      await repo.weekly.markSeen(winner, WEEK_END)
+      expect(await repo.weekly.unseenResult(winner)).toBeNull()
+      expect((await repo.weekly.week(WEEK))?.finalizedAt).toBe(WEEK_END)
+      expect(await repo.weekly.dueWeeks(WEEK_END + 1)).toEqual([])
+      // A later run (the second cron) changes nothing.
+      expect(
+        await repo.weekly.finalize({
+          weekId: WEEK,
+          now: WEEK_END,
+          participants: 2,
+          results,
+          goldFrameUntil: until,
+        }),
+      ).toBe(false)
+      expect((await repo.profiles.get(winner))?.xp).toBe(after?.xp)
+
+      // The frame reaches the boards as Unix ms (joins and the leaderboard's subquery included).
+      const entry = (await repo.weekly.finishedPlays(WEEK)).find((p) => p.userId === winner)
+      expect(entry?.goldFrameUntil).toBe(until)
+      const free = await repo.games.create({
+        userId: winner,
+        kind: 'free',
+        len: 4,
+        zero: false,
+        secret: '1234',
+        dailyDate: null,
+        practice: false,
+      })
+      await repo.games.update(free.id, {
+        startedAt: NOW,
+        finishedAt: NOW + 60_000,
+        won: true,
+        attempts: 4,
+        score: 500,
+      })
+      const rows = await repo.games.leaderboard({
+        period: 'all',
+        len: 4,
+        zero: false,
+        date: '2026-10-26',
+        weekStartMs: NOW - 1,
+      })
+      expect(rows.find((r) => r.userId === winner)?.goldFrameUntil).toBe(until)
+    })
+  })
+})

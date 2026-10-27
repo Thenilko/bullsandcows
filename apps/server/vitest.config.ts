@@ -16,5 +16,10 @@ export default defineConfig({
       },
     }),
   ],
-  test: { name: 'server', include: ['src/**/*.test.ts'] },
+  // `*.pg.test.ts` need a real Postgres and run in Node (vitest.pg.config.ts).
+  test: {
+    name: 'server',
+    include: ['src/**/*.test.ts'],
+    exclude: ['src/**/*.pg.test.ts', '**/node_modules/**'],
+  },
 })
