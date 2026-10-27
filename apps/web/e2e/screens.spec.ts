@@ -46,6 +46,9 @@ const COMPACT: readonly [key: string, screen: string, w: number, h: number][] = 
   // „Семейна ферма“ and the nudge on the compact phone (ЧАСТ 2).
   ['mk-farm', 'farm', 390, 660],
   ['mk-farm-nudge', 'farm-nudge', 390, 660],
+  // The weekly challenge on the compact phone (ЧАСТ 3): the week and the game.
+  ['mk-weekly', 'weekly', 390, 660],
+  ['mk-weekly-play', 'weekly-play', 390, 660],
 ]
 
 for (const [key, screen, w, h] of COMPACT) {
