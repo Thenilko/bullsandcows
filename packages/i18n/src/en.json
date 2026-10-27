@@ -916,5 +916,31 @@
       "participants_other": "{{count}} players",
       "final": "final"
     }
+  },
+  "footer": {
+    "area": "About this site",
+    "links": {
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "legal": "Legal notice",
+      "changelog": "What's new",
+      "press": "Press",
+      "support": "Support"
+    },
+    "creator": "Danail Simeonov",
+    "contact": "Contact",
+    "madeBefore": "Made with",
+    "love": "love",
+    "madeAfter": "in Bulgaria: the story behind the game",
+    "meta": "© {{year}} Bulls and Cows · Free game · Made by {{creator}}",
+    "versionLabel": "Version {{version}} — what's new",
+    "back": "‹ Back to the game",
+    "updated": "Last updated: {{date}}",
+    "stillStuck": "Didn't find an answer? Write to us:",
+    "press": {
+      "about": "About the game",
+      "facts": "Facts",
+      "assets": "Logo and characters"
+    }
   }
 }

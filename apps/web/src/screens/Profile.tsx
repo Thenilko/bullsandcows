@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Shell } from '../app/layouts/Shell'
 import { useAuth } from '../features/auth/useAuth'
+import { SiteFooter } from '../features/legal/SiteFooter'
 import { useBadges } from '../features/stats/useBadges'
 import { useMe } from '../features/stats/useMe'
 import { useUpdateSettings } from '../features/stats/useUpdateSettings'
@@ -43,6 +44,7 @@ export function Profile() {
           {me.isError ? t('error.unknown') : t('common.loading')}
         </p>
       )}
+      <SiteFooter />
     </Shell>
   )
 }

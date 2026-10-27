@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { Shell } from '../app/layouts/Shell'
 import { Card, Cta, Field, Inset, LangSwitch, Seg, Soft } from '../components/ui'
 import { useAuth } from '../features/auth/useAuth'
+import { SiteFooter } from '../features/legal/SiteFooter'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { sfx } from '../lib/sound'
 import { IDLE_SCENE } from './idleScene'
@@ -169,6 +170,7 @@ function LoginBody({ initial }: { initial?: LoginInitial }) {
       <ForgotPassword />
       {desktop ? <Features /> : <Link to="/rules" style={LINK_STYLE}>{t('login.howTo')}</Link>}
       <LangSwitch />
+      {desktop ? null : <SiteFooter />}
     </div>
   )
 }
@@ -178,9 +180,12 @@ export function Login({ initial }: { initial?: LoginInitial }) {
   return (
     <Shell scene={IDLE_SCENE} screen="login" bare>
       {desktop ? (
-        <Card className="dk-login" style={{ padding: 32 }}>
-          <LoginBody initial={initial} />
-        </Card>
+        <>
+          <Card className="dk-login" style={{ padding: 32 }}>
+            <LoginBody initial={initial} />
+          </Card>
+          <SiteFooter variant="strip" />
+        </>
       ) : (
         <LoginBody initial={initial} />
       )}

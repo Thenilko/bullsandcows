@@ -36,9 +36,25 @@ const duelRoom = (view: 'play' | 'result') => async () => {
   return { element: <DuelRoom view={view} /> }
 }
 
+type InfoPageName = 'PrivacyPage' | 'TermsPage' | 'LegalPage' | 'ChangelogPage' | 'PressPage' | 'SupportPage' | 'StoryPage'
+
+/** Public info pages linked from the footer; readable without an account. */
+const infoRoutes: RouteObject[] = (
+  [
+    ['/privacy', 'PrivacyPage'],
+    ['/terms', 'TermsPage'],
+    ['/legal', 'LegalPage'],
+    ['/changelog', 'ChangelogPage'],
+    ['/press', 'PressPage'],
+    ['/support', 'SupportPage'],
+    ['/story', 'StoryPage'],
+  ] as const satisfies readonly (readonly [string, InfoPageName])[]
+).map(([path, name]) => ({ path, HydrateFallback: RouteFallback, lazy: page(() => import('../features/legal/pages'), name) }))
+
 const routes: RouteObject[] = [
   { path: '/login', element: <Login /> },
   { path: '/rules', HydrateFallback: RouteFallback, lazy: page(() => import('../screens/Rules'), 'Rules') },
+  ...infoRoutes,
   { path: '/reset', HydrateFallback: RouteFallback, lazy: page(() => import('../screens/ResetPassword'), 'ResetPassword') },
   {
     element: <RequireAuth />,

@@ -3,6 +3,7 @@ import { Trans, useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { Shell } from '../app/layouts/Shell'
 import { useSession } from '../features/auth/session'
+import { SiteFooter } from '../features/legal/SiteFooter'
 import { BullIcon, Card, CowIcon, Cta, Sign } from '../components/ui'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { sfx } from '../lib/sound'
@@ -104,6 +105,7 @@ export function Rules() {
           {t('rules.start')}
         </Cta>
       </section>
+      <SiteFooter />
     </Shell>
   )
 }
