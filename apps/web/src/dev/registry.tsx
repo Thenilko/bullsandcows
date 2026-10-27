@@ -23,6 +23,7 @@ type ResetScreenName = keyof typeof import('./ResetScreens')
 type ExtrasScreenName = keyof typeof import('./ExtrasScreens')
 type PastureScreenName = keyof typeof import('./PastureScreens')
 type FarmScreenName = keyof typeof import('./FarmScreens')
+type WeeklyScreenName = keyof typeof import('./WeeklyScreens')
 
 /**
  * Duel and reset gallery screens load on demand so they stay out of the gallery entry chunk (Lighthouse
@@ -34,6 +35,7 @@ const lazyReset = (name: ResetScreenName) => lazyScreen(async () => (await impor
 const lazyExtras = (name: ExtrasScreenName) => lazyScreen(async () => (await import('./ExtrasScreens'))[name])
 const lazyPasture = (name: PastureScreenName) => lazyScreen(async () => (await import('./PastureScreens'))[name])
 const lazyFarm = (name: FarmScreenName) => lazyScreen(async () => (await import('./FarmScreens'))[name])
+const lazyWeekly = (name: WeeklyScreenName) => lazyScreen(async () => (await import('./WeeklyScreens'))[name])
 
 /** Dev-only screen registry; later tasks add their screens here. */
 export const devScreens: Record<string, () => ReactElement> = {
@@ -90,4 +92,8 @@ export const devScreens: Record<string, () => ReactElement> = {
   'farm-created': lazyFarm('FarmCreatedScreen'),
   'farm-nudge': lazyFarm('FarmNudgeScreen'),
   'farm-settings': lazyFarm('FarmSettingsScreen'),
+  weekly: lazyWeekly('WeeklyScreen'),
+  'weekly-card': lazyWeekly('WeeklyCardScreen'),
+  'weekly-play': lazyWeekly('WeeklyPlayScreen'),
+  'weekly-award': lazyWeekly('WeeklyAwardScreen'),
 }

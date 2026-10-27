@@ -56,4 +56,8 @@ export const DEV_SCREEN_KEYS: readonly string[] = [
   'farm-created',
   'farm-nudge',
   'farm-settings',
+  'weekly',
+  'weekly-card',
+  'weekly-play',
+  'weekly-award',
 ]

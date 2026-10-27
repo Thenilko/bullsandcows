@@ -17,6 +17,7 @@ import { sfx } from '../lib/sound'
 import { ModeSwitch } from './duel/parts/SetupFields'
 import { modePath } from './duel/useSetupForm'
 import { IDLE_SCENE } from './idleScene'
+import { WeeklySlot } from './weekly/WeeklySlot'
 
 const LENS: readonly Len[] = [3, 4, 5]
 const KINDS: readonly GameKind[] = ['daily', 'free']
@@ -108,8 +109,8 @@ function Settings(props: {
   )
 }
 
-/** /new — solo setup (PasDuel setup with mode=solo). */
-export function NewGame({ initial }: { initial?: NewGameInitial }) {
+/** /new — solo setup (PasDuel setup with mode=solo), the weekly card on top (П6; `weekly` replaces it in the gallery). */
+export function NewGame({ initial, weekly }: { initial?: NewGameInitial; weekly?: React.ReactNode }) {
   const { t } = useTranslation()
   const desktop = useIsDesktop()
   const navigate = useNavigate()
@@ -142,6 +143,7 @@ export function NewGame({ initial }: { initial?: NewGameInitial }) {
     <Shell scene={IDLE_SCENE} screen="new">
       <section aria-label={t('newGame.title')} style={COL}>
         <NudgeBanner />
+        {weekly ?? <WeeklySlot />}
         <h1
           className="rise"
           style={{ margin: 0, fontSize: desktop ? 40 : 'var(--h1-size, 30px)', fontWeight: 900 }}

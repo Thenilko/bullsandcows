@@ -201,8 +201,8 @@
     "fogLong": "Fog · {{count}} possible numbers",
     "clockAttempt": "{{clock}} · guess {{attempt}}",
     "attemptMode": "Guess {{attempt}} · {{mode}}",
-    "mode": { "daily": "daily number", "dailyN": "daily number #{{n}}", "free": "free play" },
-    "modeTitle": { "daily": "Daily number", "dailyN": "Daily number #{{n}}", "free": "Free play" },
+    "mode": { "daily": "daily number", "dailyN": "daily number #{{n}}", "free": "free play", "weekly": "weekly challenge" },
+    "modeTitle": { "daily": "Daily number", "dailyN": "Daily number #{{n}}", "free": "Free play", "weekly": "Weekly challenge" },
     "modeTab": { "daily": "Daily", "free": "Free" },
     "modeGroup": "Mode",
     "inputArea": "Enter a number",
@@ -822,6 +822,99 @@
       "timeAria": "Time of the reminder",
       "on": "Turn the reminder on",
       "off": "Turn the reminder off"
+    }
+  },
+  "weekly": {
+    "goldFrame": "gold frame",
+    "hud": {
+      "title": "Challenge",
+      "week": "week {{week}}"
+    },
+    "range": "Week {{week}} · {{dates}}",
+    "kicker": "Week {{week}}",
+    "rule": {
+      "fiveZero": "Five with zero",
+      "threeNoZero": "Three, no zero",
+      "quickFour": "Quick four",
+      "fourZero": "Four with zero"
+    },
+    "chip": {
+      "zero": "0 allowed",
+      "noZero": "no 0",
+      "attempts": "up to {{count}} tries",
+      "time": "up to {{count}} min",
+      "same": "one number for all"
+    },
+    "left": {
+      "label": "left",
+      "days": "{{d}}d {{h}}h",
+      "hours": "{{h}}h {{m}}m",
+      "minutes": "{{m}} min"
+    },
+    "best": {
+      "label": "best",
+      "none": "—",
+      "lost": "not solved"
+    },
+    "place": {
+      "label": "place",
+      "of": " / {{count}}"
+    },
+    "leaders": "Leaders this week",
+    "noLeaders": "Nobody has found this week's number yet. Be the first!",
+    "rewardLabel": "Reward:",
+    "reward": "{{xp}} XP and the Weekly badge. The top 10 also get a gold frame for a week.",
+    "cta": {
+      "play": "Play the challenge",
+      "resume": "Continue the challenge",
+      "tomorrow": "Again tomorrow"
+    },
+    "note": "Your best game counts. You can play once a day.",
+    "loadFailed": "The week did not load. Try again in a moment.",
+    "card": {
+      "aria": "Weekly challenge",
+      "left": "{{time}} left",
+      "you": "You: {{attempts}} · place {{place}}",
+      "youNoPlace": "You: not solved yet",
+      "none": "One number for everyone until Sunday",
+      "play": "Play",
+      "resume": "Continue",
+      "played": "Again tomorrow"
+    },
+    "play": {
+      "title": "Week {{week}} · {{rule}}",
+      "attempt": "Try {{n}} of {{max}}",
+      "dotsAria": "Tries: {{used}} of {{max}}",
+      "zeroHint": "Here 0 may also be the first digit.",
+      "noZeroHint": "No 0 in the number.",
+      "limit": "The game ends after {{count}} tries.",
+      "time": "You have {{count}} minutes from the start.",
+      "timeLeft": "{{clock}} left"
+    },
+    "award": {
+      "aria": "End of the week",
+      "kicker": "Week {{week}} is over",
+      "place": "Place {{place}} of {{count}}",
+      "noPlace": "No solve this week",
+      "best": "Best: {{attempts}} · {{time}}",
+      "better": "better than {{pct}}% of the players",
+      "xp": "XP",
+      "badge": "Weekly",
+      "badgeLabel_one": "badge · {{count}} week",
+      "badgeLabel_other": "badge · {{count}} weeks",
+      "toFrame_one": "One place from the gold frame of the top 10.",
+      "toFrame_other": "{{count}} places from the gold frame of the top 10.",
+      "framed": "A gold frame until the end of next week!",
+      "tryNext": "Try again this week — one number for everyone.",
+      "next": "On to week {{week}} · {{rule}}",
+      "board": "See the leaderboard"
+    },
+    "board": {
+      "title": "Leaderboard · week {{week}}",
+      "empty": "Nobody found this week's number.",
+      "participants_one": "{{count}} player",
+      "participants_other": "{{count}} players",
+      "final": "final"
     }
   }
 }

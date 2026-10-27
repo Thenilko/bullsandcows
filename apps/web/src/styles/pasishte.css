@@ -296,3 +296,10 @@ input,textarea{font-family:inherit}
 .codebox.gold{border-color:#E0B27A;background:#FFF6E2}
 .dk .codebox{width:56px;height:64px;font-size:28px}
 .nudge{display:flex;align-items:center;gap:12px;padding:10px 10px 10px 12px;border-radius:18px;background:#FFF6E2;border:2px solid #E0B27A;box-shadow:0 8px 20px rgba(30,40,20,.12)}
+/* ===== седмично предизвикателство (PasExtras Р7 / П6 / П7, ПД9–ПД11) ===== */
+.wk-plank{margin-top:-6px;align-self:center;padding:10px 26px 12px;border-radius:16px;text-align:center;display:flex;flex-direction:column;color:#FFF8EA;background-color:#C48E55;background-image:repeating-linear-gradient(0deg,rgba(90,50,20,.10) 0 2px,rgba(0,0,0,0) 2px 7px);border:3px solid #6A4426;box-shadow:0 5px 0 #6A4426;text-shadow:0 2px 0 rgba(70,40,15,.45);transform:rotate(-1.5deg)}
+.wk-chip{background:#FFFFFF;border:1.5px solid #DCD4BF;color:#2E3B24}
+.wk-card{padding:16px 18px;border-radius:22px;color:#FFF8EA;display:flex;flex-direction:column;gap:6px;background-color:#C48E55;background-image:repeating-linear-gradient(0deg,rgba(90,50,20,.10) 0 2px,rgba(0,0,0,0) 2px 7px);border:3px solid #6A4426;box-shadow:0 5px 0 #6A4426;text-shadow:0 1px 0 rgba(70,40,15,.4)}
+.wk-dots{display:flex;gap:5px}.wk-dots i{width:12px;height:12px;border-radius:50%;background:#E4DDCB}.wk-dots i.used{background:#2E3B24}.wk-dots i.cur{background:#B5452F;box-shadow:0 0 0 3px rgba(181,69,47,.25)}
+/* The gold frame of a top-10 week: a second ring around the avatar while it lasts. */
+.rav.gold{border-radius:50%;box-shadow:0 0 0 2px #FFF3C4,0 0 0 4px #E2B44A,0 0 0 5px #8A6510,0 0 10px 4px rgba(242,194,48,.55)}

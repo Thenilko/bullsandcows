@@ -39,7 +39,7 @@ export function weekPodium(members: readonly FarmMemberDto[]): PodiumRow[] {
     .filter((m) => m.weekPoints > 0)
     .sort((a, b) => b.weekPoints - a.weekPoints || a.joinedAt - b.joinedAt)
     .slice(0, 3)
-    .map((m, i) => ({ rank: (i + 1) as 1 | 2 | 3, name: m.username, score: m.weekPoints, rankKey: m.rankKey, species: m.avatarSpecies }))
+    .map((m, i) => ({ rank: (i + 1) as 1 | 2 | 3, name: m.username, score: m.weekPoints, rankKey: m.rankKey, species: m.avatarSpecies, gold: m.goldFrame === true }))
 }
 
 function Header({ farm, copied, onCopyInvite, onSettings }: Omit<FarmViewProps, 'onNudge'>) {
@@ -66,7 +66,7 @@ function Header({ farm, copied, onCopyInvite, onSettings }: Omit<FarmViewProps, 
         <div style={{ display: 'flex' }} aria-hidden="true">
           {stack.map((m, i) => (
             <span key={m.userId} style={{ marginLeft: i === 0 ? 0 : -14, borderRadius: '50%', boxShadow: '0 0 0 3px #FFFDF6', display: 'flex' }}>
-              <RankAvatar species={m.avatarSpecies} rankKey={m.rankKey} size={40} />
+              <RankAvatar species={m.avatarSpecies} rankKey={m.rankKey} size={40} gold={m.goldFrame === true} />
             </span>
           ))}
         </div>
@@ -88,7 +88,7 @@ function TodayRow({ member, place, onNudge, nudging }: { member: FarmMemberDto; 
   return (
     <li className={cx('lbrow', member.you && 'you')} style={{ gridTemplateColumns: COLUMNS }} data-member={member.userId}>
       <span style={{ fontWeight: 900, color: place ? 'var(--c-muted-aa)' : '#9CA394', textAlign: 'center' }}>{place ?? '—'}</span>
-      <RankAvatar species={member.avatarSpecies} rankKey={member.rankKey} size={38} />
+      <RankAvatar species={member.avatarSpecies} rankKey={member.rankKey} size={38} gold={member.goldFrame === true} />
       <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <b style={{ fontSize: 15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</b>
         <span style={{ ...MUTED, fontSize: 11 }}>{today ? role : t('farm.notPlayed', { role })}</span>

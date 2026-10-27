@@ -389,18 +389,20 @@
 }
 
 /*
- * ===== „Семейна ферма“ (PasExtrasDesk ПД4–ПД7, `.xd-col`): immersive — the panel with the wooden frame on the
+ * ===== „Семейна ферма“ and the weekly challenge (PasExtrasDesk ПД4–ПД7, ПД9, `.xd-col`): immersive — the panel with the wooden frame on the
  * right (right 36, top 104, bottom 36, 600 wide); split — the scene card and the 640px column. „Фермата е
  * готова“ is a modal either way (Sheet `card`).
  */
-.dk.sc-farm .dk-col {
+.dk.sc-farm .dk-col,
+.dk.sc-weekly .dk-col {
   gap: 14px;
   padding: 22px;
   border-radius: 24px;
   background: #f6f2e6;
 }
 
-.dk-imm.sc-farm .dk-col {
+.dk-imm.sc-farm .dk-col,
+.dk-imm.sc-weekly .dk-col {
   right: 36px;
   top: 104px;
   bottom: 36px;
@@ -409,11 +411,13 @@
 }
 
 .dk-split.sc-farm .dk-scene,
+.dk-split.sc-weekly .dk-scene,
 .dk-split.sc-today .dk-scene {
   right: 688px;
 }
 
-.dk-split.sc-farm .dk-col {
+.dk-split.sc-farm .dk-col,
+.dk-split.sc-weekly .dk-col {
   width: 640px;
   box-shadow: 0 1px 0 #e7e0cc, 0 12px 30px rgba(30, 40, 20, 0.1);
 }
@@ -445,4 +449,13 @@
 
 .dk-split .dk-today {
   box-shadow: 0 1px 0 #e7e0cc, 0 12px 30px rgba(30, 40, 20, 0.1);
+}
+
+/* ===== the weekly game (ПДН3, `.xd-split .xd-hang`): split keeps the 640px column of the new screens ===== */
+.dk-split.sc-play:has(.dk-weekly) .dk-scene {
+  right: 688px;
+}
+
+.dk-split.sc-play:has(.dk-weekly) .dk-col {
+  width: 640px;
 }

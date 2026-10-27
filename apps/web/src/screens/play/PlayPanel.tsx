@@ -82,7 +82,7 @@ function Status({ game }: { game: GameViewDto }) {
   )
 }
 
-function Input({ game, g, desktop }: PlayPanelProps) {
+export function Input({ game, g, desktop }: PlayPanelProps) {
   const { t } = useTranslation()
   const { ui } = g
   const { marks } = useNotebook(game.id)
@@ -110,19 +110,19 @@ function Input({ game, g, desktop }: PlayPanelProps) {
 const isCounting = (g: GameApi) => !g.started && g.ui.countdown === 'running'
 
 /** The start card over the input, until Start is pressed. */
-function Overlay({ game, g, desktop }: PlayPanelProps) {
+export function Overlay({ game, g, desktop }: PlayPanelProps) {
   const info = useStartInfo(game)
   if (g.started || isCounting(g)) return null
   return <StartOverlay desktop={desktop} info={info} onBegin={g.beginCountdown} />
 }
 
 /** The full-screen 3-2-1; rendered outside the board so the swinging frame never confines it. */
-function Gate({ g }: { g: GameApi }) {
+export function Gate({ g }: { g: GameApi }) {
   if (!isCounting(g)) return null
   return <StartCountdown onDone={() => void g.start()} />
 }
 
-function GiveUp({ g }: { g: GameApi }) {
+export function GiveUp({ g }: { g: GameApi }) {
   const { t } = useTranslation()
   return (
     <Soft
@@ -254,7 +254,7 @@ function BackChevron() {
 }
 
 /** „‹ Меню“: shown by `.ps-exit` only in focus mode (compact phones hide the tab bar); leads to the new-game screen. */
-function ExitButton() {
+export function ExitButton() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   return (
