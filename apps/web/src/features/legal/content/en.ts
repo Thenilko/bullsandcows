@@ -5,14 +5,14 @@ import type { InfoPages } from '../types'
 export const en: InfoPages = {
   privacy: {
     title: 'Privacy policy',
-    updated: '28 October 2026',
+    updated: '29 October 2026',
     intro:
       'We keep as little data as possible — just enough for the game to work, the leaderboards to be fair and your profile to be remembered. No ads, no analytics, no tracking.',
     sections: [
       {
         h: 'Who is responsible',
         p: [
-          'The data controller is {OPERATOR}, {ADDRESS}. Write to {EMAIL} about anything related to your data.',
+          'The data controller is {OPERATOR}, a private individual. Write to {EMAIL} about anything related to your data.',
         ],
       },
       {
@@ -52,7 +52,7 @@ export const en: InfoPages = {
       {
         h: 'How long',
         p: [
-          'As long as your profile exists. Inactive guest profiles may be deleted after 12 months. If you ask for deletion, we remove your profile and personal data within 30 days; in other players\' duels your name is replaced by "deleted player".',
+          'As long as your profile exists. Guest profiles that have not played for 12 months are deleted automatically, together with their games. If you ask for deletion, we remove your profile and personal data within 30 days; in other players\' duels your name is replaced by "deleted player".',
         ],
       },
       {
@@ -70,7 +70,7 @@ export const en: InfoPages = {
       {
         h: 'Children',
         p: [
-          "It is a family game. Profiles with an email are for people aged 14 and over; younger players play as a guest or through a parent's profile.",
+          "It is a family game with no age limit. Children under 14 may have a profile with an email only with a parent's consent — the easiest way is for the parent to create it together with the child. A parent can ask us to delete the child's profile at any time at {EMAIL}.",
         ],
       },
       {
@@ -142,12 +142,12 @@ export const en: InfoPages = {
   },
   legal: {
     title: 'Legal notice',
-    updated: '26 October 2026',
+    updated: '29 October 2026',
     intro: 'Information under Art. 4 of the Bulgarian Electronic Commerce Act.',
     sections: [
       {
         h: 'Provider',
-        list: ['{OPERATOR}', '{ADDRESS}', 'Company ID (EIK): {EIK}', 'Email: {EMAIL}'],
+        list: ['{OPERATOR}, private individual', 'Email: {EMAIL}'],
       },
       {
         h: 'Supervisory authorities',
@@ -294,7 +294,11 @@ export const en: InfoPages = {
       },
       {
         h: 'Who makes it',
-        p: ['{STORY}'],
+        p: [
+          'My name is Danail Simeonov. As kids we played "Bulls and Cows" for hours — on a page torn from a notebook, between classes and in the evenings at home. I missed the game and wanted to bring it back.',
+          'My son is at school, and I was looking for something to train mathematical thinking that would not feel like homework. "Bulls and Cows" teaches logic, patience and testing ideas — and it is fun for the whole family.',
+          'That is how the pasture was born: an old game in new clothes, played alone, against a friend or with the whole family on the farm. If you like it or have an idea, write to us at {EMAIL} — we read everything.',
+        ],
       },
     ],
   },

@@ -5,11 +5,8 @@ import { versionLabel } from './version'
 export function fill(text: string): string {
   const values: Record<string, string> = {
     OPERATOR: SITE.OPERATOR,
-    ADDRESS: SITE.ADDRESS,
-    EIK: SITE.EIK,
     EMAIL: SITE.EMAIL || EMAIL_PLACEHOLDER,
     CREATOR: SITE.CREATOR,
-    STORY: SITE.STORY,
     VERSION: versionLabel(),
   }
   return text.replace(/\{([A-Z]+)\}/g, (all, key: string) => values[key] ?? all)
