@@ -1,7 +1,7 @@
 import { resources, type Lang } from '@bc/i18n'
 import i18next from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import { detectLang, LANG_STORAGE_KEY } from './detectLang'
+import { DEFAULT_LANG, detectLang, LANG_STORAGE_KEY } from './detectLang'
 
 function readStored(): string | null {
   try {
@@ -11,12 +11,12 @@ function readStored(): string | null {
   }
 }
 
-const initial = detectLang(null, readStored(), typeof navigator === 'undefined' ? 'en' : navigator.language)
+const initial = detectLang(null, readStored())
 
 void i18next.use(initReactI18next).init({
   resources,
   lng: initial,
-  fallbackLng: 'en',
+  fallbackLng: DEFAULT_LANG,
   interpolation: { escapeValue: false },
   returnNull: false,
 })
