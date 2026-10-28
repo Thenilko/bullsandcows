@@ -18,13 +18,18 @@ const ACCOUNT_IP_LIMIT = { max: 30, windowMs: 60_000, name: 'auth-ip' } as const
 const accountKey =
   (field: 'identifier' | 'email') =>
   (c: Context<AppEnv>): string => {
-    const body = (c.req as unknown as { valid(target: 'json'): Record<string, unknown> }).valid('json')
+    const body = (c.req as unknown as { valid(target: 'json'): Record<string, unknown> }).valid(
+      'json',
+    )
     const value = body[field]
     return `${clientIp(c)}|${typeof value === 'string' ? value.trim().toLowerCase() : ''}`
   }
 
 const limitAccount = (field: 'identifier' | 'email') =>
-  [rateLimit({ ...ACCOUNT_IP_LIMIT, key: clientIp }), rateLimit({ ...ACCOUNT_LIMIT, key: accountKey(field) })] as const
+  [
+    rateLimit({ ...ACCOUNT_IP_LIMIT, key: clientIp }),
+    rateLimit({ ...ACCOUNT_LIMIT, key: accountKey(field) }),
+  ] as const
 
 /** Sign-up, sign-in, guest, guest upgrade and password reset, each rate limited. */
 export function authRoutes(): Hono<AppEnv> {

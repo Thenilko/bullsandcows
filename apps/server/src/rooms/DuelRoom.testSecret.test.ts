@@ -70,7 +70,14 @@ describe('DuelRoom test secret (dev/test E2E)', () => {
     const clock = { t: FAR_FUTURE }
     await useClock(stub, clock)
     const human = await member('human')
-    const opts: RoomOpts = { format: 'classic', len: 4, zero: false, opponentKind: 'bot', botLevel: 1, testSecret: SECRET }
+    const opts: RoomOpts = {
+      format: 'classic',
+      len: 4,
+      zero: false,
+      opponentKind: 'bot',
+      botLevel: 1,
+      testSecret: SECRET,
+    }
     const { token } = await room.create({ opts, host: human.info })
     const c = await connect(room.id, token, human)
     track({ stub })
@@ -87,6 +94,8 @@ describe('DuelRoom test secret (dev/test E2E)', () => {
   it('rejects a test secret that is not a valid code for the settings', async () => {
     const room = rooms.fresh()
     const host = await member('host')
-    await expect(room.create({ opts: { ...RACE, testSecret: '1123' }, host: host.info })).rejects.toThrow()
+    await expect(
+      room.create({ opts: { ...RACE, testSecret: '1123' }, host: host.info }),
+    ).rejects.toThrow()
   })
 })

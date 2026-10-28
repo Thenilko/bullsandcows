@@ -226,7 +226,8 @@ export class SoloService {
   private async lose(user: AuthUser, game: GameRow, input: LossInput): Promise<GiveUpResult> {
     const { repo, clock } = this.deps
     const finishedAt = clock.now()
-    const counts = input.attempts === undefined ? {} : { attempts: input.attempts, wasted: input.wasted }
+    const counts =
+      input.attempts === undefined ? {} : { attempts: input.attempts, wasted: input.wasted }
     await repo.games.update(game.id, {
       finishedAt,
       won: false,
@@ -373,7 +374,9 @@ export class SoloService {
     if (!isSoloKind(current.kind)) throw new SoloError('ERR_NOT_FOUND')
     const limits = await weeklyLimitsOf(repo, current)
     const game =
-      limits && isOverdue(limits, current, clock.now()) ? await this.expire(current, limits) : current
+      limits && isOverdue(limits, current, clock.now())
+        ? await this.expire(current, limits)
+        : current
     const rows = await repo.games.guesses(game.id)
     const lefts = leftAfterEach(game.len, game.zero, rows)
     const finished = game.finishedAt !== null

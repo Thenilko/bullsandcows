@@ -73,7 +73,10 @@ export async function drizzleLeaderboard(db: Db, q: LeaderboardQuery): Promise<L
     .from(best)
     .orderBy(desc(best.score), asc(best.finishedAt), asc(best.userId))
     .limit(LEADERBOARD_LIMIT)
-  return rows.map((r) => ({ ...r, goldFrameUntil: r.goldFrameUntil ? new Date(r.goldFrameUntil).getTime() : null }))
+  return rows.map((r) => ({
+    ...r,
+    goldFrameUntil: r.goldFrameUntil ? new Date(r.goldFrameUntil).getTime() : null,
+  }))
 }
 
 /** The player's place: 1 + the number of players ahead of them in the same order. */

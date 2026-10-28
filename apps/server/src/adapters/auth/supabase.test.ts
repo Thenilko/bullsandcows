@@ -82,7 +82,9 @@ describe('supabase auth verify (key set unavailable)', () => {
     const url = `https://verify-${name}.supabase.co`
     const token = await signedToken(url, {})
     vi.spyOn(globalThis, 'fetch').mockImplementation(jwksReply)
-    const err = await createSupabaseAuth(config(url)).verify(token).catch((e: unknown) => e)
+    const err = await createSupabaseAuth(config(url))
+      .verify(token)
+      .catch((e: unknown) => e)
     expect(err).toMatchObject({ code: 'ERR_INTERNAL', status: 502 })
   }
 
@@ -202,5 +204,27 @@ describe('supabase auth hardening', () => {
       code: 'ERR_INPUT',
       status: 400,
     })
+  })
+})
+
+describe('supabase auth deleteUser', () => {
+  it('deletes through the admin API with the service role key', async () => {
+    const fetchImpl = vi.fn(async () => new Response(null, { status: 200 }))
+    const auth = createSupabaseAuth(config('https://p.supabase.co'), fetchImpl)
+    await auth.deleteUser('user-1')
+    const [url, init] = fetchImpl.mock.calls[0] as unknown as [URL, RequestInit]
+    expect(url.toString()).toBe('https://p.supabase.co/auth/v1/admin/users/user-1')
+    expect(init.method).toBe('DELETE')
+    expect(init.headers).toMatchObject({
+      apikey: 'service-key',
+      Authorization: 'Bearer service-key',
+    })
+  })
+
+  it('treats a user that is already gone as done and an outage as a server error', async () => {
+    const gone = createSupabaseAuth(config('https://p.supabase.co'), async () => json({}, 404))
+    await expect(gone.deleteUser('user-1')).resolves.toBeUndefined()
+    const down = createSupabaseAuth(config('https://p.supabase.co'), async () => json({}, 503))
+    await expect(down.deleteUser('user-1')).rejects.toMatchObject({ code: 'ERR_INTERNAL' })
   })
 })

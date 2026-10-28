@@ -1,5 +1,11 @@
 import { DEFAULT_RATING, isInviteCode, isValidCode } from '@bc/game-core'
-import { BotLevelSchema, FormatSchema, LenSchema, SpeciesSchema, type ErrorCode } from '@bc/protocol'
+import {
+  BotLevelSchema,
+  FormatSchema,
+  LenSchema,
+  SpeciesSchema,
+  type ErrorCode,
+} from '@bc/protocol'
 import { z } from 'zod'
 import { createMatch, join } from '../duel/match'
 import type { RoomInfo } from '../duel/roomClient'
@@ -120,7 +126,12 @@ export function roomInfo(st: RoomState): RoomInfo {
   const host = m.players.a
   return {
     status: roomStatus(st),
-    host: { id: host.id, username: host.username, level: host.level, avatarSpecies: host.avatarSpecies },
+    host: {
+      id: host.id,
+      username: host.username,
+      level: host.level,
+      avatarSpecies: host.avatarSpecies,
+    },
     settings: { format: m.format, len: m.len, zero: m.zero },
     players: m.players.b ? 2 : 1,
   }

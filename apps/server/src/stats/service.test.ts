@@ -1,4 +1,11 @@
-import { BADGES, FALLBACK_HISTOGRAM, levelFromXp, MIN_SAMPLE, rankKeyForLevel, sofiaDate } from '@bc/game-core'
+import {
+  BADGES,
+  FALLBACK_HISTOGRAM,
+  levelFromXp,
+  MIN_SAMPLE,
+  rankKeyForLevel,
+  sofiaDate,
+} from '@bc/game-core'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createMemoryRepo } from '../adapters/repo/memory'
 import type { AuthUser } from '../ports/auth'
@@ -132,9 +139,39 @@ describe('leaderboard', () => {
     await played({ ...daily, userId: ivo.id, practice: true }, { score: 1100, attempts: 2 })
     const board = await stats.leaderboard(mira, q)
     expect(board.rows).toEqual([
-      { rank: 1, username: 'Rada', attempts: 4, score: 900, you: false, level: 1, rankKey: 'herdsman', avatarSpecies: 'bull', goldFrame: false },
-      { rank: 2, username: 'Ivo', attempts: 5, score: 800, you: false, level: 1, rankKey: 'herdsman', avatarSpecies: 'bull', goldFrame: false },
-      { rank: 3, username: 'Mira', attempts: 6, score: 700, you: true, level: 1, rankKey: 'herdsman', avatarSpecies: 'bull', goldFrame: false },
+      {
+        rank: 1,
+        username: 'Rada',
+        attempts: 4,
+        score: 900,
+        you: false,
+        level: 1,
+        rankKey: 'herdsman',
+        avatarSpecies: 'bull',
+        goldFrame: false,
+      },
+      {
+        rank: 2,
+        username: 'Ivo',
+        attempts: 5,
+        score: 800,
+        you: false,
+        level: 1,
+        rankKey: 'herdsman',
+        avatarSpecies: 'bull',
+        goldFrame: false,
+      },
+      {
+        rank: 3,
+        username: 'Mira',
+        attempts: 6,
+        score: 700,
+        you: true,
+        level: 1,
+        rankKey: 'herdsman',
+        avatarSpecies: 'bull',
+        goldFrame: false,
+      },
     ])
     expect(board.me).toMatchObject({ rank: 3, score: 700 })
     expect(board.me?.top).toBeGreaterThan(0)
@@ -389,7 +426,11 @@ describe('me', () => {
     const first = await repo.badges.listOf(mira.id)
     expect(first).toContainEqual(expect.objectContaining({ key: 'streak', tier: 1, progress: 7 }))
     expect(first).toContainEqual(expect.objectContaining({ key: 'noWaste', tier: 1, progress: 7 }))
-    expect(await repo.profiles.get(mira.id)).toMatchObject({ currentStreak: 7, bestStreak: 7, xp: 0 })
+    expect(await repo.profiles.get(mira.id)).toMatchObject({
+      currentStreak: 7,
+      bestStreak: 7,
+      xp: 0,
+    })
     // Force a second pass (as a version bump would) at a later time.
     now += 3_600_000
     await repo.profiles.setProgressVersion(mira.id, PROGRESS_VERSION - 1)

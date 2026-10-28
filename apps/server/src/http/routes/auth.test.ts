@@ -138,7 +138,10 @@ describe('auth routes', () => {
     const app = createApp({
       env: parseEnv(workerEnv),
       repo: createMemoryRepo(clock),
-      auth: { ...createFakeAuth(clock), verify: async () => Promise.reject(new AppError('ERR_INTERNAL', 502)) },
+      auth: {
+        ...createFakeAuth(clock),
+        verify: async () => Promise.reject(new AppError('ERR_INTERNAL', 502)),
+      },
       clock,
     })
     const res = await app.request('/api/me', { headers: { Authorization: 'Bearer x' } })
@@ -188,7 +191,10 @@ describe('auth routes', () => {
     expect(limited.status).toBe(429)
     expect((await post(app, ip, 'reset', { email: 'd@example.com' })).status).toBe(429)
     expect((await post(app, ip, 'guest')).status).toBe(201)
-    expect((await post(app, `${ip}-other`, 'login', { identifier: 'spray-0', password: 'wrong1' })).status).not.toBe(429)
+    expect(
+      (await post(app, `${ip}-other`, 'login', { identifier: 'spray-0', password: 'wrong1' }))
+        .status,
+    ).not.toBe(429)
   })
 
   it('allows 60 guests a minute per IP, apart from the account limit', async () => {

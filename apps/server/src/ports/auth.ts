@@ -19,4 +19,6 @@ export interface AuthPort {
   signInGuest(): Promise<Session>
   upgrade(userId: string, email: string, password: string): Promise<void>
   requestReset(email: string, redirectTo: string): Promise<void>
+  /** Removes the auth user; a user that no longer exists is not an error. */
+  deleteUser(userId: string): Promise<void>
 }

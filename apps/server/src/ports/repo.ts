@@ -215,6 +215,11 @@ export interface ProfilesRepo {
   setRating(id: string, rating: Rating): Promise<void>
   setStreak(id: string, streak: DayStreak): Promise<void>
   setProgressVersion(id: string, version: number): Promise<void>
+  /**
+   * Deletes guests created before `before` (ms) who started no game since then, oldest first and at most
+   * `limit`; their games, badges and the rest go with them. Returns the deleted ids.
+   */
+  deleteInactiveGuests(before: number, limit: number): Promise<string[]>
 }
 
 /** One badge of a player: `tier` 0–3, `progress` its metric, `earnedAt` when the tier was reached. */
@@ -479,7 +484,10 @@ export interface WeeklyRepo {
    * Creates the game and its play together; null (nothing written) when the player has a play on that day
    * already. The game must carry its `id`.
    */
-  startPlay(game: NewGame & { readonly id: string }, play: NewWeeklyPlay): Promise<PublicGameRow | null>
+  startPlay(
+    game: NewGame & { readonly id: string },
+    play: NewWeeklyPlay,
+  ): Promise<PublicGameRow | null>
   playOn(userId: string, day: string): Promise<WeeklyPlayRow | null>
   playByGame(gameId: string): Promise<WeeklyPlayRow | null>
   /** Unfinished plays of a player in a week. */

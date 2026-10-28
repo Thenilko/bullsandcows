@@ -147,7 +147,13 @@ async function badgesOf(
     if (!isHuman(p) || !(await repo.profiles.get(p.id))) continue
     const won = result.outcome[seat] === 'win'
     const events = eventsOf(m, s, seat, won)
-    const newBadges = await recomputeBadges(repo, { userId: p.id, scope: 'game', now, events, payXp: true })
+    const newBadges = await recomputeBadges(repo, {
+      userId: p.id,
+      scope: 'game',
+      now,
+      events,
+      payXp: true,
+    })
     const newUnlocks = await unlocksSince(repo, p.id, before[p.id] ?? null)
     entries.push([p.id, { newBadges, newUnlocks }])
   }
