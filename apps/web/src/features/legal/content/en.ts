@@ -5,7 +5,7 @@ import type { InfoPages } from '../types'
 export const en: InfoPages = {
   privacy: {
     title: 'Privacy policy',
-    updated: '26 October 2026',
+    updated: '28 October 2026',
     intro:
       'We keep as little data as possible — just enough for the game to work, the leaderboards to be fair and your profile to be remembered. No ads, no analytics, no tracking.',
     sections: [
@@ -21,6 +21,9 @@ export const en: InfoPages = {
           'Profile: email, username and password. We never see the password — it is stored encrypted by the sign-in service.',
           'Guest: an anonymous identifier so you can continue your game on the same device.',
           'Play: your games, guesses, time, points, level, badges, streak, rank and duels (who you played and the result).',
+          'Pasture: which rewards you have unlocked and the colour of your barn.',
+          'Family farm: the farm you belong to, who invited you, nudges between members (from whom, to whom and on which day) and your reminder time, if you set one.',
+          'Weekly challenge: your games for the week, your place on the board and the rewards (gold frame, badge).',
           'Shares: only how many times and how you shared a result — not what.',
           'Technical: your IP address, briefly, to limit excessive requests and sign-in attempts. It is not stored in the database.',
         ],
@@ -37,6 +40,7 @@ export const en: InfoPages = {
           'To run the game and your profile — performance of our agreement with you (Art. 6(1)(b) GDPR).',
           'For security and abuse prevention — legitimate interest (Art. 6(1)(f)).',
           "Leaderboards are public: your username, level and results are visible to other players, so don't use your real name if you'd rather not.",
+          "On a farm, members see each other's names, levels and results and can nudge each other.",
         ],
       },
       {
@@ -298,6 +302,16 @@ export const en: InfoPages = {
     title: "What's new",
     intro: 'Changes to the game, newest first.',
     entries: [
+      {
+        date: '2026-10-27',
+        items: [
+          'Your pasture: a windmill, a duck pond, a puppy, a rooster and more rewards unlocked by levels, badges and streaks, plus a barn colour of your choice.',
+          'Family farm: bring up to 12 people together with a code, see your own leaderboard and nudge each other to play the number of the day.',
+          'Weekly challenge: one number for the whole week with a new rule each time, a leaderboard and a gold frame for the top ten.',
+          'A footer with pages on privacy, terms, support, press and the story of the game.',
+          'The game opens in Bulgarian until you pick another language.',
+        ],
+      },
       {
         date: '2026-10-23',
         items: [
