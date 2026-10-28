@@ -70,5 +70,8 @@ export function createFakeAuth(clock: Clock): AuthPort {
       register(email, { id: userId, username: usernameOf(email), password })
     },
     requestReset: async () => undefined,
+    deleteUser: async (userId) => {
+      accounts = new Map([...accounts].filter(([, account]) => account.id !== userId))
+    },
   }
 }

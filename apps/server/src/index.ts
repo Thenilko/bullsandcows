@@ -9,9 +9,7 @@ import { DuelRoom } from './rooms/DuelRoom'
 import { QueueRoom } from './rooms/QueueRoom'
 import { authenticateWs, forwardWithIdentity } from './rooms/wsAuth'
 import { finalizeDueWeeks } from './weekly/finalize'
-
-/** Any id works: the cron only needs one cheap query so Supabase sees activity. */
-const KEEP_ALIVE_PROFILE_ID = '00000000-0000-0000-0000-000000000000'
+import { purgeInactiveGuests } from './auth/guestCleanup'
 
 const parsedEnvs = new WeakMap<object, Env>()
 
@@ -129,16 +127,24 @@ async function serveAsset(request: Request, raw: CloudflareBindings): Promise<Re
   return res.ok && html ? new Response('Not found', { status: 404, headers: SECURITY_HEADERS }) : res
 }
 
-async function keepAlive(raw: CloudflareBindings, ctx: ExecutionContext): Promise<void> {
+/** The daily cron: deletes inactive guests; the query also keeps the Supabase project active. */
+async function dailyCleanup(
+  raw: CloudflareBindings,
+  ctx: ExecutionContext,
+  now: number,
+): Promise<void> {
   try {
-    const repo = makeRepo(loadEnv(raw))
+    const env = loadEnv(raw)
+    const repo = makeRepo(env)
     try {
-      await repo.profiles.get(KEEP_ALIVE_PROFILE_ID)
+      const { deleted, authFailures } = await purgeInactiveGuests(repo, makeAuth(env), now)
+      if (deleted > 0) console.info(`inactive guests deleted: ${deleted}`)
+      if (authFailures > 0) console.error(`guest auth users not deleted: ${authFailures}`)
     } finally {
       ctx.waitUntil(repo.close())
     }
   } catch (err) {
-    console.error(`keep-alive failed: ${errorText(err)}`)
+    console.error(`daily cleanup failed: ${errorText(err)}`)
   }
 }
 
@@ -179,7 +185,7 @@ export default {
       await finalizeWeeks(env, ctx, controller.scheduledTime)
       return
     }
-    await keepAlive(env, ctx)
+    await dailyCleanup(env, ctx, controller.scheduledTime)
   },
 } satisfies ExportedHandler<CloudflareBindings>
 

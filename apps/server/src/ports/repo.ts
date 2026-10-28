@@ -215,6 +215,11 @@ export interface ProfilesRepo {
   setRating(id: string, rating: Rating): Promise<void>
   setStreak(id: string, streak: DayStreak): Promise<void>
   setProgressVersion(id: string, version: number): Promise<void>
+  /**
+   * Deletes guests created before `before` (ms) who started no game since then, oldest first and at most
+   * `limit`; their games, badges and the rest go with them. Returns the deleted ids.
+   */
+  deleteInactiveGuests(before: number, limit: number): Promise<string[]>
 }
 
 /** One badge of a player: `tier` 0–3, `progress` its metric, `earnedAt` when the tier was reached. */

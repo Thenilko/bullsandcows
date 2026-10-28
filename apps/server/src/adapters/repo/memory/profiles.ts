@@ -79,5 +79,22 @@ export function memoryProfiles(store: MemoryStore, clock: Clock): ProfilesRepo {
     setProgressVersion: async (id, version) => {
       save({ ...find(id), progressVersion: version })
     },
+    deleteInactiveGuests: async (before, limit) => {
+      const games = [...store.games.values()]
+      const due = [...store.profiles.values()]
+        .filter((p) => p.isGuest && p.createdAt < before)
+        .filter((p) => !games.some((g) => g.userId === p.id && g.createdAt >= before))
+        .sort((x, y) => x.createdAt - y.createdAt)
+        .slice(0, limit)
+        .map((p) => p.id)
+      // Like the cascade in Postgres: the guest's own rows go with the profile.
+      for (const id of due) {
+        store.profiles.delete(id)
+        store.badges.delete(id)
+        store.pasture.delete(id)
+        for (const g of games) if (g.userId === id) store.games.delete(g.id)
+      }
+      return due
+    },
   }
 }

@@ -151,5 +151,20 @@ export function createSupabaseAuth(config: SupabaseAuthConfig, fetchImpl: Fetch 
       const path = `recover?redirect_to=${encodeURIComponent(redirectTo)}`
       await post(path, { email }, new AppError('ERR_INPUT', 400))
     },
+    deleteUser: async (userId) => {
+      const path = `admin/users/${encodeURIComponent(userId)}`
+      const res = await fetchImpl(endpoint(path), {
+        method: 'DELETE',
+        headers: {
+          apikey: config.serviceRoleKey,
+          Authorization: `Bearer ${config.serviceRoleKey}`,
+        },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      }).catch(() => {
+        throw upstream()
+      })
+      await res.body?.cancel()
+      if (!res.ok && res.status !== 404) throw failure(res.status, upstream())
+    },
   }
 }

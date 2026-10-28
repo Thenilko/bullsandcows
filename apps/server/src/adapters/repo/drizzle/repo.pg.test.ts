@@ -265,4 +265,48 @@ describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
       expect(rows.find((r) => r.userId === winner)?.goldFrameUntil).toBe(until)
     })
   })
+
+  describe('inactive guests', () => {
+    it('deletes only guests idle since the cutoff, with their games', async () => {
+      const guest = async (createdAt: string) => {
+        const id = crypto.randomUUID()
+        await repo.profiles.create({
+          id,
+          username: `g${id.slice(0, 8)}`,
+          email: null,
+          isGuest: true,
+        })
+        await sql`update profiles set created_at = ${createdAt}::timestamptz where id = ${id}`
+        return id
+      }
+      const idle = await guest('2025-01-01T00:00:00Z')
+      const active = await guest('2025-01-01T00:00:00Z')
+      const young = await guest('2026-10-01T00:00:00Z')
+      const game = async (userId: string, createdAt: string) => {
+        const g = await repo.games.create({
+          userId,
+          kind: 'free',
+          len: 4,
+          zero: false,
+          secret: '1234',
+          dailyDate: null,
+          practice: false,
+        })
+        await sql`update games set created_at = ${createdAt}::timestamptz where id = ${g.id}`
+        return g.id
+      }
+      const oldGame = await game(idle, '2025-02-01T00:00:00Z')
+      await game(active, '2026-06-01T00:00:00Z')
+
+      const deleted = await repo.profiles.deleteInactiveGuests(
+        Date.parse('2025-10-28T00:00:00Z'),
+        50,
+      )
+
+      expect(deleted).toContain(idle)
+      expect(deleted).not.toContain(active)
+      expect(deleted).not.toContain(young)
+      expect(await repo.games.get(oldGame)).toBeNull()
+    })
+  })
 })

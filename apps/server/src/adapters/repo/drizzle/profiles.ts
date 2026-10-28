@@ -1,10 +1,10 @@
-import { eq, sql } from 'drizzle-orm'
+import { and, asc, eq, gte, inArray, lt, notExists, sql } from 'drizzle-orm'
 import { AppError } from '../../../http/errors'
 import type { ProfilePatch, ProfilesRepo } from '../../../ports/repo'
 import type { Db } from './client'
 import { isUniqueViolation, required } from './errors'
 import { toProfile } from './mappers'
-import { profiles } from './schema'
+import { games, profiles } from './schema'
 
 const USERNAME_INDEX = 'profiles_username_lower_idx'
 const PRIMARY_KEY = 'profiles_pkey'
@@ -83,6 +83,26 @@ export function drizzleProfiles(db: Db): ProfilesRepo {
         .where(eq(profiles.id, id))
         .returning({ id: profiles.id })
       required(rows[0])
+    },
+    deleteInactiveGuests: async (before, limit) => {
+      const cutoff = new Date(before)
+      const playedSince = db
+        .select({ one: sql`1` })
+        .from(games)
+        .where(and(eq(games.userId, profiles.id), gte(games.createdAt, cutoff)))
+      const due = db
+        .select({ id: profiles.id })
+        .from(profiles)
+        .where(
+          and(eq(profiles.isGuest, true), lt(profiles.createdAt, cutoff), notExists(playedSince)),
+        )
+        .orderBy(asc(profiles.createdAt))
+        .limit(limit)
+      const rows = await db
+        .delete(profiles)
+        .where(inArray(profiles.id, due))
+        .returning({ id: profiles.id })
+      return rows.map((r) => r.id)
     },
   }
 }
