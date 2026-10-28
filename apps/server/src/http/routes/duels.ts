@@ -155,14 +155,7 @@ export function botsRoutes(): Hono<AppEnv> {
     const secret = testSecret(c, len, zero)
     const host = await playerInfo(c)
     const room = rooms(c).fresh()
-    const opts = {
-      format,
-      len,
-      zero,
-      opponentKind: 'bot',
-      botLevel: level,
-      ...withTestSecret(secret),
-    } as const
+    const opts = { format, len, zero, opponentKind: 'bot', botLevel: level, ...withTestSecret(secret) } as const
     const { token } = await room.create({ opts, host })
     const dto: BotRoomDto = { roomId: room.id, token }
     return ok(c, dto, 201)

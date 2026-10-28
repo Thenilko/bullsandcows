@@ -124,9 +124,7 @@ async function handleDuelWs(request: Request, raw: CloudflareBindings, roomId: s
 async function serveAsset(request: Request, raw: CloudflareBindings): Promise<Response> {
   const res = await raw.ASSETS.fetch(request)
   const html = res.headers.get('content-type')?.startsWith('text/html') ?? false
-  return res.ok && html
-    ? new Response('Not found', { status: 404, headers: SECURITY_HEADERS })
-    : res
+  return res.ok && html ? new Response('Not found', { status: 404, headers: SECURITY_HEADERS }) : res
 }
 
 /** The daily cron: deletes inactive guests; the query also keeps the Supabase project active. */

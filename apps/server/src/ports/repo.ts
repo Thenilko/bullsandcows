@@ -484,10 +484,7 @@ export interface WeeklyRepo {
    * Creates the game and its play together; null (nothing written) when the player has a play on that day
    * already. The game must carry its `id`.
    */
-  startPlay(
-    game: NewGame & { readonly id: string },
-    play: NewWeeklyPlay,
-  ): Promise<PublicGameRow | null>
+  startPlay(game: NewGame & { readonly id: string }, play: NewWeeklyPlay): Promise<PublicGameRow | null>
   playOn(userId: string, day: string): Promise<WeeklyPlayRow | null>
   playByGame(gameId: string): Promise<WeeklyPlayRow | null>
   /** Unfinished plays of a player in a week. */

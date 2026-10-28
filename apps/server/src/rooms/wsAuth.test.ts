@@ -65,13 +65,7 @@ describe('identity headers', () => {
   })
 
   it('leaves the species out when the player has none, and ignores a bad one', () => {
-    const plain = {
-      id: info.id,
-      username: info.username,
-      level: info.level,
-      rating: info.rating,
-      isGuest: false,
-    }
+    const plain = { id: info.id, username: info.username, level: info.level, rating: info.rating, isGuest: false }
     expect(readIdentity(forwardWithIdentity(req('x'), plain).headers)).toEqual(plain)
     const fwd = forwardWithIdentity(req('x'), plain)
     fwd.headers.set('x-species', 'goat')

@@ -392,28 +392,12 @@ describe('memory leaderboard', () => {
     )
     await finishedGame({ userId: 'u3' }, { attempts: 1, score: 1200 })
     expect(await repo.games.leaderboard({ ...q, period: 'today' })).toEqual([
-      {
-        userId: 'u2',
-        username: 'Rada',
-        attempts: 5,
-        score: 700,
-        xp: 0,
-        avatarSpecies: 'bull',
-        goldFrameUntil: null,
-      },
-      {
-        userId: 'u1',
-        username: 'Mira',
-        attempts: 6,
-        score: 700,
-        xp: 0,
-        avatarSpecies: 'bull',
-        goldFrameUntil: null,
-      },
+      { userId: 'u2', username: 'Rada', attempts: 5, score: 700, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
+      { userId: 'u1', username: 'Mira', attempts: 6, score: 700, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
     ])
   })
 
-  it("carries each player's xp and avatar character with the row", async () => {
+  it('carries each player\'s xp and avatar character with the row', async () => {
     const day = { kind: 'daily' as const, dailyDate: date }
     await repo.profiles.addXp('u2', 3_200)
     await repo.profiles.update('u2', { avatarSpecies: 'cow' })
@@ -453,24 +437,8 @@ describe('memory leaderboard', () => {
     await finishedGame({ userId: 'u3', kind: 'bot' }, { attempts: 1, score: 1200 })
     await finishedGame({ userId: 'u3', practice: true }, { attempts: 1, score: 1200 })
     expect(await repo.games.leaderboard({ ...q, period: 'week' })).toEqual([
-      {
-        userId: 'u2',
-        username: 'Rada',
-        attempts: 3,
-        score: 1000,
-        xp: 0,
-        avatarSpecies: 'bull',
-        goldFrameUntil: null,
-      },
-      {
-        userId: 'u1',
-        username: 'Mira',
-        attempts: 4,
-        score: 900,
-        xp: 0,
-        avatarSpecies: 'bull',
-        goldFrameUntil: null,
-      },
+      { userId: 'u2', username: 'Rada', attempts: 3, score: 1000, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
+      { userId: 'u1', username: 'Mira', attempts: 4, score: 900, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
     ])
     expect((await repo.games.leaderboard({ ...q, period: 'all' }))[0]).toEqual({
       userId: 'u1',

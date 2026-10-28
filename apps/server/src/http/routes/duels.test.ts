@@ -273,15 +273,7 @@ describe('test secret hook', () => {
   it('passes x-test-secret to the room in test and dev, without echoing it', async () => {
     for (const ENVIRONMENT of ['test', 'dev'] as const) {
       const invite = setup({ ENVIRONMENT })
-      const res = await call(
-        invite.app,
-        newUser(),
-        'POST',
-        '/api/duels/invites',
-        settings,
-        false,
-        TEST,
-      )
+      const res = await call(invite.app, newUser(), 'POST', '/api/duels/invites', settings, false, TEST)
       expect(res.status).toBe(201)
       expect(created(invite)?.testSecret).toBe('1234')
       expect(JSON.stringify(await json(res))).not.toContain('1234')
@@ -310,9 +302,7 @@ describe('test secret hook', () => {
     await createInvite(plain, newUser())
     expect(created(plain) && 'testSecret' in created(plain)!).toBe(false)
     const bad = setup()
-    const res = await call(bad.app, newUser(), 'POST', '/api/bots', bot, false, {
-      'x-test-secret': '1123',
-    })
+    const res = await call(bad.app, newUser(), 'POST', '/api/bots', bot, false, { 'x-test-secret': '1123' })
     expect(res.status).toBe(400)
     expect((await json(res)).error.code).toBe('ERR_CODE')
     expect(bad.rooms.size).toBe(0)

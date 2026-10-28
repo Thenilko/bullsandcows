@@ -27,12 +27,7 @@ export function pendingOffer(m: Match, seat: Seat): RematchOfferDto | null {
  * The `state` a seat gets: the machine's `publicView`, plus (once ended) the seat's rating
  * change, XP and any pending rematch offer, so a reloaded client can rebuild the result screen.
  */
-export function snapshot(
-  m: Match,
-  seat: Seat,
-  s: Secrets,
-  meta?: Pick<RoomMeta, 'gameIds'>,
-): PublicState {
+export function snapshot(m: Match, seat: Seat, s: Secrets, meta?: Pick<RoomMeta, 'gameIds'>): PublicState {
   const view = publicView(m, seat, s)
   if (m.phase !== 'ended') return view
   const me = meta?.gameIds ? { ...view.me, gameId: meta.gameIds[seat] } : view.me

@@ -82,9 +82,7 @@ describe('supabase auth verify (key set unavailable)', () => {
     const url = `https://verify-${name}.supabase.co`
     const token = await signedToken(url, {})
     vi.spyOn(globalThis, 'fetch').mockImplementation(jwksReply)
-    const err = await createSupabaseAuth(config(url))
-      .verify(token)
-      .catch((e: unknown) => e)
+    const err = await createSupabaseAuth(config(url)).verify(token).catch((e: unknown) => e)
     expect(err).toMatchObject({ code: 'ERR_INTERNAL', status: 502 })
   }
 

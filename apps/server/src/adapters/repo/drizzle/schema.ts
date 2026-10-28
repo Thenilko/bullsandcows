@@ -227,11 +227,7 @@ export const userPasture = pgTable(
     userId: uuid('user_id')
       .primaryKey()
       .references(() => profiles.id, { onDelete: 'cascade' }),
-    hiddenItems: text('hidden_items')
-      .array()
-      .$type<PastureKey[]>()
-      .notNull()
-      .default(sql`'{}'::text[]`),
+    hiddenItems: text('hidden_items').array().$type<PastureKey[]>().notNull().default(sql`'{}'::text[]`),
     barnColor: text('barn_color').$type<BarnColor>().notNull().default('red'),
     updatedAt: ts('updated_at').notNull().defaultNow(),
   },
@@ -325,9 +321,7 @@ export const weekly = pgTable(
       'weekly_rule_key_check',
       sql`${t.ruleKey} in ('fiveZero', 'threeNoZero', 'quickFour', 'fourZero')`,
     ),
-    index('weekly_due_idx')
-      .on(t.endsAt)
-      .where(sql`${t.finalizedAt} is null`),
+    index('weekly_due_idx').on(t.endsAt).where(sql`${t.finalizedAt} is null`),
   ],
 ).enableRLS()
 
