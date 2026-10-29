@@ -173,6 +173,7 @@ export class StatsService implements DistributionSource {
       buckets: bucketsOf(counted.filter((g) => g.won === true)),
       badges: { ...heldBadges(await repo.badges.listOf(user.id)) },
       recent: finished.slice(0, RECENT_GAMES).map(toRecent),
+      ...(user.isAdmin === true ? { isAdmin: true as const } : {}),
     }
   }
 

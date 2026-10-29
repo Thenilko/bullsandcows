@@ -66,6 +66,7 @@ const routes: RouteObject[] = [
       { path: '/board', lazy: page(() => import('../screens/Leaderboard'), 'Leaderboard') },
       { path: '/profile', lazy: page(() => import('../screens/Profile'), 'Profile') },
       { path: '/profile/pasture', lazy: page(() => import('../screens/Pasture'), 'Pasture') },
+      { path: '/admin', lazy: page(() => import('../screens/Admin'), 'Admin') },
       { path: '/farm', lazy: page(() => import('../screens/Farm'), 'Farm') },
       { path: '/farm/settings', lazy: page(() => import('../screens/FarmSettings'), 'FarmSettings') },
       { path: '/ferma/:code', lazy: page(() => import('../screens/Farm'), 'Farm') },

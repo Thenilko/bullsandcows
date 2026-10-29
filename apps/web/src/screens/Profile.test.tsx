@@ -65,6 +65,16 @@ describe('Profile', () => {
     expect(screen.getByRole('dialog', { name: 'Значка' })).toHaveTextContent('Победа без нито един нелогичен опит')
   })
 
+  it('links to the admin panel only for the admin', async () => {
+    const { unmount } = show()
+    expect(await screen.findByText('Говедар · ниво 2')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Админ панел/ })).toBeNull()
+    unmount()
+    answer({ ...meFixture, isAdmin: true })
+    show()
+    expect(await screen.findByRole('link', { name: /Админ панел/ })).toHaveAttribute('href', '/admin')
+  })
+
   it('shows level, title, xp and stats', async () => {
     show()
     expect(await screen.findByText('Говедар · ниво 2')).toBeInTheDocument()

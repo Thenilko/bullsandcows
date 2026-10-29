@@ -4,6 +4,7 @@ import { ZodError } from 'zod'
 import { AppError } from './errors'
 import { securityHeaders } from './middleware/headers'
 import { fail, ok } from './respond'
+import { adminRoutes } from './routes/admin'
 import { authRoutes } from './routes/auth'
 import { botsRoutes, duelsRoutes } from './routes/duels'
 import { farmsRoutes } from './routes/farms'
@@ -16,7 +17,7 @@ import { weeklyRoutes } from './routes/weekly'
 import type { AppDeps, AppEnv } from './types'
 
 export type { AppDeps, AppEnv } from './types'
-export { requireMember, requireUser } from './middleware/auth'
+export { requireAdmin, requireMember, requireUser } from './middleware/auth'
 
 function handleError(err: Error, c: Context<AppEnv>): Response {
   if (err instanceof AppError) return fail(c, err.code, err.status)
@@ -45,6 +46,7 @@ export function createApp(deps: AppDeps): Hono<AppEnv> {
   app.route('/api/farms', farmsRoutes())
   app.route('/api/weekly', weeklyRoutes())
   app.route('/api/auth', authRoutes())
+  app.route('/api/admin', adminRoutes())
   app.notFound((c) => fail(c, 'ERR_NOT_FOUND', 404))
   app.onError(handleError)
   return app
