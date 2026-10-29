@@ -1,4 +1,4 @@
-import type { CreateGameBody, DistributionDto, GameViewDto, GiveUpResultDto, GuessResultDto } from '@bc/protocol'
+import type { CreateGameBody, DailyStatusDto, DistributionDto, GameViewDto, GiveUpResultDto, GuessResultDto } from '@bc/protocol'
 import { api } from '../auth/client'
 
 export type GameKind = CreateGameBody['kind']
@@ -17,6 +17,9 @@ export const sendGuess = (id: string, guess: string, usedNotes: boolean) =>
   api.post<GuessResultDto>(`/api/games/${id}/guesses`, { guess, usedNotes })
 
 export const giveUpGame = (id: string, usedNotes: boolean) => api.post<GiveUpResultDto>(`/api/games/${id}/give-up`, { usedNotes })
+
+export const fetchDailyStatus = (len: number, zero: boolean) =>
+  api.get<DailyStatusDto>(`/api/games/daily?len=${len}&zero=${zero}`)
 
 export function fetchDistribution(len: number, zero: boolean, kind: GameKind) {
   return api.get<DistributionDto>(`/api/stats/distribution?len=${len}&zero=${zero}&kind=${kind}`)

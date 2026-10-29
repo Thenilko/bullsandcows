@@ -150,6 +150,13 @@
     "start": "Start playing"
   },
   "newGame": {
+    "daily": {
+      "title": "Number of the day #{{number}}",
+      "fresh": "The same for everyone today.",
+      "won_one": "The same for everyone today. You got it in {{count}} guess.",
+      "won_other": "The same for everyone today. You got it in {{count}} guesses.",
+      "lost": "You already played today's. A new one comes tomorrow — free play until then."
+    },
     "title": "New game",
     "modeGroup": "Game mode",
     "mode": {

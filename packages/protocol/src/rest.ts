@@ -437,6 +437,15 @@ const BoolQuery = z.enum(['true', 'false']).transform((v) => v === 'true')
 export const DistributionQuery = z.object({ len: LenQuery, zero: BoolQuery, kind: KindSchema })
 export type DistributionQuery = z.infer<typeof DistributionQuery>
 
+export const DailyStatusQuery = z.object({ len: LenQuery, zero: BoolQuery })
+export type DailyStatusQuery = z.infer<typeof DailyStatusQuery>
+
+/** `GET /api/games/daily`: today's number („#127“) and the player's counted game of it, if finished. */
+export interface DailyStatusDto {
+  number: number
+  played: { won: boolean; attempts: number } | null
+}
+
 export const LeaderboardQuery = z.object({ period: PeriodSchema, len: LenQuery, zero: BoolQuery })
 export type LeaderboardQuery = z.infer<typeof LeaderboardQuery>
 

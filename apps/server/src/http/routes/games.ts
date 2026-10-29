@@ -1,4 +1,4 @@
-import { CreateGameBody, GiveUpBody, GuessBody, type ErrorCode } from '@bc/protocol'
+import { CreateGameBody, DailyStatusQuery, GiveUpBody, GuessBody, type ErrorCode } from '@bc/protocol'
 import { Hono, type Context } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import type { z } from 'zod'
@@ -73,6 +73,11 @@ export function gamesRoutes(): Hono<AppEnv> {
     const secretOverride = body.kind === 'free' ? testSecret(c, body.len, body.zero) : undefined
     const view = await run(() => service(c).create(c.get('user'), { ...body, secretOverride }))
     return ok(c, view, 201)
+  })
+
+  routes.get('/daily', validate('query', DailyStatusQuery), async (c) => {
+    const { len, zero } = c.req.valid('query')
+    return ok(c, await service(c).dailyStatus(c.get('user'), len, zero))
   })
 
   routes.post('/:id/start', async (c) =>

@@ -17,7 +17,7 @@ import {
   type Len,
   type PastureKey,
 } from '@bc/game-core'
-import type { ErrorCode, NewBadgeDto } from '@bc/protocol'
+import type { DailyStatusDto, ErrorCode, NewBadgeDto } from '@bc/protocol'
 import type { AuthUser } from '../ports/auth'
 import type { Clock } from '../ports/clock'
 import { isDuplicate } from '../ports/errors'
@@ -127,6 +127,17 @@ export class SoloService {
       return this.view(game)
     }
     return this.createDaily(user, len, zero)
+  }
+
+  /** Today's number of the day for these settings and how the player's counted game of it ended. */
+  async dailyStatus(user: AuthUser, len: Len, zero: boolean): Promise<DailyStatusDto> {
+    const now = new Date(this.deps.clock.now())
+    const counted = await this.deps.repo.games.dailyOf(user.id, sofiaDate(now), len, zero)
+    const played =
+      counted && counted.finishedAt !== null
+        ? { won: counted.won === true, attempts: counted.attempts }
+        : null
+    return { number: dailyNumber(now), played }
   }
 
   private async createDaily(user: AuthUser, len: Len, zero: boolean): Promise<GameView> {
