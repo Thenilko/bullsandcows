@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { QueueApi } from '../../features/duel/useQueue'
 import { renderWithI18n } from '../../test/render'
 
-const queue: QueueApi = { elapsedMs: 0, suggestInvite: false, matched: null, error: null, leave: vi.fn() }
+const queue: QueueApi = { elapsedMs: 0, suggestInvite: false, queued: null, matched: null, error: null, leave: vi.fn() }
 vi.mock('../../features/duel/useQueue', () => ({ useQueue: () => queue }))
 const createInvite = vi.fn()
 vi.mock('../../features/duel/api', async (orig) => ({
@@ -32,7 +32,7 @@ function show() {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  Object.assign(queue, { elapsedMs: 0, suggestInvite: false, matched: null, error: null })
+  Object.assign(queue, { elapsedMs: 0, suggestInvite: false, queued: null, matched: null, error: null })
 })
 
 describe('Queue', () => {
@@ -42,6 +42,12 @@ describe('Queue', () => {
     expect(screen.getByRole('heading', { name: /Търсим противник/ })).toBeInTheDocument()
     expect(screen.getByText('00:12')).toBeInTheDocument()
     expect(screen.getByTestId('range-bar')).toHaveStyle({ width: `${(225 / 525) * 100}%` })
+  })
+
+  it('says how many players are in the queue once the server tells', () => {
+    queue.queued = 3
+    show()
+    expect(screen.getByText('В опашката сега: 3 играчи')).toBeInTheDocument()
   })
 
   it('tells guests quick match is for registered players and offers a profile CTA', () => {

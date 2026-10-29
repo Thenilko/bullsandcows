@@ -394,6 +394,8 @@
       "levelRange": "level {{lo}}–{{hi}}",
       "widening": "We widen the search every 5 seconds. Real players only.",
       "online": "Online now: {{online}} · in the queue: {{queued}}",
+      "queued_one": "In the queue now: {{count}} player (you)",
+      "queued_other": "In the queue now: {{count}} players",
       "noMatch": "No suitable opponent yet. You can keep waiting or invite a friend.",
       "suggestInvite": "Invite a friend",
       "cancel": "Cancel the search"

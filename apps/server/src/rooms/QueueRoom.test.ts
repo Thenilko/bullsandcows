@@ -112,7 +112,7 @@ describe('QueueRoom', () => {
     const b = await connect('fake:ub:boris')
     await join(a)
     await join(b)
-    expect(a.msgs).toEqual([{ t: 'waiting', elapsedMs: 0, suggestInvite: false }])
+    expect(a.msgs).toEqual([{ t: 'waiting', elapsedMs: 0, suggestInvite: false, queued: 1 }])
     await tick(clock)
     const matchedA = a.msgs.find((m) => m.t === 'matched')
     const matchedB = b.msgs.find((m) => m.t === 'matched')

@@ -179,7 +179,13 @@ export const QueueClientMsg = z.discriminatedUnion('t', [
 export type QueueClientMsg = z.infer<typeof QueueClientMsg>
 
 export const QueueServerMsg = z.discriminatedUnion('t', [
-  z.object({ t: z.literal('waiting'), elapsedMs: z.number(), suggestInvite: z.boolean() }),
+  z.object({
+    t: z.literal('waiting'),
+    elapsedMs: z.number(),
+    suggestInvite: z.boolean(),
+    /** Players in the quick-match queue right now, this one included (М10 „в опашката: M“). */
+    queued: z.number().int().nonnegative().optional(),
+  }),
   z.object({ t: z.literal('matched'), roomId: z.string(), token: z.string() }),
   z.object({ t: z.literal('error'), code: ErrorCodeSchema }),
 ])
