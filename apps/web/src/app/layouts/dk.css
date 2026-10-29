@@ -250,6 +250,16 @@
 }
 
 /* The column becomes the whole canvas; the board and the sheet are its only interactive parts. */
+.dk-imm {
+  --dk-board-x: 50%;
+}
+
+/* With the notes sheet (right 24px + 360px + a 16px gap) the 622px board (with its frame) moves left of it
+   where centring would overlap; centred again from about 1420px of width. */
+.dk-imm:has(.dk-notes) {
+  --dk-board-x: min(50%, calc(100% - 400px - 311px));
+}
+
 .dk-imm.sc-play .dk-col,
 .dk-imm.sc-result .dk-col {
   inset: 0;
@@ -276,17 +286,17 @@
 }
 
 .dk-imm .dk-rope-l {
-  left: calc(50% - 230px);
+  left: calc(var(--dk-board-x) - 230px);
 }
 
 .dk-imm .dk-rope-r {
-  left: calc(50% + 225px);
+  left: calc(var(--dk-board-x) + 225px);
 }
 
 /* Hangs from the ropes: the wooden frame comes from the box-shadow rings; one swing on entering. */
 .dk-imm .dk-game {
   position: absolute;
-  left: 50%;
+  left: var(--dk-board-x);
   top: 92px;
   width: 600px;
   margin-left: -300px;
