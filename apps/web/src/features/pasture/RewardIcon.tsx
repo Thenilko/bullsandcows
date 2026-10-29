@@ -7,9 +7,9 @@ import { Beehive, Dog, GoldenVane, Pond, Rooster, Shed, Sunflower, Windmill } fr
 /** Each reward's drawing and the box around it (PasExtras `.unl-ic` and the П2 medallion). */
 const ART: Readonly<Record<PastureKey, { viewBox: string; art: (color: BarnColor) => ReactElement }>> = {
   dog: { viewBox: '-28 -30 56 56', art: () => <Dog /> },
-  sunflowers: { viewBox: '-16 -16 32 52', art: () => <Sunflower /> },
+  sunflowers: { viewBox: '-18 -16 36 52', art: () => <Sunflower /> },
   beehive: { viewBox: '-22 -28 44 50', art: () => <Beehive /> },
-  rooster: { viewBox: '-14 -26 34 36', art: () => <Rooster /> },
+  rooster: { viewBox: '-17 -30 42 40', art: () => <Rooster /> },
   windmill: { viewBox: '-30 -74 60 80', art: () => <Windmill /> },
   pond: { viewBox: '-62 -32 124 52', art: () => <Pond /> },
   barnColor: {
