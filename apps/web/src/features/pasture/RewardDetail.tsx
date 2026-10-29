@@ -59,6 +59,7 @@ export function RewardDetail({ item, onToggle, onClose }: RewardDetailProps) {
       onClose={onClose}
       width={440}
       centered
+      variant="card"
       testId="reward-detail"
     >
       <span style={KICKER}>
