@@ -335,8 +335,8 @@ skip_nonce_check = false
 email_optional = false
 
 [auth.external.google]
-client_id = "9536509109-69k9df11jd5i3qgbif1cu9fnhsd6ssmb.apps.googleusercontent.com"
-enabled = true
+# The game has no Google sign-in; only email + password and guests.
+enabled = false
 
 # Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS, EIP-4361) standard.
 # You can configure "web3" rate limit in the [auth.rate_limit] section and set up [auth.captcha] if self-hosting.
