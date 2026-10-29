@@ -22,7 +22,18 @@ import { useDesktopMode } from '../../hooks/useDesktopMode'
 import './dk.css'
 import { isTabActive, TABS, type SceneProps, type ShellProps } from './shell.types'
 
-const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon, QuestionIcon] as const
+const TAB_ICONS: Readonly<Record<(typeof TABS)[number]['to'], typeof HomeIcon>> = {
+  '/': HomeIcon,
+  '/board': TrophyIcon,
+  '/profile': UserIcon,
+  '/rules': QuestionIcon,
+}
+
+/** On desktop the profile is the player chip in the header (avatar and name), not a nav tab. */
+const DESKTOP_TABS = TABS.filter((tab) => tab.to !== '/profile')
+
+/** The new game screens: „Нова игра“ in the header would only point at the screen itself. */
+const SETUP_PATHS: readonly string[] = ['/new', '/duel/new', '/bot/new']
 
 /** The sign in front of the pen: bulls and cows of the last verdict (Desk.dc.html `tally`). */
 export function tallyOf(mode: SceneMode): Tally {
@@ -62,8 +73,8 @@ function Nav() {
   const { pathname } = useLocation()
   return (
     <nav className="dk-nav" aria-label={t('nav.main')}>
-      {TABS.map((tab, i) => {
-        const Icon = TAB_ICONS[i] ?? HomeIcon
+      {DESKTOP_TABS.map((tab) => {
+        const Icon = TAB_ICONS[tab.to]
         return (
           <NavLink
             key={tab.to}
@@ -88,7 +99,7 @@ function FlameIcon() {
   )
 }
 
-/** Desk.dc.html header: „Серия N“ (wins in a row) and the player with their title. */
+/** Desk.dc.html header: „Серия N“ (wins in a row) and the player with their title, which opens the profile. */
 function PlayerChips() {
   const { t } = useTranslation()
   const me = useSession((s) => s.me)
@@ -100,10 +111,15 @@ function PlayerChips() {
         <FlameIcon />
         {t('header.streak', { count: me.stats.streak })}
       </span>
-      <span className="dk-chip dk-me" data-testid="header-player">
+      <NavLink
+        to="/profile"
+        className={({ isActive }) => cx('dk-chip dk-me', isActive && 'on')}
+        aria-label={`${t('nav.profile')}: ${me.profile.username}`}
+        data-testid="header-player"
+      >
         <RankAvatar species={me.profile.avatarSpecies} rankKey={me.rankKey} size={34} gold={me.goldFrame === true} />
         <span className="dk-me-name">{me.profile.username}</span>
-      </span>
+      </NavLink>
     </>
   )
 }
@@ -118,7 +134,7 @@ function Header({ bare, title }: { bare: boolean; title?: string }) {
   const navigate = useNavigate()
   const { muted, toggle: toggleSound } = useSoundToggle()
   // „Игра“ in the nav resumes a running game, so „Нова игра“ is how the mode cards stay reachable from any screen.
-  const showNewGame = !bare && pathname !== '/new'
+  const showNewGame = !bare && !SETUP_PATHS.includes(pathname)
   return (
     <header className="dk-header">
       <div className="dk-brand">

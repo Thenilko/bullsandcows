@@ -5,6 +5,8 @@ import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { IDLE_SCENE } from '../../screens/idleScene'
 import { renderWithI18n } from '../../test/render'
+import { useSession } from '../../features/auth/session'
+import { meFixture } from '../../test/fixtures'
 import { DesktopShell } from './DesktopShell'
 import { MobileShell } from './MobileShell'
 
@@ -17,16 +19,16 @@ function wrap(ui: ReactNode, at = '/') {
 }
 
 describe.each([
-  ['MobileShell', MobileShell],
-  ['DesktopShell', DesktopShell],
-] as const)('%s', (_n, Comp) => {
-  it('shows the four nav links by default', () => {
+  ['MobileShell', MobileShell, ['Игра', 'Класация', 'Профил', 'Правила']],
+  ['DesktopShell', DesktopShell, ['Игра', 'Класация', 'Правила']],
+] as const)('%s', (_n, Comp, tabs) => {
+  it('shows the nav links (on desktop the profile is the player chip)', () => {
     wrap(
       <Comp scene={IDLE_SCENE} screen="rules">
         x
       </Comp>,
     )
-    expect(within(screen.getByRole('navigation')).getAllByRole('link')).toHaveLength(4)
+    expect(within(screen.getByRole('navigation')).getAllByRole('link').map((a) => a.textContent)).toEqual(tabs)
   })
 
   it.each(['/', '/new', '/play/g1', '/result/g1'])('highlights Игра on %s', (at) => {
@@ -87,7 +89,7 @@ describe('DesktopShell „Нова игра“ (PasDuel desktop header)', () => 
     expect(screen.getByRole('button', { name: 'Нова игра' })).toBeInTheDocument()
   })
 
-  it.each(['/new'])('is not shown on %s', (at) => {
+  it.each(['/new', '/duel/new', '/bot/new'])('is not shown on %s', (at) => {
     wrap(
       <DesktopShell scene={IDLE_SCENE} screen="new">
         x
@@ -116,5 +118,23 @@ describe('DesktopShell „Нова игра“ (PasDuel desktop header)', () => 
     )
     expect(screen.getByText('· Дуел · 4 цифри')).toHaveClass('dk-title')
     expect(screen.getByText('· Дуел · 4 цифри').closest('header')).not.toBeNull()
+  })
+})
+
+describe('DesktopShell player chip', () => {
+  const me = { ...meFixture, profile: { ...meFixture.profile, username: 'Дидо' } }
+
+  it('opens the profile and is marked there', () => {
+    useSession.setState({ me })
+    wrap(
+      <DesktopShell scene={IDLE_SCENE} screen="profile">
+        x
+      </DesktopShell>,
+      '/profile',
+    )
+    const chip = screen.getByRole('link', { name: 'Профил: Дидо' })
+    expect(chip).toHaveAttribute('href', '/profile')
+    expect(chip).toHaveClass('on')
+    useSession.setState({ me: null })
   })
 })

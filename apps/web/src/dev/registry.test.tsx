@@ -24,7 +24,10 @@ describe('devScreens', () => {
     error.mockRestore()
   })
 
-  it.each(['mobile-shell', 'desktop-shell'])('%s lists four navigation links', (name) => {
+  it.each([
+    ['mobile-shell', ['/', '/board', '/profile', '/rules']],
+    ['desktop-shell', ['/', '/board', '/rules']],
+  ] as const)('%s lists its navigation links (desktop: the profile is the player chip)', (name, links) => {
     const Screen = devScreens[name]!
     const { container } = renderWithI18n(
       <MemoryRouter>
@@ -32,6 +35,6 @@ describe('devScreens', () => {
       </MemoryRouter>,
     )
     const hrefs = Array.from(container.querySelectorAll('nav a')).map((a) => a.getAttribute('href'))
-    expect(hrefs).toEqual(['/', '/board', '/profile', '/rules'])
+    expect(hrefs).toEqual(links)
   })
 })
