@@ -411,40 +411,171 @@ export function Rooster() {
   )
 }
 
-/** The windmill: the tower stands on the origin, the sails turn at y -42. */
+/** The windmill: a plastered tower with a red cap on the origin; the four lattice sails turn at y -42. */
 export function Windmill() {
   return (
     <g>
-      <path d="M-7 0 L-4 -40 L4 -40 L7 0Z" fill="#F1E4C8" stroke={INK} strokeWidth="1.4" />
-      <path d="M-6 -40 L0 -48 L6 -40Z" fill="#B5452F" stroke={INK} strokeWidth="1.2" />
-      <rect x="-2" y="-12" width="4" height="12" fill="#7A5230" />
+      <ellipse cx="0" cy=".6" rx="11" ry="2" fill="#1E2A14" opacity=".2" />
+      <path
+        d="M-8 0 L-5 -40 L5 -40 L8 0Z"
+        fill="#F1E4C8"
+        stroke={INK}
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+      <path d="M1.4 -40 L5 -40 L8 0 L2.6 0Z" fill="#DCC8A0" />
+      <path d="M-7.2 -10 H7.2 M-6.4 -20 H6.4 M-5.7 -30 H5.7" stroke="#CDB78E" strokeWidth=".8" />
+      <path
+        d="M-2.8 0 V-5.6 A2.8 2.8 0 0 1 2.8 -5.6 V0Z"
+        fill="#7A5230"
+        stroke={INK}
+        strokeWidth=".9"
+      />
+      <circle cx="0" cy="-24" r="2" fill="#6FA3C8" stroke={INK} strokeWidth=".8" />
+      <rect
+        x="-7.4"
+        y="-39"
+        width="14.8"
+        height="2.6"
+        rx="1"
+        fill="#A8743F"
+        stroke={INK}
+        strokeWidth=".8"
+      />
+      <path
+        d="M-6.4 -40 C-6 -48 6 -48 6.4 -40Z"
+        fill="#B5452F"
+        stroke={INK}
+        strokeWidth="1.1"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M-3.6 -43.4 C-2.6 -45.4 0 -46 1.6 -45.8"
+        stroke="#D2483A"
+        strokeWidth="1"
+        fill="none"
+        strokeLinecap="round"
+      />
       <g transform="translate(0 -42)">
         <g className="pw-sails">
-          <path
-            d="M0 0 L-2 -24 L4 -24Z M0 0 L24 -2 L24 4Z M0 0 L2 24 L-4 24Z M0 0 L-24 2 L-24 -4Z"
-            fill="#FFFDF6"
-            stroke={INK}
-            strokeWidth="1.1"
-            strokeLinejoin="round"
-          />
-          <circle r="2.2" fill={INK} />
+          <g transform="rotate(0)">
+            <path d="M0 0 V-26" stroke={INK} strokeWidth="2.4" strokeLinecap="round" />
+            <path d="M0 0 V-26" stroke="#8A5A2E" strokeWidth="1" strokeLinecap="round" />
+            <rect
+              x=".8"
+              y="-26"
+              width="6.4"
+              height="20"
+              fill="#FFFDF6"
+              stroke={INK}
+              strokeWidth="1"
+            />
+            <path
+              d="M.8 -21 h6.4 M.8 -16 h6.4 M.8 -11 h6.4 M4 -26 v20"
+              stroke="#C9B89A"
+              strokeWidth=".6"
+            />
+          </g>
+          <g transform="rotate(90)">
+            <path d="M0 0 V-26" stroke={INK} strokeWidth="2.4" strokeLinecap="round" />
+            <path d="M0 0 V-26" stroke="#8A5A2E" strokeWidth="1" strokeLinecap="round" />
+            <rect
+              x=".8"
+              y="-26"
+              width="6.4"
+              height="20"
+              fill="#FFFDF6"
+              stroke={INK}
+              strokeWidth="1"
+            />
+            <path
+              d="M.8 -21 h6.4 M.8 -16 h6.4 M.8 -11 h6.4 M4 -26 v20"
+              stroke="#C9B89A"
+              strokeWidth=".6"
+            />
+          </g>
+          <g transform="rotate(180)">
+            <path d="M0 0 V-26" stroke={INK} strokeWidth="2.4" strokeLinecap="round" />
+            <path d="M0 0 V-26" stroke="#8A5A2E" strokeWidth="1" strokeLinecap="round" />
+            <rect
+              x=".8"
+              y="-26"
+              width="6.4"
+              height="20"
+              fill="#FFFDF6"
+              stroke={INK}
+              strokeWidth="1"
+            />
+            <path
+              d="M.8 -21 h6.4 M.8 -16 h6.4 M.8 -11 h6.4 M4 -26 v20"
+              stroke="#C9B89A"
+              strokeWidth=".6"
+            />
+          </g>
+          <g transform="rotate(270)">
+            <path d="M0 0 V-26" stroke={INK} strokeWidth="2.4" strokeLinecap="round" />
+            <path d="M0 0 V-26" stroke="#8A5A2E" strokeWidth="1" strokeLinecap="round" />
+            <rect
+              x=".8"
+              y="-26"
+              width="6.4"
+              height="20"
+              fill="#FFFDF6"
+              stroke={INK}
+              strokeWidth="1"
+            />
+            <path
+              d="M.8 -21 h6.4 M.8 -16 h6.4 M.8 -11 h6.4 M4 -26 v20"
+              stroke="#C9B89A"
+              strokeWidth=".6"
+            />
+          </g>
+          <circle r="2.6" fill={INK} />
+          <circle r="1.1" fill="#B5452F" />
         </g>
       </g>
     </g>
   )
 }
 
-/** The second, smaller barn; its left corner stands on the origin. */
+/** The second, smaller barn with a round window and a braced door; its left corner stands on the origin. */
 export function Shed() {
   return (
     <g>
-      <path d="M0 0 L0 -18 L14 -28 L28 -18 L28 0Z" fill="#C9563D" stroke={INK} strokeWidth="1.3" />
+      <ellipse cx="14" cy=".6" rx="17" ry="2" fill="#1E2A14" opacity=".2" />
+      <path
+        d="M0 0 L0 -18 L14 -28 L28 -18 L28 0Z"
+        fill="#C9563D"
+        stroke={INK}
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+      <path d="M5 -21.6 V0 M23 -21.6 V0" stroke="#9C3A28" strokeWidth=".7" opacity=".7" />
       <path
         d="M-3 -16 L14 -30 L31 -16"
-        stroke="#3E2A1F"
+        stroke={INK}
+        strokeWidth="4.6"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M-3 -16 L14 -30 L31 -16"
+        stroke="#4A3226"
         strokeWidth="3"
         fill="none"
         strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="14" cy="-20.4" r="2.4" fill="#3A2418" stroke="#F3EDE2" strokeWidth=".9" />
+      <rect
+        x="8.4"
+        y="-12.6"
+        width="11.2"
+        height="12.6"
+        fill="none"
+        stroke={INK}
+        strokeWidth=".9"
       />
       <rect
         x="9"
@@ -455,22 +586,129 @@ export function Shed() {
         stroke="#F3EDE2"
         strokeWidth="1.2"
       />
+      <path d="M9 -12 L19 0 M19 -12 L9 0" stroke="#F3EDE2" strokeWidth="1" />
     </g>
   )
 }
 
-/** The golden weathervane (a rooster on a rod), its rod's foot at y 12. */
+/** The golden weathervane: the rooster in gold over an arrow, its rod's foot at y 12. */
 export function GoldenVane() {
   return (
     <g className="pw-vane">
-      <path d="M0 12 V-4" stroke="#B8860B" strokeWidth="1.6" />
+      <path d="M0 12 V-2" stroke="#7A5A12" strokeWidth="2.6" />
+      <path d="M0 12 V-2" stroke="#E0AA2A" strokeWidth="1.3" />
+      <path d="M-11 3 H9" stroke="#7A5A12" strokeWidth="2.4" strokeLinecap="round" />
+      <path d="M-11 3 H9" stroke="#F2C230" strokeWidth="1.1" strokeLinecap="round" />
       <path
-        d="M-8 -4 C-8 -10 -2 -14 2 -12 C6 -10 4 -6 8 -6 C10 -10 14 -8 12 -4Z"
+        d="M9 .6 L13 3 L9 5.4Z M-11 .6 L-13.6 .6 L-11.6 3 L-13.6 5.4 L-11 5.4Z"
         fill="#F2C230"
-        stroke="#8C6420"
-        strokeWidth=".9"
+        stroke="#7A5A12"
+        strokeWidth=".7"
+        strokeLinejoin="round"
       />
-      <circle cx="0" cy="-4" r="1.2" fill="#B8860B" />
+      <circle cx="0" cy="3" r="1.3" fill="#B8860B" stroke="#7A5A12" strokeWidth=".5" />
+      <g transform="translate(0 -2.6) scale(.5)">
+        <g transform="translate(0 -8)">
+          <path
+            d="M6 -5 C9 -18 20 -21 23 -13 C19 -14.6 14.4 -11 12.4 -4Z"
+            fill="#C9931E"
+            stroke="#7A5A12"
+            strokeWidth="1.1"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M7 -2.4 C14 -10 22.6 -8 22.4 .4 C18.6 -3.6 14.6 -1.8 11.4 1.4Z"
+            fill="#E0AA2A"
+            stroke="#7A5A12"
+            strokeWidth="1.1"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M6.4 1 C12.4 -.6 18.4 3 17.4 8 C14.4 4.8 10.4 5 8 5Z"
+            fill="#7A5A12"
+            stroke="#7A5A12"
+            strokeWidth="1.1"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M-1 7 V13.6 M3.4 7 V13.6"
+            stroke="#7A5A12"
+            strokeWidth="2.6"
+            strokeLinecap="round"
+          />
+          <path
+            d="M-1 7 V13.6 M3.4 7 V13.6"
+            stroke="#F6CF4A"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+          />
+          <path
+            d="M-3.6 14 H1 M.8 14 H5.6"
+            stroke="#7A5A12"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+          />
+          <path
+            d="M-8.4 -4.4 C-10.6 4 -4.4 9.4 4 8.4 C10.4 7.6 12.4 1.4 9.4 -5 C6.4 -10 -4.4 -10 -8.4 -4.4Z"
+            fill="#F2C230"
+            stroke="#7A5A12"
+            strokeWidth="1.3"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M-6 3 C-2 7.4 4 7.6 8.4 4.4 C6.4 7.6 0 9 -4.4 6.4Z"
+            fill="#D9A320"
+            opacity=".6"
+          />
+          <path
+            d="M-2 -2 C2 -4.4 8.4 -2.4 8.4 1.8 C6.4 5 .4 5 -2 2Z"
+            fill="#D9A320"
+            stroke="#7A5A12"
+            strokeWidth="1"
+            strokeLinejoin="round"
+          />
+          <path d="M0 0 C2.6 -.8 5 -.2 6.4 1.4" stroke="#9C7414" strokeWidth=".8" fill="none" />
+          <path
+            d="M-11 -9 C-12 -3.4 -9.4 .4 -5.4 -.4 L-1.4 -6.4 C-3 -10 -7.4 -12 -11 -9Z"
+            fill="#F6CF4A"
+            stroke="#7A5A12"
+            strokeWidth="1.1"
+            strokeLinejoin="round"
+          />
+          <circle cx="-7.4" cy="-11.4" r="4.6" fill="#F6CF4A" stroke="#7A5A12" strokeWidth="1.2" />
+          <path
+            d="M-10.4 -14.8 C-11.6 -18.6 -8.8 -19.6 -8.2 -16.8 C-8.2 -20 -4.8 -20.6 -4.8 -17.2 C-3.8 -19.8 -1.2 -18.8 -2.6 -14.8 Z"
+            fill="#E8B830"
+            stroke="#7A5A12"
+            strokeWidth=".9"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M-11.6 -12.2 L-15.6 -11 L-11.4 -9.8Z"
+            fill="#FBE08A"
+            stroke="#7A5A12"
+            strokeWidth=".8"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M-11.2 -9.8 C-12.8 -7 -10.8 -5.8 -9.8 -8.8Z"
+            fill="#E8B830"
+            stroke="#7A5A12"
+            strokeWidth=".7"
+          />
+          <ellipse
+            cx="-8.6"
+            cy="-12.4"
+            rx="1.5"
+            ry="1.6"
+            fill="#FFF3C4"
+            stroke="#7A5A12"
+            strokeWidth=".9"
+          />
+          <circle cx="-8.90" cy="-12.20" r="0.93" fill="#7A5A12" />
+          <circle cx="-9.32" cy="-12.68" r="0.36" fill="#FFF3C4" />
+        </g>
+      </g>
     </g>
   )
 }
@@ -595,6 +833,6 @@ export function Pond() {
   )
 }
 
-/** Barn walls in the colour (front gable and side), the door cut out (evenodd) so it stays red. */
+/** Barn walls in the colour (front gable and side), the door and the hayloft cut out (evenodd) so they keep their colours. */
 export const BARN_WALLS =
-  'M22 263 L22 203 L70 167 L118 203 L118 263Z M46 219 L46 263 L94 263 L94 219Z M118 204 L148 214 L148 263 L118 263Z'
+  'M22 263 L22 203 L70 167 L118 203 L118 263Z M46 219 L46 263 L94 263 L94 219Z M118 204 L148 214 L148 263 L118 263Z M61 186 L61 202 L79 202 L79 186Z'

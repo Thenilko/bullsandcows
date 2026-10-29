@@ -10,7 +10,7 @@ const ART: Readonly<Record<PastureKey, { viewBox: string; art: (color: BarnColor
   sunflowers: { viewBox: '-18 -16 36 52', art: () => <Sunflower /> },
   beehive: { viewBox: '-22 -28 44 50', art: () => <Beehive /> },
   rooster: { viewBox: '-17 -30 42 40', art: () => <Rooster /> },
-  windmill: { viewBox: '-30 -74 60 80', art: () => <Windmill /> },
+  windmill: { viewBox: '-35 -72 70 76', art: () => <Windmill /> },
   pond: { viewBox: '-62 -32 124 52', art: () => <Pond /> },
   barnColor: {
     viewBox: '8 150 150 122',
