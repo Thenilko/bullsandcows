@@ -140,9 +140,8 @@ export const duels = pgTable(
     opponentKind: text('opponent_kind').$type<OpponentKind>().notNull(),
     botLevel: smallint('bot_level'),
     inviteCode: text('invite_code'),
-    playerA: uuid('player_a')
-      .notNull()
-      .references(() => profiles.id, { onDelete: 'cascade' }),
+    /** Null once the player's profile is deleted; the opponent keeps the duel. */
+    playerA: uuid('player_a').references(() => profiles.id, { onDelete: 'set null' }),
     playerB: uuid('player_b').references(() => profiles.id, { onDelete: 'set null' }),
     gameA: uuid('game_a').references(() => games.id, { onDelete: 'set null' }),
     gameB: uuid('game_b').references(() => games.id, { onDelete: 'set null' }),
@@ -227,7 +226,11 @@ export const userPasture = pgTable(
     userId: uuid('user_id')
       .primaryKey()
       .references(() => profiles.id, { onDelete: 'cascade' }),
-    hiddenItems: text('hidden_items').array().$type<PastureKey[]>().notNull().default(sql`'{}'::text[]`),
+    hiddenItems: text('hidden_items')
+      .array()
+      .$type<PastureKey[]>()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     barnColor: text('barn_color').$type<BarnColor>().notNull().default('red'),
     updatedAt: ts('updated_at').notNull().defaultNow(),
   },
@@ -321,7 +324,9 @@ export const weekly = pgTable(
       'weekly_rule_key_check',
       sql`${t.ruleKey} in ('fiveZero', 'threeNoZero', 'quickFour', 'fourZero')`,
     ),
-    index('weekly_due_idx').on(t.endsAt).where(sql`${t.finalizedAt} is null`),
+    index('weekly_due_idx')
+      .on(t.endsAt)
+      .where(sql`${t.finalizedAt} is null`),
   ],
 ).enableRLS()
 

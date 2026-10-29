@@ -122,7 +122,8 @@ export interface DuelRow {
   readonly opponentKind: OpponentKind
   readonly botLevel: number | null
   readonly inviteCode: string | null
-  readonly playerA: string
+  /** Null once that player's profile is deleted. */
+  readonly playerA: string | null
   readonly playerB: string | null
   readonly gameA: string | null
   readonly gameB: string | null
@@ -484,7 +485,10 @@ export interface WeeklyRepo {
    * Creates the game and its play together; null (nothing written) when the player has a play on that day
    * already. The game must carry its `id`.
    */
-  startPlay(game: NewGame & { readonly id: string }, play: NewWeeklyPlay): Promise<PublicGameRow | null>
+  startPlay(
+    game: NewGame & { readonly id: string },
+    play: NewWeeklyPlay,
+  ): Promise<PublicGameRow | null>
   playOn(userId: string, day: string): Promise<WeeklyPlayRow | null>
   playByGame(gameId: string): Promise<WeeklyPlayRow | null>
   /** Unfinished plays of a player in a week. */

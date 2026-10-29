@@ -87,12 +87,23 @@ export function memoryProfiles(store: MemoryStore, clock: Clock): ProfilesRepo {
         .sort((x, y) => x.createdAt - y.createdAt)
         .slice(0, limit)
         .map((p) => p.id)
-      // Like the cascade in Postgres: the guest's own rows go with the profile.
+      // Like the foreign keys in Postgres: the guest's own rows go with the profile, duels stay
+      // for the opponent with the guest's seat emptied.
       for (const id of due) {
         store.profiles.delete(id)
         store.badges.delete(id)
         store.pasture.delete(id)
         for (const g of games) if (g.userId === id) store.games.delete(g.id)
+        for (const d of store.duels.values()) {
+          if (d.playerA !== id && d.playerB !== id) continue
+          store.duels.set(d.id, {
+            ...d,
+            playerA: d.playerA === id ? null : d.playerA,
+            playerB: d.playerB === id ? null : d.playerB,
+            gameA: d.gameA !== null && store.games.has(d.gameA) ? d.gameA : null,
+            gameB: d.gameB !== null && store.games.has(d.gameB) ? d.gameB : null,
+          })
+        }
       }
       return due
     },
