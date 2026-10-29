@@ -726,6 +726,15 @@
         "barnColor": "Choose a colour"
       },
       "later": "Later"
+    },
+    "detail": {
+      "aria": "Reward: {{name}}",
+      "open": "See the reward: {{name}}",
+      "unlocked": "Unlocked",
+      "how": "How to unlock",
+      "lockedNote": "Play to unlock it, then put it in your pasture.",
+      "show": "Show in the pasture",
+      "hide": "Hide from the pasture"
     }
   },
   "farm": {

@@ -50,6 +50,37 @@ describe('Pasture (Р6)', () => {
     expect(screen.getByRole('switch', { name: 'Покажи: Кученце Шаро' })).toHaveAttribute('aria-checked', 'false')
   })
 
+  it('opens a locked reward: the drawing, what it is, how to unlock it and the progress', async () => {
+    show()
+    fireEvent.click(await screen.findByRole('button', { name: 'Виж наградата: Вятърна мелница' }))
+    const detail = await screen.findByRole('dialog', { name: 'Награда: Вятърна мелница' })
+    expect(detail.querySelector('[data-reward-icon="windmill"]')).not.toBeNull()
+    expect(detail).toHaveTextContent('Върти се, докато мъглата се вдига.')
+    expect(detail).toHaveTextContent('Как се отключва: ниво 15')
+    expect(within(detail).getByTestId('reward-progress')).toHaveTextContent('12 / 15')
+    expect(within(detail).queryByRole('button', { name: 'Скрий от пасището' })).toBeNull()
+    fireEvent.click(within(detail).getByRole('button', { name: 'Затвори' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
+  it('hides an unlocked reward from its detail (saved)', async () => {
+    patch.mockImplementation(async (_p: string, body: { hiddenItems: string[] }) => pastureView({ level: 12, badges: { early: { tier: 1, progress: 6 } } }, 'red', body.hiddenItems as never))
+    show()
+    fireEvent.click(await screen.findByRole('button', { name: 'Виж наградата: Кученце Шаро' }))
+    const detail = await screen.findByRole('dialog', { name: 'Награда: Кученце Шаро' })
+    expect(detail).toHaveTextContent('Отключено')
+    fireEvent.click(within(detail).getByRole('button', { name: 'Скрий от пасището' }))
+    await waitFor(() => expect(patch).toHaveBeenCalledWith('/api/me/pasture', { hiddenItems: ['dog'] }))
+    expect(await within(detail).findByRole('button', { name: 'Покажи в пасището' })).toBeInTheDocument()
+  })
+
+  it('opens the barn colour from its card', async () => {
+    show()
+    fireEvent.click(await screen.findByRole('button', { name: 'Виж наградата: Цвят на обора' }))
+    const detail = await screen.findByRole('dialog', { name: 'Награда: Цвят на обора' })
+    expect(detail).toHaveTextContent('Как се отключва: ниво 25')
+  })
+
   it('keeps the colours locked before level 25', async () => {
     show()
     const blue = await screen.findByRole('radio', { name: 'Цвят на обора: син' })

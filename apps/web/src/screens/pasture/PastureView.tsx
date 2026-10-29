@@ -1,11 +1,13 @@
 import { BARN_COLOR_KEYS, BARN_COLORS, PASTURE_KEYS, type BarnColor, type PastureKey } from '@bc/game-core'
 import type { PastureDto, PastureItemDto } from '@bc/protocol'
-import type { TFunction } from 'i18next'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Toggle } from '../../components/ui/Toggle'
 import { cx } from '../../components/ui/cx'
-import { isAllUnlocked, requirementOf, toggleItems, unlockedCount } from '../../features/pasture/pastureModel'
+import { isAllUnlocked, toggleItems, unlockedCount } from '../../features/pasture/pastureModel'
+import { RewardDetail } from '../../features/pasture/RewardDetail'
 import { LockIcon, RewardIcon } from '../../features/pasture/RewardIcon'
+import { itemName, requirementText } from '../../features/pasture/rewardText'
 
 export interface PastureViewProps {
   view: PastureDto
@@ -20,30 +22,24 @@ export interface PastureViewProps {
 const MUTED = { fontSize: 12, fontWeight: 800, color: 'var(--c-muted-aa)' } as const
 const LOCK_TAG = { background: '#F3EEDF', color: 'var(--c-muted-aa)' } as const
 
-export const itemName = (t: TFunction, key: PastureKey): string => t(`pasture.item.${key}.name`)
-
-/** „ниво 15“, „значка „Ранобудник““, „серия 30 дни“; locked ones add „12 / 15“. */
-export function requirementText(t: TFunction, item: PastureItemDto): string {
-  const req = requirementOf(item.key)
-  const base =
-    req.kind === 'level'
-      ? t('pasture.req.level', { level: req.level })
-      : req.badge === 'streak'
-        ? t('pasture.req.streak', { days: item.progress?.target ?? 30 })
-        : t('pasture.req.badge', { badge: t(`badge.${req.badge}.name`) })
-  return item.progress ? `${base} · ${t('pasture.progress', item.progress)}` : base
+interface RewardRowProps {
+  item: PastureItemDto
+  onToggle: PastureViewProps['onToggle']
+  onOpen(key: PastureKey): void
 }
 
-function RewardRow({ item, onToggle }: { item: PastureItemDto; onToggle: PastureViewProps['onToggle'] }) {
+function RewardRow({ item, onToggle, onOpen }: RewardRowProps) {
   const { t } = useTranslation()
   const name = itemName(t, item.key)
   return (
     <li className={cx('unl', !item.unlocked && 'off')} data-item={item.key} data-unlocked={item.unlocked}>
-      <span className="unl-ic">{item.unlocked ? <RewardIcon item={item.key} size={40} /> : <LockIcon />}</span>
-      <span style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-        <b style={{ fontSize: 15 }}>{name}</b>
-        <span style={MUTED}>{requirementText(t, item)}</span>
-      </span>
+      <button type="button" className="unl-open" aria-label={t('pasture.detail.open', { name })} onClick={() => onOpen(item.key)}>
+        <span className="unl-ic">{item.unlocked ? <RewardIcon item={item.key} size={40} /> : <LockIcon />}</span>
+        <span style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+          <b style={{ fontSize: 15 }}>{name}</b>
+          <span style={MUTED}>{requirementText(t, item)}</span>
+        </span>
+      </button>
       {item.unlocked ? (
         <Toggle on={item.shown} onChange={(v) => onToggle(item.key, v)} label={t('pasture.show', { name })} />
       ) : (
@@ -55,14 +51,16 @@ function RewardRow({ item, onToggle }: { item: PastureItemDto; onToggle: Pasture
   )
 }
 
-function ColorCard({ view, onColor }: Pick<PastureViewProps, 'view' | 'onColor'>) {
+function ColorCard({ view, onColor, onOpen }: Pick<PastureViewProps, 'view' | 'onColor'> & { onOpen(key: PastureKey): void }) {
   const { t } = useTranslation()
   const item = view.items.find((i) => i.key === 'barnColor')
   const open = item?.unlocked ?? false
   return (
     <section className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }} aria-label={t('pasture.barnColor')}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-        <b>{t('pasture.barnColor')}</b>
+        <button type="button" className="unl-open" aria-label={t('pasture.detail.open', { name: t('pasture.barnColor') })} onClick={() => onOpen('barnColor')}>
+          <b>{t('pasture.barnColor')}</b>
+        </button>
         {open || !item ? null : (
           <span className="tag" style={LOCK_TAG}>
             {requirementText(t, { ...item, progress: undefined })}
@@ -93,10 +91,12 @@ function ColorCard({ view, onColor }: Pick<PastureViewProps, 'view' | 'onColor'>
 export function PastureView({ view, desktop, onToggle, onColor, saveFailed = false }: PastureViewProps) {
   const { t } = useTranslation()
   const all = isAllUnlocked(view)
+  const [open, setOpen] = useState<PastureKey | null>(null)
+  const detail = open === null ? undefined : view.items.find((i) => i.key === open)
   const list = (
     <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 12 }} aria-label={t('pasture.rewards')}>
       {toggleItems(view).map((item) => (
-        <RewardRow key={item.key} item={item} onToggle={onToggle} />
+        <RewardRow key={item.key} item={item} onToggle={onToggle} onOpen={setOpen} />
       ))}
     </ul>
   )
@@ -121,7 +121,7 @@ export function PastureView({ view, desktop, onToggle, onColor, saveFailed = fal
           <p style={{ margin: 0, fontWeight: 700, color: '#4A5640', lineHeight: 1.5 }}>
             {t('pasture.allText')} {t('pasture.allColor', { color: t(`pasture.colorIn.${view.barnColor}`) })}
           </p>
-          <ColorCard view={view} onColor={onColor} />
+          <ColorCard view={view} onColor={onColor} onOpen={setOpen} />
           {list}
         </>
       ) : (
@@ -131,9 +131,10 @@ export function PastureView({ view, desktop, onToggle, onColor, saveFailed = fal
             <span style={MUTED}>{t('pasture.count', { count: unlockedCount(view), total: PASTURE_KEYS.length })}</span>
           </div>
           {list}
-          <ColorCard view={view} onColor={onColor} />
+          <ColorCard view={view} onColor={onColor} onOpen={setOpen} />
         </>
       )}
+      {detail ? <RewardDetail item={detail} onToggle={(show) => onToggle(detail.key, show)} onClose={() => setOpen(null)} /> : null}
     </>
   )
 }

@@ -47,14 +47,14 @@ export default defineConfig({
   projects: [
     {
       name: 'mobile',
-      testMatch: /(solo|duel|bot|share|badges)\.spec\.ts/,
+      testMatch: /(solo|duel|bot|share|badges|pages|modes|duels|account)\.spec\.ts/,
       // Chromium engine with the iPhone 13 viewport (390 wide); only Chromium is installed in CI.
       use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium' },
     },
     {
       name: 'desktop',
       // farm.spec and weekly.spec set their own artboard sizes (390×844 … 1440×900), so they run once, here.
-      testMatch: /(solo|duel|bot|share|badges|farm|weekly)\.spec\.ts/,
+      testMatch: /(solo|duel|bot|share|badges|farm|weekly|pages|modes|duels|account)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
     },
     compact('mk-660', 390, 660),
