@@ -107,8 +107,14 @@ jobs:
           retention-days: 7
 
   e2e-gallery:
+    name: e2e-gallery (${{ matrix.shard }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # axe on every screen is CPU-bound on the 2-core runner: three machines, not more workers on one.
+        shard: [1/3, 2/3, 3/3]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -139,12 +145,12 @@ jobs:
           VITE_AUTH_MODE: fake
       # The gallery screens are independent page loads of a static build, so they run on two workers.
       - name: Run Playwright gallery (axe and layout; screenshots only with CI_SCREENSHOTS=1)
-        run: pnpm --filter web exec playwright test --project=gallery --workers=2
+        run: pnpm --filter web exec playwright test --project=gallery --workers=2 --shard=${{ matrix.shard }}
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-gallery
+          name: playwright-report-gallery-${{ strategy.job-index }}
           path: |
             apps/web/playwright-report
             apps/web/test-results
