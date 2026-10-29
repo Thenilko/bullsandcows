@@ -16,8 +16,8 @@ export function History({ guesses }: { guesses: readonly GuessEntryDto[] }) {
     <ol aria-label={t('notebook.attempts')} style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
       {rows.map(({ g, n }) => (
         <li key={g.guess} className={cx('hrow', n === guesses.length && 'new')}>
-          <span style={{ width: 22, fontWeight: 900, color: 'var(--c-muted-aa)' }}>{n}</span>
-          <span style={{ fontWeight: 900, fontSize: 18, letterSpacing: '.1em' }}>{g.guess}</span>
+          <span style={{ width: 16, fontWeight: 900, color: 'var(--c-muted-aa)' }}>{n}</span>
+          <span style={{ fontWeight: 900, fontSize: 18, letterSpacing: '.08em' }}>{g.guess}</span>
           <span style={{ ...COUNT_STYLE, marginLeft: 'auto' }} aria-label={t('common.bull', { count: g.bulls })}>
             <BullIcon size={22} />
             {g.bulls}

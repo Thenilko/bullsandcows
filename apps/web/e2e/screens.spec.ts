@@ -107,3 +107,11 @@ for (const [screen, w, h] of ROW_CASES) {
     expect(cut).toEqual([])
   })
 }
+
+test('notebook rows stay on one line in the 360px desktop sheet with 5 digits', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await openScreen(page, 'weekly-play', 'bg')
+  const heights = await page.locator('.dk-notes .hrow').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))
+  expect(heights.length).toBeGreaterThan(0)
+  for (const h of heights) expect(h).toBeLessThan(52)
+})

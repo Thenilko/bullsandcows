@@ -181,7 +181,7 @@ input,textarea{font-family:inherit}
 .note small{position:absolute;left:0;right:0;bottom:3px;font-size:9px;font-weight:800;letter-spacing:.04em;text-decoration:none}
 .chip{flex:none;display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:12px;background:#FFFFFF;border:1.5px solid #DCD4BF;font-weight:800;color:#2E3B24}
 .chip.new{animation:ps-boing .45s cubic-bezier(.3,1.4,.5,1) both;border-color:#B5452F}
-.hrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:8px 10px;border-radius:12px;background:#FFFFFF;border:1.5px solid #ECE5D2}
+.hrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;padding:8px 10px;border-radius:12px;background:#FFFFFF;border:1.5px solid #ECE5D2}
 .hrow.new{animation:ps-rise .45s both;border-color:#E0B27A}
 .icobtn{display:flex;align-items:center;justify-content:center;gap:6px}
 .iconbox{width:44px;height:44px;border-radius:12px;background:#FFFFFF;border:1.5px solid #DCD4BF;flex:none}
