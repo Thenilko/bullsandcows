@@ -48,7 +48,8 @@ E2E: първия път `pnpm --filter web exec playwright install chromium`. �
 
 CI (`.github/workflows/ci.yml`): lint, typecheck, тестове с покритие, build, e2e. Скрийншот
 базите в `apps/web/e2e/__screenshots__` са рендерирани на macOS, затова в CI (Linux) пикселното
-сравнение се пропуска (axe и сценариите си вървят); с `CI_SCREENSHOTS=1` се включва. За Linux
+снимкови тестове не се пускат изобщо (axe, проверките на подредбата и сценариите си вървят); с
+`CI_SCREENSHOTS=1` се включват. За Linux
 бази по-късно: `docker run --rm -v "$PWD":/work -w /work mcr.microsoft.com/playwright:v1.64.1-noble
 bash -c "corepack enable && pnpm install --frozen-lockfile && pnpm --filter web exec playwright test
 --project=gallery --update-snapshots"`, после добави платформата в `snapshotPathTemplate` или
