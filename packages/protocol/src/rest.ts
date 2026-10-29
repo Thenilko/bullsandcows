@@ -289,6 +289,8 @@ export const LeaderboardRowDto = z.object({
   username: z.string(),
   attempts: z.number().int(),
   score: z.number().int(),
+  /** From „Старт“ to the winning guess (the desktop ВРЕМЕ column); null when unknown. */
+  durationMs: z.number().int().nullable().optional(),
   you: z.boolean(),
   level: z.number().int(),
   rankKey: RankKeySchema,

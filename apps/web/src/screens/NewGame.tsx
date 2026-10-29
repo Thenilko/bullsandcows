@@ -1,7 +1,7 @@
 import { totalCodes, type Len } from '@bc/game-core'
 import { isErrorCode } from '@bc/protocol'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { Shell } from '../app/layouts/Shell'
@@ -139,14 +139,11 @@ export function NewGame({ initial, weekly }: { initial?: NewGameInitial; weekly?
   const fresh = useMe().data
   const [len, setLen] = useState<Len>(initial?.len ?? me?.profile.defaultLen ?? 4)
   const [zero, setZero] = useState(initial?.zero ?? false)
-  const [kind, setKind] = useState<GameKind>(initial?.kind ?? 'daily')
-  const avg = useAverageAttempts(len, zero, kind)
+  const [picked, setKind] = useState<GameKind | null>(initial?.kind ?? null)
   const daily = useDailyStatus(len, zero)
-  const dailyDone = daily?.played != null
-  // Today's number is done for these settings: free play is what is left (a daily again is only practice).
-  useEffect(() => {
-    if (dailyDone && initial?.kind === undefined) setKind('free')
-  }, [dailyDone, initial?.kind])
+  // Until the player picks: today's number, or free play once it is done (a daily again is only practice).
+  const kind: GameKind = picked ?? (daily?.played ? 'free' : 'daily')
+  const avg = useAverageAttempts(len, zero, kind)
   const qc = useQueryClient()
   const create = useMutation({
     mutationFn: () => createGame({ len, zero, kind }),

@@ -58,6 +58,7 @@ export function rankLeaderboard(
       username: profiles.get(g.userId)?.username ?? '',
       attempts: g.attempts,
       score: g.score,
+      durationMs: g.startedAt === null ? null : g.finishedAt - g.startedAt,
       xp: profiles.get(g.userId)?.xp ?? 0,
       avatarSpecies: profiles.get(g.userId)?.avatarSpecies ?? 'bull',
       goldFrameUntil: profiles.get(g.userId)?.goldFrameUntil ?? null,
