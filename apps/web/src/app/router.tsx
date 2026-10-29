@@ -36,7 +36,7 @@ const duelRoom = (view: 'play' | 'result') => async () => {
   return { element: <DuelRoom view={view} /> }
 }
 
-type InfoPageName = 'PrivacyPage' | 'TermsPage' | 'LegalPage' | 'ChangelogPage' | 'PressPage' | 'SupportPage' | 'StoryPage'
+type InfoPageName = 'PrivacyPage' | 'TermsPage' | 'LegalPage' | 'ChangelogPage' | 'SupportPage' | 'StoryPage'
 
 /** Public info pages linked from the footer; readable without an account. */
 const infoRoutes: RouteObject[] = (
@@ -45,7 +45,6 @@ const infoRoutes: RouteObject[] = (
     ['/terms', 'TermsPage'],
     ['/legal', 'LegalPage'],
     ['/changelog', 'ChangelogPage'],
-    ['/press', 'PressPage'],
     ['/support', 'SupportPage'],
     ['/story', 'StoryPage'],
   ] as const satisfies readonly (readonly [string, InfoPageName])[]

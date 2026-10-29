@@ -3,7 +3,6 @@ export const INFO_KEYS = [
   'terms',
   'legal',
   'changelog',
-  'press',
   'support',
   'story',
 ] as const
@@ -22,14 +21,6 @@ export interface InfoPage {
   readonly updated?: string
   readonly sections?: readonly InfoSection[]
   readonly faq?: readonly { readonly q: string; readonly a: string }[]
-  readonly short?: string
-  readonly long?: string
-  readonly facts?: readonly { readonly label: string; readonly value: string }[]
-  readonly assets?: readonly {
-    readonly name: string
-    readonly href: string
-    readonly format: string
-  }[]
   readonly entries?: readonly { readonly date: string; readonly items: readonly string[] }[]
 }
 

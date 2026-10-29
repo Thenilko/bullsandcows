@@ -950,7 +950,6 @@
       "terms": "Terms",
       "legal": "Legal notice",
       "changelog": "What's new",
-      "press": "Press",
       "support": "Support"
     },
     "creator": "Danail Simeonov",
@@ -962,11 +961,6 @@
     "versionLabel": "Version {{version}} — what's new",
     "back": "‹ Back to the game",
     "updated": "Last updated: {{date}}",
-    "stillStuck": "Didn't find an answer? Write to us:",
-    "press": {
-      "about": "About the game",
-      "facts": "Facts",
-      "assets": "Logo and characters"
-    }
+    "stillStuck": "Didn't find an answer? Write to us:"
   }
 }
