@@ -1,37 +1,38 @@
-import { BUSHES, FRONT_FLOWERS, FRONT_TUFTS, MEADOW_FLOWERS, MEADOW_TUFTS_A, MEADOW_TUFTS_B } from './wideFlora'
+import { BushArt, Daisy, tuftPaths } from '../art/Plants'
+import {
+  BUSHES,
+  FRONT_FLOWERS,
+  FRONT_TUFTS,
+  MEADOW_FLOWERS,
+  MEADOW_TUFTS_A,
+  MEADOW_TUFTS_B,
+} from './wideFlora'
 
 type Tuft = readonly [x: number, y: number, dx: number, dy: number, mid: number]
 type Flower = readonly [cx: number, cy: number, fill: string]
 
-/** Three blades from (x, y): left, middle (vertical) and right, as the design draws them. */
-function tuftPath([x, y, dx, dy, mid]: Tuft): string {
-  return `M${x} ${y} l${-dx} ${-dy} M${x + 3} ${y} v${-mid} M${x + 6} ${y} l${dx} ${-dy}`
-}
-
 interface TuftsProps {
   tufts: readonly Tuft[]
-  stroke: string
-  width: number
+  /** Near tufts are a darker green. */
+  near?: boolean
 }
 
-function Tufts({ tufts, stroke, width }: TuftsProps) {
+/** Filled five-blade tufts (art/Plants): one path of the dark blades and one of the light ones. */
+function Tufts({ tufts, near = false }: TuftsProps) {
+  const parts = tufts.map(([x, y, dx, dy, mid]) => tuftPaths(x, y, dx, dy, mid))
   return (
-    <g stroke={stroke} strokeWidth={width} strokeLinecap="round" fill="none">
-      {tufts.map((t, i) => (
-        <path key={i} d={tuftPath(t)} />
-      ))}
+    <g>
+      <path d={parts.map((t) => t.dark).join(' ')} fill={near ? '#2F6424' : '#3A7629'} />
+      <path d={parts.map((t) => t.light).join(' ')} fill={near ? '#4A8F37' : '#5AA343'} />
     </g>
   )
 }
 
-function Flowers({ flowers }: { flowers: readonly Flower[] }) {
+function Flowers({ flowers, near = false }: { flowers: readonly Flower[]; near?: boolean }) {
   return (
     <g>
       {flowers.map(([cx, cy, fill], i) => (
-        <g key={i}>
-          <circle cx={cx} cy={cy} r="3" fill={fill} />
-          <circle cx={cx} cy={cy} r="1.1" fill="#F2C230" />
-        </g>
+        <Daisy key={i} cx={cx} cy={cy} fill={fill} s={near ? 1.5 : 1.15} outline={near} />
       ))}
     </g>
   )
@@ -40,9 +41,9 @@ function Flowers({ flowers }: { flowers: readonly Flower[] }) {
 /** Bushes along the far hill. */
 export function Bushes() {
   return (
-    <g fill="#5A9747">
+    <g>
       {BUSHES.map(([cx, cy, r], i) => (
-        <circle key={i} cx={cx} cy={cy} r={r} />
+        <BushArt key={i} cx={cx} cy={cy} r={r} />
       ))}
     </g>
   )
@@ -52,8 +53,8 @@ export function Bushes() {
 export function MeadowFlora() {
   return (
     <>
-      <Tufts tufts={MEADOW_TUFTS_A} stroke="#3A7629" width={2} />
-      <Tufts tufts={MEADOW_TUFTS_B} stroke="#3A7629" width={2} />
+      <Tufts tufts={MEADOW_TUFTS_A} />
+      <Tufts tufts={MEADOW_TUFTS_B} />
       <Flowers flowers={MEADOW_FLOWERS} />
     </>
   )
@@ -63,8 +64,8 @@ export function MeadowFlora() {
 export function FrontFlora() {
   return (
     <>
-      <Tufts tufts={FRONT_TUFTS} stroke="#346829" width={2.6} />
-      <Flowers flowers={FRONT_FLOWERS} />
+      <Tufts tufts={FRONT_TUFTS} near />
+      <Flowers flowers={FRONT_FLOWERS} near />
     </>
   )
 }

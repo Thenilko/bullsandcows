@@ -1,3 +1,4 @@
+import { OakArt, PoplarArt } from '../art/Plants'
 import { BarnShapes } from '../Landscape'
 
 /** Farmhouse with the chimney smoke (`ps-smoke`, three puffs with staggered delays in CSS). */
@@ -45,8 +46,7 @@ interface PlacedProps {
 export function Poplar({ x, y, scale }: PlacedProps) {
   return (
     <g transform={`translate(${x} ${y}) scale(${scale})`}>
-      <path d="M-2 0 L0 -18 L2 0Z" fill="#5E4129" />
-      <ellipse cx="0" cy="-30" rx="9" ry="22" fill="url(#psCanopy)" />
+      <PoplarArt />
     </g>
   )
 }
@@ -55,11 +55,7 @@ export function Poplar({ x, y, scale }: PlacedProps) {
 export function Oak() {
   return (
     <g transform="translate(1500 590) scale(2.0)">
-      <path d="M-4 0 C-3 -14 -3 -28 -5 -40 L5 -40 C3 -28 3 -14 5 0Z" fill="#5E4129" />
-      <circle cx="-16" cy="-52" r="20" fill="url(#psCanopy)" />
-      <circle cx="8" cy="-64" r="24" fill="url(#psCanopy)" />
-      <circle cx="22" cy="-46" r="18" fill="url(#psCanopy)" />
-      <circle cx="0" cy="-40" r="16" fill="url(#psCanopy)" />
+      <OakArt />
     </g>
   )
 }
