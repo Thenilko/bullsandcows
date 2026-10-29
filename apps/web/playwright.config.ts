@@ -73,6 +73,8 @@ export default defineConfig({
       // Screenshot regression and axe over the dev gallery (a build with VITE_DEV_SCREENS=1).
       name: 'gallery',
       testMatch: /(screens|a11y|pasture)\.spec\.ts/,
+      // Independent page loads of a static build: CI shards split them by test, not by file (a11y alone is 180).
+      fullyParallel: true,
       // Baselines are rendered on macOS; Linux CI skips the pixel comparison (axe still runs)
       // unless CI_SCREENSHOTS=1 (after regenerating them in the Playwright Docker image, see README).
       ignoreSnapshots: !!process.env.CI && !process.env.CI_SCREENSHOTS,
