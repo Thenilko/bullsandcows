@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { BullIcon, CowIcon } from '../../components/ui'
 import { cx } from '../../components/ui/cx'
 
-const WASTED_STYLE = { fontSize: 11, fontWeight: 900, padding: '2px 8px', borderRadius: 999, background: '#F9D7C8', color: '#8A1F0B' } as const
+// The badge may wrap under the row in a narrow notebook (5 digits in the 360px desktop sheet); it is never clipped.
+const WASTED_STYLE = { fontSize: 11, fontWeight: 900, padding: '2px 7px', borderRadius: 999, background: '#F9D7C8', color: '#8A1F0B', whiteSpace: 'nowrap', marginLeft: 'auto' } as const
 const COUNT_STYLE = { display: 'flex', alignItems: 'center', gap: 2, fontWeight: 900 } as const
 
 /** Attempts, newest first; the latest row plays the entrance animation. */
@@ -16,7 +17,7 @@ export function History({ guesses }: { guesses: readonly GuessEntryDto[] }) {
       {rows.map(({ g, n }) => (
         <li key={g.guess} className={cx('hrow', n === guesses.length && 'new')}>
           <span style={{ width: 22, fontWeight: 900, color: 'var(--c-muted-aa)' }}>{n}</span>
-          <span style={{ fontWeight: 900, fontSize: 18, letterSpacing: '.14em' }}>{g.guess}</span>
+          <span style={{ fontWeight: 900, fontSize: 18, letterSpacing: '.1em' }}>{g.guess}</span>
           <span style={{ ...COUNT_STYLE, marginLeft: 'auto' }} aria-label={t('common.bull', { count: g.bulls })}>
             <BullIcon size={22} />
             {g.bulls}
@@ -25,7 +26,7 @@ export function History({ guesses }: { guesses: readonly GuessEntryDto[] }) {
             <CowIcon size={22} />
             {g.cows}
           </span>
-          <span style={{ minWidth: 54, textAlign: 'right', fontSize: 12, fontWeight: 800, color: 'var(--c-muted-aa)' }}>
+          <span style={{ whiteSpace: 'nowrap', textAlign: 'right', fontSize: 12, fontWeight: 800, color: 'var(--c-muted-aa)' }}>
             {t('common.variantsShort', { count: g.left })}
           </span>
           {g.consistent ? null : (

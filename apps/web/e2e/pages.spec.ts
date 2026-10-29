@@ -83,7 +83,8 @@ test('guest: every screen of the main navigation and the locked ones say what a 
   await expect(page.getByRole('heading', { name: 'Играйте заедно' })).toBeVisible()
   await expectNoSideScroll(page)
 
-  await nav.getByRole('link', { name: 'Профил' }).click()
+  // Phone: the tab in the bottom nav; desktop: the player chip in the header („Профил: <name>“).
+  await page.getByRole('link', { name: /^Профил/ }).first().click()
   await expect(page).toHaveURL(/\/profile$/)
   await expect(page.getByRole('heading', { name: /^guest-/ })).toBeVisible()
   await expectNoSideScroll(page)

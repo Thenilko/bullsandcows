@@ -77,3 +77,33 @@ for (const screen of ['play-start', 'play-mid', 'weekly-play'] as const) {
     }
   })
 }
+
+/** Attempt rows in the notebook: with 5 digits the „излишен“ badge wraps inside the row, it is never cut. */
+const ROW_CASES: readonly [screen: string, w: number, h: number][] = [
+  ['weekly-play', 1100, 900],
+  ['weekly-play', 1440, 900],
+  ['play-mid', 1280, 768],
+  ['duel-play-classic', 1440, 900],
+  ['notebook', 390, 844],
+  ['notebook', 375, 667],
+]
+for (const [screen, w, h] of ROW_CASES) {
+  test(`notebook rows fit: ${screen} ${w}x${h}`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h })
+    await openScreen(page, screen, 'bg')
+    const rows = page.locator('.hrow')
+    expect(await rows.count()).toBeGreaterThan(0)
+    const cut = await rows.evaluateAll((els) =>
+      els.flatMap((row) => {
+        const r = row.getBoundingClientRect()
+        return [...row.children]
+          .filter((c) => {
+            const b = c.getBoundingClientRect()
+            return b.right > r.right - 1 || b.left < r.left
+          })
+          .map((c) => `${row.textContent}: ${c.textContent}`)
+      }),
+    )
+    expect(cut).toEqual([])
+  })
+}

@@ -24,7 +24,8 @@ export function DuelSetup({ mode }: { mode: SetupMode }) {
   const cta =
     mode === 'bot' ? 'newGame.cta.bot' : quick ? 'newGame.cta.quick' : 'newGame.cta.invite'
   return (
-    <Shell scene={IDLE_SCENE} screen="new" title={t('duel.title.setup')}>
+    // The crumb names the mode; the panel's own heading already says „Нова игра“.
+    <Shell scene={IDLE_SCENE} screen="new" title={t(mode === 'bot' ? 'newGame.mode.bot.name' : 'newGame.mode.duel.name')}>
       <section aria-label={t('duel.title.setup')} style={COL}>
         <h1
           className="rise"
