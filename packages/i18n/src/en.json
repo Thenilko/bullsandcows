@@ -149,6 +149,14 @@
     },
     "start": "Start playing"
   },
+  "caption": {
+    "rules": "Welcome to the herd",
+    "board": "Today's herd",
+    "profile": "Your pasture"
+  },
+  "header": {
+    "streak": "Streak {{count}}"
+  },
   "newGame": {
     "daily": {
       "title": "Number of the day #{{number}}",

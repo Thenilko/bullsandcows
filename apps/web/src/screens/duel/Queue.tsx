@@ -106,7 +106,7 @@ export interface QueueViewProps {
 export function QueueView({ settings, elapsedMs, queued = null, level, rankKey, species, error, showSuggest, inviteError, onInvite, onCancel, onProfile }: QueueViewProps) {
   const { t } = useTranslation()
   return (
-    <Shell scene={WAIT_SCENE} screen="new">
+    <Shell scene={WAIT_SCENE} screen="new" title={t('duel.title.queue')}>
       <section aria-label={t('duel.title.queue')} style={COLUMN}>
         {error === 'guest' ? (
           <GuestBlock onProfile={onProfile} onBack={onCancel} />

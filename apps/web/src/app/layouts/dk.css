@@ -73,6 +73,31 @@
   gap: 10px;
 }
 
+/* „Серия N“ and the player (Desk.dc.html header). */
+.dk-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #fffdf6;
+  font-weight: 900;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.dk-me {
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  font-size: 15px;
+}
+
+.dk-me-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .dk-hud {
   position: absolute;
   z-index: 6;

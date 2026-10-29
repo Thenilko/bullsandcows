@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
+import { BandChips, SceneCaption } from '../app/layouts/BandChips'
 import { Shell } from '../app/layouts/Shell'
 import { useAuth } from '../features/auth/useAuth'
 import { SiteFooter } from '../features/legal/SiteFooter'
 import { useBadges } from '../features/stats/useBadges'
 import { useMe } from '../features/stats/useMe'
 import { useUpdateSettings } from '../features/stats/useUpdateSettings'
+import { useIsDesktop } from '../hooks/useIsDesktop'
 import { IDLE_SCENE } from './idleScene'
 import { ProfileView, type ProfileTab } from './profile/ProfileView'
 
@@ -21,6 +23,7 @@ function useProfileTab(): [ProfileTab, (tab: ProfileTab) => void] {
 
 export function Profile() {
   const { t } = useTranslation()
+  const desktop = useIsDesktop()
   const { logout } = useAuth()
   const me = useMe()
   const badges = useBadges(me.data !== undefined)
@@ -28,7 +31,17 @@ export function Profile() {
   const [tab, setTab] = useProfileTab()
   const navigate = useNavigate()
   return (
-    <Shell scene={IDLE_SCENE} screen="profile">
+    <Shell
+      scene={IDLE_SCENE}
+      screen="profile"
+      hud={
+        desktop ? (
+          <SceneCaption text={t('caption.profile')} />
+        ) : !me.data ? undefined : (
+          <BandChips title={t('nav.profile')} sub={t('profile.streakBand', { count: me.data.stats.streak })} />
+        )
+      }
+    >
       {me.data ? (
         <ProfileView
           me={me.data}

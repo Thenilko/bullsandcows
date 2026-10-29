@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
+import { BandChips, SceneCaption } from '../app/layouts/BandChips'
 import { Shell } from '../app/layouts/Shell'
 import { useSession } from '../features/auth/session'
 import { SiteFooter } from '../features/legal/SiteFooter'
@@ -67,7 +68,12 @@ export function Rules() {
   }
 
   return (
-    <Shell scene={IDLE_SCENE} screen="rules" bare={!authed}>
+    <Shell
+      scene={IDLE_SCENE}
+      screen="rules"
+      bare={!authed}
+      hud={desktop ? <SceneCaption text={t('caption.rules')} /> : <BandChips title={t('nav.rules')} sub={t('rules.band')} />}
+    >
       <section aria-label={t('rules.area')} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <h1 className="rise" style={{ margin: 0, fontSize: desktop ? 40 : 30, fontWeight: 900 }}>
           {t('rules.title')}
