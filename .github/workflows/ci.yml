@@ -56,10 +56,17 @@ jobs:
           VITE_AUTH_MODE: fake
         run: pnpm build
 
+  # The Playwright jobs build their own client, so they do not wait for `build`. Chromium is cached by version.
   e2e:
-    needs: build
+    name: e2e (${{ matrix.project }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # One job per project, each with its own Worker: the flows stay sequential inside a job (quick duels pair
+        # through the shared queue), but the phone and the desktop run side by side.
+        project: [mobile, desktop]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -68,21 +75,31 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Cache Chromium
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - name: Install Chromium
         working-directory: apps/web
-        run: pnpm exec playwright install --with-deps chromium
-      # `pnpm e2e` locally; split in two jobs here so each stays well inside the timeout.
+        run: |
+          if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
+            pnpm exec playwright install-deps chromium
+          else
+            pnpm exec playwright install --with-deps chromium
+          fi
       - name: Build web (fake auth) for the local Worker assets
         run: pnpm --filter web build
         env:
           VITE_AUTH_MODE: fake
       - name: Run Playwright flows (fake auth, memory repo, no secrets)
-        run: pnpm --filter web exec playwright test --project=mobile --project=desktop
+        run: pnpm --filter web exec playwright test --project=${{ matrix.project }}
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: |
             apps/web/playwright-report
             apps/web/test-results
@@ -90,9 +107,14 @@ jobs:
           retention-days: 7
 
   e2e-gallery:
-    needs: build
+    name: e2e-gallery (${{ matrix.shard }})
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        # The gallery screens are independent page loads of a static build: split in two jobs, two workers each.
+        shard: [1/2, 2/2]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -101,9 +123,20 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Cache Chromium
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - name: Install Chromium
         working-directory: apps/web
-        run: pnpm exec playwright install --with-deps chromium
+        run: |
+          if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
+            pnpm exec playwright install-deps chromium
+          else
+            pnpm exec playwright install --with-deps chromium
+          fi
       # Screenshot baselines are rendered on macOS, so CI runs axe over the gallery but skips the
       # pixel comparison (playwright.config.ts: ignoreSnapshots). CI_SCREENSHOTS=1 turns it on.
       - name: Build web (fake auth) for the local Worker assets
@@ -111,12 +144,12 @@ jobs:
         env:
           VITE_AUTH_MODE: fake
       - name: Run Playwright gallery (axe; screenshots only with CI_SCREENSHOTS=1)
-        run: pnpm --filter web exec playwright test --project=gallery
+        run: pnpm --filter web exec playwright test --project=gallery --shard=${{ matrix.shard }} --workers=2
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-gallery
+          name: playwright-report-gallery-${{ strategy.job-index }}
           path: |
             apps/web/playwright-report
             apps/web/test-results
