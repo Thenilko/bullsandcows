@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Shell } from '../app/layouts/Shell'
 import { BadgeToastHost } from '../features/badges/BadgeToastHost'
 import { useBadgeToasts } from '../features/badges/toastStore'
@@ -56,10 +56,11 @@ export const BadgeDetailScreen = () => profile(meFixture, BADGES, 'sherlock')
 
 /** The „Нова значка!“ toast over the result (sticky, so the screenshot catches it). */
 export function BadgeToastScreen() {
-  useState(() => {
+  // After commit, not during render: the app-wide toast host listens to this store, and a store write on every
+  // suspended retry of the lazy wide scene re-rendered that host and restarted the retry, so it never settled.
+  useEffect(() => {
     useBadgeToasts.setState({ queue: [{ key: 'sherlock', tier: 2 }], shown: 1 })
-    return true
-  })
+  }, [])
   return (
     <>
       <ResultLoaded model={buildResult(wonGame, fallbackDistribution)} />
