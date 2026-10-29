@@ -58,3 +58,22 @@ for (const [key, screen, w, h] of COMPACT) {
     await expect(page).toHaveScreenshot(`${key}-${screen}-${w}x${h}.png`, { animations: 'disabled', maxDiffPixelRatio: 0.01 })
   })
 }
+
+/** The hanging board and the notes sheet on the immersive desktop (from 1100×820): side by side at every width. */
+const FRAME = 11 // the board's wooden frame is a box-shadow ring outside its box
+for (const screen of ['play-start', 'play-mid', 'weekly-play'] as const) {
+  test(`immersive ${screen}: the board, the notes and the hud never overlap`, async ({ page }) => {
+    for (const w of [1100, 1180, 1280, 1366, 1440, 1536, 1920]) {
+      await page.setViewportSize({ width: w, height: 900 })
+      await openScreen(page, screen, 'bg')
+      const box = async (selector: string) => (await page.locator(selector).first().boundingBox())!
+      const board = await box('.dk-imm .dk-game')
+      const notes = await box('.dk-imm .dk-notes')
+      const hud = await box('.dk-imm .dk-hud')
+      expect(board.x - FRAME, `${w}: board on screen`).toBeGreaterThanOrEqual(0)
+      expect(board.x + board.width + FRAME, `${w}: board left of the notes`).toBeLessThanOrEqual(notes.x)
+      expect(board.x + board.width + FRAME, `${w}: board left of the hud`).toBeLessThanOrEqual(hud.x)
+      if (w >= 1440) expect(Math.round(board.x + board.width / 2), `${w}: centred`).toBe(w / 2)
+    }
+  })
+}
