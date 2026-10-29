@@ -9,7 +9,6 @@ const INFO_PAGES = [
   ['Условия', '/terms'],
   ['Правна информация', '/legal'],
   ['Какво ново', '/changelog'],
-  ['За медии', '/press'],
   ['Подкрепа', '/support'],
 ] as const
 

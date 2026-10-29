@@ -253,7 +253,7 @@ function BackChevron() {
   )
 }
 
-/** „‹ Меню“: shown by `.ps-exit` only in focus mode (compact phones hide the tab bar); leads to the new-game screen. */
+/** „‹ Меню“: shown by `.ps-exit` only in focus mode (compact phones hide the tab bar); leads to the leaderboard, as in PasMobile `exitPlay`. */
 export function ExitButton() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -262,7 +262,7 @@ export function ExitButton() {
       type="button"
       className="ps-hud ps-exit"
       aria-label={t('play.exitAria')}
-      onClick={() => void navigate('/new')}
+      onClick={() => void navigate('/board')}
     >
       <BackChevron />
       {t('play.exit')}

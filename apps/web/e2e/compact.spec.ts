@@ -111,13 +111,15 @@ test('solo: new game, start card, full-screen countdown, focus mode, „Меню
   await expect(page.getByRole('button', { name: 'Предавам се' })).toBeVisible()
   await page.getByRole('button', { name: 'Затвори' }).click()
 
-  // „Меню“ leaves to the new-game screen (the game stays resumable), the tab bar is back there.
+  // „Меню“ leaves to the leaderboard (the game stays resumable), the tab bar is back there.
   const menu = page.getByRole('button', { name: 'Изход от играта' })
   await expectInViewport(page, menu)
   await menu.click()
-  await expect(page).toHaveURL(/\/new$/)
-  await expect(page.getByRole('navigation', { name: 'Основна навигация' })).toBeVisible()
-  await page.getByRole('button', { name: 'Продължи' }).click()
+  await expect(page).toHaveURL(/\/board$/)
+  const nav = page.getByRole('navigation', { name: 'Основна навигация' })
+  await expect(nav).toBeVisible()
+  // „Игра“ in the tab bar resumes the running game.
+  await nav.getByRole('link', { name: 'Игра' }).click()
   await expect(page).toHaveURL(/\/play\/[^/]+$/)
   await expectFocusMode(page)
 

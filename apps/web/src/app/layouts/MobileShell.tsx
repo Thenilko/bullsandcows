@@ -12,6 +12,7 @@ const TAB_ICONS = [HomeIcon, TrophyIcon, UserIcon, QuestionIcon] as const
 
 export function MobileShell({
   scene,
+  screen,
   children,
   bare = false,
   panelTop,
@@ -40,6 +41,7 @@ export function MobileShell({
           play && fit && styles.fit,
           tall && styles.tall,
           bare && styles.bare,
+          screen === 'result' && styles.result,
         )}
         style={vars}
       >

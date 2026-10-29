@@ -180,6 +180,11 @@
     display: none;
   }
 
+  /* MK7: the result sheet takes the whole height on short phones; tall ones keep the tab bar (М5). */
+  .result .tabbar {
+    display: none;
+  }
+
   .hudBottom :global(.ostrip) {
     padding: 6px 10px;
   }
