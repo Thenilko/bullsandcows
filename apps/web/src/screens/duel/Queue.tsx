@@ -72,6 +72,7 @@ export function Queue() {
     <QueueView
       settings={settings}
       elapsedMs={queue.elapsedMs}
+      queued={queue.queued}
       level={level}
       rankKey={rankKey}
       species={species}
@@ -88,6 +89,8 @@ export function Queue() {
 export interface QueueViewProps {
   settings: MatchSettings
   elapsedMs: number
+  /** Players in the queue right now, me included (null: not known yet). */
+  queued?: number | null
   level: number
   /** My title, for the avatar; the calf for guests. */
   rankKey?: RankKey
@@ -100,10 +103,10 @@ export interface QueueViewProps {
   onProfile(): void
 }
 
-export function QueueView({ settings, elapsedMs, level, rankKey, species, error, showSuggest, inviteError, onInvite, onCancel, onProfile }: QueueViewProps) {
+export function QueueView({ settings, elapsedMs, queued = null, level, rankKey, species, error, showSuggest, inviteError, onInvite, onCancel, onProfile }: QueueViewProps) {
   const { t } = useTranslation()
   return (
-    <Shell scene={WAIT_SCENE} screen="new">
+    <Shell scene={WAIT_SCENE} screen="new" title={t('duel.title.queue')}>
       <section aria-label={t('duel.title.queue')} style={COLUMN}>
         {error === 'guest' ? (
           <GuestBlock onProfile={onProfile} onBack={onCancel} />
@@ -122,6 +125,11 @@ export function QueueView({ settings, elapsedMs, level, rankKey, species, error,
             <span style={{ fontSize: 36, fontWeight: 900, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{fmtClock(elapsedMs)}</span>
             <WindowCard elapsedMs={elapsedMs} level={level} />
             <SettingChips {...settings} />
+            {queued !== null ? (
+              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--c-muted-aa)' }} data-testid="queued">
+                {t('duel.queue.queued', { count: queued })}
+              </span>
+            ) : null}
             {error ? (
               <p role="alert" style={{ margin: 0, fontWeight: 800, color: '#8A1F0B' }}>
                 {t('error.network')}

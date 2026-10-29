@@ -263,6 +263,8 @@ describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
         weekStartMs: NOW - 1,
       })
       expect(rows.find((r) => r.userId === winner)?.goldFrameUntil).toBe(until)
+      // The ВРЕМЕ column: from the start to the winning guess.
+      expect(rows.find((r) => r.userId === winner)?.durationMs).toBe(60_000)
     })
   })
 

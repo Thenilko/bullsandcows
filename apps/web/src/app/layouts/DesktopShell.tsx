@@ -13,7 +13,9 @@ import {
   QuestionIcon,
 } from '../../components/ui/icons'
 import { LangSwitch } from '../../components/ui/LangSwitch'
+import { RankAvatar } from '../../components/ui/RankAvatar'
 import { Soft } from '../../components/ui/Soft'
+import { useSession } from '../../features/auth/session'
 import { useScenePasture } from '../../features/pasture/usePasture'
 import { useSoundToggle } from '../../features/stats/useSoundToggle'
 import { useDesktopMode } from '../../hooks/useDesktopMode'
@@ -78,7 +80,38 @@ function Nav() {
   )
 }
 
-/** Logo pill (with the PasDuel „· {title}“), the nav, „Нова игра“, the language and sound toggles. */
+function FlameIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="#F2C230" stroke="#B5452F" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 2c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-5.5 1-8.5z" />
+    </svg>
+  )
+}
+
+/** Desk.dc.html header: „Серия N“ (wins in a row) and the player with their title. */
+function PlayerChips() {
+  const { t } = useTranslation()
+  const me = useSession((s) => s.me)
+  // A stored session from an older version may lack parts of the profile: no chips rather than a crash.
+  if (!me?.profile || !me.stats) return null
+  return (
+    <>
+      <span className="dk-chip" data-testid="header-streak">
+        <FlameIcon />
+        {t('header.streak', { count: me.stats.streak })}
+      </span>
+      <span className="dk-chip dk-me" data-testid="header-player">
+        <RankAvatar species={me.profile.avatarSpecies} rankKey={me.rankKey} size={34} gold={me.goldFrame === true} />
+        <span className="dk-me-name">{me.profile.username}</span>
+      </span>
+    </>
+  )
+}
+
+/**
+ * Logo pill (with the PasDuel „· {title}“), the nav, „Нова игра“, the player's chips and the sound toggle. The
+ * language switch sits here only on the bare screens (login); signed in it lives in the profile settings.
+ */
 function Header({ bare, title }: { bare: boolean; title?: string }) {
   const { t } = useTranslation()
   const { pathname } = useLocation()
@@ -95,7 +128,7 @@ function Header({ bare, title }: { bare: boolean; title?: string }) {
       {bare ? null : <Nav />}
       <div className="dk-tools">
         {showNewGame ? <Soft small onClick={() => void navigate('/new')}>{t('common.newGame')}</Soft> : null}
-        <LangSwitch />
+        {bare ? <LangSwitch /> : <PlayerChips />}
         <button
           type="button"
           className="iconbox icobtn"

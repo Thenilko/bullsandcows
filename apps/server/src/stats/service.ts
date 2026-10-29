@@ -129,6 +129,7 @@ export class StatsService implements DistributionSource {
         username: r.username,
         attempts: r.attempts,
         score: r.score,
+        durationMs: r.durationMs,
         you: r.userId === user.id,
         level,
         rankKey: rankKeyForLevel(level),

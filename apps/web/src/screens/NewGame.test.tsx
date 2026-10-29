@@ -40,11 +40,36 @@ beforeEach(() => {
   useSession.setState({ session: null, me: meWith(null) })
   // The screen refreshes the profile (`currentGameId`) and asks for the distribution.
   api.get.mockImplementation((url: string) =>
-    Promise.resolve(url.startsWith('/api/me') ? meWith(null) : { histogram: [0, 0, 10, 10], sample: 20, fallback: true }),
+    Promise.resolve(
+      url.startsWith('/api/me')
+        ? meWith(null)
+        : url.startsWith('/api/games/daily')
+          ? daily
+          : { histogram: [0, 0, 10, 10], sample: 20, fallback: true },
+    ),
   )
 })
 
+let daily: { number: number; played: { won: boolean; attempts: number } | null } = { number: 8, played: null }
+beforeEach(() => {
+  daily = { number: 8, played: null }
+})
+
 describe('NewGame', () => {
+  it('shows today\'s number and keeps the daily game while it is not played', async () => {
+    show()
+    expect(await screen.findByText('Число на деня #8')).toBeInTheDocument()
+    expect(screen.getByText('Едно и също за всички днес.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Дневно' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('once today\'s number is guessed, says so and switches to free play', async () => {
+    daily = { number: 8, played: { won: true, attempts: 5 } }
+    show()
+    expect(await screen.findByText('Едно и също за всички днес. Вече го позна — 5 опита.')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Свободно' })).toHaveAttribute('aria-pressed', 'true'))
+  })
+
   it('defaults to the profile length, no zero, daily and shows the average', async () => {
     show()
     expect(screen.getByRole('button', { name: '4' })).toHaveAttribute('aria-pressed', 'true')

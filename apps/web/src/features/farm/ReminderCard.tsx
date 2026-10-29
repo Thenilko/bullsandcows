@@ -11,6 +11,12 @@ const DEFAULT_TIME = '19:00'
  * П4 „Напомняне всеки ден?“: picks a time and keeps it in the profile (`reminderTime`). Nothing is sent yet —
  * push notifications are a later part of the spec.
  */
+/**
+ * Daily reminders need Web Push (ЧАСТ 4), which is off until it is decided separately; without it the card would
+ * promise a notification that never comes. A build with `VITE_PUSH_ENABLED=1` shows it.
+ */
+export const pushEnabled = (): boolean => import.meta.env.VITE_PUSH_ENABLED === '1'
+
 export function ReminderCard() {
   const { t } = useTranslation()
   const saved = useSession((s) => s.me?.profile.reminderTime ?? null)

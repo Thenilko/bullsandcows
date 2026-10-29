@@ -65,8 +65,9 @@ export class QueueRoom extends DurableObject<CloudflareBindings> {
       format: msg.format,
       joinedAt: now,
     }
-    await this.saveQueue(enqueue(await this.loadQueue(), entry))
-    send(ws, { t: 'waiting', elapsedMs: 0, suggestInvite: false })
+    const queue = enqueue(await this.loadQueue(), entry)
+    await this.saveQueue(queue)
+    send(ws, { t: 'waiting', elapsedMs: 0, suggestInvite: false, queued: queue.entries.length })
     await this.ensureAlarm(now)
   }
 
@@ -90,6 +91,7 @@ export class QueueRoom extends DurableObject<CloudflareBindings> {
         t: 'waiting',
         elapsedMs,
         suggestInvite: elapsedMs > SUGGEST_INVITE_MS,
+        queued: queue.entries.length,
       })
     }
     if (queue.entries.length > 0) await this.ctx.storage.setAlarm(now + WINDOW_STEP_MS)

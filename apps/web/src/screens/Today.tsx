@@ -8,7 +8,7 @@ import { Shell } from '../app/layouts/Shell'
 import { Cta, Sign } from '../components/ui'
 import { useSession } from '../features/auth/session'
 import { NudgeCard } from '../features/farm/NudgeBanner'
-import { ReminderCard } from '../features/farm/ReminderCard'
+import { pushEnabled, ReminderCard } from '../features/farm/ReminderCard'
 import { useDismissNudge, useMyNudge } from '../features/farm/useFarm'
 import { createGame } from '../features/solo/api'
 import { ME_KEY } from '../features/stats/useMe'
@@ -120,7 +120,7 @@ export function Today() {
           sfx.play('tap')
           play.mutate()
         }}
-        reminder={<ReminderCard />}
+        reminder={pushEnabled() ? <ReminderCard /> : null}
       />
     </TodayShell>
   )

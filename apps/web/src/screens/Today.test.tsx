@@ -31,7 +31,10 @@ beforeEach(() => {
   })
 })
 
-afterEach(() => resetViewport())
+afterEach(() => {
+  resetViewport()
+  vi.unstubAllEnvs()
+})
 
 describe('Today (П4)', () => {
   it('shows the nudge banner and hides it for good with ×', async () => {
@@ -53,7 +56,14 @@ describe('Today (П4)', () => {
     expect(await screen.findByText('elsewhere')).toBeInTheDocument()
   })
 
+  it('offers no reminder while push notifications are off', async () => {
+    renderRoute(<Today />, { path: '/today', at: '/today' })
+    await screen.findByRole('button', { name: 'Играй сега' })
+    expect(screen.queryByLabelText('Час за напомнянето')).toBeNull()
+  })
+
   it('keeps the reminder time in the profile only', async () => {
+    vi.stubEnv('VITE_PUSH_ENABLED', '1')
     patch.mockResolvedValue({ ...meFixture, profile: { ...meFixture.profile, reminderTime: '20:30' } })
     renderRoute(<Today />, { path: '/today', at: '/today' })
     fireEvent.change(await screen.findByLabelText('Час за напомнянето'), { target: { value: '20:30' } })

@@ -132,9 +132,9 @@ describe('leaderboard', () => {
     await played({ ...daily, userId: ivo.id, practice: true }, { score: 1100, attempts: 2 })
     const board = await stats.leaderboard(mira, q)
     expect(board.rows).toEqual([
-      { rank: 1, username: 'Rada', attempts: 4, score: 900, you: false, level: 1, rankKey: 'herdsman', avatarSpecies: 'bull', goldFrame: false },
-      { rank: 2, username: 'Ivo', attempts: 5, score: 800, you: false, level: 1, rankKey: 'herdsman', avatarSpecies: 'bull', goldFrame: false },
-      { rank: 3, username: 'Mira', attempts: 6, score: 700, you: true, level: 1, rankKey: 'herdsman', avatarSpecies: 'bull', goldFrame: false },
+      { rank: 1, username: 'Rada', attempts: 4, score: 900, durationMs: 120_000, you: false, level: 1, rankKey: 'herdsman', avatarSpecies: 'bull', goldFrame: false },
+      { rank: 2, username: 'Ivo', attempts: 5, score: 800, durationMs: 120_000, you: false, level: 1, rankKey: 'herdsman', avatarSpecies: 'bull', goldFrame: false },
+      { rank: 3, username: 'Mira', attempts: 6, score: 700, durationMs: 120_000, you: true, level: 1, rankKey: 'herdsman', avatarSpecies: 'bull', goldFrame: false },
     ])
     expect(board.me).toMatchObject({ rank: 3, score: 700 })
     expect(board.me?.top).toBeGreaterThan(0)

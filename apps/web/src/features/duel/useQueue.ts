@@ -15,6 +15,8 @@ export type QueueError = 'guest' | 'closed' | 'server'
 export interface QueueApi {
   elapsedMs: number
   suggestInvite: boolean
+  /** Players in the queue, me included; null until the server says. */
+  queued: number | null
   matched: { roomId: string; token: string } | null
   error: QueueError | null
   leave(): void
@@ -31,6 +33,7 @@ export function useQueue({ len, zero, format }: QueueOptions): QueueApi {
   const stopRef = useRef<(() => void) | null>(null)
   const [waiting, setWaiting] = useState<Waiting>(() => ({ baseMs: 0, at: Date.now() }))
   const [suggestInvite, setSuggestInvite] = useState(false)
+  const [queued, setQueued] = useState<number | null>(null)
   const [matched, setMatched] = useState<QueueApi['matched']>(null)
   const [remoteError, setRemoteError] = useState<QueueError | null>(null)
   const now = useNow(250, !matched)
@@ -43,6 +46,7 @@ export function useQueue({ len, zero, format }: QueueOptions): QueueApi {
       if (m.t === 'waiting') {
         setWaiting({ baseMs: m.elapsedMs, at: Date.now() })
         setSuggestInvite(m.suggestInvite)
+        if (m.queued !== undefined) setQueued(m.queued)
       } else if (m.t === 'matched') {
         matchedYet = true
         setMatched({ roomId: m.roomId, token: m.token })
@@ -67,5 +71,5 @@ export function useQueue({ len, zero, format }: QueueOptions): QueueApi {
 
   const leave = useCallback(() => stopRef.current?.(), [])
   const elapsedMs = waiting.baseMs + Math.max(0, now - waiting.at)
-  return { elapsedMs, suggestInvite, matched, error: isGuest ? 'guest' : remoteError, leave }
+  return { elapsedMs, suggestInvite, queued, matched, error: isGuest ? 'guest' : remoteError, leave }
 }

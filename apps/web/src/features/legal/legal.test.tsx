@@ -60,11 +60,12 @@ describe('SiteFooter', () => {
       ['Условия', '/terms'],
       ['Правна информация', '/legal'],
       ['Какво ново', '/changelog'],
-      ['За медии', '/press'],
       ['Подкрепа', '/support'],
     ] as const) {
       expect(screen.getByRole('link', { name })).toHaveAttribute('href', href)
     }
+    // The press page stays reachable by its address, without a link in the footer.
+    expect(screen.queryByRole('link', { name: 'За медии' })).toBeNull()
     expect(screen.getByRole('link', { name: /историята зад играта/ })).toHaveAttribute(
       'href',
       '/story',

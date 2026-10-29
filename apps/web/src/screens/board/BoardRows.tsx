@@ -2,11 +2,12 @@ import type { LeaderboardRowDto } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
 import { cx } from '../../components/ui/cx'
 import { RankAvatar } from '../../components/ui/RankAvatar'
+import { formatClock } from '../result/resultModel'
 
 const FIRST_LIST_RANK = 4
 const ROW_AVATAR = 30
 
-const WIDE_COLUMNS = '50px 36px minmax(0, 1fr) 80px 90px'
+const WIDE_COLUMNS = '50px 36px minmax(0, 1fr) 80px 80px 90px'
 const HEAD = { fontSize: 12, fontWeight: 900, letterSpacing: '.06em', color: 'var(--c-muted-aa)' } as const
 
 function WideHeader() {
@@ -25,6 +26,7 @@ function WideHeader() {
       <span />
       <span>{t('board.col.player')}</span>
       <span style={{ textAlign: 'right' }}>{t('board.col.attempts')}</span>
+      <span style={{ textAlign: 'right' }}>{t('board.col.time')}</span>
       <span style={{ textAlign: 'right' }}>{t('board.col.points')}</span>
     </div>
   )
@@ -79,6 +81,11 @@ export function BoardRows({
             <span style={{ fontWeight: 700, color: '#4A5640', textAlign: 'right', fontSize: 13 }}>
               {wide ? r.attempts : t('common.attemptsShort', { count: r.attempts })}
             </span>
+            {wide ? (
+              <span style={{ fontWeight: 700, color: '#4A5640', textAlign: 'right', fontSize: 13 }} data-col="time">
+                {r.durationMs == null ? '—' : formatClock(r.durationMs / 1000)}
+              </span>
+            ) : null}
             <span style={{ fontWeight: 900, textAlign: 'right' }}>{r.score}</span>
           </li>
         ))}

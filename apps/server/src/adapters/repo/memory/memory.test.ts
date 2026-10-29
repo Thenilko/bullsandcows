@@ -392,8 +392,8 @@ describe('memory leaderboard', () => {
     )
     await finishedGame({ userId: 'u3' }, { attempts: 1, score: 1200 })
     expect(await repo.games.leaderboard({ ...q, period: 'today' })).toEqual([
-      { userId: 'u2', username: 'Rada', attempts: 5, score: 700, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
-      { userId: 'u1', username: 'Mira', attempts: 6, score: 700, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
+      { userId: 'u2', username: 'Rada', attempts: 5, score: 700, durationMs: null, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
+      { userId: 'u1', username: 'Mira', attempts: 6, score: 700, durationMs: null, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
     ])
   })
 
@@ -437,14 +437,15 @@ describe('memory leaderboard', () => {
     await finishedGame({ userId: 'u3', kind: 'bot' }, { attempts: 1, score: 1200 })
     await finishedGame({ userId: 'u3', practice: true }, { attempts: 1, score: 1200 })
     expect(await repo.games.leaderboard({ ...q, period: 'week' })).toEqual([
-      { userId: 'u2', username: 'Rada', attempts: 3, score: 1000, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
-      { userId: 'u1', username: 'Mira', attempts: 4, score: 900, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
+      { userId: 'u2', username: 'Rada', attempts: 3, score: 1000, durationMs: null, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
+      { userId: 'u1', username: 'Mira', attempts: 4, score: 900, durationMs: null, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
     ])
     expect((await repo.games.leaderboard({ ...q, period: 'all' }))[0]).toEqual({
       userId: 'u1',
       username: 'Mira',
       attempts: 2,
       score: 1100,
+      durationMs: null,
       xp: 0,
       avatarSpecies: 'bull',
       goldFrameUntil: null,

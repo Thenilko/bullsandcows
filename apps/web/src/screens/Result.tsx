@@ -26,7 +26,7 @@ function Loaded({ model, sharing = false }: { model: ResultModel; sharing?: bool
   }
 
   return (
-    <Shell scene={model.scene} screen="result" bare>
+    <Shell scene={model.scene} screen="result">
       <ResultView
         model={model}
         shareLabel={t('common.share')}

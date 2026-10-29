@@ -181,6 +181,8 @@ export interface LeaderboardRow {
   readonly username: string
   readonly attempts: number
   readonly score: number
+  /** From „Старт“ to the winning guess; null for a game never started on the clock. */
+  readonly durationMs: number | null
   /** The player's total xp, for their level and title next to the name. */
   readonly xp: number
   readonly avatarSpecies: AvatarSpecies

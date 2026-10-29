@@ -10,6 +10,7 @@ import { useSession } from '../features/auth/session'
 import { NudgeBanner } from '../features/farm/NudgeBanner'
 import { ME_KEY, useMe } from '../features/stats/useMe'
 import { createGame, type GameKind } from '../features/solo/api'
+import { useDailyStatus } from '../features/solo/useDailyStatus'
 import { useAverageAttempts } from '../features/solo/useDistribution'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { ApiError } from '../lib/api'
@@ -109,6 +110,25 @@ function Settings(props: {
   )
 }
 
+/** П6 / ПД10: today's number for these settings and whether it is already done (then free play is the default). */
+function DailyCard({ len, zero }: { len: Len; zero: boolean }) {
+  const { t } = useTranslation()
+  const status = useDailyStatus(len, zero)
+  if (!status) return null
+  const { played } = status
+  const line = !played
+    ? t('newGame.daily.fresh')
+    : played.won
+      ? t('newGame.daily.won', { count: played.attempts })
+      : t('newGame.daily.lost')
+  return (
+    <Card style={{ padding: 'var(--card-pad, 16px)', display: 'flex', flexDirection: 'column', gap: 6 }} data-testid="daily-card">
+      <b>{t('newGame.daily.title', { number: status.number })}</b>
+      <span style={{ fontSize: 13, fontWeight: 700, color: '#4A5640' }}>{line}</span>
+    </Card>
+  )
+}
+
 /** /new — solo setup (PasDuel setup with mode=solo), the weekly card on top (П6; `weekly` replaces it in the gallery). */
 export function NewGame({ initial, weekly }: { initial?: NewGameInitial; weekly?: React.ReactNode }) {
   const { t } = useTranslation()
@@ -119,7 +139,10 @@ export function NewGame({ initial, weekly }: { initial?: NewGameInitial; weekly?
   const fresh = useMe().data
   const [len, setLen] = useState<Len>(initial?.len ?? me?.profile.defaultLen ?? 4)
   const [zero, setZero] = useState(initial?.zero ?? false)
-  const [kind, setKind] = useState<GameKind>(initial?.kind ?? 'daily')
+  const [picked, setKind] = useState<GameKind | null>(initial?.kind ?? null)
+  const daily = useDailyStatus(len, zero)
+  // Until the player picks: today's number, or free play once it is done (a daily again is only practice).
+  const kind: GameKind = picked ?? (daily?.played ? 'free' : 'daily')
   const avg = useAverageAttempts(len, zero, kind)
   const qc = useQueryClient()
   const create = useMutation({
@@ -157,6 +180,7 @@ export function NewGame({ initial, weekly }: { initial?: NewGameInitial; weekly?
             void navigate(modePath(m))
           }}
         />
+        <DailyCard len={len} zero={zero} />
         <Settings
           len={len}
           zero={zero}

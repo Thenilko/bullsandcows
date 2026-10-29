@@ -1,7 +1,7 @@
 import type { AvatarSpecies, ClientMsg, PublicState, RankKey } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
 import { Shell } from '../../app/layouts/Shell'
-import { Countdown, Cta, Toast } from '../../components/ui'
+import { Countdown, Cta, PanelFooter, Toast } from '../../components/ui'
 import { useDuelStore } from '../../features/duel/store'
 import { rankKeyOf } from '../../lib/rank'
 import { sfx } from '../../lib/sound'
@@ -55,7 +55,7 @@ export function Found({ state, send }: FoundProps) {
       : t('duel.found.waitingFor', { name: oppName })
     : t('duel.found.ready')
   return (
-    <Shell scene={IDLE_SCENE} screen="new">
+    <Shell scene={IDLE_SCENE} screen="new" title={t(bot ? 'duel.title.foundBot' : 'duel.title.found')}>
       <section
         aria-label={t(bot ? 'duel.title.foundBot' : 'duel.title.found')}
         style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
@@ -88,18 +88,21 @@ export function Found({ state, send }: FoundProps) {
         >
           {t(`duel.found.rule.${state.format}`)}
         </p>
-        <Cta
-          disabled={state.me.ready || opp === null}
-          style={{ minHeight: 60, fontSize: 20 }}
-          onClick={ready}
-        >
-          {label}
-        </Cta>
-        <span
-          style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)', textAlign: 'center' }}
-        >
-          {t('duel.found.clockNote')}
-        </span>
+        {/* МК9: on short phones „Готов!“ stays pinned to the panel's lower edge. */}
+        <PanelFooter>
+          <Cta
+            disabled={state.me.ready || opp === null}
+            style={{ minHeight: 60, fontSize: 20 }}
+            onClick={ready}
+          >
+            {label}
+          </Cta>
+          <span
+            style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)', textAlign: 'center' }}
+          >
+            {t('duel.found.clockNote')}
+          </span>
+        </PanelFooter>
       </section>
       {feedback.readyToast > 0 ? (
         <Overlay>

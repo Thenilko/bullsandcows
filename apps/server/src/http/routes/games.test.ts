@@ -52,6 +52,25 @@ async function newFree(app: App, user: string, secret?: string) {
 }
 
 describe('solo game routes', () => {
+  it('reports the number of the day and whether the player has finished it', async () => {
+    const app = makeApp()
+    const user = newUser()
+    const before = await json(await call(app, user, 'GET', '/api/games/daily?len=4&zero=false'))
+    expect(before.data).toEqual({ number: expect.any(Number), played: null })
+
+    const daily = await json(
+      await call(app, user, 'POST', '/api/games', { len: 4, zero: false, kind: 'daily' }),
+    )
+    await call(app, user, 'POST', `/api/games/${daily.data.id}/start`)
+    await call(app, user, 'POST', `/api/games/${daily.data.id}/give-up`)
+
+    const after = await json(await call(app, user, 'GET', '/api/games/daily?len=4&zero=false'))
+    expect(after.data.played).toEqual({ won: false, attempts: 0 })
+    const other = await json(await call(app, user, 'GET', '/api/games/daily?len=5&zero=false'))
+    expect(other.data.played).toBeNull()
+    expect((await call(app, user, 'GET', '/api/games/daily?len=7&zero=false')).status).toBe(400)
+  })
+
   it('plays a full game inside the ApiResult envelope', async () => {
     const app = makeApp()
     const user = newUser()

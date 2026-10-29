@@ -4,7 +4,7 @@ import styles from './legal.module.css'
 import { COPYRIGHT_YEAR, SITE } from './site'
 import { APP_COMMIT, APP_VERSION } from './version'
 
-const LINKS = ['privacy', 'terms', 'legal', 'changelog', 'press', 'support'] as const
+const LINKS = ['privacy', 'terms', 'legal', 'changelog', 'support'] as const
 
 function Heart() {
   return (
