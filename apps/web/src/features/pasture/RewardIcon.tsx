@@ -8,16 +8,16 @@ import { Beehive, Dog, GoldenVane, Pond, Rooster, Shed, Sunflower, Windmill } fr
 const ART: Readonly<Record<PastureKey, { viewBox: string; art: (color: BarnColor) => ReactElement }>> = {
   dog: { viewBox: '-28 -30 56 56', art: () => <Dog /> },
   sunflowers: { viewBox: '-18 -16 36 52', art: () => <Sunflower /> },
-  beehive: { viewBox: '-22 -28 44 50', art: () => <Beehive /> },
+  beehive: { viewBox: '-24 -32 48 54', art: () => <Beehive /> },
   rooster: { viewBox: '-17 -30 42 40', art: () => <Rooster /> },
   windmill: { viewBox: '-35 -72 70 76', art: () => <Windmill /> },
-  pond: { viewBox: '-62 -32 124 52', art: () => <Pond /> },
+  pond: { viewBox: '-66 -32 132 52', art: () => <Pond /> },
   barnColor: {
     viewBox: '8 150 150 122',
     art: (color) => <BarnShapes tint={color === 'red' ? null : BARN_COLORS[color]} />,
   },
   shed: { viewBox: '-8 -36 44 40', art: () => <Shed /> },
-  goldenVane: { viewBox: '-14 -18 30 34', art: () => <GoldenVane /> },
+  goldenVane: { viewBox: '-16 -18 32 34', art: () => <GoldenVane /> },
 }
 
 export interface RewardIconProps {

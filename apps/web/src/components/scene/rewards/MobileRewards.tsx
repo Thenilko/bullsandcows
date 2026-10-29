@@ -76,7 +76,7 @@ export function MobilePenRewards({ pasture }: Props) {
 export function MobileFrontRewards({ pasture }: Props) {
   if (!has(pasture, 'pond')) return null
   return (
-    <g data-reward="pond" transform="translate(336 352) scale(.85)">
+    <g data-reward="pond" transform="translate(340 352) scale(.85)">
       <Pond />
     </g>
   )
