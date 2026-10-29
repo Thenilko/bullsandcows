@@ -21,6 +21,13 @@ const SERVER_VARS = [
   .map((v) => `--var ${v}`)
   .join(' ')
 
+/** Every spec starts as a returning visitor; onboarding.spec clears this to meet the first-visit tour. */
+const SEEN_TOUR = [{ name: 'bc.onboarding.v1', value: 'e2e' }]
+const STORAGE_STATE = {
+  cookies: [],
+  origins: [WEB_PORT, GALLERY_PORT].map((port) => ({ origin: `http://127.0.0.1:${port}`, localStorage: SEEN_TOUR })),
+}
+
 /** Compact phone projects (the MK1–MK12 row): touch + mobile emulation at the heights real browsers leave. */
 const compact = (name: string, width: number, height: number) => ({
   name,
@@ -42,19 +49,20 @@ export default defineConfig({
     // Infinite animations (the floating Start button) are disabled under reduced motion, so clicks are stable.
     reducedMotion: 'reduce',
     serviceWorkers: 'block',
+    storageState: STORAGE_STATE,
     trace: 'retain-on-failure',
   },
   projects: [
     {
       name: 'mobile',
-      testMatch: /(solo|duel|bot|share|badges|pages|modes|duels|account)\.spec\.ts/,
+      testMatch: /(solo|duel|bot|share|badges|pages|modes|duels|account|onboarding)\.spec\.ts/,
       // Chromium engine with the iPhone 13 viewport (390 wide); only Chromium is installed in CI.
       use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium' },
     },
     {
       name: 'desktop',
       // farm.spec and weekly.spec set their own artboard sizes (390×844 … 1440×900), so they run once, here.
-      testMatch: /(solo|duel|bot|share|badges|farm|weekly|pages|modes|duels|account)\.spec\.ts/,
+      testMatch: /(solo|duel|bot|share|badges|farm|weekly|pages|modes|duels|account|onboarding)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
     },
     compact('mk-660', 390, 660),
