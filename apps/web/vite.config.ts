@@ -50,7 +50,7 @@ const pwa = VitePWA({
     navigateFallbackDenylist: [/^\/api\//, /^\/ws\//, /^\/dev\//],
     globPatterns: ['**/*.{js,css,html,png,svg,webmanifest}'],
     // The share image and the press kit are downloads, never part of the offline shell.
-    globIgnores: ['**/og-image.png', '**/press/**'],
+    globIgnores: ['**/og-image.png'],
     runtimeCaching: [
       {
         urlPattern: ({ url }) => url.pathname.startsWith('/fonts/'),
