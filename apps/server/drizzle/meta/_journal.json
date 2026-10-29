@@ -50,6 +50,13 @@
       "when": 1793030759194,
       "tag": "0006_weekly",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793264037146,
+      "tag": "0007_duels_keep_deleted_player",
+      "breakpoints": true
     }
   ]
 }

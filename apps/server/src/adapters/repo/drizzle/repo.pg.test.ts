@@ -297,6 +297,18 @@ describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
       }
       const oldGame = await game(idle, '2025-02-01T00:00:00Z')
       await game(active, '2026-06-01T00:00:00Z')
+      const duel = await repo.duels.create({
+        format: 'race',
+        len: 4,
+        zero: false,
+        opponentKind: 'friend',
+        botLevel: null,
+        inviteCode: null,
+        playerA: idle,
+        playerB: active,
+        gameA: oldGame,
+        gameB: null,
+      })
 
       const deleted = await repo.profiles.deleteInactiveGuests(
         Date.parse('2025-10-28T00:00:00Z'),
@@ -307,6 +319,11 @@ describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
       expect(deleted).not.toContain(active)
       expect(deleted).not.toContain(young)
       expect(await repo.games.get(oldGame)).toBeNull()
+      expect(await repo.duels.get(duel.id)).toMatchObject({
+        playerA: null,
+        playerB: active,
+        gameA: null,
+      })
     })
   })
 })
