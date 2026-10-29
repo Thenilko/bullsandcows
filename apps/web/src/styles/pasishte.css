@@ -183,6 +183,18 @@ input,textarea{font-family:inherit}
 .chip.new{animation:ps-boing .45s cubic-bezier(.3,1.4,.5,1) both;border-color:#B5452F}
 .hrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;padding:8px 10px;border-radius:12px;background:#FFFFFF;border:1.5px solid #ECE5D2}
 .hrow.new{animation:ps-rise .45s both;border-color:#E0B27A}
+.hrow-n{width:16px;font-weight:900;color:var(--c-muted-aa)}
+.hrow-g{font-weight:900;font-size:18px;letter-spacing:.08em}
+.hrow-c{display:flex;align-items:center;gap:2px;font-weight:900}
+.hrow-b{margin-left:auto}
+.hrow-v{white-space:nowrap;text-align:right;font-size:12px;font-weight:800;color:var(--c-muted-aa)}
+.hrow-w{margin-left:auto;padding:2px 7px;border-radius:999px;background:#F9D7C8;color:#8A1F0B;font-size:11px;font-weight:900;white-space:nowrap}
+/* The 360px desktop sheet: 5 digits, both counts, „130 вар.“ and „излишен“ fit one line with room to spare. */
+.dk-notes .hrow{gap:4px 5px;padding-inline:8px}
+.dk-notes .hrow-c svg{width:18px;height:18px}
+.dk-notes .hrow-g{font-size:17px;letter-spacing:.06em}
+.dk-notes .hrow-v{font-size:11px}
+.dk-notes .hrow-w{padding:2px 6px;font-size:10px}
 .icobtn{display:flex;align-items:center;justify-content:center;gap:6px}
 .iconbox{width:44px;height:44px;border-radius:12px;background:#FFFFFF;border:1.5px solid #DCD4BF;flex:none}
 .tabbar{position:absolute;left:0;right:0;bottom:0;height:72px;padding:6px 10px 12px;background:#FFFDF6;border-top:1px solid #E7E0CC;display:flex;justify-content:space-around}
