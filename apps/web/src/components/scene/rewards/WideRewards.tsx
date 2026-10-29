@@ -67,7 +67,7 @@ export function WideFrontRewards({ pasture }: Props) {
         </g>
       ) : null}
       {has(pasture, 'dog') ? (
-        <g data-reward="dog" transform="translate(960 770) scale(2.4)">
+        <g data-reward="dog" transform="translate(960 778) scale(2.4)">
           <Dog />
         </g>
       ) : null}

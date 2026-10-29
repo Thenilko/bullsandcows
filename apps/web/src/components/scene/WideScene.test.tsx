@@ -81,7 +81,8 @@ describe('WideScene', () => {
     expect(container.querySelector('.ps-vane')).not.toBeNull()
     expect(container.querySelector('.sc-sway')).not.toBeNull()
     expect(container.querySelectorAll('rect[width="610"]')).toHaveLength(4)
-    expect(container.querySelectorAll('[fill="url(#psCanopy)"]').length).toBeGreaterThanOrEqual(8)
+    // The oak and the four poplars (art/Plants) share the canopy green.
+    expect(container.querySelectorAll('[fill="#5E9E46"]').length).toBeGreaterThanOrEqual(10)
   })
 
   it('shows dust puffs only on a miss', () => {

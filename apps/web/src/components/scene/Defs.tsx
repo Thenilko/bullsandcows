@@ -16,7 +16,6 @@ export function Defs() {
 <linearGradient id="psGrass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#7DBE59" /><stop offset="1" stopColor="#4C8E36" /></linearGradient>
 <linearGradient id="psBarn" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#C9563D" /><stop offset="1" stopColor="#9C3A28" /></linearGradient>
 <linearGradient id="psWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#B98650" /><stop offset="1" stopColor="#875B33" /></linearGradient>
-<radialGradient id="psCanopy" cx=".35" cy=".3" r=".8"><stop offset="0" stopColor="#86C462" /><stop offset=".6" stopColor="#4F8F3E" /><stop offset="1" stopColor="#346829" /></radialGradient>
 <clipPath id="rigCowClip"><path d={COW_BODY} /></clipPath>
 </defs>
     </>
