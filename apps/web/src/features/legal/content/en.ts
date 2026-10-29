@@ -117,7 +117,7 @@ export const en: InfoPages = {
       {
         h: 'Rights in the game',
         p: [
-          'The design, characters (the bull, the cow, the Scarecrow), texts and code are protected. You may share your own results and screenshots; media materials are on the "Press" page.',
+          'The design, characters (the bull, the cow, the Scarecrow), texts and code are protected. You may share your own results and screenshots.',
         ],
       },
       {
@@ -206,76 +206,6 @@ export const en: InfoPages = {
       },
     ],
   },
-  press: {
-    title: 'Press',
-    intro: 'Everything you need to write about the game — description, facts, logo and characters.',
-    short:
-      '"Bulls and Cows" is a free family logic game: guess the hidden number while the pasture gives hints — bulls run into the barn, cows graze nearby, and the fog lifts with every good guess.',
-    long: 'The classic pencil-and-paper game retold as a living pasture. Play alone, against a friend in a duel or against the Scarecrow — a bot with four levels. There is one daily number for everyone, leaderboards and badges, and the game runs on phone, tablet and computer with nothing to install.',
-    facts: [
-      {
-        label: 'Genre',
-        value: 'logic game, family',
-      },
-      {
-        label: 'Platforms',
-        value: 'web, phone and computer (PWA)',
-      },
-      {
-        label: 'Price',
-        value: 'free, no ads',
-      },
-      {
-        label: 'Language',
-        value: 'Bulgarian, English',
-      },
-      {
-        label: 'Creator',
-        value: 'Danail Simeonov',
-      },
-      {
-        label: 'Contact',
-        value: '{EMAIL}',
-      },
-    ],
-    assets: [
-      {
-        name: 'Logo — horizontal',
-        href: '/press/logo-horizontal.svg',
-        format: 'SVG',
-      },
-      {
-        name: 'Logo — main',
-        href: '/press/logo.png',
-        format: 'PNG',
-      },
-      {
-        name: 'Emblem',
-        href: '/press/emblem.png',
-        format: 'PNG',
-      },
-      {
-        name: 'The bull',
-        href: '/press/bull.png',
-        format: 'PNG',
-      },
-      {
-        name: 'The cow',
-        href: '/press/cow.png',
-        format: 'PNG',
-      },
-      {
-        name: 'The Scarecrow',
-        href: '/press/scarecrow.png',
-        format: 'PNG',
-      },
-      {
-        name: 'Share image',
-        href: '/og-image.png',
-        format: 'PNG 1200×630',
-      },
-    ],
-  },
   story: {
     title: 'The story behind the game',
     intro: 'Made with love in Bulgaria.',
@@ -312,7 +242,7 @@ export const en: InfoPages = {
           'Your pasture: a windmill, a duck pond, a puppy, a rooster and more rewards unlocked by levels, badges and streaks, plus a barn colour of your choice.',
           'Family farm: bring up to 12 people together with a code, see your own leaderboard and nudge each other to play the number of the day.',
           'Weekly challenge: one number for the whole week with a new rule each time, a leaderboard and a gold frame for the top ten.',
-          'A footer with pages on privacy, terms, support, press and the story of the game.',
+          'A footer with pages on privacy, terms, support and the story of the game.',
           'The game opens in Bulgarian until you pick another language.',
         ],
       },
