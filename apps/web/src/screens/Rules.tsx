@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router'
 import { BandChips, SceneCaption } from '../app/layouts/BandChips'
 import { Shell } from '../app/layouts/Shell'
 import { useSession } from '../features/auth/session'
+import { useOnboarding } from '../features/onboarding/store'
 import { SiteFooter } from '../features/legal/SiteFooter'
-import { BullIcon, Card, CowIcon, Cta, Sign } from '../components/ui'
+import { BullIcon, Card, CowIcon, Cta, Sign, Soft } from '../components/ui'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { sfx } from '../lib/sound'
 import { IDLE_SCENE } from './idleScene'
@@ -107,9 +108,14 @@ export function Rules() {
             <Trans i18nKey={desktop ? 'rules.fog.textLong' : 'rules.fog.text'} components={{ b: <b style={{ color: '#2E3B24' }} /> }} />
           </p>
         </Card>
-        <Cta onClick={go} style={{ minHeight: 56, alignSelf: desktop ? 'flex-start' : 'stretch', minWidth: desktop ? 240 : undefined }}>
-          {t('rules.start')}
-        </Cta>
+        <div style={{ display: 'flex', flexDirection: desktop ? 'row' : 'column', gap: 10 }}>
+          <Cta onClick={go} style={{ minHeight: 56, minWidth: desktop ? 240 : undefined }}>
+            {t('rules.start')}
+          </Cta>
+          <Soft onClick={() => useOnboarding.getState().show(1)} style={{ minWidth: desktop ? 240 : undefined }}>
+            {t('onboarding.replay')}
+          </Soft>
+        </div>
       </section>
       <SiteFooter />
     </Shell>

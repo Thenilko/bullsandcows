@@ -1035,5 +1035,58 @@
       "guest": "guest",
       "never": "—"
     }
+  },
+  "onboarding": {
+    "aria": "Game introduction",
+    "welcome": {
+      "kicker": "First time here?",
+      "title": "Welcome to the pasture",
+      "text": "“Bulls and Cows” is a logic game with numbers. In a minute we will show you how to play and where everything is.",
+      "start": "Show me",
+      "skip": "Skip, I'll manage"
+    },
+    "skip": "Skip",
+    "back": "Back",
+    "next": "Next",
+    "done": "Let's play!",
+    "replay": "Show the introduction",
+    "progressAria": "Step {{n}} of {{total}}",
+    "goal": {
+      "title": "Guess the hidden number",
+      "text": "A number with different digits is hidden — usually four. You enter a guess and the game tells you how many bulls and cows it has. Find it in as few guesses as you can."
+    },
+    "scoring": {
+      "title": "Bulls and cows",
+      "bull": "a right digit in the right place.",
+      "cow": "the digit is there, but in another place.",
+      "example": "Secret 4 2 7 1, guess 1 2 3 4 → 1 bull (2) and 2 cows (1 and 4)."
+    },
+    "pasture": {
+      "title": "The pasture and the notebook",
+      "text": "Every bull runs into the barn and the fog over the pasture lifts the closer you get. In the notebook you tap the digits: not there, there, or not sure yet."
+    },
+    "modes": {
+      "title": "Ways to play",
+      "daily": "Daily number",
+      "dailyDesc": "the same for everyone, once a day.",
+      "free": "Free game",
+      "freeDesc": "as often as you like, with 3, 4 or 5 digits.",
+      "duel": "Duel",
+      "duelDesc": "against a friend with a code or a random player.",
+      "bot": "The Scarecrow",
+      "botDesc": "a bot with four difficulty levels."
+    },
+    "progress": {
+      "title": "Grow and collect",
+      "text": "Every game earns points and levels. You unlock badges and rewards for your pasture — a puppy, a windmill, a pond and more. On the leaderboard you compete with everyone or with your family farm."
+    },
+    "nav": {
+      "title": "Where things are",
+      "play": "a new game, the daily number and the weekly challenge.",
+      "board": "the leaderboard and the family farm.",
+      "profile": "level, badges, your pasture and settings.",
+      "rules": "the rules and this introduction again.",
+      "where": "On a phone the menu is at the bottom, on a computer at the top."
+    }
   }
 }

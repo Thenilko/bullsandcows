@@ -22,6 +22,7 @@ async function member(browser: Browser, width: number, height: number): Promise<
     locale: 'bg-BG',
     reducedMotion: 'reduce',
     serviceWorkers: 'block',
+    storageState: test.info().project.use.storageState,
   })
   const page = await context.newPage()
   seq += 1

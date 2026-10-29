@@ -13,6 +13,7 @@ export function projectContext(info: TestInfo): BrowserContextOptions {
     deviceScaleFactor: u.deviceScaleFactor,
     isMobile: u.isMobile,
     hasTouch: u.hasTouch,
+    storageState: u.storageState,
   }
 }
 

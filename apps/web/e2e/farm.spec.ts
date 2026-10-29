@@ -21,7 +21,7 @@ const uniqueName = (prefix: string) => {
 }
 
 async function player(browser: Browser, width: number, height: number, prefix: string) {
-  const context = await browser.newContext({ viewport: { width, height }, locale: 'bg-BG', reducedMotion: 'reduce', serviceWorkers: 'block' })
+  const context = await browser.newContext({ viewport: { width, height }, locale: 'bg-BG', reducedMotion: 'reduce', serviceWorkers: 'block', storageState: test.info().project.use.storageState })
   const page = await context.newPage()
   const name = uniqueName(prefix)
   await page.goto('/login')
