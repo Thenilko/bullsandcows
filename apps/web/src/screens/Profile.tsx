@@ -9,6 +9,7 @@ import { useMe } from '../features/stats/useMe'
 import { useUpdateSettings } from '../features/stats/useUpdateSettings'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { IDLE_SCENE } from './idleScene'
+import { AdminLink } from './profile/AdminLink'
 import { ProfileView, type ProfileTab } from './profile/ProfileView'
 
 const TAB_PARAM = 'tab'
@@ -57,6 +58,7 @@ export function Profile() {
           {me.isError ? t('error.unknown') : t('common.loading')}
         </p>
       )}
+      {me.data?.isAdmin === true ? <AdminLink /> : null}
       <SiteFooter />
     </Shell>
   )

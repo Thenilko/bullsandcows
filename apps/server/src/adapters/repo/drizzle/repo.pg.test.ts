@@ -328,4 +328,44 @@ describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
       })
     })
   })
+
+  describe('admin overview', () => {
+    it('counts users, Sofia days, kinds and duels, and lists the recently active first', async () => {
+      const at = Date.parse('2026-10-29T10:00:00Z')
+      const query = { now: at, days: ['2026-10-28', '2026-10-29'], recentLimit: 500 }
+      const before = await repo.admin.overview(query)
+      const member = await profile('adm')
+      const guest = crypto.randomUUID()
+      await repo.profiles.create({ id: guest, username: `ag${guest.slice(0, 6)}`, email: null, isGuest: true })
+      // 23:30 UTC on the 28th is already the 29th in Sofia.
+      await sql`update profiles set created_at = '2026-10-28T23:30:00Z' where id in (${member}, ${guest})`
+      const play = async (userId: string, kind: 'free' | 'weekly', won: boolean | null, attempts: number) => {
+        const g = await repo.games.create({ userId, kind, len: 4, zero: false, secret: '1234', dailyDate: null, practice: false })
+        await sql`update games set created_at = '2026-10-29T08:00:00Z', won = ${won}, attempts = ${attempts},
+          finished_at = ${won === null ? null : '2026-10-29T08:05:00Z'} where id = ${g.id}`
+      }
+      await play(member, 'free', true, 6)
+      await play(member, 'weekly', true, 4)
+      await play(guest, 'free', null, 2)
+      await repo.duels.create({ format: 'race', len: 4, zero: false, opponentKind: 'bot', botLevel: 2, inviteCode: null, playerA: member, playerB: null, gameA: null, gameB: null })
+
+      const after = await repo.admin.overview(query)
+      expect(after.users.total - before.users.total).toBe(2)
+      expect(after.users.guests - before.users.guests).toBe(1)
+      expect(after.users.active1d - before.users.active1d).toBe(2)
+      const day = (rows: typeof after.days, date: string) => rows.find((d) => d.date === date)
+      expect((day(after.days, '2026-10-29')?.newUsers ?? 0) - (day(before.days, '2026-10-29')?.newUsers ?? 0)).toBe(2)
+      expect((day(after.days, '2026-10-29')?.games ?? 0) - (day(before.days, '2026-10-29')?.games ?? 0)).toBe(3)
+      expect(after.days.every((d) => query.days.includes(d.date))).toBe(true)
+      const kind = (rows: typeof after.kinds, k: string) => rows.find((r) => r.kind === k)
+      expect(kind(after.kinds, 'weekly')).toMatchObject({ total: (kind(before.kinds, 'weekly')?.total ?? 0) + 1 })
+      expect((kind(after.kinds, 'free')?.wonAttempts ?? 0) - (kind(before.kinds, 'free')?.wonAttempts ?? 0)).toBe(6)
+      expect(after.social.duelsByOpponent.bot - before.social.duelsByOpponent.bot).toBe(1)
+      expect(after.social.weeklyPlayers7d - before.social.weeklyPlayers7d).toBe(1)
+      const mine = after.recentUsers.find((u) => u.id === member)
+      expect(mine).toMatchObject({ games: 2, isGuest: false, lastGameAt: Date.parse('2026-10-29T08:00:00Z') })
+      const order = after.recentUsers.map((u) => u.lastGameAt ?? -1)
+      expect(order).toEqual([...order].sort((a, b) => b - a))
+    })
+  })
 })

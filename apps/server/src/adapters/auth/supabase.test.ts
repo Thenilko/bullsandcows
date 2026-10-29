@@ -53,6 +53,28 @@ describe('supabase auth verify', () => {
     })
   })
 
+  it('reads the admin role from app_metadata, and only from there', async () => {
+    const url = 'https://verify-admin.supabase.co'
+    const admin = await signedToken(url, { app_metadata: { role: 'admin', provider: 'email' } })
+    expect(await createSupabaseAuth(config(url)).verify(admin)).toEqual({
+      id: 'user-1',
+      isGuest: false,
+      isAdmin: true,
+    })
+  })
+
+  it('ignores a role in user_metadata, which the user can write', async () => {
+    const url = 'https://verify-forged.supabase.co'
+    const forged = await signedToken(url, {
+      user_metadata: { role: 'admin' },
+      app_metadata: { role: 'user' },
+    })
+    expect(await createSupabaseAuth(config(url)).verify(forged)).toEqual({
+      id: 'user-1',
+      isGuest: false,
+    })
+  })
+
   it('rejects a token for another audience or garbage', async () => {
     const url = 'https://verify-bad.supabase.co'
     const token = await signedToken(url, {}, { audience: 'anon' })
@@ -97,6 +119,12 @@ describe('supabase auth verify (key set unavailable)', () => {
 })
 
 describe('supabase auth calls', () => {
+  it('marks an admin session from app_metadata', async () => {
+    const body = { ...sessionBody(false), user: { id: 'user-1', app_metadata: { role: 'admin' } } }
+    const auth = createSupabaseAuth(config('https://p.supabase.co'), vi.fn(async () => json(body)))
+    expect((await auth.signIn('a@b.cd', 'pw')).user).toEqual({ id: 'user-1', isGuest: false, isAdmin: true })
+  })
+
   it('signs in with the anon key and maps the session', async () => {
     const fetchImpl = vi.fn(async () => json(sessionBody(false)))
     const auth = createSupabaseAuth(config('https://p.supabase.co'), fetchImpl)

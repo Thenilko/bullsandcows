@@ -512,6 +512,79 @@ export interface WeeklyRepo {
   weeksWon(userId: string): Promise<number>
 }
 
+/** Users that were created, or created a game, in a window. */
+export interface AdminUserCounts {
+  readonly total: number
+  readonly guests: number
+  readonly new7d: number
+  readonly new30d: number
+  readonly active1d: number
+  readonly active7d: number
+  readonly active30d: number
+}
+
+/** One Sofia day: new profiles, distinct players with a game, and games created. */
+export interface AdminDay {
+  readonly date: string
+  readonly newUsers: number
+  readonly activeUsers: number
+  readonly games: number
+}
+
+export interface AdminKindRow {
+  readonly kind: GameKind
+  readonly total: number
+  readonly finished: number
+  readonly won: number
+  /** Sum of the attempts of the won games (the service turns it into an average). */
+  readonly wonAttempts: number
+}
+
+export interface AdminSocialCounts {
+  readonly duels: number
+  readonly duels7d: number
+  readonly duelsByOpponent: Readonly<Record<OpponentKind, number>>
+  readonly farms: number
+  readonly farmMembers: number
+  readonly shares: number
+  readonly nudges: number
+  /** Distinct players with a weekly-challenge game in the last 7 days. */
+  readonly weeklyPlayers7d: number
+}
+
+export interface AdminUserRow {
+  readonly id: string
+  readonly username: string
+  readonly email: string | null
+  readonly isGuest: boolean
+  readonly xp: number
+  readonly games: number
+  readonly createdAt: number
+  readonly lastGameAt: number | null
+}
+
+export interface AdminOverviewQuery {
+  readonly now: number
+  /** The Sofia days to report, oldest first (`AdminDay.date` uses the same strings). */
+  readonly days: readonly string[]
+  readonly recentLimit: number
+}
+
+export interface AdminOverviewRows {
+  readonly users: AdminUserCounts
+  /** Only the days of `days` that have any activity; the service fills the rest with zeros. */
+  readonly days: readonly AdminDay[]
+  readonly kinds: readonly AdminKindRow[]
+  readonly social: AdminSocialCounts
+  /** Most recently active first (then newest); at most `recentLimit`. */
+  readonly recentUsers: readonly AdminUserRow[]
+}
+
+/** Read-only numbers for the admin panel. */
+export interface AdminRepo {
+  overview(query: AdminOverviewQuery): Promise<AdminOverviewRows>
+}
+
 export interface Repo {
   readonly profiles: ProfilesRepo
   readonly games: GamesRepo
@@ -521,6 +594,7 @@ export interface Repo {
   readonly pasture: PastureRepo
   readonly farms: FarmsRepo
   readonly weekly: WeeklyRepo
+  readonly admin: AdminRepo
 }
 
 /** A repo bound to resources that must be released when the request ends. */

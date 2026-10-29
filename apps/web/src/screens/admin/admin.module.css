@@ -1,0 +1,448 @@
+/* Admin panel: the game's paper and ink as a farm ledger. Big numerals carry the hierarchy; colour is semantic
+   (red = games, green = players who came back, sun = new profiles). */
+.page {
+  --ad-gap: clamp(12px, 1.6vw, 20px);
+  min-height: 100dvh;
+  box-sizing: border-box;
+  padding: clamp(16px, 3vw, 40px) 16px 48px;
+  background:
+    radial-gradient(1200px 400px at 85% -10%, rgba(242, 194, 48, 0.18), transparent 60%),
+    var(--c-paper);
+  font-variant-numeric: tabular-nums;
+}
+
+.header,
+.grid,
+.notice {
+  max-width: 1180px;
+  margin-inline: auto;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 24px;
+  padding-bottom: 18px;
+  margin-bottom: var(--ad-gap);
+  border-bottom: 2px solid var(--c-ink);
+}
+
+.kicker {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-red);
+}
+
+.h1 {
+  margin: 0;
+  font-size: clamp(30px, 4.4vw, 52px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.updated {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-muted-aa);
+}
+
+.button,
+.back {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--c-ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.button {
+  background: var(--c-ink);
+  color: var(--c-card);
+}
+
+.back {
+  background: var(--c-card);
+  color: var(--c-ink);
+}
+
+.button:hover,
+.back:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 var(--c-ink);
+}
+
+.button:active,
+.back:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.button:focus-visible,
+.back:focus-visible {
+  outline: 3px solid var(--c-sun);
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.notice {
+  padding: 24px;
+  font-weight: 800;
+  background: var(--c-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ad-gap);
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+
+  .kpis,
+  .section[data-wide] {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Headline numbers: one ruled strip, the first figure is the largest. */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  background: var(--c-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+@media (min-width: 720px) {
+  .kpis {
+    grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr));
+  }
+}
+
+.kpis .stat {
+  padding: clamp(14px, 2vw, 24px);
+  border-right: 1px solid var(--c-line);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.kpis .stat:first-child .statValue {
+  font-size: clamp(44px, 6vw, 72px);
+}
+
+.stat {
+  margin: 0;
+  position: relative;
+}
+
+.stat[data-tone]::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+}
+
+.stat[data-tone='red']::before {
+  background: var(--c-red);
+}
+
+.stat[data-tone='green']::before {
+  background: var(--c-green);
+}
+
+.stat[data-tone='sun']::before {
+  background: var(--c-sun);
+}
+
+.statLabel {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--c-muted-aa);
+}
+
+.statValue {
+  margin: 2px 0 0;
+  font-size: clamp(30px, 3.6vw, 44px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.statSub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-muted-aa);
+}
+
+.section {
+  min-width: 0;
+  padding: clamp(14px, 2vw, 22px);
+  background: var(--c-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+/* Chart */
+.chart {
+  margin: 0;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.legend > span::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 3px;
+  vertical-align: -1px;
+}
+
+.keyGames::before {
+  background: var(--c-red);
+}
+
+.keyActive::before {
+  background: var(--c-green);
+  border-radius: 50% !important;
+}
+
+.keyNew::before {
+  background: var(--c-sun);
+}
+
+.legend > .axisMax {
+  margin-left: auto;
+  color: var(--c-muted-aa);
+}
+
+.legend > .axisMax::before {
+  display: none;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: clamp(150px, 20vw, 230px);
+  overflow: visible;
+}
+
+.svg * {
+  vector-effect: non-scaling-stroke;
+}
+
+.ticks {
+  display: grid;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-muted-aa);
+}
+
+/* Each label is centred on its day; the last one is right-aligned so it overflows inwards, not off the card. */
+.ticks > li {
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.ticks > li:last-child {
+  justify-content: flex-end;
+}
+
+.base {
+  stroke: var(--c-ink);
+  stroke-width: 1.5;
+}
+
+.gridLine {
+  stroke: var(--c-line);
+  stroke-dasharray: 3 4;
+}
+
+.hit {
+  fill: transparent;
+}
+
+.hit:hover {
+  fill: rgba(242, 194, 48, 0.16);
+}
+
+.barGames {
+  fill: var(--c-red);
+  pointer-events: none;
+}
+
+.barNew {
+  fill: var(--c-sun);
+  pointer-events: none;
+}
+
+.lineActive {
+  fill: none;
+  stroke: var(--c-green);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+
+/* Tables scroll inside their card, never the page. */
+.scroll {
+  overflow-x: auto;
+  margin-inline: calc(-1 * clamp(14px, 2vw, 22px));
+  padding-inline: clamp(14px, 2vw, 22px);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th,
+.table td {
+  padding: 9px 10px 9px 0;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--c-line);
+}
+
+.table thead th {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--c-muted-aa);
+  border-bottom: 2px solid var(--c-ink);
+}
+
+.table tbody th {
+  font-weight: 800;
+}
+
+.table tbody tr:hover {
+  background: rgba(242, 194, 48, 0.12);
+}
+
+.num {
+  text-align: right !important;
+}
+
+.email {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--c-muted-aa);
+}
+
+.meter {
+  display: block;
+  height: 4px;
+  margin-top: 5px;
+  border-radius: 2px;
+  background: var(--c-line);
+  overflow: hidden;
+}
+
+.meter > span {
+  display: block;
+  height: 100%;
+  background: var(--c-red);
+  transform-origin: left;
+}
+
+.tag {
+  margin-left: 8px;
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  border-radius: var(--radius-pill);
+  background: var(--c-paper);
+  border: 1px solid var(--c-line-strong);
+  color: var(--c-muted-aa);
+}
+
+.mini {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+  margin: 0;
+}
+
+.mini .stat:first-child {
+  grid-column: 1 / -1;
+}
+
+.mini .stat {
+  padding-left: 12px;
+}
+
+.mini .stat:not([data-tone])::before {
+  content: '';
+  position: absolute;
+  inset: 2px auto 2px 0;
+  width: 3px;
+  background: var(--c-line-strong);
+}
+
+.mini .statValue {
+  font-size: clamp(26px, 3vw, 34px);
+}
+
+.empty {
+  margin: 0;
+  font-weight: 700;
+  color: var(--c-muted-aa);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .back {
+    transition: none;
+  }
+}

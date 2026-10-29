@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { AppError } from '../../http/errors'
-import { createFakeAuth } from './fake'
+import { createFakeAuth, FAKE_ADMIN_EMAIL } from './fake'
 
 const clock = { now: () => 1_700_000_000_000 }
 
@@ -22,11 +22,21 @@ describe('fake auth', () => {
       'fake:',
       'fake:u1',
       'fake::Mira',
-      'fake:u1:Mira:admin',
+      'fake:u1:Mira:root',
+      'fake:u1:Mira:admin:guest',
       'real:u1:Mira',
     ]) {
       expect(await auth.verify(token), token).toBeNull()
     }
+  })
+
+  it('makes the dev admin account an admin, and nobody else', async () => {
+    const auth = createFakeAuth(clock)
+    const admin = await auth.signUp(FAKE_ADMIN_EMAIL, 'secret-pass')
+    expect(admin.user).toEqual({ id: admin.user.id, isGuest: false, isAdmin: true })
+    expect(await auth.verify(admin.accessToken)).toEqual(admin.user)
+    expect((await auth.signIn(FAKE_ADMIN_EMAIL, 'secret-pass')).user.isAdmin).toBe(true)
+    expect((await auth.signUp('mira@example.com', 'secret-pass')).user.isAdmin).toBeUndefined()
   })
 
   it('signs up and signs in with the same credentials', async () => {

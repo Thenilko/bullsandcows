@@ -18,7 +18,23 @@ const SessionResponse = z.object({
   access_token: z.string().min(1),
   refresh_token: z.string(),
   expires_at: z.number(),
-  user: z.object({ id: z.string().min(1), is_anonymous: z.boolean().optional() }),
+  user: z.object({
+    id: z.string().min(1),
+    is_anonymous: z.boolean().optional(),
+    app_metadata: z.object({ role: z.unknown().optional() }).loose().optional(),
+  }),
+})
+
+export const ADMIN_ROLE = 'admin'
+
+/** `app_metadata` is written only with the service role key, so a user cannot make themselves admin. */
+const isAdminMeta = (meta: unknown): boolean =>
+  typeof meta === 'object' && meta !== null && (meta as { role?: unknown }).role === ADMIN_ROLE
+
+const toAuthUser = (id: string, isAnonymous: unknown, appMetadata: unknown): AuthUser => ({
+  id,
+  isGuest: isAnonymous === true,
+  ...(isAdminMeta(appMetadata) ? { isAdmin: true } : {}),
 })
 
 /** Per-isolate cache: jose refreshes keys itself, we only avoid rebuilding the set. */
@@ -48,7 +64,7 @@ const toSession = (body: unknown): Session => {
   // A sign-up without a session means "Confirm email" is on in the project; we require it off.
   if (!parsed.success) throw upstream()
   const { access_token, refresh_token, expires_at, user } = parsed.data
-  const authUser: AuthUser = { id: user.id, isGuest: user.is_anonymous === true }
+  const authUser = toAuthUser(user.id, user.is_anonymous, user.app_metadata)
   return {
     accessToken: access_token,
     refreshToken: refresh_token,
@@ -120,7 +136,7 @@ export function createSupabaseAuth(config: SupabaseAuthConfig, fetchImpl: Fetch 
           algorithms: JWT_ALGORITHMS,
           requiredClaims: ['exp', 'sub'],
         })
-        return payload.sub ? { id: payload.sub, isGuest: payload.is_anonymous === true } : null
+        return payload.sub ? toAuthUser(payload.sub, payload.is_anonymous, payload.app_metadata) : null
       } catch (err) {
         // A JWKS outage must not look like a bad token: clients drop their session on 401.
         if (isTokenRejection(err)) return null

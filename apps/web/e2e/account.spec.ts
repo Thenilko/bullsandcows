@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test'
-import { expectNoSideScroll, register, uniqueName } from './journey'
+import { expect, test, type Page } from '@playwright/test'
+import { expectNoSideScroll, register, registeredPlayer, uniqueName } from './journey'
 
 /** A profile end to end: registration, settings, badges, the pasture rewards, the leaderboard, logout and login. */
 
@@ -126,4 +126,43 @@ test('registration: a taken name is refused', async ({ page, browser }) => {
   } finally {
     await other.close()
   }
+})
+
+/** The dev admin (fake auth: `admin@pasishte.test`); the mobile and desktop projects share one server, so log in if it exists. */
+async function signInAdmin(page: Page): Promise<void> {
+  await page.goto('/login')
+  await page.getByLabel('Име в играта').fill('admin@pasishte.test')
+  await page.getByLabel('Парола').fill('secret123')
+  await page.getByRole('button', { name: 'Влез' }).click()
+  const inside = await page
+    .waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 4_000 })
+    .then(() => true)
+    .catch(() => false)
+  if (inside) return
+  await page.getByRole('radio', { name: 'Нов профил' }).click()
+  await page.getByLabel('Име в играта').fill(uniqueName('Admin'))
+  await page.getByLabel('Имейл').fill('admin@pasishte.test')
+  await page.getByLabel('Парола').fill('secret123')
+  await page.getByRole('button', { name: 'Създай профил' }).click()
+  await expect(page).toHaveURL(/\/new$/)
+}
+
+test('admin: only the admin finds the panel; it shows players, games and the recent list', async ({ page, browser }, info) => {
+  const member = await registeredPlayer(browser, info, 'Memb')
+  await member.page.goto('/profile')
+  await expect(member.page.getByRole('heading', { name: member.name })).toBeVisible()
+  await expect(member.page.getByRole('link', { name: /Админ панел/ })).toHaveCount(0)
+  await member.page.goto('/admin')
+  await expect(member.page.getByRole('alert')).toHaveText('Тази страница е само за администратора.')
+
+  await signInAdmin(page)
+  await page.goto('/profile')
+  await page.getByRole('link', { name: /Админ панел/ }).click()
+  await expect(page).toHaveURL(/\/admin$/)
+  await expect(page.getByRole('heading', { level: 1, name: 'Админ панел' })).toBeVisible()
+  await expect(page.getByText('Общо профили')).toBeVisible()
+  await expect(page.getByRole('img', { name: /Игри, активни играчи/ })).toBeVisible()
+  const recent = page.getByRole('region', { name: 'Последно активни' })
+  await expect(recent.getByRole('rowheader', { name: member.name })).toBeVisible()
+  await expectNoSideScroll(page)
 })

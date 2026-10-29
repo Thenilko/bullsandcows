@@ -1,6 +1,8 @@
 export interface AuthUser {
   readonly id: string
   readonly isGuest: boolean
+  /** `app_metadata.role === 'admin'` in the verified token; only the service role can set it. */
+  readonly isAdmin?: boolean
 }
 
 export interface Session {

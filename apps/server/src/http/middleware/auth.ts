@@ -30,3 +30,13 @@ export const requireMember = () =>
     c.set('user', user)
     await next()
   })
+
+/** Like `requireMember`, plus 403 `ERR_FORBIDDEN` for anyone without the admin role. */
+export const requireAdmin = () =>
+  createMiddleware<AppEnv>(async (c, next) => {
+    const user = await bearerUser(c)
+    if (!user) return fail(c, 'ERR_AUTH', 401)
+    if (user.isGuest || user.isAdmin !== true) return fail(c, 'ERR_FORBIDDEN', 403)
+    c.set('user', user)
+    await next()
+  })

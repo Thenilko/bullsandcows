@@ -962,5 +962,78 @@
     "back": "‹ Back to the game",
     "updated": "Last updated: {{date}}",
     "stillStuck": "Didn't find an answer? Write to us:"
+  },
+  "admin": {
+    "title": "Admin panel",
+    "link": "Admin panel",
+    "linkSub": "How the Pasture is doing",
+    "back": "Back to the game",
+    "updated": "Updated {{time}}",
+    "refresh": "Refresh",
+    "loading": "Loading the numbers…",
+    "error": "The numbers did not load. Try again.",
+    "forbidden": "This page is for the administrator only.",
+    "users": {
+      "heading": "Players",
+      "total": "Profiles",
+      "members": "with an account",
+      "guests": "guests",
+      "new7d": "New in 7 days",
+      "new30d": "{{count}} in 30 days",
+      "active1d": "Played today",
+      "active7d": "Played in 7 days",
+      "active30d": "{{count}} in 30 days"
+    },
+    "chart": {
+      "heading": "Last 30 days",
+      "games": "games",
+      "active": "players",
+      "newUsers": "new profiles",
+      "aria": "Games, active players and new profiles per day over the last 30 days",
+      "day": "{{date}}: {{games}} games, {{active}} players, {{newUsers}} new"
+    },
+    "games": {
+      "heading": "Games",
+      "total": "All games",
+      "finished": "{{count}} finished",
+      "won": "Solved",
+      "mode": "Mode",
+      "count": "Games",
+      "winRate": "Solved",
+      "avgAttempts": "Tries to win",
+      "kind": {
+        "daily": "Number of the day",
+        "free": "Free play",
+        "weekly": "Weekly",
+        "duel_race": "Duel · race",
+        "duel_classic": "Duel · classic",
+        "bot": "Against a bot"
+      },
+      "empty": "No games played yet."
+    },
+    "social": {
+      "heading": "Together",
+      "duels": "Duels",
+      "duels7d": "{{count}} in 7 days",
+      "quick": "quick",
+      "friend": "with a friend",
+      "bot": "with a bot",
+      "farms": "Farms",
+      "farmMembers": "{{count}} members",
+      "shares": "Shares",
+      "nudges": "Nudges",
+      "weekly": "In the weekly, 7 days"
+    },
+    "list": {
+      "heading": "Recently active",
+      "name": "Player",
+      "email": "Email",
+      "level": "Level",
+      "games": "Games",
+      "joined": "Joined",
+      "last": "Last game",
+      "guest": "guest",
+      "never": "—"
+    }
   }
 }

@@ -363,6 +363,8 @@ export const MeDto = z.object({
   /** Held (tier ≥ 1) per badge key; the full state is `GET /api/me/badges`. */
   badges: z.partialRecord(BadgeKeySchema, z.boolean()),
   recent: z.array(RecentGameDto),
+  /** Present (true) only for admins: the client shows the link to `/admin`. */
+  isAdmin: z.literal(true).optional(),
 })
 export type MeDto = z.infer<typeof MeDto>
 
