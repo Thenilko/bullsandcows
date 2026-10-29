@@ -137,6 +137,26 @@ pnpm --filter server exec wrangler rollback            # предишната в
 
 **Първи push в `main`:** докато Hyperdrive `id` в `wrangler.toml` е `REPLACE_ME`, `deploy.yml` пада рано с ясно съобщение (guard стъпка), преди миграциите и деплоя. Липсващи GitHub secrets/variables също водят до неуспех (билдът на клиента спира без `VITE_SUPABASE_*`), без вреда.
 
+## 11. Админ панел и зачистване на базата
+
+`/admin` показва играчите, игрите по режими и дни, социалното и последно активните. Достъп има само акаунт с
+`app_metadata.role = "admin"` в Supabase Auth: ролята е в access token-а, Worker-ът я чете от проверения JWT
+(`requireAdmin`, 403 за всички други), а `app_metadata` се пише само със service role ключа, не от потребителя.
+Нова роля важи след нов вход (или когато токенът се обнови, до 1 час).
+
+```bash
+# Даване на ролята (без да се трие нищо)
+node apps/server/scripts/prod-admin.mjs grant <email>
+# Само <email> остава: първо показва бройките, нищо не трие
+node apps/server/scripts/prod-admin.mjs prune <email>
+# Изпълнение: data-only pg_dump в local/backups/, после трие другите профили (с всичко тяхно) и auth потребителите
+node apps/server/scripts/prod-admin.mjs prune <email> --apply
+```
+
+Скриптът чете `local/deploy/database.url` и `apps/server/.dev.vars` (същите като deploy стъпките). Ако локалният
+`pg_dump` е по-стар от сървъра, backup-ът се прави в Docker образа `postgres:<версия>`. Без успешен backup нищо не
+се трие. В dev (fake auth) админ е `admin@pasishte.test`.
+
 ## Локална разработка
 
 ```sh
