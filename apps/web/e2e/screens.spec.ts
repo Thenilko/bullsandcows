@@ -7,7 +7,13 @@ const HEIGHTS: Readonly<Record<(typeof WIDTHS)[number], number>> = { 390: 844, 7
 
 test.use({ reducedMotion: 'reduce' })
 
-for (const screen of SCREEN_KEYS) {
+/**
+ * The pixel tests only exist where they compare: the baselines are macOS renders, so on Linux CI they would just
+ * load each screen again (axe already does that). CI_SCREENSHOTS=1 brings them back (with Linux baselines).
+ */
+const PIXELS = !process.env.CI || !!process.env.CI_SCREENSHOTS
+
+for (const screen of PIXELS ? SCREEN_KEYS : []) {
   for (const w of WIDTHS) {
     for (const lang of LANGS) {
       test(`screenshot ${screen} ${w} ${lang}`, async ({ page }) => {
@@ -51,7 +57,7 @@ const COMPACT: readonly [key: string, screen: string, w: number, h: number][] = 
   ['mk-weekly-play', 'weekly-play', 390, 660],
 ]
 
-for (const [key, screen, w, h] of COMPACT) {
+for (const [key, screen, w, h] of PIXELS ? COMPACT : []) {
   test(`screenshot ${key} ${screen} ${w}x${h}`, async ({ page }) => {
     await page.setViewportSize({ width: w, height: h })
     await openScreen(page, screen, 'bg', 390)

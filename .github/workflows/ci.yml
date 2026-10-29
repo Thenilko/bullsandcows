@@ -107,14 +107,8 @@ jobs:
           retention-days: 7
 
   e2e-gallery:
-    name: e2e-gallery (${{ matrix.shard }})
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        # The gallery screens are independent page loads of a static build: split in two jobs, two workers each.
-        shard: [1/2, 2/2]
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -137,19 +131,20 @@ jobs:
           else
             pnpm exec playwright install --with-deps chromium
           fi
-      # Screenshot baselines are rendered on macOS, so CI runs axe over the gallery but skips the
-      # pixel comparison (playwright.config.ts: ignoreSnapshots). CI_SCREENSHOTS=1 turns it on.
+      # Screenshot baselines are rendered on macOS, so CI runs axe and the layout checks over the gallery but not
+      # the pixel tests (screens.spec.ts: PIXELS). CI_SCREENSHOTS=1 turns them on.
       - name: Build web (fake auth) for the local Worker assets
         run: pnpm --filter web build
         env:
           VITE_AUTH_MODE: fake
-      - name: Run Playwright gallery (axe; screenshots only with CI_SCREENSHOTS=1)
-        run: pnpm --filter web exec playwright test --project=gallery --shard=${{ matrix.shard }} --workers=2
+      # The gallery screens are independent page loads of a static build, so they run on two workers.
+      - name: Run Playwright gallery (axe and layout; screenshots only with CI_SCREENSHOTS=1)
+        run: pnpm --filter web exec playwright test --project=gallery --workers=2
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-gallery-${{ strategy.job-index }}
+          name: playwright-report-gallery
           path: |
             apps/web/playwright-report
             apps/web/test-results
