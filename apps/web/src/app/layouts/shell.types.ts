@@ -62,7 +62,7 @@ export const TABS = [
 ] as const
 
 /** Route prefixes that belong to the "Игра" tab, so it stays highlighted on them. */
-const PLAY_PREFIXES = ['/new', '/play', '/result', '/today', '/weekly'] as const
+const PLAY_PREFIXES = ['/new', '/play', '/result', '/today', '/weekly', '/duel', '/bot'] as const
 /** The family farm lives under „Класация“. */
 const BOARD_PREFIXES = ['/farm', '/ferma'] as const
 

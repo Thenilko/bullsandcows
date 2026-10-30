@@ -60,7 +60,7 @@
 
 .dk-nav {
   display: flex;
-  gap: 4px;
+  gap: 0;
   padding: 4px;
   border-radius: 16px;
   background: #fffdf6;
@@ -93,6 +93,7 @@
 }
 
 .dk-me {
+  position: relative;
   color: inherit;
   text-decoration: none;
   transition:
@@ -103,6 +104,12 @@
 .dk-me:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 0 #cfc6ae;
+}
+
+.dk-me:hover::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 -4px;
 }
 
 .dk-me:active {
