@@ -31,7 +31,7 @@ describe.each([
     expect(within(screen.getByRole('navigation')).getAllByRole('link').map((a) => a.textContent)).toEqual(tabs)
   })
 
-  it.each(['/', '/new', '/play/g1', '/result/g1'])('highlights Игра on %s', (at) => {
+  it.each(['/', '/new', '/play/g1', '/result/g1', '/duel/new', '/bot/new', '/duel/r1'])('highlights Игра on %s', (at) => {
     wrap(
       <Comp scene={IDLE_SCENE} screen="rules">
         x
