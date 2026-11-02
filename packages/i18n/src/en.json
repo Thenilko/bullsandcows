@@ -147,6 +147,10 @@
       "text": "The fog over the pasture lifts as the possibilities shrink. Use the <b>notebook</b> to mark which digits are out and which are certain.",
       "textLong": "With every guess the possible numbers shrink and the fog over the pasture lifts. In the notebook you mark which digits are out and which are certain, and jot down notes. Points grow with fewer guesses and a faster time."
     },
+    "kids": {
+      "title": "Why it is good for kids",
+      "text": "Lucky guesses don't win here. Every guess returns a clue: how many digits are in place (bulls) and how many are there but elsewhere (cows). A child has to remember earlier guesses, compare them and rule out the impossible. That exercises logical thinking, working memory and attention to detail. And a wrong guess is not a failure, just one more clue."
+    },
     "start": "Start playing"
   },
   "caption": {

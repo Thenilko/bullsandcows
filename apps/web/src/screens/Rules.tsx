@@ -108,6 +108,10 @@ export function Rules() {
             <Trans i18nKey={desktop ? 'rules.fog.textLong' : 'rules.fog.text'} components={{ b: <b style={{ color: '#2E3B24' }} /> }} />
           </p>
         </Card>
+        <Card className="rise" style={{ ...CARD, animationDelay: '.25s' }}>
+          <b style={{ fontSize: 17 }}>{t('rules.kids.title')}</b>
+          <p style={BODY}>{t('rules.kids.text')}</p>
+        </Card>
         <div style={{ display: 'flex', flexDirection: desktop ? 'row' : 'column', gap: 10 }}>
           <Cta onClick={go} style={{ minHeight: 56, minWidth: desktop ? 240 : undefined }}>
             {t('rules.start')}
