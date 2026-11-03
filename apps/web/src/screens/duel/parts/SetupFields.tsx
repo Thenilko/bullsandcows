@@ -73,7 +73,7 @@ export function CommonFields({ form }: { form: SetupForm }) {
         label={t('newGame.format.label')}
         value={form.format}
         onChange={form.setFormat}
-        options={(['race', 'classic'] as const).map((f) => ({ value: f, label: t(`newGame.format.${f}.name`), desc: t(`newGame.format.${f}.desc`) }))}
+        options={(['classic', 'race'] as const).map((f) => ({ value: f, label: t(`newGame.format.${f}.name`), desc: t(`newGame.format.${f}.desc`) }))}
       />
     </>
   )

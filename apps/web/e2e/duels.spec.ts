@@ -16,6 +16,7 @@ test('quick match: two profiles find each other, one gives up, the other wins wi
     for (const p of [a.page, b.page]) {
       await p.goto('/duel/new')
       await p.getByRole('radio', { name: /Бърз мач/ }).click()
+      await p.getByRole('radio', { name: /Надпревара/ }).click()
       await p.getByRole('button', { name: 'Търси противник' }).click()
     }
     await expect(a.page.getByRole('heading', { name: 'Противникът е намерен!' })).toBeVisible({ timeout: 20_000 })

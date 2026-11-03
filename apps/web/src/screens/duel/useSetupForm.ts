@@ -47,7 +47,7 @@ export function useSetupForm(mode: SetupMode): SetupForm {
   const defaultLen = useSession((s) => s.me?.profile.defaultLen ?? 4)
   const [len, setLen] = useState<Len>(defaultLen)
   const [zero, setZero] = useState(false)
-  const [format, setFormat] = useState<DuelFormat>('race')
+  const [format, setFormat] = useState<DuelFormat>('classic')
   const [picked, setOpponent] = useState<Opponent>(isGuest ? 'friend' : 'quick')
   const [level, setLevel] = useState<BotLevel>(DEFAULT_BOT_LEVEL)
   const [busy, setBusy] = useState(false)
