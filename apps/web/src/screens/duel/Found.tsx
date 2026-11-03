@@ -55,7 +55,7 @@ export function Found({ state, send }: FoundProps) {
       : t('duel.found.waitingFor', { name: oppName })
     : t('duel.found.ready')
   return (
-    <Shell scene={IDLE_SCENE} screen="new" title={t(bot ? 'duel.title.foundBot' : 'duel.title.found')}>
+    <Shell scene={IDLE_SCENE} screen="new">
       <section
         aria-label={t(bot ? 'duel.title.foundBot' : 'duel.title.found')}
         style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
