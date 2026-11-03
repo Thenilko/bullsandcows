@@ -39,13 +39,20 @@ beforeEach(() => {
 })
 
 describe('DuelSetup', () => {
+  it.each([['/duel/new', 'duel'], ['/bot/new', 'bot']] as const)('%s offers „Класически“ first and picks it by default', (path, mode) => {
+    show(path, mode)
+    const formats = screen.getAllByRole('radio').filter((r) => /Класически|Надпревара/.test(r.textContent ?? ''))
+    expect(formats.map((r) => r.textContent)).toEqual([expect.stringMatching(/^Класически/), expect.stringMatching(/^Надпревара/)])
+    expect(formats[0]).toHaveAttribute('aria-checked', 'true')
+  })
+
   it('bot mode posts the chosen level and goes to the room with its token', async () => {
     createBot.mockResolvedValue({ roomId: 'r1', token: 't1' })
     show('/bot/new', 'bot')
     fireEvent.click(screen.getByRole('button', { name: 'Трудно' }))
     expect(screen.getByText(/Мисли като стар пастир/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Срещу Плашилото' }))
-    await waitFor(() => expect(createBot).toHaveBeenCalledWith({ len: 4, zero: false, format: 'race', level: 3 }))
+    await waitFor(() => expect(createBot).toHaveBeenCalledWith({ len: 4, zero: false, format: 'classic', level: 3 }))
     expect(await screen.findByTestId('where')).toHaveTextContent('/duel/r1?token=t1')
   })
 
@@ -71,7 +78,7 @@ describe('DuelSetup', () => {
     show('/duel/new', 'duel')
     fireEvent.click(screen.getByRole('radio', { name: /Покани приятел/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Създай покана' }))
-    await waitFor(() => expect(createInvite).toHaveBeenCalledWith({ len: 4, zero: false, format: 'race' }))
+    await waitFor(() => expect(createInvite).toHaveBeenCalledWith({ len: 4, zero: false, format: 'classic' }))
     expect(await screen.findByTestId('where')).toHaveTextContent('/duel/invite/AB2CD')
   })
 

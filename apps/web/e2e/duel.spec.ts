@@ -14,6 +14,8 @@ test('friend duel: invite, join, race to the win, reconnect after reload', async
     await host.getByRole('button', { name: /^Дуел/ }).click()
     await expect(host).toHaveURL(/\/duel\/new$/)
     await expect(host.getByRole('radio', { name: /Покани приятел/ })).toHaveAttribute('aria-checked', 'true')
+    await expect(host.getByRole('radio', { name: /Класически/ })).toHaveAttribute('aria-checked', 'true')
+    await host.getByRole('radio', { name: /Надпревара/ }).click()
     await host.getByRole('button', { name: 'Създай покана' }).click()
     await expect(host).toHaveURL(/\/duel\/invite\/[A-Z0-9]{5}$/)
     const code = host.url().split('/').pop()!

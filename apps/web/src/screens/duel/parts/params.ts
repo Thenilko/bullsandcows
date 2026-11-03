@@ -7,7 +7,7 @@ export interface MatchSettings {
   format: DuelFormat
 }
 
-const DEFAULTS: MatchSettings = { len: 4, zero: false, format: 'race' }
+const DEFAULTS: MatchSettings = { len: 4, zero: false, format: 'classic' }
 
 export function parseSettings(params: URLSearchParams): MatchSettings {
   const len = Number(params.get('len'))
