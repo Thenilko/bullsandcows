@@ -51,12 +51,10 @@ describe('DuelPlay on the desktop', () => {
     expect(strip.closest('.dk-scene')).not.toBeNull()
   })
 
-  it('shows the duel title after the logo, „Нова игра“ and the sound toggle; no phone top row', () => {
+  it('shows no title after the logo, „Нова игра“ and the sound toggle; no phone top row', () => {
     mockViewport(...IMMERSIVE)
     const { container } = show()
-    const title = container.querySelector('.dk-title') as HTMLElement
-    expect(title.textContent).toMatch(/^· Дуел · /)
-    expect(title.closest('header')).not.toBeNull()
+    expect(container.querySelector('.dk-title')).toBeNull()
     expect(screen.getByRole('button', { name: 'Нова игра' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /звука/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Към нова игра' })).toBeNull()
