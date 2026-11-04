@@ -17,7 +17,7 @@ export function toProfile(row: typeof profiles.$inferSelect): Profile {
 
 type GameSelect = typeof games.$inferSelect
 
-export function toPublicGame(row: Omit<GameSelect, 'secret'>): PublicGameRow {
+export function toPublicGame(row: Omit<GameSelect, 'secret' | 'deviceId'>): PublicGameRow {
   return {
     ...row,
     startedAt: ms(row.startedAt),
@@ -26,7 +26,8 @@ export function toPublicGame(row: Omit<GameSelect, 'secret'>): PublicGameRow {
   }
 }
 
-export function toGame(row: GameSelect): GameRow {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function toGame({ deviceId: _device, ...row }: GameSelect): GameRow {
   return {
     ...row,
     startedAt: ms(row.startedAt),

@@ -96,10 +96,15 @@ export const games = pgTable(
     suspicious: boolean('suspicious').notNull().default(false),
     /** The notebook was used at least once (the client reports it; sticky). */
     usedNotes: boolean('used_notes').notNull().default(false),
+    /** The browser a counted daily was started on: a second account there replays it as practice. */
+    deviceId: text('device_id'),
     createdAt: ts('created_at').notNull().defaultNow(),
   },
   (t) => [
     index('games_user_created_idx').on(t.userId, t.createdAt),
+    index('games_daily_device_idx')
+      .on(t.deviceId, t.dailyDate)
+      .where(sql`${t.kind} = 'daily' and not ${t.practice} and ${t.deviceId} is not null`),
     index('games_daily_idx').on(t.kind, t.len, t.zero, t.dailyDate, t.won),
     index('games_finished_idx').on(t.kind, t.len, t.zero, t.finishedAt, t.won),
     // At most one counted daily game per player, date and settings; repeats are practice.

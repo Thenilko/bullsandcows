@@ -157,7 +157,15 @@ export type ShareResultDto = z.infer<typeof ShareResultDto>
 export const ShareLandingDto = z.object({ logged: z.literal(true) })
 export type ShareLandingDto = z.infer<typeof ShareLandingDto>
 
-export const CreateGameBody = z.object({ len: LenSchema, zero: ZeroSchema, kind: KindSchema })
+/** A random id the browser keeps (`localStorage`), so a second account on it replays the daily as practice. */
+export const DeviceIdSchema = z.string().uuid()
+
+export const CreateGameBody = z.object({
+  len: LenSchema,
+  zero: ZeroSchema,
+  kind: KindSchema,
+  device: DeviceIdSchema.optional(),
+})
 export type CreateGameBody = z.infer<typeof CreateGameBody>
 
 /** Only the shape is checked here; whether the code is valid for the game is `ERR_CODE`. */
@@ -441,10 +449,13 @@ const BoolQuery = z.enum(['true', 'false']).transform((v) => v === 'true')
 export const DistributionQuery = z.object({ len: LenQuery, zero: BoolQuery, kind: KindSchema })
 export type DistributionQuery = z.infer<typeof DistributionQuery>
 
-export const DailyStatusQuery = z.object({ len: LenQuery, zero: BoolQuery })
+export const DailyStatusQuery = z.object({ len: LenQuery, zero: BoolQuery, device: DeviceIdSchema.optional() })
 export type DailyStatusQuery = z.infer<typeof DailyStatusQuery>
 
-/** `GET /api/games/daily`: today's number („#127“) and the player's counted game of it, if finished. */
+/**
+ * `GET /api/games/daily`: today's number („#127“) and the player's counted game of it, if finished;
+ * with `device`, also a counted game another account finished on this browser today.
+ */
 export interface DailyStatusDto {
   number: number
   played: { won: boolean; attempts: number } | null

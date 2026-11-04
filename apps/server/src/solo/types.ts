@@ -13,4 +13,6 @@ export interface CreateInput {
   readonly kind: 'daily' | 'free'
   /** Free games only, for E2E; the HTTP layer passes it in dev and test environments alone. */
   readonly secretOverride?: string
+  /** The browser's id (daily only): another account's counted daily on it makes this one practice. */
+  readonly device?: string
 }

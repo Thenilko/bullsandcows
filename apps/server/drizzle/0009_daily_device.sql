@@ -1,0 +1,2 @@
+ALTER TABLE "games" ADD COLUMN "device_id" text;--> statement-breakpoint
+CREATE INDEX "games_daily_device_idx" ON "games" USING btree ("device_id","daily_date") WHERE "games"."kind" = 'daily' and not "games"."practice" and "games"."device_id" is not null;

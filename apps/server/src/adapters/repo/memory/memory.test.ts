@@ -284,6 +284,24 @@ describe('memory games', () => {
     ).toEqual([12])
   })
 
+  it('leaves guests out of the won attempts (they can replay a known number from a new account)', async () => {
+    await repo.profiles.create({ id: 'g1', username: 'guest-x', email: null, isGuest: true })
+    const day = { kind: 'daily' as const, dailyDate: '2026-10-20' }
+    await finishedGame(day, { attempts: 5 })
+    await finishedGame({ ...day, userId: 'g1' }, { attempts: 1 })
+    expect(await repo.games.wonAttempts({ kind: 'daily', len: 4, zero: false, date: '2026-10-20' })).toEqual([5])
+    expect(await repo.games.wonAttemptsByDate({ len: 4, zero: false, dates: ['2026-10-20'] })).toEqual({ '2026-10-20': [5] })
+  })
+
+  it('finds the counted daily of any account by the browser it was started on', async () => {
+    const day = { kind: 'daily' as const, dailyDate: '2026-10-20' }
+    const counted = await repo.games.create({ ...newGame(day), deviceId: 'dev-1' })
+    expect(counted).not.toHaveProperty('deviceId')
+    expect((await repo.games.dailyOnDevice('dev-1', '2026-10-20', 4, false))?.id).toBe(counted.id)
+    expect(await repo.games.dailyOnDevice('dev-2', '2026-10-20', 4, false)).toBeNull()
+    expect(await repo.games.dailyOnDevice('dev-1', '2026-10-20', 5, false)).toBeNull()
+  })
+
   it('enforces one counted daily game per key and unique guesses, like the database', async () => {
     const day = { kind: 'daily' as const, dailyDate: '2026-10-20' }
     await repo.games.create(newGame(day))

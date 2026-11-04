@@ -1095,6 +1095,8 @@
       "won": "Solved",
       "lost": "Not solved",
       "practice": "practice",
+      "settings": "{{len}} digits, no 0",
+      "settingsZero": "{{len}} digits, with 0",
       "searched": "was looking for",
       "suspicious": "suspicious",
       "notes": "used the notebook",

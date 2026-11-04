@@ -52,7 +52,9 @@ describe('Today (П4)', () => {
     post.mockResolvedValue({ id: 'g1' })
     renderRoute(<Today />, { path: '/today', at: '/today' })
     fireEvent.click(await screen.findByRole('button', { name: 'Играй сега' }))
-    await waitFor(() => expect(post).toHaveBeenCalledWith('/api/games', { len: 4, zero: false, kind: 'daily' }))
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith('/api/games', { len: 4, zero: false, kind: 'daily', device: expect.stringMatching(/^[0-9a-f-]{36}$/) }),
+    )
     expect(await screen.findByText('elsewhere')).toBeInTheDocument()
   })
 

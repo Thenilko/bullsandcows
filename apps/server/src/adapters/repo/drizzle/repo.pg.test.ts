@@ -409,4 +409,27 @@ describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
       expect(rows.some((r) => r.id === off)).toBe(false)
     })
   })
+
+  describe('daily on a shared browser', () => {
+    it("finds another account's counted daily by device and keeps guests out of the distribution", async () => {
+      const member = await profile('dm')
+      const guest = crypto.randomUUID()
+      await repo.profiles.create({ id: guest, username: `dg${guest.slice(0, 6)}`, email: null, isGuest: true })
+      const device = crypto.randomUUID()
+      const date = '2026-11-05'
+      const daily = (userId: string, deviceId: string | null) =>
+        repo.games.create({ userId, kind: 'daily', len: 3, zero: true, secret: '012', dailyDate: date, practice: false, deviceId })
+      const counted = await daily(member, device)
+      expect(counted).not.toHaveProperty('deviceId')
+      expect((await repo.games.dailyOnDevice(device, date, 3, true))?.id).toBe(counted.id)
+      expect(await repo.games.dailyOnDevice(crypto.randomUUID(), date, 3, true)).toBeNull()
+      expect(await repo.games.getWithSecret(counted.id)).not.toHaveProperty('deviceId')
+
+      const won = await daily(guest, null)
+      await repo.games.update(counted.id, { finishedAt: NOW, won: true, attempts: 4 })
+      await repo.games.update(won.id, { finishedAt: NOW, won: true, attempts: 1 })
+      expect(await repo.games.wonAttempts({ kind: 'daily', len: 3, zero: true, date })).toEqual([4])
+      expect(await repo.games.wonAttemptsByDate({ len: 3, zero: true, dates: [date] })).toEqual({ [date]: [4] })
+    })
+  })
 })
