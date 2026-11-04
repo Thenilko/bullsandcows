@@ -1,7 +1,8 @@
-import type { AdminKindDto, AdminOverviewDto, AdminSocialDto, AdminUserDto } from '@bc/protocol'
+import type { AdminKindDto, AdminOverviewDto, AdminSocialDto } from '@bc/protocol'
 import type { Lang } from '@bc/i18n'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useAdminUsers } from '../../features/admin/useAdminGames'
 import styles from './admin.module.css'
 import { formatCount, formatDate, formatDateTime } from './format'
 
@@ -115,37 +116,58 @@ export function AdminSocial({ social, lang }: { social: AdminSocialDto; lang: La
   )
 }
 
-export function AdminUsers({ users, lang }: { users: readonly AdminUserDto[]; lang: Lang }) {
+export function AdminUsers({ enabled, lang }: { enabled: boolean; lang: Lang }) {
   const { t } = useTranslation()
+  const [offset, setOffset] = useState(0)
+  const page = useAdminUsers(enabled, offset)
+  const data = page.data
+  if (page.isError && !data) return <p className={styles.empty}>{t('admin.error')}</p>
+  if (!data) return <p className={styles.empty}>{t('admin.loading')}</p>
+  const pages = Math.max(1, Math.ceil(data.total / data.pageSize))
+  const current = Math.floor(data.offset / data.pageSize) + 1
+  const go = (n: number) => setOffset((n - 1) * data.pageSize)
   return (
-    <div className={styles.scroll}>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th scope="col">{t('admin.list.name')}</th>
-            <th scope="col">{t('admin.list.email')}</th>
-            <th scope="col" className={styles.num}>{t('admin.list.level')}</th>
-            <th scope="col" className={styles.num}>{t('admin.list.games')}</th>
-            <th scope="col">{t('admin.list.last')}</th>
-            <th scope="col">{t('admin.list.joined')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((u) => (
-            <tr key={u.id}>
-              <th scope="row">
-                {u.username}
-                {u.isGuest ? <span className={styles.tag}>{t('admin.list.guest')}</span> : null}
-              </th>
-              <td className={styles.email}>{u.email ?? '—'}</td>
-              <td className={styles.num}>{u.level}</td>
-              <td className={styles.num}>{formatCount(u.games, lang)}</td>
-              <td>{u.lastGameAt === null ? t('admin.list.never') : formatDateTime(u.lastGameAt, lang)}</td>
-              <td>{formatDate(u.createdAt, lang)}</td>
+    <>
+      <div className={styles.scroll}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th scope="col">{t('admin.list.name')}</th>
+              <th scope="col">{t('admin.list.email')}</th>
+              <th scope="col" className={styles.num}>{t('admin.list.level')}</th>
+              <th scope="col" className={styles.num}>{t('admin.list.games')}</th>
+              <th scope="col">{t('admin.list.active')}</th>
+              <th scope="col">{t('admin.list.last')}</th>
+              <th scope="col">{t('admin.list.joined')}</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {data.users.map((u) => (
+              <tr key={u.id}>
+                <th scope="row">
+                  {u.username}
+                  {u.isGuest ? <span className={styles.tag}>{t('admin.list.guest')}</span> : null}
+                </th>
+                <td className={styles.email}>{u.email ?? '—'}</td>
+                <td className={styles.num}>{u.level}</td>
+                <td className={styles.num}>{formatCount(u.games, lang)}</td>
+                <td>{formatDateTime(u.activeAt, lang)}</td>
+                <td>{u.lastGameAt === null ? t('admin.list.never') : formatDateTime(u.lastGameAt, lang)}</td>
+                <td>{formatDate(u.createdAt, lang)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <nav className={styles.pager} aria-label={t('admin.list.pager')}>
+        <button type="button" className={styles.more} onClick={() => go(current - 1)} disabled={current <= 1}>
+          {t('admin.list.prev')}
+        </button>
+        <span className={styles.pageOf}>{t('admin.list.page', { page: current, pages })}</span>
+        <button type="button" className={styles.more} onClick={() => go(current + 1)} disabled={current >= pages}>
+          {t('admin.list.next')}
+        </button>
+      </nav>
+    </>
   )
 }

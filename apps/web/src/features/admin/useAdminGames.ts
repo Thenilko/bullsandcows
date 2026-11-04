@@ -1,5 +1,5 @@
-import type { AdminGameDetailDto, AdminGamesDto } from '@bc/protocol'
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import type { AdminGameDetailDto, AdminGamesDto, AdminOnlineDto, AdminUsersPageDto } from '@bc/protocol'
+import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { api } from '../auth/client'
 import { shouldRetry } from '../stats/retry'
 
@@ -25,5 +25,28 @@ export function useAdminGame(id: string) {
     queryKey: ['admin', 'game', id],
     queryFn: () => api.get<AdminGameDetailDto>(`/api/admin/games/${encodeURIComponent(id)}`),
     retry: shouldRetry,
+  })
+}
+
+/** `GET /api/admin/users?offset=`: one page of every profile, most recently active first. */
+export function useAdminUsers(enabled: boolean, offset: number) {
+  return useQuery({
+    queryKey: ['admin', 'users', offset],
+    queryFn: () => api.get<AdminUsersPageDto>(`/api/admin/users?offset=${offset}`),
+    enabled,
+    retry: shouldRetry,
+    placeholderData: keepPreviousData,
+    refetchInterval: 60_000,
+  })
+}
+
+/** `GET /api/admin/online`, refreshed every 20 seconds while the panel is open. */
+export function useAdminOnline(enabled: boolean) {
+  return useQuery({
+    queryKey: ['admin', 'online'],
+    queryFn: () => api.get<AdminOnlineDto>('/api/admin/online'),
+    enabled,
+    retry: shouldRetry,
+    refetchInterval: 20_000,
   })
 }

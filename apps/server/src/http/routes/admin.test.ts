@@ -1,5 +1,5 @@
 import { env as workerEnv } from 'cloudflare:workers'
-import { AdminGameDetailDto, AdminGamesDto, AdminOverviewDto, MeDto } from '@bc/protocol'
+import { AdminGameDetailDto, AdminGamesDto, AdminOnlineDto, AdminOverviewDto, AdminUsersPageDto, MeDto } from '@bc/protocol'
 import { describe, expect, it } from 'vitest'
 import { createFakeAuth } from '../../adapters/auth/fake'
 import { createMemoryRepo } from '../../adapters/repo/memory'
@@ -95,11 +95,13 @@ describe('admin overview route', () => {
       games: 3,
     })
     expect(data.days.find((d) => d.date === '2026-10-10')).toMatchObject({ newUsers: 1, games: 1 })
-    expect(data.recentUsers.map((u) => [u.username, u.games, u.isGuest])).toEqual([
+    const people = AdminUsersPageDto.parse((await json(await get(app, ADMIN, '/api/admin/users'))).data)
+    expect(people.users.map((u) => [u.username, u.games, u.isGuest])).toEqual([
       ['guest-ab', 1, true],
       ['Mira', 2, false],
       ['Old', 1, false],
     ])
+    expect([people.total, people.offset, people.pageSize]).toEqual([3, 0, 25])
   })
 
   it('tells only the admin about the panel in /api/me', async () => {
@@ -190,5 +192,48 @@ describe('admin games routes', () => {
     expect(duel.opponent?.game.player.username).toBe('Pesho')
     expect(duel.opponent?.guesses.map((g) => g.guess)).toEqual(['3456'])
     expect((await get(app, ADMIN, '/api/admin/games/nope')).status).toBe(404)
+  })
+})
+
+describe('online now', () => {
+  const ping = (app: ReturnType<typeof setup>['app'], token: string, activity: unknown) =>
+    app.request('/api/me/ping', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ activity }),
+    })
+
+  it('lists who pinged in the last 3 minutes with what they have open and their unfinished game', async () => {
+    const { app, repo } = setup()
+    await repo.profiles.create({ id: 'm1', username: 'Mira', email: 'm@x.bg', isGuest: false })
+    await repo.profiles.create({ id: 'g1', username: 'guest-ab', email: null, isGuest: true })
+    await repo.profiles.create({ id: 'old', username: 'Old', email: null, isGuest: false })
+    now = NOW - 4 * 60_000
+    expect((await ping(app, 'fake:old:Old', 'home')).status).toBe(200)
+    now = NOW - 2 * 60_000
+    const playing = await repo.games.create(game('m1', { kind: 'daily', dailyDate: '2026-10-20', secret: '4321' }))
+    await repo.games.addGuess({ gameId: playing.id, guess: '1234', bulls: 0, cows: 4, consistent: true, at: now })
+    await repo.games.update(playing.id, { attempts: 1 })
+    expect((await ping(app, 'fake:m1:Mira', 'play')).status).toBe(200)
+    now = NOW - 60_000
+    expect((await ping(app, 'fake:g1:g:guest', 'queue')).status).toBe(200)
+    now = NOW
+
+    const data = AdminOnlineDto.parse((await json(await get(app, ADMIN, '/api/admin/online'))).data)
+    expect(data.windowMinutes).toBe(3)
+    expect(data.players.map((p) => [p.username, p.activity, p.isGuest, p.game?.secret ?? null, p.game?.attempts ?? null])).toEqual([
+      ['guest-ab', 'queue', true, null, null],
+      ['Mira', 'play', false, '4321', 1],
+    ])
+    // A ping counts as activity: Old pinged after Mira's last game, so Old leads the list.
+    const people = AdminUsersPageDto.parse((await json(await get(app, ADMIN, '/api/admin/users'))).data)
+    expect(people.users.map((u) => u.username)).toEqual(['guest-ab', 'Mira', 'Old'])
+    expect(people.users[0]?.lastSeenAt).toBe(NOW - 60_000)
+  })
+
+  it('refuses an unknown activity and keeps the list for the admin', async () => {
+    const { app } = setup()
+    expect((await ping(app, MEMBER, 'hacking')).status).toBe(400)
+    expect((await get(app, MEMBER, '/api/admin/online')).status).toBe(403)
   })
 })

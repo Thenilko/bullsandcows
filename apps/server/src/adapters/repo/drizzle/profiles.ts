@@ -84,6 +84,9 @@ export function drizzleProfiles(db: Db): ProfilesRepo {
         .returning({ id: profiles.id })
       required(rows[0])
     },
+    touch: async (id, at, activity) => {
+      await db.update(profiles).set({ lastSeenAt: new Date(at), lastActivity: activity }).where(eq(profiles.id, id))
+    },
     deleteInactiveGuests: async (before, limit) => {
       const cutoff = new Date(before)
       const playedSince = db

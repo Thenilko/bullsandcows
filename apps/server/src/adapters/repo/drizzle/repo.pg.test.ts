@@ -332,7 +332,7 @@ describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
   describe('admin overview', () => {
     it('counts users, Sofia days, kinds and duels, and lists the recently active first', async () => {
       const at = Date.parse('2026-10-29T10:00:00Z')
-      const query = { now: at, days: ['2026-10-28', '2026-10-29'], recentLimit: 500 }
+      const query = { now: at, days: ['2026-10-28', '2026-10-29'] }
       const before = await repo.admin.overview(query)
       const member = await profile('adm')
       const guest = crypto.randomUUID()
@@ -362,10 +362,51 @@ describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
       expect((kind(after.kinds, 'free')?.wonAttempts ?? 0) - (kind(before.kinds, 'free')?.wonAttempts ?? 0)).toBe(6)
       expect(after.social.duelsByOpponent.bot - before.social.duelsByOpponent.bot).toBe(1)
       expect(after.social.weeklyPlayers7d - before.social.weeklyPlayers7d).toBe(1)
-      const mine = after.recentUsers.find((u) => u.id === member)
+      const people = await repo.admin.users({ limit: 1000, offset: 0 })
+      const mine = people.find((u) => u.id === member)
       expect(mine).toMatchObject({ games: 2, isGuest: false, lastGameAt: Date.parse('2026-10-29T08:00:00Z') })
-      const order = after.recentUsers.map((u) => u.lastGameAt ?? -1)
+      const order = people.map((u) => u.activeAt)
       expect(order).toEqual([...order].sort((a, b) => b - a))
+      expect(await repo.admin.userCount()).toBe(after.users.total)
+    })
+  })
+
+  describe('admin games and online', () => {
+    it('lists games with the duel opponent from either seat, and one game with its duel', async () => {
+      const a = await profile('ga')
+      const b = await profile('gb')
+      const make = (userId: string, secret: string) =>
+        repo.games.create({ userId, kind: 'duel_classic', len: 4, zero: false, secret, dailyDate: null, practice: false })
+      const ga = await make(a, '1234')
+      const gb = await make(b, '5678')
+      await repo.games.addGuess({ gameId: gb.id, guess: '5678', bulls: 4, cows: 0, consistent: true, at: NOW })
+      await repo.duels.create({ format: 'classic', len: 4, zero: false, opponentKind: 'friend', botLevel: null, inviteCode: 'X1', playerA: a, playerB: b, gameA: ga.id, gameB: gb.id })
+
+      const mine = await repo.admin.games({ limit: 10, offset: 0, userId: b })
+      expect(mine.map((g) => [g.id, g.secret, g.duel?.opponent?.id, g.duel?.opponentGameId])).toEqual([[gb.id, '5678', a, ga.id]])
+      const one = await repo.admin.game(ga.id)
+      expect(one?.duel).toMatchObject({ format: 'classic', opponentKind: 'friend', opponent: { id: b }, opponentGameId: gb.id })
+      expect(await repo.admin.game('not-a-uuid')).toBeNull()
+      expect(await repo.admin.games({ limit: 10, offset: 0, userId: 'not-a-uuid' })).toEqual([])
+      const page = await repo.admin.games({ limit: 1, offset: 0, userId: null })
+      expect(page).toHaveLength(1)
+    })
+
+    it('keeps the last ping and finds the unfinished game of whoever is online', async () => {
+      const at = Date.parse('2026-11-04T18:00:00Z')
+      const on = await profile('on')
+      const off = await profile('off')
+      const g = await repo.games.create({ userId: on, kind: 'free', len: 4, zero: false, secret: '9876', dailyDate: null, practice: false })
+      await sql`update games set created_at = ${new Date(at - 60_000).toISOString()} where id = ${g.id}`
+      await repo.profiles.touch(on, at, 'play')
+      await repo.profiles.touch(off, at - 10 * 60_000, 'home')
+      await repo.profiles.touch(crypto.randomUUID(), at, 'home')
+
+      const rows = await repo.admin.online({ since: at - 3 * 60_000, gameSince: at - 3 * 3_600_000, limit: 500 })
+      const me = rows.find((r) => r.id === on)
+      expect(me).toMatchObject({ activity: 'play', lastSeenAt: at, isGuest: false })
+      expect(me?.game).toMatchObject({ id: g.id, secret: '9876', username: expect.any(String), duel: null })
+      expect(rows.some((r) => r.id === off)).toBe(false)
     })
   })
 })

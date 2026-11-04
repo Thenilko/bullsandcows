@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { GameKindSchema } from './rest'
+import { ActivitySchema } from './presence'
 import { FormatSchema, OpponentKindSchema } from './ws'
 
 const count = z.number().int().nonnegative()
@@ -60,8 +61,21 @@ export const AdminUserDto = z.object({
   games: count,
   createdAt: z.number(),
   lastGameAt: z.number().nullable(),
+  /** The last presence ping; null before presence existed or if the app was never opened since. */
+  lastSeenAt: z.number().nullable(),
+  /** The latest of the ping, the last game and sign-up; the list is ordered by it. */
+  activeAt: z.number(),
 })
 export type AdminUserDto = z.infer<typeof AdminUserDto>
+
+/** `GET /api/admin/users?offset=`: every profile, most recently active first, a page at a time. */
+export const AdminUsersPageDto = z.object({
+  users: z.array(AdminUserDto),
+  total: count,
+  offset: count,
+  pageSize: count,
+})
+export type AdminUsersPageDto = z.infer<typeof AdminUsersPageDto>
 
 export const AdminOverviewDto = z.object({
   generatedAt: z.number(),
@@ -70,7 +84,6 @@ export const AdminOverviewDto = z.object({
   games: z.object({ total: count, finished: count, won: count }),
   kinds: z.array(AdminKindDto),
   social: AdminSocialDto,
-  recentUsers: z.array(AdminUserDto),
 })
 export type AdminOverviewDto = z.infer<typeof AdminOverviewDto>
 
@@ -136,3 +149,23 @@ export type AdminGameSideDto = z.infer<typeof AdminGameSideDto>
 /** `GET /api/admin/games/:id`: the game with every guess, and the opponent's side of a duel. */
 export const AdminGameDetailDto = z.object({ side: AdminGameSideDto, opponent: AdminGameSideDto.nullable() })
 export type AdminGameDetailDto = z.infer<typeof AdminGameDetailDto>
+
+/** `GET /api/admin/online`: who pinged in the last minutes, what they have open and their unfinished game. */
+export const AdminOnlinePlayerDto = z.object({
+  id: z.string(),
+  username: z.string(),
+  isGuest: z.boolean(),
+  level: z.number().int(),
+  activity: ActivitySchema.nullable(),
+  lastSeenAt: z.number(),
+  /** The newest unfinished solo game (a duel is written only when it ends). */
+  game: AdminGameDto.nullable(),
+})
+export type AdminOnlinePlayerDto = z.infer<typeof AdminOnlinePlayerDto>
+
+export const AdminOnlineDto = z.object({
+  /** How far back „online“ reaches, in minutes. */
+  windowMinutes: z.number().int(),
+  players: z.array(AdminOnlinePlayerDto),
+})
+export type AdminOnlineDto = z.infer<typeof AdminOnlineDto>

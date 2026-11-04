@@ -1,4 +1,5 @@
 import type { Len } from '@bc/game-core'
+import type { Activity } from '@bc/protocol'
 import { sql } from 'drizzle-orm'
 import type {
   AdminDay,
@@ -91,7 +92,59 @@ export function drizzleAdmin(db: Db): AdminRepo {
       const [found] = await rows(sql`${GAME_SELECT} where g.id = ${id}::uuid`)
       return found ? toAdminGame(found) : null
     },
-    overview: async ({ now, days, recentLimit }) => {
+    userCount: async () => n((await rows(sql`select count(*) as total from profiles`))[0]?.total),
+    users: async ({ limit, offset }) => {
+      // Active = the latest of the last ping, the last game and sign-up (greatest() skips nulls).
+      const found = await rows(sql`
+        select p.id, p.username, p.email, p.is_guest, p.xp, p.created_at, p.last_seen_at,
+               count(g.id) as games, max(g.created_at) as last_game_at,
+               greatest(p.last_seen_at, max(g.created_at), p.created_at) as active_at
+        from profiles p left join games g on g.user_id = p.id
+        group by p.id
+        order by active_at desc, p.id
+        limit ${limit} offset ${offset}`)
+      return found.map(
+        (r): AdminUserRow => ({
+          id: String(r.id),
+          username: String(r.username),
+          email: str(r.email),
+          isGuest: r.is_guest === true,
+          xp: n(r.xp),
+          games: n(r.games),
+          createdAt: ms(r.created_at) ?? 0,
+          lastGameAt: ms(r.last_game_at),
+          lastSeenAt: ms(r.last_seen_at),
+          activeAt: ms(r.active_at) ?? 0,
+        }),
+      )
+    },
+    online: async ({ since, gameSince, limit }) => {
+      const at = (value: number) => sql`${new Date(value).toISOString()}::timestamptz`
+      const seen = await rows(sql`
+        select p.id, p.username, p.is_guest, p.xp, p.last_activity, p.last_seen_at,
+               (select g.id from games g
+                where g.user_id = p.id and g.finished_at is null and g.created_at >= ${at(gameSince)}
+                order by g.created_at desc limit 1) as game_id
+        from profiles p
+        where p.last_seen_at >= ${at(since)}
+        order by p.last_seen_at desc
+        limit ${limit}`)
+      const openIds = seen.map((r) => str(r.game_id)).filter((id): id is string => id !== null)
+      const open = openIds.length
+        ? await rows(sql`${GAME_SELECT} where g.id in (${sql.join(openIds.map((id) => sql`${id}::uuid`), sql`, `)})`)
+        : []
+      const byId = new Map(open.map((r) => [String(r.id), toAdminGame(r)]))
+      return seen.map((r) => ({
+        id: String(r.id),
+        username: String(r.username),
+        isGuest: r.is_guest === true,
+        xp: n(r.xp),
+        activity: (str(r.last_activity) as Activity | null) ?? null,
+        lastSeenAt: ms(r.last_seen_at) ?? 0,
+        game: byId.get(String(r.game_id)) ?? null,
+      }))
+    },
+    overview: async ({ now, days }) => {
       // ISO strings with a cast: raw `sql` params are not serialised from Date by postgres-js.
       const at = (back: number) => sql`${new Date(now - back).toISOString()}::timestamptz`
       const d1 = at(DAY_MS)
@@ -143,14 +196,6 @@ export function drizzleAdmin(db: Db): AdminRepo {
           (select count(distinct user_id) from games where kind = 'weekly' and created_at >= ${d7})
             as weekly_players7d`)
 
-      const recentRows = await rows(sql`
-        select p.id, p.username, p.email, p.is_guest, p.xp, p.created_at,
-               count(g.id) as games, max(g.created_at) as last_game_at
-        from profiles p left join games g on g.user_id = p.id
-        group by p.id
-        order by max(g.created_at) desc nulls last, p.created_at desc
-        limit ${recentLimit}`)
-
       const wanted = new Set(days)
       const dayList: AdminDay[] = dayRows
         .filter((r) => wanted.has(String(r.day)))
@@ -167,17 +212,6 @@ export function drizzleAdmin(db: Db): AdminRepo {
         finished: n(r.finished),
         won: n(r.won),
         wonAttempts: n(r.won_attempts),
-      }))
-
-      const recentUsers: AdminUserRow[] = recentRows.map((r) => ({
-        id: String(r.id),
-        username: String(r.username),
-        email: (r.email as string | null) ?? null,
-        isGuest: r.is_guest === true,
-        xp: n(r.xp),
-        games: n(r.games),
-        createdAt: ms(r.created_at) ?? 0,
-        lastGameAt: ms(r.last_game_at),
       }))
 
       const byOpponent: Record<OpponentKind, number> = {
@@ -208,7 +242,6 @@ export function drizzleAdmin(db: Db): AdminRepo {
           nudges: n(social?.nudges),
           weeklyPlayers7d: n(social?.weekly_players7d),
         },
-        recentUsers,
       }
     },
   }

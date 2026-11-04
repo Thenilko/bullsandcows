@@ -1,11 +1,15 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
 import { adminGame, adminGames } from '../../admin/games'
+import { adminOnline } from '../../admin/online'
 import { adminOverview } from '../../admin/overview'
+import { adminUsers } from '../../admin/users'
 import { AppError } from '../errors'
 import { requireAdmin } from '../middleware/auth'
 import { ok } from '../respond'
 import type { AppEnv } from '../types'
+
+const UsersQuery = z.object({ offset: z.coerce.number().int().min(0).max(1_000_000).default(0) })
 
 const GamesQuery = z.object({
   offset: z.coerce.number().int().min(0).max(1_000_000).default(0),
@@ -19,6 +23,15 @@ export function adminRoutes(): Hono<AppEnv> {
   routes.get('/overview', async (c) => {
     const { repo, clock } = c.get('deps')
     return ok(c, await adminOverview({ repo, clock }))
+  })
+  routes.get('/users', async (c) => {
+    const query = UsersQuery.safeParse(c.req.query())
+    if (!query.success) throw new AppError('ERR_INPUT', 400)
+    return ok(c, await adminUsers(c.get('deps').repo, query.data.offset))
+  })
+  routes.get('/online', async (c) => {
+    const { repo, clock } = c.get('deps')
+    return ok(c, await adminOnline({ repo, clock }))
   })
   routes.get('/games', async (c) => {
     const query = GamesQuery.safeParse(c.req.query())

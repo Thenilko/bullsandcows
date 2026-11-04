@@ -55,7 +55,52 @@ export function memoryAdmin(store: MemoryStore): AdminRepo {
       const g = store.games.get(id)
       return g ? withPlayers(g) : null
     },
-    overview: async ({ now, days, recentLimit }) => {
+    userCount: async () => store.profiles.size,
+    users: async ({ limit, offset }) =>
+      [...store.profiles.values()]
+        .map((p): AdminUserRow => {
+          const own = [...store.games.values()].filter((g) => g.userId === p.id)
+          const lastGameAt = own.reduce<number | null>((max, g) => Math.max(max ?? 0, g.createdAt), null)
+          const lastSeenAt = store.presence.get(p.id)?.at ?? null
+          return {
+            id: p.id,
+            username: p.username,
+            email: p.email,
+            isGuest: p.isGuest,
+            xp: p.xp,
+            games: own.length,
+            createdAt: p.createdAt,
+            lastGameAt,
+            lastSeenAt,
+            activeAt: Math.max(p.createdAt, lastGameAt ?? 0, lastSeenAt ?? 0),
+          }
+        })
+        .sort((a, b) => b.activeAt - a.activeAt || (a.id < b.id ? -1 : 1))
+        .slice(offset, offset + limit),
+    online: async ({ since, gameSince, limit }) =>
+      [...store.presence.entries()]
+        .filter(([, seen]) => seen.at >= since)
+        .sort(([, a], [, b]) => b.at - a.at)
+        .slice(0, limit)
+        .flatMap(([id, seen]) => {
+          const p = store.profiles.get(id)
+          if (!p) return []
+          const open = [...store.games.values()]
+            .filter((g) => g.userId === id && g.finishedAt === null && g.createdAt >= gameSince)
+            .sort((a, b) => b.createdAt - a.createdAt)[0]
+          return [
+            {
+              id,
+              username: p.username,
+              isGuest: p.isGuest,
+              xp: p.xp,
+              activity: seen.activity,
+              lastSeenAt: seen.at,
+              game: open ? withPlayers(open) : null,
+            },
+          ]
+        }),
+    overview: async ({ now, days }) => {
       const profiles = [...store.profiles.values()]
       const games = [...store.games.values()]
       const since = (ms: number) => now - ms
@@ -88,23 +133,6 @@ export function memoryAdmin(store: MemoryStore): AdminRepo {
       const duels = [...store.duels.values()]
       const byOpponent = (kind: OpponentKind) => duels.filter((d) => d.opponentKind === kind).length
 
-      const recentUsers: AdminUserRow[] = profiles
-        .map((p) => {
-          const own = games.filter((g) => g.userId === p.id)
-          const last = own.reduce<number | null>((max, g) => Math.max(max ?? 0, g.createdAt), null)
-          return {
-            id: p.id,
-            username: p.username,
-            email: p.email,
-            isGuest: p.isGuest,
-            xp: p.xp,
-            games: own.length,
-            createdAt: p.createdAt,
-            lastGameAt: last,
-          }
-        })
-        .sort((a, b) => (b.lastGameAt ?? -1) - (a.lastGameAt ?? -1) || b.createdAt - a.createdAt)
-        .slice(0, recentLimit)
 
       return {
         users: {
@@ -128,7 +156,6 @@ export function memoryAdmin(store: MemoryStore): AdminRepo {
           nudges: store.nudges.size,
           weeklyPlayers7d: distinct(games.filter((g) => g.kind === 'weekly' && g.createdAt >= since(7 * DAY_MS))),
         },
-        recentUsers,
       }
     },
   }
