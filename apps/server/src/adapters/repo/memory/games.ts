@@ -83,13 +83,12 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
       return copy(row)
     },
     guesses: async (gameId) => copy([...(store.guesses.get(gameId) ?? [])]),
-    dailyOnDevice: async (deviceId, date, len, zero) => {
-      const found = all()
+    dailiesOnDevice: async (deviceId, date, len, zero) =>
+      all()
         .filter((g) => store.gameDevices.get(g.id) === deviceId && isCountedDaily(g))
         .filter((g) => g.dailyDate === date && g.len === len && g.zero === zero)
-        .sort((a, b) => a.createdAt - b.createdAt)[0]
-      return found ? publicGame(found) : null
-    },
+        .sort((a, b) => a.createdAt - b.createdAt)
+        .map(publicGame),
     dailyOf: async (userId, date, len, zero) => {
       const found = all()
         .filter((g) => g.userId === userId && g.kind === 'daily' && !g.practice)

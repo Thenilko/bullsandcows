@@ -22,7 +22,7 @@ import { dailyNumbers, games, guesses } from './schema'
 const SOFIA_TZ = 'Europe/Sofia'
 
 /**
- * Every column except `secret` and `device_id` (only ever compared in SQL, see `dailyOnDevice`):
+ * Every column except `secret` and `device_id` (only ever compared in SQL, see `dailiesOnDevice`):
  * the default projection for all game reads and writes.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -94,8 +94,8 @@ export function drizzleGames(db: Db): GamesRepo {
         .orderBy(asc(guesses.id))
       return rows.map(toGuess)
     },
-    dailyOnDevice: async (deviceId, date, len, zero) => {
-      const [row] = await db
+    dailiesOnDevice: async (deviceId, date, len, zero) => {
+      const rows = await db
         .select(publicColumns)
         .from(games)
         .where(
@@ -109,8 +109,7 @@ export function drizzleGames(db: Db): GamesRepo {
           ),
         )
         .orderBy(asc(games.createdAt))
-        .limit(1)
-      return row ? toPublicGame(row) : null
+      return rows.map(toPublicGame)
     },
     dailyOf: async (userId, date, len, zero) => {
       const [row] = await db

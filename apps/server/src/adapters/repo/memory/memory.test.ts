@@ -297,9 +297,9 @@ describe('memory games', () => {
     const day = { kind: 'daily' as const, dailyDate: '2026-10-20' }
     const counted = await repo.games.create({ ...newGame(day), deviceId: 'dev-1' })
     expect(counted).not.toHaveProperty('deviceId')
-    expect((await repo.games.dailyOnDevice('dev-1', '2026-10-20', 4, false))?.id).toBe(counted.id)
-    expect(await repo.games.dailyOnDevice('dev-2', '2026-10-20', 4, false)).toBeNull()
-    expect(await repo.games.dailyOnDevice('dev-1', '2026-10-20', 5, false)).toBeNull()
+    expect((await repo.games.dailiesOnDevice('dev-1', '2026-10-20', 4, false)).map((g) => g.id)).toEqual([counted.id])
+    expect(await repo.games.dailiesOnDevice('dev-2', '2026-10-20', 4, false)).toEqual([])
+    expect(await repo.games.dailiesOnDevice('dev-1', '2026-10-20', 5, false)).toEqual([])
   })
 
   it('enforces one counted daily game per key and unique guesses, like the database', async () => {
