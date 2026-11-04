@@ -7,6 +7,8 @@ export const SITE = {
   OPERATOR: 'Данаил Симеонов',
   EMAIL: (import.meta.env.VITE_CONTACT_EMAIL as string | undefined) ?? '',
   CREATOR: 'Данаил Симеонов',
+  /** Voluntary tips go straight to Revolut; nothing about them passes through the site. */
+  DONATE_URL: 'https://revolut.me/danailxgqx',
 } as const
 
 export const EMAIL_PLACEHOLDER = '[имейл за контакт]'

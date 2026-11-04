@@ -9,7 +9,7 @@ const INFO_PAGES = [
   ['Условия', '/terms'],
   ['Правна информация', '/legal'],
   ['Какво ново', '/changelog'],
-  ['Подкрепа', '/support'],
+  ['Помощ', '/support'],
 ] as const
 
 test('public pages: login, rules and every footer page open without an account', async ({ page }) => {

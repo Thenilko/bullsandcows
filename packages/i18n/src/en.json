@@ -954,7 +954,7 @@
       "terms": "Terms",
       "legal": "Legal notice",
       "changelog": "What's new",
-      "support": "Support"
+      "support": "Help"
     },
     "creator": "Danail Simeonov",
     "contact": "Contact",
@@ -965,7 +965,14 @@
     "versionLabel": "Version {{version}} — what's new",
     "back": "‹ Back to the game",
     "updated": "Last updated: {{date}}",
-    "stillStuck": "Didn't find an answer? Write to us:"
+    "stillStuck": "Didn't find an answer? Write to us:",
+    "donate": {
+      "link": "Buy me a coffee",
+      "title": "Buy me a coffee ☕",
+      "text": "The game is free and ad-free, and it will stay that way. If you like it and want to help with the server and new animals, you can buy me a coffee through Revolut.",
+      "cta": "Buy me a coffee on Revolut",
+      "newTab": "opens in a new tab"
+    }
   },
   "admin": {
     "title": "Admin panel",
