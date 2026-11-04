@@ -561,6 +561,13 @@
   color: var(--c-red);
 }
 
+.settings {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-muted-aa);
+}
+
 .more {
   display: block;
   margin: 14px auto 0;

@@ -33,6 +33,7 @@ const sameCountedDaily = (a: GameRow, b: NewGame) =>
   a.zero === b.zero
 
 export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
+  const isGuest = (userId: string): boolean => store.profiles.get(userId)?.isGuest === true
   const save = (game: GameRow): PublicGameRow => {
     store.games.set(game.id, copy(game))
     return publicGame(game)
@@ -40,13 +41,15 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
   const all = (): GameRow[] => [...store.games.values()]
 
   return {
-    create: async (input) => {
+    create: async ({ deviceId, ...input }) => {
       const existing = input.id === undefined ? undefined : store.games.get(input.id)
       if (existing) return publicGame(existing)
       if (all().some((g) => sameCountedDaily(g, input))) throw duplicateError('daily game')
+      const id = input.id ?? crypto.randomUUID()
+      if (deviceId) store.gameDevices.set(id, deviceId)
       return save({
         ...input,
-        id: input.id ?? crypto.randomUUID(),
+        id,
         startedAt: null,
         finishedAt: null,
         attempts: 0,
@@ -80,6 +83,13 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
       return copy(row)
     },
     guesses: async (gameId) => copy([...(store.guesses.get(gameId) ?? [])]),
+    dailyOnDevice: async (deviceId, date, len, zero) => {
+      const found = all()
+        .filter((g) => store.gameDevices.get(g.id) === deviceId && isCountedDaily(g))
+        .filter((g) => g.dailyDate === date && g.len === len && g.zero === zero)
+        .sort((a, b) => a.createdAt - b.createdAt)[0]
+      return found ? publicGame(found) : null
+    },
     dailyOf: async (userId, date, len, zero) => {
       const found = all()
         .filter((g) => g.userId === userId && g.kind === 'daily' && !g.practice)
@@ -89,13 +99,13 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
     },
     wonAttempts: async (q) =>
       all()
-        .filter((g) => matchesWon(g, q))
+        .filter((g) => matchesWon(g, q) && !isGuest(g.userId))
         .map((g) => g.attempts),
     wonAttemptsByDate: async ({ len, zero, dates }) => {
       const byDate = new Map<string, number[]>()
       for (const g of all()) {
         if (g.dailyDate === null || !dates.includes(g.dailyDate)) continue
-        if (!matchesWon(g, { kind: 'daily', len, zero })) continue
+        if (!matchesWon(g, { kind: 'daily', len, zero }) || isGuest(g.userId)) continue
         byDate.set(g.dailyDate, [...(byDate.get(g.dailyDate) ?? []), g.attempts])
       }
       return Object.fromEntries(byDate)

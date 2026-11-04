@@ -126,6 +126,9 @@ export function AdminGames({ enabled, lang }: { enabled: boolean; lang: Lang }) 
                       </th>
                       <td>
                         {t(`admin.games.kind.${g.kind}`)}
+                        <span className={styles.settings}>
+                          {t(g.zero ? 'admin.feed.settingsZero' : 'admin.feed.settings', { len: g.len })}
+                        </span>
                         {g.practice ? <span className={styles.tag}>{t('admin.feed.practice')}</span> : null}
                       </td>
                       <td>

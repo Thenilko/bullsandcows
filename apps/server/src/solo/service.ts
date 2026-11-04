@@ -126,13 +126,16 @@ export class SoloService {
       })
       return this.view(game)
     }
-    return this.createDaily(user, len, zero)
+    return this.createDaily(user, len, zero, input.device ?? null)
   }
 
   /** Today's number of the day for these settings and how the player's counted game of it ended. */
-  async dailyStatus(user: AuthUser, len: Len, zero: boolean): Promise<DailyStatusDto> {
+  async dailyStatus(user: AuthUser, len: Len, zero: boolean, device: string | null = null): Promise<DailyStatusDto> {
     const now = new Date(this.deps.clock.now())
-    const counted = await this.deps.repo.games.dailyOf(user.id, sofiaDate(now), len, zero)
+    const date = sofiaDate(now)
+    const counted =
+      (await this.deps.repo.games.dailyOf(user.id, date, len, zero)) ??
+      (device ? await this.deps.repo.games.dailyOnDevice(device, date, len, zero) : null)
     const played =
       counted && counted.finishedAt !== null
         ? { won: counted.won === true, attempts: counted.attempts }
@@ -140,13 +143,16 @@ export class SoloService {
     return { number: dailyNumber(now), played }
   }
 
-  private async createDaily(user: AuthUser, len: Len, zero: boolean): Promise<GameView> {
+  private async createDaily(user: AuthUser, len: Len, zero: boolean, device: string | null): Promise<GameView> {
     const { repo, clock } = this.deps
     const date = sofiaDate(new Date(clock.now()))
     const counted = await repo.games.dailyOf(user.id, date, len, zero)
     // An unfinished counted game is resumed; the unique index allows only one per key.
     if (counted && counted.finishedAt === null) return this.view(counted)
-    const practice = counted !== null
+    // Someone already played today's number on this browser with another (or a fresh guest) account:
+    // the answer may be known, so this one is practice.
+    const playedHere = counted === null && device !== null && (await repo.games.dailyOnDevice(device, date, len, zero)) !== null
+    const practice = counted !== null || playedHere
     if (!practice) {
       await repo.games.recordDailyNumber(
         date,
@@ -164,6 +170,7 @@ export class SoloService {
         secret: dailySecret(this.deps.dailySalt, date, len, zero),
         dailyDate: date,
         practice,
+        deviceId: practice ? null : device,
       })
       return this.view(game)
     } catch (err) {

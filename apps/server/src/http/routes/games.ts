@@ -76,8 +76,8 @@ export function gamesRoutes(): Hono<AppEnv> {
   })
 
   routes.get('/daily', validate('query', DailyStatusQuery), async (c) => {
-    const { len, zero } = c.req.valid('query')
-    return ok(c, await service(c).dailyStatus(c.get('user'), len, zero))
+    const { len, zero, device } = c.req.valid('query')
+    return ok(c, await service(c).dailyStatus(c.get('user'), len, zero, device ?? null))
   })
 
   routes.post('/:id/start', async (c) =>

@@ -85,7 +85,10 @@ export type NewGame = Pick<
   GameRow,
   'userId' | 'kind' | 'len' | 'zero' | 'secret' | 'dailyDate' | 'practice'
 > &
-  Partial<Pick<GameRow, 'id'>>
+  Partial<Pick<GameRow, 'id'>> & {
+    /** The browser a counted daily was started on (never returned; see `dailyOnDevice`). */
+    readonly deviceId?: string | null
+  }
 
 export type GamePatch = Partial<
   Pick<
@@ -272,6 +275,8 @@ export interface GamesRepo {
   /** In the order they were added. */
   guesses(gameId: string): Promise<GuessRow[]>
   /** The counted (non-practice) daily game of a user for a date and settings. */
+  /** The counted daily of any account started on this browser for that date and settings. */
+  dailyOnDevice(deviceId: string, date: string, len: Len, zero: boolean): Promise<PublicGameRow | null>
   dailyOf(userId: string, date: string, len: Len, zero: boolean): Promise<PublicGameRow | null>
   wonAttempts(query: WonAttemptsQuery): Promise<number[]>
   /** Attempts of won counted daily games per date; dates without wins are absent. */

@@ -64,6 +64,13 @@
       "when": 1793818506353,
       "tag": "0008_presence",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793819674015,
+      "tag": "0009_daily_device",
+      "breakpoints": true
     }
   ]
 }

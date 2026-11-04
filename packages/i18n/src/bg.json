@@ -1098,6 +1098,8 @@
       "won": "Позна",
       "lost": "Не позна",
       "practice": "тренировка",
+      "settings": "{{len}} цифри, без 0",
+      "settingsZero": "{{len}} цифри, с 0",
       "searched": "търсеше",
       "suspicious": "подозрителна",
       "notes": "с тефтерчето",

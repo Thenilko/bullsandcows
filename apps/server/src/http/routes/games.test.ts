@@ -71,6 +71,31 @@ describe('solo game routes', () => {
     expect((await call(app, user, 'GET', '/api/games/daily?len=7&zero=false')).status).toBe(400)
   })
 
+  it('replays the number of the day as practice for a second account on the same browser', async () => {
+    const app = makeApp()
+    const device = crypto.randomUUID()
+    const daily = (user: string, dev?: string) =>
+      Promise.resolve(call(app, user, 'POST', '/api/games', { len: 4, zero: false, kind: 'daily', ...(dev ? { device: dev } : {}) })).then(json)
+
+    const first = newUser()
+    const played = await daily(first, device)
+    expect(played.data.practice).toBe(false)
+    await call(app, first, 'POST', `/api/games/${played.data.id}/give-up`)
+
+    const second = newUser()
+    const status = await json(await call(app, second, 'GET', `/api/games/daily?len=4&zero=false&device=${device}`))
+    expect(status.data.played).toEqual({ won: false, attempts: 0 })
+    expect((await daily(second, device)).data.practice).toBe(true)
+    // Another browser, or the same account again on the first one, is unaffected / already counted.
+    expect((await daily(newUser(), crypto.randomUUID())).data.practice).toBe(false)
+    expect((await daily(newUser())).data.practice).toBe(false)
+    expect((await daily(first, device)).data.practice).toBe(true)
+    // Other settings are another number of the day.
+    const other = await json(await call(app, second, 'POST', '/api/games', { len: 5, zero: false, kind: 'daily', device }))
+    expect(other.data.practice).toBe(false)
+    expect((await call(app, second, 'POST', '/api/games', { len: 4, zero: false, kind: 'daily', device: 'nope' })).status).toBe(400)
+  })
+
   it('plays a full game inside the ApiResult envelope', async () => {
     const app = makeApp()
     const user = newUser()

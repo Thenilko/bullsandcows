@@ -21,6 +21,8 @@ export interface MemoryStore {
   readonly profiles: Map<string, Profile>
   readonly games: Map<string, GameRow>
   readonly guesses: Map<string, readonly GuessRow[]>
+  /** Per game id: the browser a counted daily was started on. */
+  readonly gameDevices: Map<string, string>
   readonly duels: Map<string, DuelRow>
   readonly dailyNumbers: Map<string, number>
   /** Per user: badge key → its state. */
@@ -48,6 +50,7 @@ export const createStore = (): MemoryStore => ({
   profiles: new Map(),
   games: new Map(),
   guesses: new Map(),
+  gameDevices: new Map(),
   duels: new Map(),
   dailyNumbers: new Map(),
   badges: new Map(),

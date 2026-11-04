@@ -21,9 +21,12 @@ import { dailyNumbers, games, guesses } from './schema'
 
 const SOFIA_TZ = 'Europe/Sofia'
 
-/** Every column except `secret`: the default projection for all game reads and writes. */
+/**
+ * Every column except `secret` and `device_id` (only ever compared in SQL, see `dailyOnDevice`):
+ * the default projection for all game reads and writes.
+ */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { secret: _secretColumn, ...publicColumns } = getTableColumns(games)
+const { secret: _secretColumn, deviceId: _deviceColumn, ...publicColumns } = getTableColumns(games)
 export { publicColumns }
 
 function patchColumns(patch: GamePatch): Partial<typeof games.$inferInsert> {
@@ -38,6 +41,8 @@ function wonFilter(q: WonAttemptsQuery): SQL | undefined {
     eq(games.zero, q.zero),
     eq(games.won, true),
     eq(games.practice, false),
+    // Guests can replay a known number from a fresh account, so they stay out of everyone's „top X%“.
+    sql`not exists (select 1 from profiles p where p.id = ${games.userId} and p.is_guest)`,
     q.date === undefined ? undefined : eq(games.dailyDate, q.date),
     q.sinceMs === undefined ? undefined : gte(games.finishedAt, new Date(q.sinceMs)),
   )
@@ -88,6 +93,24 @@ export function drizzleGames(db: Db): GamesRepo {
         .where(eq(guesses.gameId, gameId))
         .orderBy(asc(guesses.id))
       return rows.map(toGuess)
+    },
+    dailyOnDevice: async (deviceId, date, len, zero) => {
+      const [row] = await db
+        .select(publicColumns)
+        .from(games)
+        .where(
+          and(
+            eq(games.deviceId, deviceId),
+            eq(games.kind, 'daily'),
+            eq(games.practice, false),
+            eq(games.dailyDate, date),
+            eq(games.len, len),
+            eq(games.zero, zero),
+          ),
+        )
+        .orderBy(asc(games.createdAt))
+        .limit(1)
+      return row ? toPublicGame(row) : null
     },
     dailyOf: async (userId, date, len, zero) => {
       const [row] = await db
