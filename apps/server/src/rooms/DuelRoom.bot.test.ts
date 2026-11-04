@@ -1,5 +1,5 @@
 import { runInDurableObject } from 'cloudflare:test'
-import { BOT_THINK_BASE } from '@bc/game-core'
+import { BOT_RACE_JITTER, BOT_THINK_BASE } from '@bc/game-core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { RoomOpts } from '../duel/roomClient'
 import { COUNTDOWN_MS, type Match, type Secrets } from '../duel/types'
@@ -93,10 +93,11 @@ describe('DuelRoom bot: race', () => {
     const s = await setup(botOpts('race', 2))
     await start(s)
     const base = BOT_THINK_BASE.race[1]
+    const [lo, hi] = BOT_RACE_JITTER[1]
     const startedAt = s.clock.t
     const at = await botTimer(s)
-    expect(at).toBeGreaterThanOrEqual(startedAt + base - 2000)
-    expect(at).toBeLessThanOrEqual(startedAt + base + 2500)
+    expect(at).toBeGreaterThanOrEqual(startedAt + base + lo)
+    expect(at).toBeLessThanOrEqual(startedAt + base + hi)
     await alarmAt(s, at!)
     await got(s.c, 'oppMoved')
     expect(last(s.c, 'oppMoved')).toMatchObject({ t: 'oppMoved', attempts: 1 })

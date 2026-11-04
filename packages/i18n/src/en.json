@@ -532,15 +532,15 @@
     "level": {
       "easy": {
         "name": "Easy",
-        "desc": "The Scarecrow dozes off and sometimes slips — for little kids and first games."
+        "desc": "The Scarecrow dozes off and often slips — for little kids and first games."
       },
       "normal": {
         "name": "Medium",
-        "desc": "Pays attention and only tries numbers that fit the hints."
+        "desc": "Now and then misses a hint — plays like an ordinary player."
       },
       "hard": {
         "name": "Hard",
-        "desc": "Thinks like an old shepherd — picks guesses that narrow things down the most."
+        "desc": "Pays attention and only tries numbers that fit the hints."
       },
       "expert": { "name": "Expert", "desc": "Never slips and plays fast. For masters only." }
     }

@@ -14,7 +14,7 @@ export type Opponent = 'quick' | 'friend'
 export type BotLevel = 1 | 2 | 3 | 4
 export type PickedMode = 'solo' | SetupMode
 
-const DEFAULT_BOT_LEVEL: BotLevel = 2
+const DEFAULT_BOT_LEVEL: BotLevel = 1
 
 /** Route of each setup screen in the „Соло · Дуел · Бот“ switch. */
 export function modePath(m: PickedMode): string {

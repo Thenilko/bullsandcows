@@ -49,8 +49,10 @@ describe('DuelSetup', () => {
   it('bot mode posts the chosen level and goes to the room with its token', async () => {
     createBot.mockResolvedValue({ roomId: 'r1', token: 't1' })
     show('/bot/new', 'bot')
+    // „Лесно“ is chosen first, so a first game against the bot is winnable.
+    expect(screen.getByText(/Плашилото дреме и често бърка/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Трудно' }))
-    expect(screen.getByText(/Мисли като стар пастир/)).toBeInTheDocument()
+    expect(screen.getByText(/пробва само числа, които пасват/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Срещу Плашилото' }))
     await waitFor(() => expect(createBot).toHaveBeenCalledWith({ len: 4, zero: false, format: 'classic', level: 3 }))
     expect(await screen.findByTestId('where')).toHaveTextContent('/duel/r1?token=t1')

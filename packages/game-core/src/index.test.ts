@@ -15,7 +15,7 @@ describe('public API', () => {
         'dailyXp', 'freeXp', 'dayStreakBonus', 'FREE_XP_GAMES_PER_DAY',
         'sofiaDate', 'dailyIndex', 'dailySecret',
         'INVITE_ALPHABET', 'inviteCode', 'isInviteCode',
-        'botGuess', 'botThinkMs', 'BOT_THINK_BASE', 'BOT_LEVEL1_RANDOM_CHANCE', 'BOT_SEARCH', 'expertProbes',
+        'botGuess', 'botThinkMs', 'BOT_THINK_BASE', 'BOT_RACE_JITTER', 'BOT_RANDOM_CHANCE', 'BOT_SEARCH', 'expertProbes',
         'DEFAULT_RATING', 'updateRating', 'displayRating',
         'SUSPICIOUS', 'isSuspicious',
       ]),
