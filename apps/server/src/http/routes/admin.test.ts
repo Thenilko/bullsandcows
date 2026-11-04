@@ -1,5 +1,5 @@
 import { env as workerEnv } from 'cloudflare:workers'
-import { AdminGameDetailDto, AdminGamesDto, AdminOnlineDto, AdminOverviewDto, AdminUsersPageDto, MeDto } from '@bc/protocol'
+import { AdminDuelStatsDto, AdminGameDetailDto, AdminGamesDto, AdminOnlineDto, AdminOverviewDto, AdminUsersPageDto, MeDto } from '@bc/protocol'
 import { describe, expect, it } from 'vitest'
 import { createFakeAuth } from '../../adapters/auth/fake'
 import { createMemoryRepo } from '../../adapters/repo/memory'
@@ -263,5 +263,42 @@ describe('voiding an unfair game', () => {
     const duel = await repo.games.create(game('m1', { kind: 'duel_race' }))
     expect((await post(app, ADMIN, `/api/admin/games/${duel.id}/void`)).status).toBe(404)
     expect((await post(app, ADMIN, '/api/admin/games/nope/void')).status).toBe(404)
+  })
+})
+
+describe('duel and bot stats', () => {
+  it('counts wins against each bot level, how duels end and the seconds per guess', async () => {
+    const { app, repo } = setup()
+    await repo.profiles.create({ id: 'm1', username: 'Mira', email: 'm@x.bg', isGuest: false })
+    await repo.profiles.create({ id: 'p2', username: 'Pesho', email: 'p@x.bg', isGuest: false })
+    const botDuel = async (level: number, won: boolean, attempts: number, outcome: string) => {
+      const g = await repo.games.create(game('m1', { kind: 'bot' }))
+      await repo.games.update(g.id, { attempts, finishedAt: now, won })
+      const d = await repo.duels.create({ format: 'race', len: 4, zero: false, opponentKind: 'bot', botLevel: level, inviteCode: null, playerA: 'm1', playerB: null, gameA: g.id, gameB: null })
+      await repo.duels.finish(d.id, { winner: won ? 'm1' : null, outcome, ratingDeltaA: null, ratingDeltaB: null })
+    }
+    await botDuel(1, true, 6, 'solved')
+    await botDuel(1, false, 9, 'solved')
+    await botDuel(2, false, 4, 'solved')
+    const classic = await repo.duels.create({ format: 'classic', len: 4, zero: false, opponentKind: 'friend', botLevel: null, inviteCode: 'X', playerA: 'm1', playerB: 'p2', gameA: null, gameB: null })
+    await repo.duels.finish(classic.id, { winner: 'p2', outcome: 'timeout', ratingDeltaA: null, ratingDeltaB: null })
+
+    const solo = await repo.games.create(game('m1'))
+    await repo.games.update(solo.id, { startedAt: now - 60_000 })
+    for (const [guess, at] of [['1234', now - 40_000], ['5678', now - 10_000], ['9012', now + 20 * 60_000]] as const) {
+      await repo.games.addGuess({ gameId: solo.id, guess, bulls: 0, cows: 0, consistent: true, at })
+    }
+
+    const data = AdminDuelStatsDto.parse((await json(await get(app, ADMIN, '/api/admin/duels'))).data)
+    expect(data.windowDays).toBe(30)
+    expect(data.bot).toEqual([
+      { format: 'race', level: 1, games: 2, humanWins: 1, noWinner: 1, humanAttempts: 7.5 },
+      { format: 'race', level: 2, games: 1, humanWins: 0, noWinner: 1, humanAttempts: 4 },
+    ])
+    expect(data.outcomes).toContainEqual({ format: 'classic', opponentKind: 'friend', reason: 'timeout', count: 1 })
+    expect(data.outcomes).toContainEqual({ format: 'race', opponentKind: 'bot', reason: 'solved', count: 3 })
+    // 20 s and 30 s; the 20-minute pause is someone who walked away.
+    expect(data.think).toEqual([{ scope: 'solo', len: 4, moves: 2, p50: 25, p90: 29 }])
+    expect((await get(app, MEMBER, '/api/admin/duels')).status).toBe(403)
   })
 })

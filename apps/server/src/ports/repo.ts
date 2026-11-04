@@ -624,11 +624,27 @@ export interface AdminRepo {
    * leaderboards and the distributions. Returns false when there is no such game of those kinds.
    */
   voidGame(id: string): Promise<boolean>
+  /** Duels against the bot, duel endings and guess pace since `since` (see `AdminDuelStatsRows`). */
+  duelStats(query: { since: number; maxGapMs: number }): Promise<AdminDuelStatsRows>
   /** Every profile, most recently active first (see `AdminUserRow.activeAt`). */
   users(query: { limit: number; offset: number }): Promise<AdminUserRow[]>
   userCount(): Promise<number>
   /** Players seen at or after `since`, most recent first, each with the newest unfinished game started since `gameSince`. */
   online(query: { since: number; gameSince: number; limit: number }): Promise<AdminOnlineRow[]>
+}
+
+export interface AdminDuelStatsRows {
+  readonly bot: readonly {
+    format: DuelFormat
+    level: number
+    games: number
+    humanWins: number
+    noWinner: number
+    humanAttempts: number | null
+  }[]
+  readonly outcomes: readonly { format: DuelFormat; opponentKind: OpponentKind; reason: string; count: number }[]
+  /** Seconds per guess; gaps of `maxGapMs` or more (a player who walked away) are left out. */
+  readonly think: readonly { scope: 'solo' | 'duel'; len: number; moves: number; p50: number; p90: number }[]
 }
 
 export interface AdminOnlineRow {

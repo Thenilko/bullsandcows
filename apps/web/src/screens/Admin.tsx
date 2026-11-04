@@ -5,6 +5,7 @@ import { useAdminOverview } from '../features/admin/useAdminOverview'
 import { useMe } from '../features/stats/useMe'
 import { ApiError } from '../lib/api'
 import { AdminChart } from './admin/AdminChart'
+import { AdminDuels } from './admin/AdminDuels'
 import { AdminGames } from './admin/AdminGames'
 import { AdminOnline } from './admin/AdminOnline'
 import { AdminKinds, AdminKpis, AdminSocial, AdminUsers, Section } from './admin/AdminSections'
@@ -71,6 +72,9 @@ export function Admin() {
           </Section>
           <Section id="admin-users" title={t('admin.list.heading')} wide>
             <AdminUsers enabled={isAdmin} lang={lang} />
+          </Section>
+          <Section id="admin-duels" title={t('admin.duels.heading')} wide>
+            <AdminDuels enabled={isAdmin} lang={lang} />
           </Section>
           <Section id="admin-feed" title={t('admin.feed.heading')} wide>
             <AdminGames enabled={isAdmin} lang={lang} />

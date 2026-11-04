@@ -9,6 +9,7 @@ import type {
   GameRow,
   OpponentKind,
 } from '../../../ports/repo'
+import { percentile } from '../../../admin/percentile'
 import type { MemoryStore } from './store'
 
 const DAY_MS = 86_400_000
@@ -77,6 +78,58 @@ export function memoryAdmin(store: MemoryStore): AdminRepo {
         })
         .sort((a, b) => b.activeAt - a.activeAt || (a.id < b.id ? -1 : 1))
         .slice(offset, offset + limit),
+    duelStats: async ({ since, maxGapMs }) => {
+      const duels = [...store.duels.values()].filter((d) => d.finishedAt !== null && d.createdAt >= since)
+      const groups = <T,>(rows: readonly T[], key: (r: T) => string) => {
+        const m = new Map<string, T[]>()
+        for (const r of rows) m.set(key(r), [...(m.get(key(r)) ?? []), r])
+        return [...m.entries()].sort(([a], [b]) => (a < b ? -1 : 1))
+      }
+      const bot = groups(
+        duels.filter((d) => d.opponentKind === 'bot'),
+        (d) => `${d.format}|${d.botLevel ?? 0}`,
+      ).map(([, ds]) => {
+        const first = ds[0]!
+        const attempts = ds.flatMap((d) => {
+          const g = d.gameA ? store.games.get(d.gameA) : undefined
+          return g ? [g.attempts] : []
+        })
+        return {
+          format: first.format,
+          level: first.botLevel ?? 0,
+          games: ds.length,
+          humanWins: ds.filter((d) => d.winner !== null && d.winner === d.playerA).length,
+          noWinner: ds.filter((d) => d.winner === null).length,
+          humanAttempts: attempts.length ? attempts.reduce((a, b) => a + b, 0) / attempts.length : null,
+        }
+      })
+      const outcomes = groups(duels, (d) => `${d.format}|${d.opponentKind}|${d.outcome ?? 'unknown'}`).map(
+        ([, ds]) => ({
+          format: ds[0]!.format,
+          opponentKind: ds[0]!.opponentKind,
+          reason: ds[0]!.outcome ?? 'unknown',
+          count: ds.length,
+        }),
+      )
+      const gaps: { scope: 'solo' | 'duel'; len: number; secs: number }[] = []
+      for (const [gameId, rows] of store.guesses) {
+        const g = store.games.get(gameId)
+        if (!g) continue
+        const scope = g.kind === 'daily' || g.kind === 'free' || g.kind === 'weekly' ? 'solo' : 'duel'
+        let prev = g.startedAt
+        for (const r of rows) {
+          const gap = prev === null ? null : r.at - prev
+          prev = r.at
+          if (r.at < since || gap === null || gap <= 0 || gap >= maxGapMs) continue
+          gaps.push({ scope, len: g.len, secs: gap / 1000 })
+        }
+      }
+      const think = groups(gaps, (x) => `${x.scope}|${x.len}`).map(([, xs]) => {
+        const sorted = xs.map((x) => x.secs).sort((a, b) => a - b)
+        return { scope: xs[0]!.scope, len: xs[0]!.len, moves: xs.length, p50: percentile(sorted, 0.5), p90: percentile(sorted, 0.9) }
+      })
+      return { bot, outcomes, think }
+    },
     voidGame: async (id) => {
       const g = store.games.get(id)
       if (!g || (g.kind !== 'daily' && g.kind !== 'free')) return false

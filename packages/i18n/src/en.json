@@ -1080,7 +1080,46 @@
         "other": "Other"
       }
     },
-    "feed": {
+    "duels": {
+      "heading": "Duels and the bot",
+      "window_one": "Over the last {{count}} day.",
+      "window_other": "Over the last {{count}} days.",
+      "botHeading": "Against the bot",
+      "botLevel": "Game · level",
+      "games": "Games",
+      "humanWins": "Human wins",
+      "noWinner": "No winner",
+      "humanAttempts": "Human guesses",
+      "outcomesHeading": "How duels end",
+      "duel": "Duel",
+      "other": "Other",
+      "thinkHeading": "How long people think per guess",
+      "where": "Where",
+      "moves": "Guesses",
+      "p50": "Typical (median)",
+      "p90": "Slowest 10%",
+      "secs_one": "{{count}} s",
+      "secs_other": "{{count}} s",
+      "digits_one": "{{count}} digit",
+      "digits_other": "{{count}} digits",
+      "format": {
+        "race": "Race",
+        "classic": "Classic"
+      },
+      "opponent": {
+        "quick": "quick match",
+        "friend": "with a friend",
+        "bot": "with the bot"
+      },
+      "scope": {
+        "solo": "Solo",
+        "duel": "Duel"
+      },
+      "noBot": "No games against the bot yet.",
+      "noDuels": "No finished duels yet.",
+      "noThink": "No guesses yet."
+    },
+        "feed": {
       "heading": "All games",
       "when": "When",
       "against": "Against",

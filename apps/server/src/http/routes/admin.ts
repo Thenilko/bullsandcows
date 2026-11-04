@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
 import { adminGame, adminGames, adminVoidGame } from '../../admin/games'
+import { adminDuelStats } from '../../admin/duelStats'
 import { adminOnline } from '../../admin/online'
 import { adminOverview } from '../../admin/overview'
 import { adminUsers } from '../../admin/users'
@@ -28,6 +29,10 @@ export function adminRoutes(): Hono<AppEnv> {
     const query = UsersQuery.safeParse(c.req.query())
     if (!query.success) throw new AppError('ERR_INPUT', 400)
     return ok(c, await adminUsers(c.get('deps').repo, query.data.offset))
+  })
+  routes.get('/duels', async (c) => {
+    const { repo, clock } = c.get('deps')
+    return ok(c, await adminDuelStats({ repo, clock }))
   })
   routes.get('/online', async (c) => {
     const { repo, clock } = c.get('deps')

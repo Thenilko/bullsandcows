@@ -1,4 +1,5 @@
 import type {
+  AdminDuelStatsDto,
   AdminGameDetailDto,
   AdminGameDto,
   AdminGamesDto,
@@ -70,5 +71,16 @@ export function useVoidGame() {
     mutationFn: (id: string) =>
       api.post<AdminGameDto>(`/api/admin/games/${encodeURIComponent(id)}/void`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin'] }),
+  })
+}
+
+/** `GET /api/admin/duels`: the bot, duel endings and guess pace over the last 30 days. */
+export function useAdminDuelStats(enabled: boolean) {
+  return useQuery({
+    queryKey: ['admin', 'duels'],
+    queryFn: () => api.get<AdminDuelStatsDto>('/api/admin/duels'),
+    enabled,
+    retry: shouldRetry,
+    refetchInterval: 60_000,
   })
 }

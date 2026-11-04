@@ -118,6 +118,58 @@ export function drizzleAdmin(db: Db): AdminRepo {
         }),
       )
     },
+    duelStats: async ({ since, maxGapMs }) => {
+      const from = sql`${new Date(since).toISOString()}::timestamptz`
+      const botRows = await rows(sql`
+        select d.format, d.bot_level, count(*) as games,
+               count(*) filter (where d.winner is not null and d.winner = d.player_a) as human_wins,
+               count(*) filter (where d.winner is null) as no_winner,
+               avg(g.attempts) as human_attempts
+        from duels d left join games g on g.id = d.game_a
+        where d.opponent_kind = 'bot' and d.finished_at is not null and d.created_at >= ${from}
+        group by 1, 2 order by 1, 2`)
+      const outcomeRows = await rows(sql`
+        select format, opponent_kind, coalesce(outcome, 'unknown') as reason, count(*) as n
+        from duels where finished_at is not null and created_at >= ${from}
+        group by 1, 2, 3 order by 1, 2, 3`)
+      // The first guess counts from the start; a gap of maxGapMs or more is a player who walked away.
+      const thinkRows = await rows(sql`
+        with gaps as (
+          select ga.kind, ga.len, gs.at,
+                 extract(epoch from gs.at - coalesce(
+                   lag(gs.at) over (partition by gs.game_id order by gs.id), ga.started_at)) as secs
+          from guesses gs join games ga on ga.id = gs.game_id)
+        select case when kind in ('daily', 'free', 'weekly') then 'solo' else 'duel' end as scope, len,
+               count(*) as moves,
+               percentile_cont(0.5) within group (order by secs) as p50,
+               percentile_cont(0.9) within group (order by secs) as p90
+        from gaps
+        where at >= ${from} and secs > 0 and secs < ${maxGapMs / 1000}
+        group by 1, 2 order by 1, 2`)
+      return {
+        bot: botRows.map((r) => ({
+          format: r.format as DuelFormat,
+          level: n(r.bot_level),
+          games: n(r.games),
+          humanWins: n(r.human_wins),
+          noWinner: n(r.no_winner),
+          humanAttempts: r.human_attempts === null ? null : Number(r.human_attempts),
+        })),
+        outcomes: outcomeRows.map((r) => ({
+          format: r.format as DuelFormat,
+          opponentKind: r.opponent_kind as OpponentKind,
+          reason: String(r.reason),
+          count: n(r.n),
+        })),
+        think: thinkRows.map((r) => ({
+          scope: r.scope === 'solo' ? ('solo' as const) : ('duel' as const),
+          len: n(r.len),
+          moves: n(r.moves),
+          p50: Number(r.p50),
+          p90: Number(r.p90),
+        })),
+      }
+    },
     voidGame: async (id) => {
       if (!UUID.test(id)) return false
       const done = await rows(sql`

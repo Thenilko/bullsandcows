@@ -1083,7 +1083,46 @@
         "other": "Друго"
       }
     },
-    "feed": {
+    "duels": {
+      "heading": "Дуели и бот",
+      "window_one": "За последния {{count}} ден.",
+      "window_other": "За последните {{count}} дни.",
+      "botHeading": "Срещу бота",
+      "botLevel": "Игра · ниво",
+      "games": "Игри",
+      "humanWins": "Човекът печели",
+      "noWinner": "Без победител",
+      "humanAttempts": "Опити на човека",
+      "outcomesHeading": "Как свършват дуелите",
+      "duel": "Дуел",
+      "other": "Друго",
+      "thinkHeading": "Колко мислят хората на ход",
+      "where": "Къде",
+      "moves": "Ходове",
+      "p50": "Обикновено (медиана)",
+      "p90": "Бавните 10%",
+      "secs_one": "{{count}} сек",
+      "secs_other": "{{count}} сек",
+      "digits_one": "{{count}} цифра",
+      "digits_other": "{{count}} цифри",
+      "format": {
+        "race": "Надпревара",
+        "classic": "Класически"
+      },
+      "opponent": {
+        "quick": "бърз мач",
+        "friend": "с приятел",
+        "bot": "с бот"
+      },
+      "scope": {
+        "solo": "Соло",
+        "duel": "Дуел"
+      },
+      "noBot": "Още няма игри срещу бота.",
+      "noDuels": "Още няма завършени дуели.",
+      "noThink": "Още няма ходове."
+    },
+        "feed": {
       "heading": "Всички игри",
       "when": "Кога",
       "against": "Срещу",

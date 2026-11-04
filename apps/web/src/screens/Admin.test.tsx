@@ -111,6 +111,16 @@ function answer(me: unknown, admin: () => unknown = () => overview) {
       const offset = Number(new URL(path, 'http://x').searchParams.get('offset'))
       return { ...usersPage, offset, users: offset === 0 ? usersPage.users : [{ ...usersPage.users[1], id: 'g9', username: 'guest-page2' }] }
     }
+    if (path === '/api/admin/duels')
+      return {
+        windowDays: 30,
+        bot: [{ format: 'race', level: 1, games: 10, humanWins: 2, noWinner: 1, humanAttempts: 7.4 }],
+        outcomes: [
+          { format: 'classic', opponentKind: 'bot', reason: 'solved', count: 3 },
+          { format: 'classic', opponentKind: 'bot', reason: 'timeout', count: 1 },
+        ],
+        think: [{ scope: 'solo', len: 4, moves: 120, p50: 24.5, p90: 71 }],
+      }
     if (path === '/api/admin/online')
       return {
         windowMinutes: 3,
@@ -145,6 +155,15 @@ describe('Admin', () => {
     expect(await people.findByRole('rowheader', { name: 'Danail' })).toBeInTheDocument()
     expect(people.getByRole('rowheader', { name: /guest-ab12\s*гост/ })).toBeInTheDocument()
     expect(get).toHaveBeenCalledWith('/api/admin/overview')
+  })
+
+  it('shows how people fare against the bot, how duels end and how long a guess takes', async () => {
+    answer({ ...meFixture, isAdmin: true })
+    show()
+    const duels = within(await screen.findByRole('region', { name: 'Дуели и бот' }))
+    expect(await duels.findByRole('row', { name: 'Надпревара · Лесно 10 20% 1 7.4' })).toBeInTheDocument()
+    expect(duels.getByRole('row', { name: /Класически · с бот 4 75% 25% 0% 0% 0%/ })).toBeInTheDocument()
+    expect(duels.getByRole('row', { name: /Соло · 4 цифри 120 24.5 сек 71 сек/ })).toBeInTheDocument()
   })
 
   it('shows who is online now with the screen and the game they are in', async () => {

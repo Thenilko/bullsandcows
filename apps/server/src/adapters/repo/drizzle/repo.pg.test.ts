@@ -449,4 +449,29 @@ describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
       expect(await repo.admin.voidGame('nope')).toBe(false)
     })
   })
+
+  describe('admin duel stats', () => {
+    it('groups bot duels, endings and guess pace', async () => {
+      const since = Date.parse('2026-11-05T00:00:00Z')
+      const before = await repo.admin.duelStats({ since, maxGapMs: 600_000 })
+      const u = await profile('ds')
+      const g = await repo.games.create({ userId: u, kind: 'bot', len: 3, zero: true, secret: '012', dailyDate: null, practice: false })
+      await repo.games.update(g.id, { attempts: 5, won: true, startedAt: since + 1000, finishedAt: since + 60_000 })
+      await repo.games.addGuess({ gameId: g.id, guess: '345', bulls: 0, cows: 0, consistent: true, at: since + 11_000 })
+      await repo.games.addGuess({ gameId: g.id, guess: '012', bulls: 3, cows: 0, consistent: true, at: since + 41_000 })
+      const d = await repo.duels.create({ format: 'classic', len: 3, zero: true, opponentKind: 'bot', botLevel: 3, inviteCode: null, playerA: u, playerB: null, gameA: g.id, gameB: null })
+      await sql`update duels set created_at = ${new Date(since + 1000).toISOString()} where id = ${d.id}`
+      await repo.duels.finish(d.id, { winner: u, outcome: 'solved', ratingDeltaA: null, ratingDeltaB: null })
+
+      const after = await repo.admin.duelStats({ since, maxGapMs: 600_000 })
+      const row = after.bot.find((r) => r.format === 'classic' && r.level === 3)
+      const was = before.bot.find((r) => r.format === 'classic' && r.level === 3)
+      expect((row?.games ?? 0) - (was?.games ?? 0)).toBe(1)
+      expect((row?.humanWins ?? 0) - (was?.humanWins ?? 0)).toBe(1)
+      expect(after.outcomes.find((o) => o.format === 'classic' && o.opponentKind === 'bot' && o.reason === 'solved')?.count).toBeGreaterThan(0)
+      const duelThink = after.think.find((t) => t.scope === 'duel' && t.len === 3)
+      expect(duelThink).toMatchObject({ moves: (before.think.find((t) => t.scope === 'duel' && t.len === 3)?.moves ?? 0) + 2 })
+    })
+  })
 })
+
