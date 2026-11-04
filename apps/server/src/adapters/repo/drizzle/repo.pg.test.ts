@@ -434,4 +434,19 @@ describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
       expect(await repo.games.wonAttemptsByDate({ len: 3, zero: true, dates: [date] })).toEqual({ [date]: [4] })
     })
   })
+
+  describe('admin void', () => {
+    it('makes a daily practice with 0 points and leaves duels alone', async () => {
+      const u = await profile('vd')
+      const mk = (kind: 'daily' | 'duel_race') =>
+        repo.games.create({ userId: u, kind, len: 4, zero: false, secret: '1234', dailyDate: kind === 'daily' ? '2026-11-04' : null, practice: false })
+      const daily = await mk('daily')
+      await repo.games.update(daily.id, { score: 1185, won: true, finishedAt: NOW })
+      const duel = await mk('duel_race')
+      expect(await repo.admin.voidGame(daily.id)).toBe(true)
+      expect(await repo.games.get(daily.id)).toMatchObject({ practice: true, score: 0 })
+      expect(await repo.admin.voidGame(duel.id)).toBe(false)
+      expect(await repo.admin.voidGame('nope')).toBe(false)
+    })
+  })
 })

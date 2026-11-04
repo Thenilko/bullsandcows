@@ -1,4 +1,9 @@
-import type { AdminGameDetailDto, AdminGameDto, AdminGameSideDto, AdminGamesDto } from '@bc/protocol'
+import type {
+  AdminGameDetailDto,
+  AdminGameDto,
+  AdminGameSideDto,
+  AdminGamesDto,
+} from '@bc/protocol'
 import type { AdminGameRow, Repo } from '../ports/repo'
 
 export const ADMIN_GAMES_PAGE = 50
@@ -38,8 +43,21 @@ async function sideOf(repo: Repo, game: AdminGameRow): Promise<AdminGameSideDto>
   const guesses = await repo.games.guesses(game.id)
   return {
     game: toAdminGame(game),
-    guesses: guesses.map(({ guess, bulls, cows, consistent, at }) => ({ guess, bulls, cows, consistent, at })),
+    guesses: guesses.map(({ guess, bulls, cows, consistent, at }) => ({
+      guess,
+      bulls,
+      cows,
+      consistent,
+      at,
+    })),
   }
+}
+
+/** Voids an unfair daily or free game (practice, 0 points); null when there is no such game. */
+export async function adminVoidGame(repo: Repo, id: string): Promise<AdminGameDto | null> {
+  if (!(await repo.admin.voidGame(id))) return null
+  const game = await repo.admin.game(id)
+  return game ? toAdminGame(game) : null
 }
 
 /** One game with every guess; a duel also brings the opponent's game. Null when there is no such game. */

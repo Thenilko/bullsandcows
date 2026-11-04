@@ -1,5 +1,17 @@
-import type { AdminGameDetailDto, AdminGamesDto, AdminOnlineDto, AdminUsersPageDto } from '@bc/protocol'
-import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import type {
+  AdminGameDetailDto,
+  AdminGameDto,
+  AdminGamesDto,
+  AdminOnlineDto,
+  AdminUsersPageDto,
+} from '@bc/protocol'
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import { api } from '../auth/client'
 import { shouldRetry } from '../stats/retry'
 
@@ -48,5 +60,15 @@ export function useAdminOnline(enabled: boolean) {
     enabled,
     retry: shouldRetry,
     refetchInterval: 20_000,
+  })
+}
+
+/** `POST /api/admin/games/:id/void`: the game becomes practice with 0 points; every admin list refreshes. */
+export function useVoidGame() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) =>
+      api.post<AdminGameDto>(`/api/admin/games/${encodeURIComponent(id)}/void`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin'] }),
   })
 }

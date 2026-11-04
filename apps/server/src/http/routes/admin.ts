@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
-import { adminGame, adminGames } from '../../admin/games'
+import { adminGame, adminGames, adminVoidGame } from '../../admin/games'
 import { adminOnline } from '../../admin/online'
 import { adminOverview } from '../../admin/overview'
 import { adminUsers } from '../../admin/users'
@@ -38,6 +38,11 @@ export function adminRoutes(): Hono<AppEnv> {
     if (!query.success) throw new AppError('ERR_INPUT', 400)
     const { repo } = c.get('deps')
     return ok(c, await adminGames(repo, { offset: query.data.offset, userId: query.data.user ?? null }))
+  })
+  routes.post('/games/:id/void', async (c) => {
+    const game = await adminVoidGame(c.get('deps').repo, c.req.param('id'))
+    if (!game) throw new AppError('ERR_NOT_FOUND', 404)
+    return ok(c, game)
   })
   routes.get('/games/:id', async (c) => {
     const { repo } = c.get('deps')

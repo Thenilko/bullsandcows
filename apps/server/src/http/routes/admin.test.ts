@@ -237,3 +237,31 @@ describe('online now', () => {
     expect((await get(app, MEMBER, '/api/admin/online')).status).toBe(403)
   })
 })
+
+describe('voiding an unfair game', () => {
+  const post = (app: ReturnType<typeof setup>['app'], token: string | null, path: string) =>
+    app.request(path, { method: 'POST', headers: token ? { Authorization: `Bearer ${token}` } : {} })
+
+  it('turns a daily into practice with 0 points, only for the admin', async () => {
+    const { app, repo } = setup()
+    await repo.profiles.create({ id: 'm1', username: 'Mira', email: 'm@x.bg', isGuest: false })
+    const daily = await repo.games.create(game('m1', { kind: 'daily', dailyDate: '2026-10-20' }))
+    await repo.games.update(daily.id, { finishedAt: now, won: true, attempts: 1, score: 1185 })
+
+    expect((await post(app, null, `/api/admin/games/${daily.id}/void`)).status).toBe(401)
+    expect((await post(app, MEMBER, `/api/admin/games/${daily.id}/void`)).status).toBe(403)
+    const res = await post(app, ADMIN, `/api/admin/games/${daily.id}/void`)
+    expect(res.status).toBe(200)
+    expect((await json(res)).data).toMatchObject({ id: daily.id, practice: true, score: 0 })
+    expect(await repo.games.get(daily.id)).toMatchObject({ practice: true, score: 0, won: true })
+    expect(await repo.games.wonAttempts({ kind: 'daily', len: 4, zero: false, date: '2026-10-20' })).toEqual([])
+  })
+
+  it('refuses duels and unknown games', async () => {
+    const { app, repo } = setup()
+    await repo.profiles.create({ id: 'm1', username: 'Mira', email: 'm@x.bg', isGuest: false })
+    const duel = await repo.games.create(game('m1', { kind: 'duel_race' }))
+    expect((await post(app, ADMIN, `/api/admin/games/${duel.id}/void`)).status).toBe(404)
+    expect((await post(app, ADMIN, '/api/admin/games/nope/void')).status).toBe(404)
+  })
+})

@@ -619,6 +619,11 @@ export interface AdminRepo {
   /** Newest first (then by id), at most `limit`. */
   games(query: AdminGamesQuery): Promise<AdminGameRow[]>
   game(id: string): Promise<AdminGameRow | null>
+  /**
+   * Voids a daily or free game the admin found unfair: it becomes practice with 0 points, so it leaves the
+   * leaderboards and the distributions. Returns false when there is no such game of those kinds.
+   */
+  voidGame(id: string): Promise<boolean>
   /** Every profile, most recently active first (see `AdminUserRow.activeAt`). */
   users(query: { limit: number; offset: number }): Promise<AdminUserRow[]>
   userCount(): Promise<number>

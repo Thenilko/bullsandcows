@@ -77,6 +77,12 @@ export function memoryAdmin(store: MemoryStore): AdminRepo {
         })
         .sort((a, b) => b.activeAt - a.activeAt || (a.id < b.id ? -1 : 1))
         .slice(offset, offset + limit),
+    voidGame: async (id) => {
+      const g = store.games.get(id)
+      if (!g || (g.kind !== 'daily' && g.kind !== 'free')) return false
+      store.games.set(id, { ...g, practice: true, score: 0 })
+      return true
+    },
     online: async ({ since, gameSince, limit }) =>
       [...store.presence.entries()]
         .filter(([, seen]) => seen.at >= since)

@@ -8,8 +8,9 @@ import { renderRoute } from '../test/renderRoute'
 import { niceMax } from './admin/AdminChart'
 
 const get = vi.fn()
+const post = vi.fn()
 vi.mock('../features/auth/client', () => ({
-  api: { get: (p: string) => get(p), patch: vi.fn(), post: vi.fn() },
+  api: { get: (p: string) => get(p), patch: vi.fn(), post: (p: string) => post(p) },
 }))
 
 const { Admin } = await import('./Admin')
@@ -181,6 +182,20 @@ describe('Admin', () => {
     expect(await feed.findByText('Само игрите на Mira')).toBeInTheDocument()
     expect(get).toHaveBeenCalledWith('/api/admin/games?offset=0&user=u2')
     await vi.waitFor(() => expect(feed.queryByRole('button', { name: 'Danail' })).toBeNull())
+  })
+
+  it('voids an unfair daily after a second tap', async () => {
+    answer({ ...meFixture, isAdmin: true })
+    post.mockResolvedValue({ ...baseGame, practice: true, score: 0 })
+    show()
+    const feed = within(await screen.findByRole('region', { name: 'Всички игри' }))
+    const solo = await feed.findByRole('row', { name: /Danail Число на деня/ })
+    fireEvent.click(within(solo).getByRole('button', { name: 'Ходове' }))
+    fireEvent.click(await feed.findByRole('button', { name: 'Анулирай играта' }))
+    expect(feed.getByText(/Става упражнение с 0 точки/)).toBeInTheDocument()
+    expect(post).not.toHaveBeenCalled()
+    fireEvent.click(feed.getByRole('button', { name: 'Да, анулирай' }))
+    await vi.waitFor(() => expect(post).toHaveBeenCalledWith('/api/admin/games/g-solo/void'))
   })
 
   it('does not ask for the numbers without the admin role', async () => {

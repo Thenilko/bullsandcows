@@ -118,6 +118,14 @@ export function drizzleAdmin(db: Db): AdminRepo {
         }),
       )
     },
+    voidGame: async (id) => {
+      if (!UUID.test(id)) return false
+      const done = await rows(sql`
+        update games set practice = true, score = 0
+        where id = ${id}::uuid and kind in ('daily', 'free')
+        returning id`)
+      return done.length > 0
+    },
     online: async ({ since, gameSince, limit }) => {
       const at = (value: number) => sql`${new Date(value).toISOString()}::timestamptz`
       const seen = await rows(sql`
