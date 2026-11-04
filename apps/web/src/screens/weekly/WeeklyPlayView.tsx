@@ -1,9 +1,12 @@
 import type { GameViewDto, WeeklyGameInfoDto } from '@bc/protocol'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Notebook } from '../../features/notebook/Notebook'
 import { NotebookSheet } from '../../features/notebook/NotebookSheet'
 import { NotesButton } from '../../features/notebook/NotesButton'
+import { useNotesSheet } from '../../features/notebook/sheet'
+import { useDueTip } from '../../features/coach/store'
+import { GuessBoard } from '../play/GuessBoard'
 import type { GameApi } from '../../features/solo/useGame'
 import { attemptDots } from '../../features/weekly/weeklyModel'
 import { useDesktopMode } from '../../hooks/useDesktopMode'
@@ -88,13 +91,18 @@ export function WeeklyMobilePlay({
   notesOpen = false,
 }: WeeklyPlayProps & { notesOpen?: boolean }) {
   const { t } = useTranslation()
-  const [open, setOpen] = useState(notesOpen)
+  const { open, show, hide } = useNotesSheet()
   const opener = useRef<HTMLButtonElement>(null)
+  const tip = useDueTip(g.started, game.attempts)
+  useLayoutEffect(() => {
+    if (notesOpen) show()
+    return hide
+  }, [notesOpen, show, hide])
   const close = useCallback(() => {
     sfx.play('page')
-    setOpen(false)
+    hide()
     opener.current?.focus()
-  }, [])
+  }, [hide])
   return (
     <section
       aria-label={t('play.inputArea')}
@@ -107,9 +115,10 @@ export function WeeklyMobilePlay({
         <NotesButton
           buttonRef={opener}
           gameId={game.id}
+          tip={tip === 'notes'}
           onClick={() => {
             sfx.play('page')
-            setOpen(true)
+            show()
           }}
         />
       </div>
@@ -210,9 +219,12 @@ export function WeeklyHud({
   )
   if (desktop) return row
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <ExitButton />
-      {row}
-    </div>
+    <>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <ExitButton />
+        {row}
+      </div>
+      {g.game ? <GuessBoard guesses={g.game.guesses} started={g.started} /> : null}
+    </>
   )
 }

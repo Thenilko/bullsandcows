@@ -106,7 +106,7 @@ test('solo: new game, start card, full-screen countdown, focus mode, „Меню
   await expectFocusMode(page)
   await typeGuess(page, '5678')
   await expectFocusMode(page)
-  await page.getByRole('button', { name: 'Тефтерче' }).click()
+  await page.getByRole('button', { name: 'Тефтерче', exact: true }).click()
   await expect(page.getByRole('list', { name: 'Опити' }).getByText('5678')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Предавам се' })).toBeVisible()
   await page.getByRole('button', { name: 'Затвори' }).click()

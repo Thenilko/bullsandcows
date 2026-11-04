@@ -215,6 +215,7 @@
     }
   },
   "play": {
+    "board": { "aria": "Your guesses", "open": "Open the notebook" },
     "fog_one": "Fog · {{count}} possibility",
     "fog_other": "Fog · {{count}} possibilities",
     "fogLong": "Fog · {{count}} possible numbers",
@@ -1118,6 +1119,11 @@
         "abandoned": "abandoned"
       }
     }
+  },
+  "coach": {
+    "ok": "Got it",
+    "notes": "This is your <b>notebook</b>. Mark the digits that are out and see all your guesses.",
+    "board": "Every guess stays on the board. <b>Bull</b>: the digit is in the right place. <b>Cow</b>: the digit is there, but in another place."
   },
   "onboarding": {
     "aria": "Game introduction",

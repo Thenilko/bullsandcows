@@ -12,7 +12,7 @@ async function typeGuess(page: Page, guess: string) {
 
 /** The attempts list: inside the notebook sheet on phones, in the notebook card on desktop. */
 async function expectGuessListed(page: Page, guess: string) {
-  const opener = page.getByRole('button', { name: 'Тефтерче' })
+  const opener = page.getByRole('button', { name: 'Тефтерче', exact: true })
   const sheet = (await opener.count()) > 0
   if (sheet) await opener.click()
   await expect(page.getByRole('list', { name: 'Опити' }).getByText(guess)).toBeVisible()

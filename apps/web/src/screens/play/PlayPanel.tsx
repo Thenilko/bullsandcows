@@ -1,5 +1,5 @@
 import type { GameViewDto } from '@bc/protocol'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import {
@@ -14,6 +14,9 @@ import { Notebook } from '../../features/notebook/Notebook'
 import { NotebookSheet } from '../../features/notebook/NotebookSheet'
 import { NotesButton } from '../../features/notebook/NotesButton'
 import { useNotebook } from '../../features/notebook/store'
+import { useNotesSheet } from '../../features/notebook/sheet'
+import { useDueTip } from '../../features/coach/store'
+import { GuessBoard } from './GuessBoard'
 import { distributionKind } from '../../features/solo/api'
 import type { GameApi } from '../../features/solo/useGame'
 import { useAverageAttempts } from '../../features/solo/useDistribution'
@@ -146,13 +149,18 @@ export function MobilePlay({
   notesOpen = false,
 }: Omit<PlayPanelProps, 'desktop'> & { notesOpen?: boolean }) {
   const { t } = useTranslation()
-  const [open, setOpen] = useState(notesOpen)
+  const { open, show, hide } = useNotesSheet()
   const opener = useRef<HTMLButtonElement>(null)
+  const tip = useDueTip(g.started, game.attempts)
+  useLayoutEffect(() => {
+    if (notesOpen) show()
+    return hide
+  }, [notesOpen, show, hide])
   const close = useCallback(() => {
     sfx.play('page')
-    setOpen(false)
+    hide()
     opener.current?.focus()
-  }, [])
+  }, [hide])
   return (
     <section
       aria-label={t('play.inputArea')}
@@ -163,9 +171,10 @@ export function MobilePlay({
         <NotesButton
           buttonRef={opener}
           gameId={game.id}
+          tip={tip === 'notes'}
           onClick={() => {
             sfx.play('page')
-            setOpen(true)
+            show()
           }}
         />
         <SoundIconButton />
@@ -288,9 +297,12 @@ export function PlayHud({ game, g, desktop }: PlayPanelProps) {
   )
   if (desktop) return hud
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <ExitButton />
-      {hud}
-    </div>
+    <>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <ExitButton />
+        {hud}
+      </div>
+      <GuessBoard guesses={game.guesses} started={g.started} />
+    </>
   )
 }
