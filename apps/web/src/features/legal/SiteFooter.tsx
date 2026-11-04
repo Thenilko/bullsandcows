@@ -49,6 +49,12 @@ export function SiteFooter({ variant = 'block' }: { variant?: 'block' | 'strip' 
               </a>
             </li>
           ) : null}
+          <li>
+            <a href={SITE.DONATE_URL} target="_blank" rel="noopener noreferrer" className={styles.flink}>
+              {t('footer.donate.link')}
+              <span className={styles.srOnly}> ({t('footer.donate.newTab')})</span>
+            </a>
+          </li>
         </ul>
       </nav>
       <Link to="/story" className={styles.made}>

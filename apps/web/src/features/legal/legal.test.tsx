@@ -71,6 +71,7 @@ describe('SiteFooter', () => {
     )
     expect(screen.getByRole('link', { name: /^Версия v/ })).toHaveAttribute('href', '/changelog')
     expect(screen.getByText(/Безплатна игра/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /^Почерпи ме кафе/ })).toHaveAttribute('href', 'https://revolut.me/danailxgqx')
   })
 })
 
@@ -79,6 +80,19 @@ describe('InfoPage', () => {
     renderRoute(<InfoPage page={key} />, { path: `/${key}`, at: `/${key}` })
     expect(screen.getByRole('heading', { level: 1, name: bg[key].title })).toBeInTheDocument()
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+  })
+
+  it.each(['support', 'story'] as const)('ends the %s page with the Revolut tip card', (key) => {
+    renderRoute(<InfoPage page={key} />, { path: `/${key}`, at: `/${key}` })
+    const cta = screen.getByRole('link', { name: /^Почерпи ме през Revolut/ })
+    expect(cta).toHaveAttribute('href', 'https://revolut.me/danailxgqx')
+    expect(cta).toHaveAttribute('target', '_blank')
+    expect(cta).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('shows no tip card on the legal pages', () => {
+    renderRoute(<InfoPage page="privacy" />, { path: '/privacy', at: '/privacy' })
+    expect(screen.queryByRole('link', { name: /^Почерпи ме през Revolut/ })).toBeNull()
   })
 
   it('turns in-app links in the text into router links', () => {

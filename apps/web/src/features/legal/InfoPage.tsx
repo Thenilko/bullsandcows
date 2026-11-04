@@ -6,6 +6,7 @@ import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { IDLE_SCENE } from '../../screens/idleScene'
 import { useSession } from '../auth/session'
 import { infoPages } from './content'
+import { Donate } from './Donate'
 import { RichText } from './RichText'
 import { SiteFooter } from './SiteFooter'
 import styles from './legal.module.css'
@@ -92,6 +93,7 @@ export function InfoPage({ page: key }: { page: InfoKey }) {
         <RichText text={page.intro} />
       </p>
       <Body page={page} />
+      {key === 'support' || key === 'story' ? <Donate /> : null}
     </article>
   )
   return (
