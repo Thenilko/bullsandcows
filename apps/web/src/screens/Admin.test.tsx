@@ -1,5 +1,5 @@
-import type { AdminOverviewDto } from '@bc/protocol'
-import { screen, within } from '@testing-library/react'
+import type { AdminGameDetailDto, AdminGameDto, AdminGamesDto, AdminOverviewDto } from '@bc/protocol'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useSession } from '../features/auth/session'
 import { ApiError } from '../lib/api'
@@ -46,8 +46,62 @@ const overview: AdminOverviewDto = {
   ],
 }
 
+const AT = Date.parse('2026-10-30T08:00:00Z')
+const baseGame: AdminGameDto = {
+  id: 'g-solo',
+  kind: 'daily',
+  len: 4,
+  zero: false,
+  practice: false,
+  secret: '5678',
+  attempts: 2,
+  won: true,
+  score: 900,
+  suspicious: false,
+  usedNotes: false,
+  createdAt: AT,
+  finishedAt: AT + 60_000,
+  player: { id: 'u1', username: 'Danail' },
+  duel: null,
+}
+const duelGame: AdminGameDto = {
+  ...baseGame,
+  id: 'g-duel',
+  kind: 'duel_classic',
+  secret: '9012',
+  attempts: 7,
+  won: false,
+  player: { id: 'u2', username: 'Mira' },
+  duel: {
+    id: 'd1',
+    format: 'classic',
+    opponentKind: 'friend',
+    botLevel: null,
+    outcome: 'solved',
+    isRematch: false,
+    opponent: { id: 'u1', username: 'Danail' },
+    opponentGameId: 'g-other',
+  },
+}
+const gamesPage: AdminGamesDto = { games: [duelGame, baseGame], nextOffset: null }
+const soloDetail: AdminGameDetailDto = {
+  side: {
+    game: baseGame,
+    guesses: [
+      { guess: '1234', bulls: 0, cows: 0, consistent: true, at: AT },
+      { guess: '5678', bulls: 4, cows: 0, consistent: true, at: AT + 1 },
+    ],
+  },
+  opponent: null,
+}
+
 function answer(me: unknown, admin: () => unknown = () => overview) {
-  get.mockImplementation(async (path: string) => (path === '/api/admin/overview' ? admin() : me))
+  get.mockImplementation(async (path: string) => {
+    if (path === '/api/admin/overview') return admin()
+    if (path.startsWith('/api/admin/games?')) return path.includes('user=u2') ? { games: [duelGame], nextOffset: null } : gamesPage
+    if (path === '/api/admin/games/g-solo') return soloDetail
+    return me
+  })
 }
 
 const show = () => renderRoute(<Admin />, { path: '/admin', at: '/admin' })
@@ -77,11 +131,29 @@ describe('Admin', () => {
     expect(get).toHaveBeenCalledWith('/api/admin/overview')
   })
 
+  it('lists every game with who played whom, opens the guesses and filters by player', async () => {
+    answer({ ...meFixture, isAdmin: true })
+    show()
+    const feed = within(await screen.findByRole('region', { name: 'Всички игри' }))
+    expect(await feed.findByRole('row', { name: /Mira Дуел · класически Danail 9012 7 Не позна · позна/ })).toBeInTheDocument()
+    const solo = feed.getByRole('row', { name: /Danail Число на деня — 5678 2 Позна/ })
+    fireEvent.click(within(solo).getByRole('button', { name: 'Ходове' }))
+    expect(await feed.findByText('4 бика 0 крави')).toBeInTheDocument()
+    expect(feed.getByText('0 бика 0 крави')).toBeInTheDocument()
+    expect(get).toHaveBeenCalledWith('/api/admin/games/g-solo')
+
+    fireEvent.click(feed.getByRole('button', { name: 'Mira' }))
+    expect(await feed.findByText('Само игрите на Mira')).toBeInTheDocument()
+    expect(get).toHaveBeenCalledWith('/api/admin/games?offset=0&user=u2')
+    await vi.waitFor(() => expect(feed.queryByRole('button', { name: 'Danail' })).toBeNull())
+  })
+
   it('does not ask for the numbers without the admin role', async () => {
     answer(meFixture)
     show()
     expect(await screen.findByRole('alert')).toHaveTextContent('Тази страница е само за администратора.')
     expect(get).not.toHaveBeenCalledWith('/api/admin/overview')
+    expect(get).not.toHaveBeenCalledWith('/api/admin/games?offset=0')
   })
 
   it('says so when the server refuses (403)', async () => {

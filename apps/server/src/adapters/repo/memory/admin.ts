@@ -1,6 +1,7 @@
 import { sofiaDate } from '@bc/game-core'
 import type {
   AdminDay,
+  AdminGameRow,
   AdminKindRow,
   AdminRepo,
   AdminUserRow,
@@ -17,7 +18,43 @@ const dayOf = (ms: number): string => sofiaDate(new Date(ms))
 const distinct = (games: readonly GameRow[]): number => new Set(games.map((g) => g.userId)).size
 
 export function memoryAdmin(store: MemoryStore): AdminRepo {
+  const withPlayers = (g: GameRow): AdminGameRow | null => {
+    const player = store.profiles.get(g.userId)
+    if (!player) return null
+    const d = [...store.duels.values()].find((x) => x.gameA === g.id || x.gameB === g.id)
+    const isA = d?.gameA === g.id
+    const opponentId = d ? (isA ? d.playerB : d.playerA) : null
+    const opponent = opponentId ? store.profiles.get(opponentId) : undefined
+    return {
+      ...g,
+      username: player.username,
+      duel: d
+        ? {
+            id: d.id,
+            format: d.format,
+            opponentKind: d.opponentKind,
+            botLevel: d.botLevel,
+            outcome: d.outcome,
+            isRematch: d.isRematch,
+            opponent: opponent ? { id: opponent.id, username: opponent.username } : null,
+            opponentGameId: isA ? d.gameB : d.gameA,
+          }
+        : null,
+    }
+  }
+
   return {
+    games: async ({ limit, offset, userId }) =>
+      [...store.games.values()]
+        .filter((g) => userId === null || g.userId === userId)
+        .sort((a, b) => b.createdAt - a.createdAt || (a.id < b.id ? 1 : -1))
+        .map(withPlayers)
+        .filter((g): g is AdminGameRow => g !== null)
+        .slice(offset, offset + limit),
+    game: async (id) => {
+      const g = store.games.get(id)
+      return g ? withPlayers(g) : null
+    },
     overview: async ({ now, days, recentLimit }) => {
       const profiles = [...store.profiles.values()]
       const games = [...store.games.values()]

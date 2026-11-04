@@ -580,9 +580,38 @@ export interface AdminOverviewRows {
   readonly recentUsers: readonly AdminUserRow[]
 }
 
+/** The duel a game belongs to, seen from that game's player. */
+export interface AdminGameDuel {
+  readonly id: string
+  readonly format: DuelFormat
+  readonly opponentKind: OpponentKind
+  readonly botLevel: number | null
+  readonly outcome: string | null
+  readonly isRematch: boolean
+  /** Null for a bot or a deleted profile. */
+  readonly opponent: { readonly id: string; readonly username: string } | null
+  readonly opponentGameId: string | null
+}
+
+/** A game with its secret, its player and (for a duel) who it was against. */
+export interface AdminGameRow extends GameRow {
+  readonly username: string
+  readonly duel: AdminGameDuel | null
+}
+
+export interface AdminGamesQuery {
+  readonly limit: number
+  readonly offset: number
+  /** Only this player's games. */
+  readonly userId: string | null
+}
+
 /** Read-only numbers for the admin panel. */
 export interface AdminRepo {
   overview(query: AdminOverviewQuery): Promise<AdminOverviewRows>
+  /** Newest first (then by id), at most `limit`. */
+  games(query: AdminGamesQuery): Promise<AdminGameRow[]>
+  game(id: string): Promise<AdminGameRow | null>
 }
 
 export interface Repo {

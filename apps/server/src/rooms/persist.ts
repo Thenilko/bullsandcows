@@ -61,7 +61,7 @@ function eventsOf(m: Match, s: Secrets, seat: Seat, won: boolean): BadgeEvent[] 
   return target === null || !p ? [] : guessEvents(target, p.guesses, m.len, won)
 }
 
-/** One game row for a human seat, finished, with the anti-cheat flag. */
+/** One game row for a human seat, finished, with the anti-cheat flag and its guesses. */
 async function recordGame(
   repo: Repo,
   m: Match,
@@ -97,6 +97,11 @@ async function recordGame(
     ),
     usedNotes: p.usedNotes === true,
   })
+  // Every guess too, for the admin's game view; a retry adds only the ones still missing.
+  const saved = new Set((await repo.games.guesses(game.id)).map((g) => g.guess))
+  for (const g of p.guesses) {
+    if (!saved.has(g.guess)) await repo.games.addGuess({ gameId: game.id, ...g })
+  }
   return game.id
 }
 
