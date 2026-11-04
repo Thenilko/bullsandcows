@@ -4,6 +4,7 @@ import { BadgeToastHost } from '../features/badges/BadgeToastHost'
 import { OnboardingHost } from '../features/onboarding/Onboarding'
 import { openOnFirstVisit } from '../features/onboarding/store'
 import { UnlockHost } from '../features/pasture/UnlockHost'
+import { startPresence } from '../features/presence/presence'
 import { logShareLanding } from '../features/share/landing'
 import { OfflineBanner } from './OfflineBanner'
 import { Providers } from './providers'
@@ -24,9 +25,15 @@ function useFirstVisitTour() {
   useEffect(() => openOnFirstVisit(window.location.pathname), [])
 }
 
+/** Pings the server while the app is open, so the admin sees who is online. */
+function usePresence() {
+  useEffect(() => startPresence(router), [])
+}
+
 export function App() {
   useShareLanding()
   useFirstVisitTour()
+  usePresence()
   return (
     <Providers>
       <OfflineBanner />

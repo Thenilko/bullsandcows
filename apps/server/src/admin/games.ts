@@ -3,7 +3,7 @@ import type { AdminGameRow, Repo } from '../ports/repo'
 
 export const ADMIN_GAMES_PAGE = 50
 
-const toGame = (g: AdminGameRow): AdminGameDto => ({
+export const toAdminGame = (g: AdminGameRow): AdminGameDto => ({
   id: g.id,
   kind: g.kind,
   len: g.len,
@@ -29,7 +29,7 @@ export async function adminGames(
   // One extra row tells whether another page exists.
   const rows = await repo.admin.games({ limit: ADMIN_GAMES_PAGE + 1, offset, userId })
   return {
-    games: rows.slice(0, ADMIN_GAMES_PAGE).map(toGame),
+    games: rows.slice(0, ADMIN_GAMES_PAGE).map(toAdminGame),
     nextOffset: rows.length > ADMIN_GAMES_PAGE ? offset + ADMIN_GAMES_PAGE : null,
   }
 }
@@ -37,7 +37,7 @@ export async function adminGames(
 async function sideOf(repo: Repo, game: AdminGameRow): Promise<AdminGameSideDto> {
   const guesses = await repo.games.guesses(game.id)
   return {
-    game: toGame(game),
+    game: toAdminGame(game),
     guesses: guesses.map(({ guess, bulls, cows, consistent, at }) => ({ guess, bulls, cows, consistent, at })),
   }
 }

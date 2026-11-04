@@ -580,6 +580,39 @@
   cursor: progress;
 }
 
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.pager .more {
+  margin: 0;
+}
+
+.pageOf {
+  font-weight: 800;
+  color: var(--c-muted-aa);
+}
+
+.onlineCount {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-weight: 800;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--c-green);
+  box-shadow: 0 0 0 4px rgba(94, 158, 70, 0.2);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .button,
   .back {

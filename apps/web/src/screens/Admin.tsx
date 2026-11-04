@@ -6,6 +6,7 @@ import { useMe } from '../features/stats/useMe'
 import { ApiError } from '../lib/api'
 import { AdminChart } from './admin/AdminChart'
 import { AdminGames } from './admin/AdminGames'
+import { AdminOnline } from './admin/AdminOnline'
 import { AdminKinds, AdminKpis, AdminSocial, AdminUsers, Section } from './admin/AdminSections'
 import styles from './admin/admin.module.css'
 import { formatTime } from './admin/format'
@@ -56,6 +57,9 @@ export function Admin() {
       ) : (
         <div className={styles.grid}>
           <AdminKpis data={data} lang={lang} />
+          <Section id="admin-online" title={t('admin.online.heading')} wide>
+            <AdminOnline enabled={isAdmin} lang={lang} />
+          </Section>
           <Section id="admin-chart" title={t('admin.chart.heading')} wide>
             <AdminChart days={data.days} lang={lang} />
           </Section>
@@ -66,7 +70,7 @@ export function Admin() {
             <AdminSocial social={data.social} lang={lang} />
           </Section>
           <Section id="admin-users" title={t('admin.list.heading')} wide>
-            <AdminUsers users={data.recentUsers} lang={lang} />
+            <AdminUsers enabled={isAdmin} lang={lang} />
           </Section>
           <Section id="admin-feed" title={t('admin.feed.heading')} wide>
             <AdminGames enabled={isAdmin} lang={lang} />

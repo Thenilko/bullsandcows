@@ -60,10 +60,14 @@ export const profiles = pgTable(
     reminderTime: text('reminder_time'),
     /** The weekly challenge's gold frame (top 10) is worn until then. */
     goldFrameUntil: ts('gold_frame_until'),
+    /** The client's last presence ping and what it had open then (admin's „Онлайн сега“). */
+    lastSeenAt: ts('last_seen_at'),
+    lastActivity: text('last_activity'),
     createdAt: ts('created_at').notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex('profiles_username_lower_idx').on(t.usernameLower),
+    index('profiles_last_seen_idx').on(t.lastSeenAt),
     check('profiles_lang_check', sql`${t.lang} in ('bg', 'en')`),
     check('profiles_avatar_species_check', sql`${t.avatarSpecies} in ('bull', 'cow')`),
     check('profiles_default_len_check', sql`${t.defaultLen} between 3 and 5`),

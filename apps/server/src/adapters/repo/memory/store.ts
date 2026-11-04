@@ -1,4 +1,4 @@
-import type { BadgeKey } from '@bc/protocol'
+import type { Activity, BadgeKey } from '@bc/protocol'
 import type {
   BadgeState,
   DuelRow,
@@ -39,6 +39,8 @@ export interface MemoryStore {
   readonly weeklyPlays: Map<string, WeeklyPlayRow>
   /** Key `<weekId>|<userId>`. */
   readonly weeklyResults: Map<string, WeeklyResultRow>
+  /** Per user: the last presence ping. */
+  readonly presence: Map<string, { readonly at: number; readonly activity: Activity }>
   nextGuessId: number
 }
 
@@ -57,6 +59,7 @@ export const createStore = (): MemoryStore => ({
   weeks: new Map(),
   weeklyPlays: new Map(),
   weeklyResults: new Map(),
+  presence: new Map(),
   nextGuessId: 1,
 })
 

@@ -40,10 +40,16 @@ const overview: AdminOverviewDto = {
     nudges: 14,
     weeklyPlayers7d: 25,
   },
-  recentUsers: [
-    { id: 'u1', username: 'Danail', email: 'd@x.bg', isGuest: false, level: 38, games: 400, createdAt: Date.parse('2026-10-01T10:00:00Z'), lastGameAt: Date.parse('2026-10-30T08:00:00Z') },
-    { id: 'g1', username: 'guest-ab12', email: null, isGuest: true, level: 1, games: 0, createdAt: Date.parse('2026-10-29T10:00:00Z'), lastGameAt: null },
+}
+
+const usersPage = {
+  users: [
+    { id: 'u1', username: 'Danail', email: 'd@x.bg', isGuest: false, level: 38, games: 400, createdAt: Date.parse('2026-10-01T10:00:00Z'), lastGameAt: Date.parse('2026-10-30T08:00:00Z'), lastSeenAt: Date.parse('2026-10-30T09:00:00Z'), activeAt: Date.parse('2026-10-30T09:00:00Z') },
+    { id: 'g1', username: 'guest-ab12', email: null, isGuest: true, level: 1, games: 0, createdAt: Date.parse('2026-10-29T10:00:00Z'), lastGameAt: null, lastSeenAt: null, activeAt: Date.parse('2026-10-29T10:00:00Z') },
   ],
+  total: 60,
+  offset: 0,
+  pageSize: 25,
 }
 
 const AT = Date.parse('2026-10-30T08:00:00Z')
@@ -100,6 +106,15 @@ function answer(me: unknown, admin: () => unknown = () => overview) {
     if (path === '/api/admin/overview') return admin()
     if (path.startsWith('/api/admin/games?')) return path.includes('user=u2') ? { games: [duelGame], nextOffset: null } : gamesPage
     if (path === '/api/admin/games/g-solo') return soloDetail
+    if (path.startsWith('/api/admin/users?')) {
+      const offset = Number(new URL(path, 'http://x').searchParams.get('offset'))
+      return { ...usersPage, offset, users: offset === 0 ? usersPage.users : [{ ...usersPage.users[1], id: 'g9', username: 'guest-page2' }] }
+    }
+    if (path === '/api/admin/online')
+      return {
+        windowMinutes: 3,
+        players: [{ id: 'g1', username: 'guest-ab12', isGuest: true, level: 1, activity: 'play', lastSeenAt: AT, game: baseGame }],
+      }
     return me
   })
 }
@@ -126,9 +141,29 @@ describe('Admin', () => {
     expect(modes.getByRole('row', { name: /Срещу бот 10 — —/ })).toBeInTheDocument()
     expect(within(screen.getByRole('region', { name: 'Заедно' })).getByText('9 за 7 дни · 50 бързи, 20 с приятел, 10 с бот')).toBeInTheDocument()
     const people = within(screen.getByRole('region', { name: 'Последно активни' }))
-    expect(people.getByRole('rowheader', { name: 'Danail' })).toBeInTheDocument()
+    expect(await people.findByRole('rowheader', { name: 'Danail' })).toBeInTheDocument()
     expect(people.getByRole('rowheader', { name: /guest-ab12\s*гост/ })).toBeInTheDocument()
     expect(get).toHaveBeenCalledWith('/api/admin/overview')
+  })
+
+  it('shows who is online now with the screen and the game they are in', async () => {
+    answer({ ...meFixture, isAdmin: true })
+    show()
+    const online = within(await screen.findByRole('region', { name: 'Онлайн сега' }))
+    expect(await online.findByText('1 играч за последните 3 минути')).toBeInTheDocument()
+    expect(online.getByRole('row', { name: /guest-ab12\s*гост 1 Играе Число на деня · 5678 · 2 опита/ })).toBeInTheDocument()
+  })
+
+  it('pages through the players, most recently active first', async () => {
+    answer({ ...meFixture, isAdmin: true })
+    show()
+    const people = within(await screen.findByRole('region', { name: 'Последно активни' }))
+    expect(await people.findByText('Страница 1 от 3')).toBeInTheDocument()
+    expect(people.getByRole('button', { name: 'Назад' })).toBeDisabled()
+    fireEvent.click(people.getByRole('button', { name: 'Напред' }))
+    expect(await people.findByRole('rowheader', { name: /guest-page2/ })).toBeInTheDocument()
+    expect(people.getByText('Страница 2 от 3')).toBeInTheDocument()
+    expect(get).toHaveBeenCalledWith('/api/admin/users?offset=25')
   })
 
   it('lists every game with who played whom, opens the guesses and filters by player', async () => {

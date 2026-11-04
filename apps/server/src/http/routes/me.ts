@@ -1,4 +1,4 @@
-import { PasturePatch, SettingsPatch } from '@bc/protocol'
+import { PasturePatch, PresencePing, SettingsPatch } from '@bc/protocol'
 import { Hono } from 'hono'
 import { requireUser } from '../middleware/auth'
 import { ok } from '../respond'
@@ -20,5 +20,10 @@ export function meRoutes(): Hono<AppEnv> {
   routes.patch('/pasture', validate('json', PasturePatch), async (c) =>
     ok(c, await patchPasture(c.get('deps').repo, c.get('user'), c.req.valid('json'))),
   )
+  routes.post('/ping', validate('json', PresencePing), async (c) => {
+    const { repo, clock } = c.get('deps')
+    await repo.profiles.touch(c.get('user').id, clock.now(), c.req.valid('json').activity)
+    return ok(c, {})
+  })
   return routes
 }

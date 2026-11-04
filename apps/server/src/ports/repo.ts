@@ -1,6 +1,6 @@
 import type { Len, Outcome, Rating, WeeklyRuleKey } from '@bc/game-core'
 import type { Lang } from '@bc/i18n'
-import type { AvatarSpecies, BadgeKey, BarnColor, PastureKey, ShareChannel } from '@bc/protocol'
+import type { Activity, AvatarSpecies, BadgeKey, BarnColor, PastureKey, ShareChannel } from '@bc/protocol'
 
 export type GameKind = 'daily' | 'free' | 'duel_race' | 'duel_classic' | 'bot' | 'weekly'
 export type SoloKind = Extract<GameKind, 'daily' | 'free'>
@@ -223,6 +223,8 @@ export interface ProfilesRepo {
    * `limit`; their games, badges and the rest go with them. Returns the deleted ids.
    */
   deleteInactiveGuests(before: number, limit: number): Promise<string[]>
+  /** The presence ping: when the player was last seen and what was open; a missing profile is ignored. */
+  touch(id: string, at: number, activity: Activity): Promise<void>
 }
 
 /** One badge of a player: `tier` 0–3, `progress` its metric, `earnedAt` when the tier was reached. */
@@ -561,13 +563,15 @@ export interface AdminUserRow {
   readonly games: number
   readonly createdAt: number
   readonly lastGameAt: number | null
+  readonly lastSeenAt: number | null
+  /** The latest of the last ping, the last game and sign-up; the list is ordered by it. */
+  readonly activeAt: number
 }
 
 export interface AdminOverviewQuery {
   readonly now: number
   /** The Sofia days to report, oldest first (`AdminDay.date` uses the same strings). */
   readonly days: readonly string[]
-  readonly recentLimit: number
 }
 
 export interface AdminOverviewRows {
@@ -576,8 +580,6 @@ export interface AdminOverviewRows {
   readonly days: readonly AdminDay[]
   readonly kinds: readonly AdminKindRow[]
   readonly social: AdminSocialCounts
-  /** Most recently active first (then newest); at most `recentLimit`. */
-  readonly recentUsers: readonly AdminUserRow[]
 }
 
 /** The duel a game belongs to, seen from that game's player. */
@@ -612,6 +614,21 @@ export interface AdminRepo {
   /** Newest first (then by id), at most `limit`. */
   games(query: AdminGamesQuery): Promise<AdminGameRow[]>
   game(id: string): Promise<AdminGameRow | null>
+  /** Every profile, most recently active first (see `AdminUserRow.activeAt`). */
+  users(query: { limit: number; offset: number }): Promise<AdminUserRow[]>
+  userCount(): Promise<number>
+  /** Players seen at or after `since`, most recent first, each with the newest unfinished game started since `gameSince`. */
+  online(query: { since: number; gameSince: number; limit: number }): Promise<AdminOnlineRow[]>
+}
+
+export interface AdminOnlineRow {
+  readonly id: string
+  readonly username: string
+  readonly isGuest: boolean
+  readonly xp: number
+  readonly activity: Activity | null
+  readonly lastSeenAt: number
+  readonly game: AdminGameRow | null
 }
 
 export interface Repo {

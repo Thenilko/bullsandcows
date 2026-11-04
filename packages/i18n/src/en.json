@@ -1044,7 +1044,38 @@
       "joined": "Joined",
       "last": "Last game",
       "guest": "guest",
-      "never": "—"
+      "never": "—",
+      "active": "Last active",
+      "pager": "Player pages",
+      "prev": "Previous",
+      "next": "Next",
+      "page": "Page {{page}} of {{pages}}"
+    },
+    "online": {
+      "heading": "Online now",
+      "count_one": "{{count}} player in the last {{minutes}} minutes",
+      "count_other": "{{count}} players in the last {{minutes}} minutes",
+      "none": "Nobody is in the game right now.",
+      "doing": "Where",
+      "game": "Current game",
+      "seen": "Last ping",
+      "attempts_one": "{{count}} guess",
+      "attempts_other": "{{count}} guesses",
+      "activity": {
+        "home": "Home",
+        "setup": "Choosing a game",
+        "play": "Playing",
+        "result": "Viewing the result",
+        "duel": "In a duel",
+        "queue": "Waiting for an opponent",
+        "invite": "Duel invite",
+        "weekly": "Weekly challenge",
+        "board": "Leaderboard",
+        "profile": "Profile",
+        "farm": "Farm",
+        "rules": "Rules",
+        "other": "Other"
+      }
     },
     "feed": {
       "heading": "All games",
