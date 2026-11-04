@@ -60,7 +60,7 @@ describe('SiteFooter', () => {
       ['Условия', '/terms'],
       ['Правна информация', '/legal'],
       ['Какво ново', '/changelog'],
-      ['Подкрепа', '/support'],
+      ['Помощ', '/support'],
     ] as const) {
       expect(screen.getByRole('link', { name })).toHaveAttribute('href', href)
     }

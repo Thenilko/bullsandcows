@@ -172,7 +172,7 @@ export const en: InfoPages = {
     ],
   },
   support: {
-    title: 'Support',
+    title: 'Help',
     intro:
       'Answers to the most common questions. If yours is not here, write to us — we read everything.',
     faq: [
