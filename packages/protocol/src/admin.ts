@@ -169,3 +169,45 @@ export const AdminOnlineDto = z.object({
   players: z.array(AdminOnlinePlayerDto),
 })
 export type AdminOnlineDto = z.infer<typeof AdminOnlineDto>
+
+/** One bot level and duel format: how the people facing it fared. */
+export const AdminBotRowDto = z.object({
+  format: FormatSchema,
+  level: z.number().int(),
+  games: count,
+  humanWins: count,
+  /** Ended without a winner (a draw, or both gone). */
+  noWinner: count,
+  /** Mean guesses of the human, won or lost; null without games. */
+  humanAttempts: z.number().nullable(),
+})
+export type AdminBotRowDto = z.infer<typeof AdminBotRowDto>
+
+/** How finished duels ended, per format and opponent. */
+export const AdminOutcomeRowDto = z.object({
+  format: FormatSchema,
+  opponentKind: OpponentKindSchema,
+  /** `solved`, `timeout`, `disconnect`, `giveUp`, `cap`, `draw`, `abandoned` or `unknown`. */
+  reason: z.string(),
+  count,
+})
+export type AdminOutcomeRowDto = z.infer<typeof AdminOutcomeRowDto>
+
+/** Seconds people take per guess (from the previous guess, or the start), per scope and number length. */
+export const AdminThinkRowDto = z.object({
+  scope: z.enum(['solo', 'duel']),
+  len: z.number().int(),
+  moves: count,
+  p50: z.number(),
+  p90: z.number(),
+})
+export type AdminThinkRowDto = z.infer<typeof AdminThinkRowDto>
+
+/** `GET /api/admin/duels`: the bot, how duels end and how long people think, over the last `windowDays`. */
+export const AdminDuelStatsDto = z.object({
+  windowDays: count,
+  bot: z.array(AdminBotRowDto),
+  outcomes: z.array(AdminOutcomeRowDto),
+  think: z.array(AdminThinkRowDto),
+})
+export type AdminDuelStatsDto = z.infer<typeof AdminDuelStatsDto>
