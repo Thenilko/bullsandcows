@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { GameKindSchema } from './rest'
+import { FormatSchema, OpponentKindSchema } from './ws'
 
 const count = z.number().int().nonnegative()
 
@@ -72,3 +73,66 @@ export const AdminOverviewDto = z.object({
   recentUsers: z.array(AdminUserDto),
 })
 export type AdminOverviewDto = z.infer<typeof AdminOverviewDto>
+
+export const AdminPlayerRefDto = z.object({ id: z.string(), username: z.string() })
+export type AdminPlayerRefDto = z.infer<typeof AdminPlayerRefDto>
+
+/** The duel a game was part of, seen from that game's player. */
+export const AdminGameDuelDto = z.object({
+  id: z.string(),
+  format: FormatSchema,
+  opponentKind: OpponentKindSchema,
+  botLevel: z.number().int().nullable(),
+  /** How it ended (`solved`, `resign`, `timeout`…); null while unknown. */
+  outcome: z.string().nullable(),
+  isRematch: z.boolean(),
+  /** Null for a bot or a deleted profile. */
+  opponent: AdminPlayerRefDto.nullable(),
+  /** The opponent's own game row (null for a bot). */
+  opponentGameId: z.string().nullable(),
+})
+export type AdminGameDuelDto = z.infer<typeof AdminGameDuelDto>
+
+/** `GET /api/admin/games`: one row per game, newest first, secret included. */
+export const AdminGameDto = z.object({
+  id: z.string(),
+  kind: GameKindSchema,
+  len: z.number().int(),
+  zero: z.boolean(),
+  practice: z.boolean(),
+  /** The number this player had to find. */
+  secret: z.string(),
+  attempts: count,
+  won: z.boolean().nullable(),
+  score: z.number().int(),
+  suspicious: z.boolean(),
+  usedNotes: z.boolean(),
+  createdAt: z.number(),
+  finishedAt: z.number().nullable(),
+  player: AdminPlayerRefDto,
+  duel: AdminGameDuelDto.nullable(),
+})
+export type AdminGameDto = z.infer<typeof AdminGameDto>
+
+export const AdminGamesDto = z.object({
+  games: z.array(AdminGameDto),
+  /** `offset` of the next page; null on the last one. */
+  nextOffset: z.number().int().nullable(),
+})
+export type AdminGamesDto = z.infer<typeof AdminGamesDto>
+
+export const AdminGuessDto = z.object({
+  guess: z.string(),
+  bulls: count,
+  cows: count,
+  consistent: z.boolean(),
+  at: z.number(),
+})
+export type AdminGuessDto = z.infer<typeof AdminGuessDto>
+
+export const AdminGameSideDto = z.object({ game: AdminGameDto, guesses: z.array(AdminGuessDto) })
+export type AdminGameSideDto = z.infer<typeof AdminGameSideDto>
+
+/** `GET /api/admin/games/:id`: the game with every guess, and the opponent's side of a duel. */
+export const AdminGameDetailDto = z.object({ side: AdminGameSideDto, opponent: AdminGameSideDto.nullable() })
+export type AdminGameDetailDto = z.infer<typeof AdminGameDetailDto>

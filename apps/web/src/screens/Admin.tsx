@@ -5,6 +5,7 @@ import { useAdminOverview } from '../features/admin/useAdminOverview'
 import { useMe } from '../features/stats/useMe'
 import { ApiError } from '../lib/api'
 import { AdminChart } from './admin/AdminChart'
+import { AdminGames } from './admin/AdminGames'
 import { AdminKinds, AdminKpis, AdminSocial, AdminUsers, Section } from './admin/AdminSections'
 import styles from './admin/admin.module.css'
 import { formatTime } from './admin/format'
@@ -66,6 +67,9 @@ export function Admin() {
           </Section>
           <Section id="admin-users" title={t('admin.list.heading')} wide>
             <AdminUsers users={data.recentUsers} lang={lang} />
+          </Section>
+          <Section id="admin-feed" title={t('admin.feed.heading')} wide>
+            <AdminGames enabled={isAdmin} lang={lang} />
           </Section>
         </div>
       )}

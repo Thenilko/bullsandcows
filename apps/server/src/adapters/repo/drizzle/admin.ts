@@ -1,9 +1,12 @@
+import type { Len } from '@bc/game-core'
 import { sql } from 'drizzle-orm'
 import type {
   AdminDay,
+  AdminGameRow,
   AdminKindRow,
   AdminRepo,
   AdminUserRow,
+  DuelFormat,
   GameKind,
   OpponentKind,
 } from '../../../ports/repo'
@@ -18,12 +21,76 @@ type Row = Record<string, unknown>
 const n = (value: unknown): number => Number(value ?? 0)
 const ms = (value: unknown): number | null =>
   value === null || value === undefined ? null : new Date(value as string | Date).getTime()
+const str = (value: unknown): string | null => (value === null || value === undefined ? null : String(value))
+
+/** Ids come from the URL; anything else would make Postgres reject the uuid cast. */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** A game with its player and, for a duel, the other seat (the duel row may name it as A or B). */
+const GAME_SELECT = sql`
+  select g.*, p.username,
+         d.id as duel_id, d.format, d.opponent_kind, d.bot_level, d.outcome, d.is_rematch,
+         op.id as opponent_id, op.username as opponent_name,
+         case when d.game_a = g.id then d.game_b else d.game_a end as opponent_game_id
+  from games g
+  join profiles p on p.id = g.user_id
+  left join duels d on d.game_a = g.id or d.game_b = g.id
+  left join profiles op on op.id = case when d.game_a = g.id then d.player_b else d.player_a end`
+
+function toAdminGame(r: Row): AdminGameRow {
+  const opponentId = str(r.opponent_id)
+  return {
+    id: String(r.id),
+    userId: String(r.user_id),
+    kind: r.kind as GameKind,
+    len: n(r.len) as Len,
+    zero: r.zero === true,
+    secret: String(r.secret),
+    dailyDate: str(r.daily_date),
+    practice: r.practice === true,
+    startedAt: ms(r.started_at),
+    finishedAt: ms(r.finished_at),
+    attempts: n(r.attempts),
+    wasted: n(r.wasted),
+    won: r.won === null || r.won === undefined ? null : r.won === true,
+    score: n(r.score),
+    suspicious: r.suspicious === true,
+    usedNotes: r.used_notes === true,
+    createdAt: ms(r.created_at) ?? 0,
+    username: String(r.username),
+    duel:
+      r.duel_id === null || r.duel_id === undefined
+        ? null
+        : {
+            id: String(r.duel_id),
+            format: r.format as DuelFormat,
+            opponentKind: r.opponent_kind as OpponentKind,
+            botLevel: r.bot_level === null ? null : n(r.bot_level),
+            outcome: str(r.outcome),
+            isRematch: r.is_rematch === true,
+            opponent: opponentId ? { id: opponentId, username: String(r.opponent_name) } : null,
+            opponentGameId: str(r.opponent_game_id),
+          },
+  }
+}
 
 export function drizzleAdmin(db: Db): AdminRepo {
   const rows = async (query: ReturnType<typeof sql>): Promise<Row[]> =>
     (await db.execute(query)) as unknown as Row[]
 
   return {
+    games: async ({ limit, offset, userId }) => {
+      if (userId !== null && !UUID.test(userId)) return []
+      const only = userId === null ? sql`` : sql`where g.user_id = ${userId}::uuid`
+      const found = await rows(sql`${GAME_SELECT} ${only}
+        order by g.created_at desc, g.id desc limit ${limit} offset ${offset}`)
+      return found.map(toAdminGame)
+    },
+    game: async (id) => {
+      if (!UUID.test(id)) return null
+      const [found] = await rows(sql`${GAME_SELECT} where g.id = ${id}::uuid`)
+      return found ? toAdminGame(found) : null
+    },
     overview: async ({ now, days, recentLimit }) => {
       // ISO strings with a cast: raw `sql` params are not serialised from Date by postgres-js.
       const at = (back: number) => sql`${new Date(now - back).toISOString()}::timestamptz`

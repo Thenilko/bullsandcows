@@ -127,5 +127,18 @@ describe('recordResult', () => {
     expect((await repo.profiles.get(alice.id))?.xp).toBe(xp)
     expect(await repo.badges.listOf(alice.id)).toEqual(states)
     expect(await repo.games.history(alice.id, 10)).toHaveLength(1)
+    expect((await repo.games.guesses(r.ids.gameA!)).map((g) => g.guess)).toEqual([SECRET])
+  })
+
+  it('keeps every guess of each seat, in order, with bulls and cows', async () => {
+    const cornered = downToOne(raceInPlay('friend'), 'b', PLAY_AT)
+    const won = guess(cornered, 'a', SECRET, PLAY_AT + 60_000)
+    const r = pending(won)
+    await recordResult(repo, r)
+    const stored = await repo.games.guesses(r.ids.gameB!)
+    expect(stored.map(({ guess: g, bulls, cows, consistent, at }) => ({ guess: g, bulls, cows, consistent, at }))).toEqual(
+      won.match.players.b?.guesses,
+    )
+    expect(stored.length).toBeGreaterThan(0)
   })
 })

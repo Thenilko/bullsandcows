@@ -1,5 +1,5 @@
 import { env as workerEnv } from 'cloudflare:workers'
-import { AdminOverviewDto, MeDto } from '@bc/protocol'
+import { AdminGameDetailDto, AdminGamesDto, AdminOverviewDto, MeDto } from '@bc/protocol'
 import { describe, expect, it } from 'vitest'
 import { createFakeAuth } from '../../adapters/auth/fake'
 import { createMemoryRepo } from '../../adapters/repo/memory'
@@ -108,5 +108,87 @@ describe('admin overview route', () => {
     const member = MeDto.parse((await json(await get(app, MEMBER, '/api/me'))).data)
     expect(admin.isAdmin).toBe(true)
     expect('isAdmin' in member).toBe(false)
+  })
+})
+
+describe('admin games routes', () => {
+  async function seed() {
+    const ctx = setup()
+    const { repo } = ctx
+    await repo.profiles.create({ id: 'm1', username: 'Mira', email: 'm@x.bg', isGuest: false })
+    await repo.profiles.create({ id: 'p2', username: 'Pesho', email: 'p@x.bg', isGuest: false })
+    now = NOW - 60_000
+    const solo = await repo.games.create(game('m1', { secret: '5678' }))
+    await repo.games.addGuess({ gameId: solo.id, guess: '1234', bulls: 0, cows: 0, consistent: true, at: now })
+    await repo.games.addGuess({ gameId: solo.id, guess: '5687', bulls: 2, cows: 2, consistent: true, at: now + 1 })
+    now = NOW
+    const a = await repo.games.create(game('m1', { kind: 'duel_classic', secret: '9012' }))
+    now += 1
+    const b = await repo.games.create(game('p2', { kind: 'duel_classic', secret: '3456' }))
+    await repo.games.addGuess({ gameId: b.id, guess: '3456', bulls: 4, cows: 0, consistent: true, at: now })
+    await repo.duels.create({
+      format: 'classic',
+      len: 4,
+      zero: false,
+      opponentKind: 'friend',
+      botLevel: null,
+      inviteCode: 'ABC12',
+      playerA: 'm1',
+      playerB: 'p2',
+      gameA: a.id,
+      gameB: b.id,
+    })
+    return { ...ctx, solo, a, b }
+  }
+
+  it('is closed to everyone but the admin', async () => {
+    const { app, solo } = await seed()
+    for (const path of ['/api/admin/games', `/api/admin/games/${solo.id}`]) {
+      expect((await get(app, null, path)).status).toBe(401)
+      expect((await get(app, MEMBER, path)).status).toBe(403)
+    }
+  })
+
+  it('lists every game newest first with the secret and who it was against', async () => {
+    const { app } = await seed()
+    const data = AdminGamesDto.parse((await json(await get(app, ADMIN, '/api/admin/games'))).data)
+    expect(data.nextOffset).toBeNull()
+    expect(data.games.map((g) => [g.player.username, g.kind, g.secret, g.duel?.opponent?.username ?? null])).toEqual([
+      ['Pesho', 'duel_classic', '3456', 'Mira'],
+      ['Mira', 'duel_classic', '9012', 'Pesho'],
+      ['Mira', 'free', '5678', null],
+    ])
+    const mine = AdminGamesDto.parse((await json(await get(app, ADMIN, '/api/admin/games?user=p2'))).data)
+    expect(mine.games.map((g) => g.player.username)).toEqual(['Pesho'])
+    expect((await get(app, ADMIN, '/api/admin/games?offset=-1')).status).toBe(400)
+  })
+
+  it('pages by 50', async () => {
+    const { app, repo } = setup()
+    await repo.profiles.create({ id: 'm1', username: 'Mira', email: null, isGuest: false })
+    for (let i = 0; i < 51; i += 1) {
+      now = NOW + i
+      await repo.games.create(game('m1'))
+    }
+    const first = AdminGamesDto.parse((await json(await get(app, ADMIN, '/api/admin/games'))).data)
+    expect([first.games.length, first.nextOffset]).toEqual([50, 50])
+    const second = AdminGamesDto.parse((await json(await get(app, ADMIN, '/api/admin/games?offset=50'))).data)
+    expect([second.games.length, second.nextOffset]).toEqual([1, null])
+  })
+
+  it('shows a game with every guess, and both sides of a duel', async () => {
+    const { app, solo, a } = await seed()
+    const one = AdminGameDetailDto.parse((await json(await get(app, ADMIN, `/api/admin/games/${solo.id}`))).data)
+    expect(one.side.guesses.map((g) => [g.guess, g.bulls, g.cows])).toEqual([
+      ['1234', 0, 0],
+      ['5687', 2, 2],
+    ])
+    expect(one.opponent).toBeNull()
+
+    const duel = AdminGameDetailDto.parse((await json(await get(app, ADMIN, `/api/admin/games/${a.id}`))).data)
+    expect(duel.side.game.player.username).toBe('Mira')
+    expect(duel.opponent?.game.player.username).toBe('Pesho')
+    expect(duel.opponent?.guesses.map((g) => g.guess)).toEqual(['3456'])
+    expect((await get(app, ADMIN, '/api/admin/games/nope')).status).toBe(404)
   })
 })
