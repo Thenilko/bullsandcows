@@ -25,11 +25,17 @@ function makeApp(over: Partial<Env> = {}) {
 
 type App = ReturnType<typeof makeApp>
 
+/** `<id>:guest` signs in as a guest. */
+const tokenOf = (user: string): string => {
+  const id = user.replace(/:guest$/, '')
+  return id === user ? `fake:${id}:${id}` : `fake:${id}:${id}:guest`
+}
+
 const call = (app: App, user: string, method: string, path: string, body?: unknown, extra = {}) =>
   app.request(path, {
     method,
     headers: {
-      Authorization: `Bearer fake:${user}:${user}`,
+      Authorization: `Bearer ${tokenOf(user)}`,
       'Content-Type': 'application/json',
       ...extra,
     },
@@ -71,29 +77,53 @@ describe('solo game routes', () => {
     expect((await call(app, user, 'GET', '/api/games/daily?len=7&zero=false')).status).toBe(400)
   })
 
-  it('replays the number of the day as practice for a second account on the same browser', async () => {
-    const app = makeApp()
+  it('replays the number of the day as practice for a guest, or a profile after a guest, on the same browser', async () => {
+    const repo = createMemoryRepo(clock)
+    const app = createApp({ env: parseEnv(workerEnv), repo, auth: createFakeAuth(clock), clock })
     const device = crypto.randomUUID()
-    const daily = (user: string, dev?: string) =>
-      Promise.resolve(call(app, user, 'POST', '/api/games', { len: 4, zero: false, kind: 'daily', ...(dev ? { device: dev } : {}) })).then(json)
+    // Every account has a profile in production (made at sign-up or as a guest).
+    const member = async () => {
+      const id = newUser()
+      await repo.profiles.create({ id, username: id, email: `${id}@x.bg`, isGuest: false })
+      return id
+    }
+    const asGuest = async () => {
+      const id = newUser()
+      await repo.profiles.create({ id, username: id, email: null, isGuest: true })
+      return `${id}:guest`
+    }
+    const daily = async (user: string, dev?: string, len = 4) =>
+      (await json(await call(app, user, 'POST', '/api/games', { len, zero: false, kind: 'daily', ...(dev ? { device: dev } : {}) }))).data
+    const finish = (user: string, id: string) => call(app, user, 'POST', `/api/games/${id}/give-up`)
 
-    const first = newUser()
-    const played = await daily(first, device)
-    expect(played.data.practice).toBe(false)
-    await call(app, first, 'POST', `/api/games/${played.data.id}/give-up`)
+    // Two profiles on one family tablet each play their own counted game.
+    const mom = await member()
+    const kid = await member()
+    const momGame = await daily(mom, device)
+    expect(momGame.practice).toBe(false)
+    await finish(mom, momGame.id)
+    expect((await json(await call(app, kid, 'GET', `/api/games/daily?len=4&zero=false&device=${device}`))).data.played).toBeNull()
+    expect((await daily(kid, device)).practice).toBe(false)
 
-    const second = newUser()
-    const status = await json(await call(app, second, 'GET', `/api/games/daily?len=4&zero=false&device=${device}`))
+    // A fresh guest on that browser gets practice, and sees the number as played.
+    const guest = await asGuest()
+    const status = await json(await call(app, guest, 'GET', `/api/games/daily?len=4&zero=false&device=${device}`))
     expect(status.data.played).toEqual({ won: false, attempts: 0 })
-    expect((await daily(second, device)).data.practice).toBe(true)
-    // Another browser, or the same account again on the first one, is unaffected / already counted.
-    expect((await daily(newUser(), crypto.randomUUID())).data.practice).toBe(false)
-    expect((await daily(newUser())).data.practice).toBe(false)
-    expect((await daily(first, device)).data.practice).toBe(true)
-    // Other settings are another number of the day.
-    const other = await json(await call(app, second, 'POST', '/api/games', { len: 5, zero: false, kind: 'daily', device }))
-    expect(other.data.practice).toBe(false)
-    expect((await call(app, second, 'POST', '/api/games', { len: 4, zero: false, kind: 'daily', device: 'nope' })).status).toBe(400)
+    expect((await daily(guest, device)).practice).toBe(true)
+
+    // A guest plays first on another browser; a profile signing in there afterwards gets practice.
+    const shared = crypto.randomUUID()
+    const peek = await asGuest()
+    const peekGame = await daily(peek, shared)
+    expect(peekGame.practice).toBe(false)
+    await finish(peek, peekGame.id)
+    expect((await daily(await member(), shared)).practice).toBe(true)
+
+    // Other browsers, no device, and other settings are unaffected.
+    expect((await daily(await asGuest(), crypto.randomUUID())).practice).toBe(false)
+    expect((await daily(await asGuest())).practice).toBe(false)
+    expect((await daily(await asGuest(), device, 5)).practice).toBe(false)
+    expect((await call(app, kid, 'POST', '/api/games', { len: 4, zero: false, kind: 'daily', device: 'nope' })).status).toBe(400)
   })
 
   it('plays a full game inside the ApiResult envelope', async () => {

@@ -421,8 +421,10 @@ describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
         repo.games.create({ userId, kind: 'daily', len: 3, zero: true, secret: '012', dailyDate: date, practice: false, deviceId })
       const counted = await daily(member, device)
       expect(counted).not.toHaveProperty('deviceId')
-      expect((await repo.games.dailyOnDevice(device, date, 3, true))?.id).toBe(counted.id)
-      expect(await repo.games.dailyOnDevice(crypto.randomUUID(), date, 3, true)).toBeNull()
+      const second = await profile('dm')
+      const other = await daily(second, device)
+      expect((await repo.games.dailiesOnDevice(device, date, 3, true)).map((g) => g.id)).toEqual([counted.id, other.id])
+      expect(await repo.games.dailiesOnDevice(crypto.randomUUID(), date, 3, true)).toEqual([])
       expect(await repo.games.getWithSecret(counted.id)).not.toHaveProperty('deviceId')
 
       const won = await daily(guest, null)

@@ -135,12 +135,36 @@ export class SoloService {
     const date = sofiaDate(now)
     const counted =
       (await this.deps.repo.games.dailyOf(user.id, date, len, zero)) ??
-      (device ? await this.deps.repo.games.dailyOnDevice(device, date, len, zero) : null)
+      (await this.knownOnDevice(user, device, date, len, zero))
     const played =
       counted && counted.finishedAt !== null
         ? { won: counted.won === true, attempts: counted.attempts }
         : null
     return { number: dailyNumber(now), played }
+  }
+
+  /**
+   * Another account's counted daily of this number on this browser, when it makes the answer known:
+   * a guest replaying after anyone, or a profile after a guest (peek as a guest, then sign in). Two
+   * profiles sharing a device (a family) each play their own counted game.
+   */
+  private async knownOnDevice(
+    user: AuthUser,
+    device: string | null,
+    date: string,
+    len: Len,
+    zero: boolean,
+  ): Promise<PublicGameRow | null> {
+    if (device === null) return null
+    const { repo } = this.deps
+    const others = (await repo.games.dailiesOnDevice(device, date, len, zero)).filter((g) => g.userId !== user.id)
+    for (const g of others) {
+      if (user.isGuest) return g
+      // A deleted owner was a guest (inactive guests are cleaned up); profiles are kept.
+      const owner = await repo.profiles.get(g.userId)
+      if (!owner || owner.isGuest) return g
+    }
+    return null
   }
 
   private async createDaily(user: AuthUser, len: Len, zero: boolean, device: string | null): Promise<GameView> {
@@ -149,9 +173,7 @@ export class SoloService {
     const counted = await repo.games.dailyOf(user.id, date, len, zero)
     // An unfinished counted game is resumed; the unique index allows only one per key.
     if (counted && counted.finishedAt === null) return this.view(counted)
-    // Someone already played today's number on this browser with another (or a fresh guest) account:
-    // the answer may be known, so this one is practice.
-    const playedHere = counted === null && device !== null && (await repo.games.dailyOnDevice(device, date, len, zero)) !== null
+    const playedHere = counted === null && (await this.knownOnDevice(user, device, date, len, zero)) !== null
     const practice = counted !== null || playedHere
     if (!practice) {
       await repo.games.recordDailyNumber(
