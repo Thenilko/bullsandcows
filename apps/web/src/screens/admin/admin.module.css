@@ -561,6 +561,29 @@
   color: var(--c-red);
 }
 
+.voidAsk {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.danger {
+  font: inherit;
+  font-weight: 800;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--c-red);
+  color: #fff;
+  cursor: pointer;
+}
+
+.danger:disabled {
+  opacity: 0.6;
+}
+
 .settings {
   display: block;
   font-size: 12px;

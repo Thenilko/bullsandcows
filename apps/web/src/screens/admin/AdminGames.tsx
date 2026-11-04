@@ -2,7 +2,7 @@ import type { AdminGameDto, AdminGameSideDto, AdminPlayerRefDto } from '@bc/prot
 import type { Lang } from '@bc/i18n'
 import { Fragment, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useAdminGame, useAdminGames } from '../../features/admin/useAdminGames'
+import { useAdminGame, useAdminGames, useVoidGame } from '../../features/admin/useAdminGames'
 import styles from './admin.module.css'
 import { formatDateTime } from './format'
 
@@ -19,12 +19,50 @@ function Opponent({ game }: { game: AdminGameDto }) {
 function Result({ game }: { game: AdminGameDto }) {
   const { t } = useTranslation()
   const tone = game.won === true ? 'green' : game.won === false ? 'red' : 'ink'
-  const label = game.finishedAt === null ? t('admin.feed.playing') : game.won ? t('admin.feed.won') : t('admin.feed.lost')
-  const reason = game.duel?.outcome ? ` · ${t(`admin.feed.reason.${game.duel.outcome}`, { defaultValue: game.duel.outcome })}` : ''
+  const label =
+    game.finishedAt === null
+      ? t('admin.feed.playing')
+      : game.won
+        ? t('admin.feed.won')
+        : t('admin.feed.lost')
+  const reason = game.duel?.outcome
+    ? ` · ${t(`admin.feed.reason.${game.duel.outcome}`, { defaultValue: game.duel.outcome })}`
+    : ''
   return (
     <span className={styles.result} data-tone={tone}>
       {label}
       {reason}
+    </span>
+  )
+}
+
+/** Voids an unfair daily or free game (practice, 0 points), after a second tap to confirm. */
+function VoidGame({ game }: { game: AdminGameDto }) {
+  const { t } = useTranslation()
+  const [asking, setAsking] = useState(false)
+  const voiding = useVoidGame()
+  if (game.practice || (game.kind !== 'daily' && game.kind !== 'free')) return null
+  if (voiding.isError) return <p className={styles.empty}>{t('admin.feed.voidError')}</p>
+  if (!asking)
+    return (
+      <button type="button" className={styles.link} onClick={() => setAsking(true)}>
+        {t('admin.feed.void')}
+      </button>
+    )
+  return (
+    <span className={styles.voidAsk}>
+      {t('admin.feed.voidAsk')}
+      <button
+        type="button"
+        className={styles.danger}
+        disabled={voiding.isPending}
+        onClick={() => voiding.mutate(game.id)}
+      >
+        {t('admin.feed.voidYes')}
+      </button>
+      <button type="button" className={styles.link} onClick={() => setAsking(false)}>
+        {t('admin.feed.voidNo')}
+      </button>
     </span>
   )
 }
@@ -35,21 +73,33 @@ function Side({ side, lang }: { side: AdminGameSideDto; lang: Lang }) {
   return (
     <div className={styles.side}>
       <p className={styles.sideHead}>
-        <strong>{game.player.username}</strong> {t('admin.feed.searched')} <span className={styles.code}>{game.secret}</span>
+        <strong>{game.player.username}</strong> {t('admin.feed.searched')}{' '}
+        <span className={styles.code}>{game.secret}</span>
         {game.suspicious ? <span className={styles.tag}>{t('admin.feed.suspicious')}</span> : null}
         {game.usedNotes ? <span className={styles.tag}>{t('admin.feed.notes')}</span> : null}
+        {game.practice ? <span className={styles.tag}>{t('admin.feed.practice')}</span> : null}
       </p>
+      <VoidGame game={game} />
       {guesses.length === 0 ? (
-        <p className={styles.empty}>{game.duel ? t('admin.feed.noDuelGuesses') : t('admin.feed.noGuesses')}</p>
+        <p className={styles.empty}>
+          {game.duel ? t('admin.feed.noDuelGuesses') : t('admin.feed.noGuesses')}
+        </p>
       ) : (
         <ol className={styles.guesses}>
           {guesses.map((g) => (
-            <li key={g.guess} data-solved={g.bulls === game.len || undefined} title={formatDateTime(g.at, lang)}>
+            <li
+              key={g.guess}
+              data-solved={g.bulls === game.len || undefined}
+              title={formatDateTime(g.at, lang)}
+            >
               <span className={styles.code}>{g.guess}</span>
               <span className={styles.bc}>
-                {t('admin.feed.bulls', { count: g.bulls })} {t('admin.feed.cows', { count: g.cows })}
+                {t('admin.feed.bulls', { count: g.bulls })}{' '}
+                {t('admin.feed.cows', { count: g.cows })}
               </span>
-              {g.consistent ? null : <span className={styles.wasted}>{t('admin.feed.wasted')}</span>}
+              {g.consistent ? null : (
+                <span className={styles.wasted}>{t('admin.feed.wasted')}</span>
+              )}
             </li>
           ))}
         </ol>
@@ -105,7 +155,9 @@ export function AdminGames({ enabled, lang }: { enabled: boolean; lang: Lang }) 
                 <th scope="col">{t('admin.games.mode')}</th>
                 <th scope="col">{t('admin.feed.against')}</th>
                 <th scope="col">{t('admin.feed.secret')}</th>
-                <th scope="col" className={styles.num}>{t('admin.feed.attempts')}</th>
+                <th scope="col" className={styles.num}>
+                  {t('admin.feed.attempts')}
+                </th>
                 <th scope="col">{t('admin.feed.result')}</th>
                 <th scope="col">
                   <span className="sr-only">{t('admin.feed.moves')}</span>
@@ -120,16 +172,24 @@ export function AdminGames({ enabled, lang }: { enabled: boolean; lang: Lang }) 
                     <tr>
                       <td>{formatDateTime(g.createdAt, lang)}</td>
                       <th scope="row">
-                        <button type="button" className={styles.link} onClick={() => setPlayer(g.player)}>
+                        <button
+                          type="button"
+                          className={styles.link}
+                          onClick={() => setPlayer(g.player)}
+                        >
                           {g.player.username}
                         </button>
                       </th>
                       <td>
                         {t(`admin.games.kind.${g.kind}`)}
                         <span className={styles.settings}>
-                          {t(g.zero ? 'admin.feed.settingsZero' : 'admin.feed.settings', { len: g.len })}
+                          {t(g.zero ? 'admin.feed.settingsZero' : 'admin.feed.settings', {
+                            len: g.len,
+                          })}
                         </span>
-                        {g.practice ? <span className={styles.tag}>{t('admin.feed.practice')}</span> : null}
+                        {g.practice ? (
+                          <span className={styles.tag}>{t('admin.feed.practice')}</span>
+                        ) : null}
                       </td>
                       <td>
                         <Opponent game={g} />
