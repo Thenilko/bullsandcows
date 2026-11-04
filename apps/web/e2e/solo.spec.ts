@@ -64,3 +64,27 @@ test('solo game: guest login, play to the win, restore after reload', async ({ p
   await expect(points).toBeVisible()
   expect(Number(await points.innerText())).toBeGreaterThan(0)
 })
+
+test('a known digit goes straight into the tapped slot', async ({ page }) => {
+  await page.route('**/api/games', async (route) => {
+    const request = route.request()
+    if (request.method() !== 'POST') return route.continue()
+    return route.continue({ headers: { ...request.headers(), 'x-test-secret': SECRET } })
+  })
+  await page.goto('/')
+  await expect(page).toHaveURL(/\/login$/, { timeout: 30_000 })
+  await page.getByRole('button', { name: 'Играй като гост' }).click()
+  await page.getByRole('button', { name: '4', exact: true }).click()
+  await page.getByRole('button', { name: 'Свободно' }).click()
+  await page.getByRole('button', { name: 'Старт', exact: true }).click()
+  await startGame(page)
+
+  // „3 is third“: tap the third slot, then the digit; the rest fills the empty slots in order.
+  await page.getByRole('button', { name: 'Поле 3, празно' }).click()
+  await page.getByRole('button', { name: 'Цифра 3', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Поле 3: 3' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Пусни стадото!' })).toBeDisabled()
+  await typeGuess(page, '124')
+  await expect(page).toHaveURL(/\/result\/[^/]+$/)
+  await expect(page.getByText(`ЧИСЛОТО Е ${SECRET}`)).toBeVisible()
+})

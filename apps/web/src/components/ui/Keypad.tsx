@@ -1,5 +1,6 @@
 import type { Len } from '@bc/game-core'
 import { useTranslation } from 'react-i18next'
+import { filledCount, isComplete, targetSlot } from '../../lib/code'
 import { Cta } from './Cta'
 import { BackspaceIcon } from './icons'
 import { Key } from './Key'
@@ -21,6 +22,8 @@ export interface KeypadProps {
   layout?: 'mobile' | 'desktop'
   /** Overrides the submit label (default: `play.submit`). */
   submitLabel?: string
+  /** The slot chosen for the next digit (it may already hold one, to be replaced). */
+  selected?: number | null
 }
 
 /** The desktop key height follows the shell: `--key-h` is 46px in the split desktop layout, 56px otherwise. */
@@ -31,9 +34,9 @@ const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'] as const
 const FOOT_STYLE = { display: 'grid', gridTemplateColumns: '1fr 2.2fr', gap: 10 } as const
 const ICON_BTN_STYLE = { padding: 0 } as const
 
-export function Keypad({ len, zero, current, marks, disabled, onPress, onBack, onSubmit, layout = 'mobile', submitLabel }: KeypadProps) {
+export function Keypad({ len, zero, current, marks, disabled, onPress, onBack, onSubmit, layout = 'mobile', submitLabel, selected = null }: KeypadProps) {
   const { t } = useTranslation()
-  const full = current.length >= len
+  const full = targetSlot(current, len, selected) === null
 
   function digit(d: string) {
     const blocked = disabled || current.includes(d) || full || (d === '0' && !zero)
@@ -52,13 +55,13 @@ export function Keypad({ len, zero, current, marks, disabled, onPress, onBack, o
         <Soft
           className="icobtn"
           aria-label={t('common.delete')}
-          disabled={disabled || current.length === 0}
+          disabled={disabled || filledCount(current) === 0}
           onClick={onBack}
           style={ICON_BTN_STYLE}
         >
           <BackspaceIcon size={layout === 'desktop' ? 20 : 22} />
         </Soft>
-        <Cta disabled={disabled || current.length !== len} onClick={onSubmit}>
+        <Cta disabled={disabled || !isComplete(current, len)} onClick={onSubmit}>
           {submitLabel ?? t('play.submit')}
         </Cta>
       </div>

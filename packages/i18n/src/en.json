@@ -216,6 +216,8 @@
   },
   "play": {
     "board": { "aria": "Your guesses", "open": "Open the notebook" },
+    "slotEmpty": "Slot {{n}}, empty",
+    "slotFilled": "Slot {{n}}: {{digit}}",
     "fog_one": "Fog · {{count}} possibility",
     "fog_other": "Fog · {{count}} possibilities",
     "fogLong": "Fog · {{count}} possible numbers",

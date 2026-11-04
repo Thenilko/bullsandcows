@@ -69,3 +69,20 @@ describe('solo store', () => {
     expect(before).toEqual({})
   })
 })
+
+describe('typing into a chosen slot', () => {
+  it('places a digit in the tapped slot, then fills the rest in order', () => {
+    const rules = { len: 4 as const, zero: false }
+    const s = useSolo.getState()
+    s.reset('slots')
+    s.select('slots', 2)
+    s.press('slots', '7', rules)
+    expect(useSolo.getState().ui.slots).toMatchObject({ cur: '__7', sel: null })
+    for (const d of '123') useSolo.getState().press('slots', d, rules)
+    expect(useSolo.getState().ui.slots?.cur).toBe('1273')
+    useSolo.getState().select('slots', 1)
+    useSolo.getState().back('slots')
+    expect(useSolo.getState().ui.slots?.cur).toBe('1_73')
+  })
+})
+
