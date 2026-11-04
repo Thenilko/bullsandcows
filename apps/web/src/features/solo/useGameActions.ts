@@ -1,6 +1,7 @@
 import type { GameViewDto, MeDto, NewBadgeDto, PastureKey } from '@bc/protocol'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef } from 'react'
+import { isComplete } from '../../lib/code'
 import { useNavigate } from 'react-router'
 import { sfx } from '../../lib/sound'
 import { api } from '../auth/client'
@@ -19,6 +20,8 @@ import { INITIAL_UI, useSolo, type UiError } from './store'
 export interface GameActions {
   press(d: string): void
   back(): void
+  /** Taps a slot: the next digit goes there. */
+  select(slot: number): void
   beginCountdown(): void
   start(): Promise<void>
   submit(): Promise<void>
@@ -109,7 +112,15 @@ function useInputActions(gameId: string, { game, started, finished }: GameFlags)
     sfx.play('tap')
     useSolo.getState().back(gameId)
   }, [gameId])
-  return { press, back }
+  const select = useCallback(
+    (slot: number) => {
+      if (!started || finished) return
+      sfx.play('tap')
+      useSolo.getState().select(gameId, slot)
+    },
+    [gameId, started, finished],
+  )
+  return { press, back, select }
 }
 
 function useSubmit(gameId: string, { game, started, finished, resultPath }: GameFlags, busyRef: React.RefObject<boolean>) {
@@ -121,7 +132,7 @@ function useSubmit(gameId: string, { game, started, finished, resultPath }: Game
   return useCallback(async () => {
     const cur = readUi(gameId)
     if (!game || !started || finished || cur.solved || busyRef.current) return
-    const err: UiError | null = cur.cur.length !== game.len ? 'LEN' : game.guesses.some((g) => g.guess === cur.cur) ? 'REPEAT' : null
+    const err: UiError | null = !isComplete(cur.cur, game.len) ? 'LEN' : game.guesses.some((g) => g.guess === cur.cur) ? 'REPEAT' : null
     if (err) {
       useSolo.getState().fail(gameId, err)
       playRejected(vibrate)

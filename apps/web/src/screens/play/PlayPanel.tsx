@@ -91,7 +91,15 @@ export function Input({ game, g, desktop }: PlayPanelProps) {
   const { marks } = useNotebook(game.id)
   return (
     <>
-      <Slots len={game.len} current={ui.cur} active={g.started} shake={ui.shake} big={desktop} />
+      <Slots
+        len={game.len}
+        current={ui.cur}
+        active={g.started && !g.finished}
+        shake={ui.shake}
+        big={desktop}
+        selected={ui.sel}
+        onSelect={g.select}
+      />
       <p role="status" style={{ ...ERR_STYLE, fontSize: desktop ? 14 : 13 }}>
         {errorText(t, ui.err, game.len, ui.cur)}
       </p>
@@ -99,6 +107,7 @@ export function Input({ game, g, desktop }: PlayPanelProps) {
         len={game.len}
         zero={game.zero}
         current={ui.cur}
+        selected={ui.sel}
         marks={marks}
         disabled={!g.started || g.finished}
         onPress={g.press}

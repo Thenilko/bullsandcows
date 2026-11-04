@@ -1,5 +1,6 @@
 import type { ErrorCode, PublicState, RatingChangeDto, ServerMsg } from '@bc/protocol'
 import { create } from 'zustand'
+import { eraseDigit, placeDigit } from '../../lib/code'
 import type { RealtimeStatus } from '../../lib/realtime'
 
 type Evt<T extends ServerMsg['t']> = Omit<Extract<ServerMsg, { t: T }>, 't'>
@@ -36,7 +37,10 @@ export interface DuelStoreData {
   /** Rating/xp carried by an ended snapshot (lets a reload show them); the `ended` event wins. */
   snapEnd: { rating: RatingChangeDto | null; xp: number | null }
   errCode: ErrorCode | null
+  /** The code being typed; `_` marks an empty slot before a filled one (see lib/code). */
   cur: string
+  /** The slot chosen by tapping it: the next digit goes there. */
+  sel: number | null
   shake: number
   parity: number
   miss: boolean
@@ -48,6 +52,7 @@ export interface DuelStore extends DuelStoreData {
   setStatus(status: RealtimeStatus): void
   press(digit: string): void
   back(): void
+  select(slot: number): void
   clearCur(): void
   reject(code: ErrorCode): void
   reset(): void
@@ -69,6 +74,7 @@ const INITIAL: DuelStoreData = {
   snapEnd: { rating: null, xp: null },
   errCode: null,
   cur: '',
+  sel: null,
   shake: 0,
   parity: 0,
   miss: false,
@@ -136,9 +142,14 @@ export const useDuelStore = create<DuelStore>()((set) => ({
   ...INITIAL,
   apply: (msg) => set((s) => reduceMsg(s, msg)),
   setStatus: (status) => set({ status }),
-  press: (digit) => set((s) => ({ cur: s.cur + digit, errCode: null })),
-  back: () => set((s) => ({ cur: s.cur.slice(0, -1), errCode: null })),
-  clearCur: () => set({ cur: '' }),
+  press: (digit) =>
+    set((s) => {
+      const cur = placeDigit(s.cur, s.state?.len ?? 5, digit, s.sel)
+      return cur === s.cur ? {} : { cur, sel: null, errCode: null }
+    }),
+  back: () => set((s) => ({ cur: eraseDigit(s.cur, s.sel), sel: null, errCode: null })),
+  select: (slot) => set((s) => ({ sel: s.sel === slot ? null : slot })),
+  clearCur: () => set({ cur: '', sel: null }),
   reject: (code) => set((s) => ({ errCode: code, shake: s.shake + 1 })),
   reset: () => set({ ...INITIAL }),
   enter: (roomId) => set((s) => (s.roomId === roomId ? { status: 'connecting' } : { ...INITIAL, roomId })),

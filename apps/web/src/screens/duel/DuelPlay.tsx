@@ -130,6 +130,7 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
           <PlayPad
             state={state}
             cur={store.cur}
+            sel={store.sel}
             shake={store.shake}
             errCode={store.errCode}
             disabled={!m.playing || (m.classic && !m.myTurn)}
@@ -139,6 +140,7 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
             onPress={input.press}
             onBack={input.back}
             onSubmit={input.submit}
+            onSelect={input.select}
           />
         </div>
         <div style={TAIL}>
