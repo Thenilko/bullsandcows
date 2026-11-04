@@ -1,0 +1,78 @@
+.bubble {
+  --tail-x: 50%;
+  position: fixed;
+  z-index: 60;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--c-ink);
+  color: #fff8ea;
+  box-shadow: 0 10px 24px rgba(46, 59, 36, 0.28);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: left;
+  animation: pop 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.bubble::after {
+  content: '';
+  position: absolute;
+  left: clamp(18px, var(--tail-x), calc(100% - 18px));
+  width: 14px;
+  height: 14px;
+  background: inherit;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.bubble[data-point='down']::after {
+  bottom: -6px;
+}
+
+.bubble[data-point='up']::after {
+  top: -6px;
+}
+
+.text {
+  margin-bottom: 8px;
+}
+
+.text strong {
+  color: var(--c-sun);
+}
+
+.ok {
+  display: block;
+  margin-left: auto;
+  padding: 5px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--c-sun);
+  color: var(--c-ink);
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.ok:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble {
+    animation: none;
+  }
+}

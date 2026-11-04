@@ -21,18 +21,28 @@ const SERVER_VARS = [
   .map((v) => `--var ${v}`)
   .join(' ')
 
-/** Every spec starts as a returning visitor; onboarding.spec clears this to meet the first-visit tour. */
-const SEEN_TOUR = [{ name: 'bc.onboarding.v1', value: 'e2e' }]
+/** Every spec starts as a returning visitor (tour and game tips seen); onboarding.spec clears this to meet them. */
+const SEEN_TOUR = [
+  { name: 'bc.onboarding.v1', value: 'e2e' },
+  { name: 'bc.coach.v1', value: '["notes","board"]' },
+]
 const STORAGE_STATE = {
   cookies: [],
-  origins: [WEB_PORT, GALLERY_PORT].map((port) => ({ origin: `http://127.0.0.1:${port}`, localStorage: SEEN_TOUR })),
+  origins: [WEB_PORT, GALLERY_PORT].map((port) => ({
+    origin: `http://127.0.0.1:${port}`,
+    localStorage: SEEN_TOUR,
+  })),
 }
 
 /** Compact phone projects (the MK1–MK12 row): touch + mobile emulation at the heights real browsers leave. */
 const compact = (name: string, width: number, height: number) => ({
   name,
   testMatch: /compact\.spec\.ts/,
-  use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium' as const, viewport: { width, height } },
+  use: {
+    ...devices['iPhone 13'],
+    defaultBrowserType: 'chromium' as const,
+    viewport: { width, height },
+  },
 })
 
 export default defineConfig({
@@ -62,7 +72,8 @@ export default defineConfig({
     {
       name: 'desktop',
       // farm.spec and weekly.spec set their own artboard sizes (390×844 … 1440×900), so they run once, here.
-      testMatch: /(solo|duel|bot|share|badges|farm|weekly|pages|modes|duels|account|onboarding)\.spec\.ts/,
+      testMatch:
+        /(solo|duel|bot|share|badges|farm|weekly|pages|modes|duels|account|onboarding)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
     },
     compact('mk-660', 390, 660),

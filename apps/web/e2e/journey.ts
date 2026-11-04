@@ -40,7 +40,7 @@ export async function expectNoSideScroll(page: Page): Promise<void> {
 /** Runs `body` with the notebook open: the sheet on phones, the card that is always there on desktop. */
 export async function inNotebook(page: Page, body: () => Promise<void>): Promise<void> {
   await expect(page.getByRole('button', { name: 'Цифра 1', exact: true })).toBeVisible()
-  const opener = page.getByRole('button', { name: 'Тефтерче' })
+  const opener = page.getByRole('button', { name: 'Тефтерче', exact: true })
   const sheet = await opener.isVisible()
   if (sheet) await opener.click()
   await body()

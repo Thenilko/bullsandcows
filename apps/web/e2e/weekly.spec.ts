@@ -74,7 +74,7 @@ for (const [width, height] of SIZES) {
     })
 
     // Give up from the notebook (a sheet on phones, the taped card on desktop): the game is over.
-    const opener = page.getByRole('button', { name: 'Тефтерче' })
+    const opener = page.getByRole('button', { name: 'Тефтерче', exact: true })
     if ((await opener.count()) > 0) await opener.click()
     await page.getByRole('button', { name: 'Предавам се' }).click()
 
