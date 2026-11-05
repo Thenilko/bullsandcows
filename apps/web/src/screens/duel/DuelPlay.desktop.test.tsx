@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react'
+import type { ClientMsg } from '@bc/protocol'
+import { fireEvent, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fixtureState } from '../../dev/duelFixtures'
@@ -16,7 +17,12 @@ function show(state = fixtureState()) {
   return renderWithI18n(
     <MemoryRouter initialEntries={['/duel/r1']}>
       <Routes>
-        <Route path="/duel/:roomId" element={<DuelPlay roomId="r1" state={useDuelStore.getState().state ?? state} send={vi.fn()} />} />
+        <Route
+          path="/duel/:roomId"
+          element={
+            <DuelPlay roomId="r1" state={useDuelStore.getState().state ?? state} send={vi.fn()} />
+          }
+        />
       </Routes>
     </MemoryRouter>,
   )
@@ -64,5 +70,53 @@ describe('DuelPlay on the desktop', () => {
     mockViewport(...SPLIT)
     show()
     expect(screen.getByRole('region', { name: 'Тефтерче' }).closest('main')).toHaveClass('dk-col')
+  })
+})
+
+describe('DuelPlay keyboard on the desktop', () => {
+  function showWith(send: (msg: ClientMsg) => void, state = fixtureState()) {
+    useDuelStore.getState().apply({ t: 'state', state })
+    return renderWithI18n(
+      <MemoryRouter initialEntries={['/duel/r1']}>
+        <Routes>
+          <Route
+            path="/duel/:roomId"
+            element={<DuelPlay roomId="r1" state={state} send={send} />}
+          />
+        </Routes>
+      </MemoryRouter>,
+    )
+  }
+  const type = (keys: string) => {
+    for (const key of keys) fireEvent.keyDown(window, { key })
+  }
+
+  it('types digits, erases with Backspace and sends the guess with Enter on my turn', () => {
+    mockViewport(...IMMERSIVE)
+    const send = vi.fn()
+    showWith(send, fixtureState({ me: { ...fixtureState().me, guesses: [] } }))
+    type('5679')
+    fireEvent.keyDown(window, { key: 'Backspace' })
+    type('8')
+    expect(useDuelStore.getState().cur).toBe('5678')
+    fireEvent.keyDown(window, { key: 'Enter' })
+    expect(send).toHaveBeenCalledWith(expect.objectContaining({ t: 'guess', code: '5678' }))
+  })
+
+  it('ignores 0 in a game without zero', () => {
+    mockViewport(...IMMERSIVE)
+    showWith(vi.fn())
+    type('0')
+    expect(useDuelStore.getState().cur).toBe('')
+  })
+
+  it("ignores the keyboard while it is the opponent's turn in the classic format", () => {
+    mockViewport(...IMMERSIVE)
+    const send = vi.fn()
+    showWith(send, fixtureState({ turn: 'b' }))
+    type('1234')
+    fireEvent.keyDown(window, { key: 'Enter' })
+    expect(useDuelStore.getState().cur).toBe('')
+    expect(send).not.toHaveBeenCalled()
   })
 })

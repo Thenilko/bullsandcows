@@ -25,6 +25,7 @@ import { DuelTopRow } from './parts/TopRow'
 import { playModel } from './playModel'
 import { playScene } from './scenes'
 import { useEndFlow } from './useEndFlow'
+import { useDuelKeyboard } from './useDuelKeyboard'
 import { useOppFeedback } from './useOppFeedback'
 import { usePlayInput } from './usePlayInput'
 import { useVerdictFeedback } from './useVerdictFeedback'
@@ -88,8 +89,17 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
   }, [])
 
   const m = playModel(state, store, now, ended)
+  useDuelKeyboard({
+    active: m.playing && (!m.classic || m.myTurn) && !notesOpen,
+    zero: state.zero,
+    press: input.press,
+    back: input.back,
+    submit: input.submit,
+  })
   const oppName = m.bot ? t('bot.name') : (state.opp?.username ?? '')
-  const title = m.bot ? t('duel.title.playBot') : t('duel.title.play', { format: t(`newGame.format.${state.format}.name`) })
+  const title = m.bot
+    ? t('duel.title.playBot')
+    : t('duel.title.play', { format: t(`newGame.format.${state.format}.name`) })
   const mySecret = readMySecret(roomId)
   const waitOverlay =
     m.classic && m.playing && !m.myTurn
@@ -172,12 +182,21 @@ export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
         </div>
       </section>
       {desktop ? (
-        <Card role="region" aria-label={t('notebook.title')} style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <Card
+          role="region"
+          aria-label={t('notebook.title')}
+          style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}
+        >
           <Notebook gameId={nbId} guesses={notebook.guesses} left={notebook.left} layout="card" />
         </Card>
       ) : null}
       {notesOpen ? (
-        <NotebookSheet gameId={nbId} guesses={notebook.guesses} left={notebook.left} onClose={closeNotes} />
+        <NotebookSheet
+          gameId={nbId}
+          guesses={notebook.guesses}
+          left={notebook.left}
+          onClose={closeNotes}
+        />
       ) : null}
       <OppToast toast={store.toast} name={oppName} />
     </Shell>
