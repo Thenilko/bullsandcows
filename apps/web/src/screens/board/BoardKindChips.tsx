@@ -17,7 +17,7 @@ export interface BoardKindChipsProps {
   onChange(next: BoardChoice): void
 }
 
-/** Точки · Дуели · Серии · Пастири · Игри · Приятели at the top of /board; one line, scrolls on phones. */
+/** Точки · Дуели · Серии · Пастири · Игри · Приятели at the top of /board; wrapping onto a second line on phones. */
 export function BoardKindChips({ value, onChange }: BoardKindChipsProps) {
   const { t } = useTranslation()
   return (

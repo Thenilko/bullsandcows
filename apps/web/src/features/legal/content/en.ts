@@ -289,7 +289,7 @@ export const en: InfoPages = {
       {
         date: '2026-10-22',
         items: [
-          '29 badges with tiers — bronze, silver and gold — and a notice when you earn one.',
+          '30 badges with tiers — bronze, silver and gold — and a notice when you earn one.',
           '"Share your result": a card and text in the style of daily games, without giving the number away.',
           'A number for the daily game.',
           'A new look on computers: the pasture fills the screen and the board hangs from the sky; on lower screens — scene and panel.',

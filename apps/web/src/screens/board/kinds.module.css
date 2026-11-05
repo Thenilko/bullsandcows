@@ -1,23 +1,20 @@
-/* The row of board kinds over the leaderboard: wooden-tag pills, one line that scrolls sideways on phones. */
+/*
+ * The board kinds over the leaderboard: wooden-tag pills that wrap onto a second line on phones, so every kind
+ * (the chosen one above all) is always in sight — a sideways-scrolling row hid the last ones off the edge.
+ */
 .row {
   display: flex;
+  /* Never squeezed by a tall board in the desktop panel's column (it was cut down to a sliver). */
+  flex: none;
+  flex-wrap: wrap;
   gap: 8px;
   margin: 0;
   padding: 2px 2px 6px;
   list-style: none;
-  overflow-x: auto;
-  scrollbar-width: none;
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
-}
-
-.row::-webkit-scrollbar {
-  display: none;
 }
 
 .row > li {
   flex: none;
-  scroll-snap-align: start;
 }
 
 .chip {
