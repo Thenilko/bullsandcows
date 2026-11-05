@@ -178,18 +178,19 @@ describe('Leaderboard', () => {
     const dialog = screen.getByRole('dialog', { name: 'Предизвикай Ники' })
     expect(dialog).toHaveTextContent('4 цифри')
     expect(dialog).toHaveTextContent('без 0')
-    expect(screen.getByRole('radio', { name: 'Надпревара' })).toHaveAttribute(
+    // The classic duel is the default; the race is one tap away.
+    expect(screen.getByRole('radio', { name: 'Класически' })).toHaveAttribute(
       'aria-checked',
       'true',
     )
-    fireEvent.click(screen.getByRole('radio', { name: 'Класически' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Надпревара' }))
     fireEvent.click(screen.getByRole('button', { name: 'Изпрати' }))
     await waitFor(() =>
       expect(post).toHaveBeenCalledWith('/api/challenges', {
         to: 'u-niki',
         len: 4,
         zero: false,
-        format: 'classic',
+        format: 'race',
       }),
     )
     expect(await screen.findByText('elsewhere')).toBeInTheDocument()
