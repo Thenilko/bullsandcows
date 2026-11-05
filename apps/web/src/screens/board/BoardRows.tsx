@@ -42,7 +42,7 @@ function WideHeader() {
 /** What „Предизвикай“ needs of a row, on „Точки“ and on the other boards alike. */
 export type ChallengeTarget = Pick<
   LeaderboardRowDto,
-  'username' | 'avatarSpecies' | 'rankKey' | 'goldFrame' | 'id' | 'online' | 'you'
+  'username' | 'avatarSpecies' | 'rankKey' | 'goldFrame' | 'id' | 'online' | 'playing' | 'you'
 >
 
 /** Can be challenged: online, not me, and the server sent the id. */
@@ -53,6 +53,26 @@ export const isChallengeable = (r: ChallengeTarget): boolean =>
 export function OnlineDot() {
   const { t } = useTranslation()
   return <span className={styles.dot} role="img" aria-label={t('challenge.online')} />
+}
+
+/** In a game, a duel or matchmaking right now: „играе“ next to the dot (they can still be challenged). */
+export function PlayingTag({ name }: { name: string }) {
+  const { t } = useTranslation()
+  return (
+    <span className={styles.playing} title={t('challenge.playingLabel', { name })}>
+      {t('challenge.playing')}
+    </span>
+  )
+}
+
+/** The dot of an online player, with „играе“ when they are in a game. */
+function Presence({ row }: { row: ChallengeTarget }) {
+  return (
+    <>
+      <OnlineDot />
+      {row.playing === true ? <PlayingTag name={row.username} /> : null}
+    </>
+  )
 }
 
 export function ChallengeButton<R extends ChallengeTarget>({
@@ -86,7 +106,9 @@ export function PodiumAction<R extends ChallengeTarget>({
   if (row.online !== true || row.you) return null
   return (
     <span className={styles.podium}>
-      <OnlineDot />
+      <span className={styles.nameLine}>
+        <Presence row={row} />
+      </span>
       {onChallenge && isChallengeable(row) ? (
         <ChallengeButton row={row} onChallenge={onChallenge} />
       ) : null}
@@ -116,7 +138,7 @@ export function PlayerName<R extends ChallengeTarget>({
         >
           {row.username}
         </span>
-        {online ? <OnlineDot /> : null}
+        {online ? <Presence row={row} /> : null}
       </span>
       {onChallenge && isChallengeable(row) ? (
         <ChallengeButton row={row} onChallenge={onChallenge} />

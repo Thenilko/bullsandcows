@@ -50,6 +50,17 @@ describe('InviteView for a leaderboard challenge', () => {
     expect(onBack).toHaveBeenCalled()
   })
 
+  it('says while waiting that the target is playing, or will come after the game', () => {
+    show({ to: 'Ники', status: 'pending', note: 'playing' })
+    expect(screen.getByRole('status')).toHaveTextContent('Ники играе в момента — ще види поканата')
+  })
+
+  it('says the target will come once their game is over', () => {
+    show({ to: 'Ники', status: 'pending', note: 'later' })
+    expect(screen.getByRole('status')).toHaveTextContent('Ники е в игра — ще дойде след нея')
+    expect(screen.getByRole('button', { name: 'Откажи' })).toBeInTheDocument()
+  })
+
   it('says when nobody answered in time', () => {
     show({ to: 'Ники', status: 'expired' })
     expect(screen.getByRole('alert')).toHaveTextContent('Ники не отговори навреме.')

@@ -226,8 +226,18 @@
     "fogLong": "Мъгла · {{count}} възможни числа",
     "clockAttempt": "{{clock}} · опит {{attempt}}",
     "attemptMode": "Опит {{attempt}} · {{mode}}",
-    "mode": { "daily": "числото на деня", "dailyN": "число на деня #{{n}}", "free": "свободна игра", "weekly": "седмичното предизвикателство" },
-    "modeTitle": { "daily": "Числото на деня", "dailyN": "Числото на деня #{{n}}", "free": "Свободна игра", "weekly": "Седмичното предизвикателство" },
+    "mode": {
+      "daily": "числото на деня",
+      "dailyN": "число на деня #{{n}}",
+      "free": "свободна игра",
+      "weekly": "седмичното предизвикателство"
+    },
+    "modeTitle": {
+      "daily": "Числото на деня",
+      "dailyN": "Числото на деня #{{n}}",
+      "free": "Свободна игра",
+      "weekly": "Седмичното предизвикателство"
+    },
     "modeTab": { "daily": "Дневно", "free": "Свободно" },
     "modeGroup": "Режим",
     "inputArea": "Въвеждане на число",
@@ -594,9 +604,12 @@
     "button": "Предизвикай",
     "buttonLabel": "Предизвикай {{name}} на дуел",
     "online": "На линия",
+    "playing": "играе",
+    "playingLabel": "{{name}} играе в момента",
     "confirm": {
       "title": "Предизвикай {{name}}",
       "text": "Дуел на живо, щом приеме. Предизвикателството важи 10 минути.",
+      "playing": "{{name}} е в игра в момента. Ще види предизвикателството още по време на играта и ще може да отговори веднага или да дойде, щом я завърши.",
       "format": "Вид дуел",
       "send": "Изпрати",
       "cancel": "Отказ"
@@ -604,6 +617,8 @@
     "wait": {
       "title": "Предизвика {{name}}",
       "waiting": "Чакаме {{name}} да приеме",
+      "playing": "{{name}} играе в момента — ще види поканата",
+      "later": "{{name}} е в игра — ще дойде след нея",
       "declined": "{{name}} отказа",
       "expired": "{{name}} не отговори навреме.",
       "back": "Към класацията"
@@ -611,8 +626,10 @@
     "inbox": {
       "area": "Предизвикателство за дуел",
       "title": "{{name}} те предизвика на дуел",
+      "waiting": "{{name}} те чака за дуел",
       "expires": "Остават {{time}}",
       "accept": "Приеми",
+      "later": "След играта",
       "decline": "Откажи"
     }
   },
@@ -721,10 +738,26 @@
     "collection": "Колекция",
     "summary": "{{earned}} значки · {{tiers}} степени · {{left}} предстоят",
     "count": "{{earned}} / {{total}}",
-    "category": { "logic": "Логика", "speed": "Скорост", "consistency": "Постоянство", "duel": "Дуели", "bot": "Плашилото", "collector": "Колекционер", "together": "Заедно", "hidden": "Скрити" },
+    "category": {
+      "logic": "Логика",
+      "speed": "Скорост",
+      "consistency": "Постоянство",
+      "duel": "Дуели",
+      "bot": "Плашилото",
+      "collector": "Колекционер",
+      "together": "Заедно",
+      "hidden": "Скрити"
+    },
     "tier": { "none": "не е спечелена", "bronze": "мед", "silver": "сребро", "gold": "злато" },
     "tileAria": "{{name}}: {{tier}}",
-    "need": { "times_one": "{{count}} път", "times_other": "{{count}} пъти", "days_one": "{{count}} ден", "days_other": "{{count}} дни", "formats_one": "{{count}} формат", "formats_other": "{{count}} формата" },
+    "need": {
+      "times_one": "{{count}} път",
+      "times_other": "{{count}} пъти",
+      "days_one": "{{count}} ден",
+      "days_other": "{{count}} дни",
+      "formats_one": "{{count}} формат",
+      "formats_other": "{{count}} формата"
+    },
     "progress": "{{progress}} от {{next}} до следващата степен",
     "allDone": "Всички степени са събрани",
     "xpNote": "+50 XP за всяка степен",
@@ -1251,7 +1284,7 @@
       "noDuels": "Още няма завършени дуели.",
       "noThink": "Още няма ходове."
     },
-        "feed": {
+    "feed": {
       "heading": "Всички игри",
       "when": "Кога",
       "against": "Срещу",

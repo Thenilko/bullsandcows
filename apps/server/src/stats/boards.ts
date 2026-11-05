@@ -1,6 +1,6 @@
 import { levelFromXp, rankKeyForLevel, sofiaDate, sofiaMidnight } from '@bc/game-core'
 import type { BoardDto, BoardKind, BoardPeriod, BoardRowDto } from '@bc/protocol'
-import { isOnline } from '../admin/online'
+import { isOnline, isPlaying } from '../admin/online'
 import { AppError } from '../http/errors'
 import type { AuthUser } from '../ports/auth'
 import type { Clock } from '../ports/clock'
@@ -48,6 +48,7 @@ function toRow(kind: BoardKind, e: BoardEntry, rank: number, me: string, now: nu
     online,
     // „Предизвикай“ needs the id: only for an online player who is not me.
     ...(online && !you ? { id: e.userId } : {}),
+    ...(online && !you && isPlaying(e.lastSeenAt, e.lastActivity, now) ? { playing: true } : {}),
     value: shown(e.value),
     ...Object.fromEntries(Object.entries(extra).filter(([, v]) => v !== undefined)),
   }

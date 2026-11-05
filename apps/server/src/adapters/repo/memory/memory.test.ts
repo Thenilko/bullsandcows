@@ -459,6 +459,7 @@ describe('memory leaderboard', () => {
         avatarSpecies: 'bull',
         goldFrameUntil: null,
         lastSeenAt: null,
+        lastActivity: null,
       },
       {
         userId: 'u1',
@@ -470,6 +471,7 @@ describe('memory leaderboard', () => {
         avatarSpecies: 'bull',
         goldFrameUntil: null,
         lastSeenAt: null,
+        lastActivity: null,
       },
     ])
   })
@@ -524,6 +526,7 @@ describe('memory leaderboard', () => {
         avatarSpecies: 'bull',
         goldFrameUntil: null,
         lastSeenAt: null,
+        lastActivity: null,
       },
       {
         userId: 'u1',
@@ -535,6 +538,7 @@ describe('memory leaderboard', () => {
         avatarSpecies: 'bull',
         goldFrameUntil: null,
         lastSeenAt: null,
+        lastActivity: null,
       },
     ])
     expect((await repo.games.leaderboard({ ...q, period: 'all' }))[0]).toEqual({
@@ -547,6 +551,7 @@ describe('memory leaderboard', () => {
       avatarSpecies: 'bull',
       goldFrameUntil: null,
       lastSeenAt: null,
+      lastActivity: null,
     })
   })
 
@@ -557,6 +562,10 @@ describe('memory leaderboard', () => {
     expect((await repo.games.leaderboard({ ...q, period: 'week' }))[0]?.lastSeenAt).toBe(2_400)
     expect(await repo.profiles.lastSeen('u1')).toBe(2_400)
     expect(await repo.profiles.lastSeen('u2')).toBeNull()
+    const [row] = await repo.games.leaderboard({ ...q, period: 'week' })
+    expect(row?.lastActivity).toBe('board')
+    expect(await repo.profiles.presence('u1')).toEqual({ at: 2_400, activity: 'board' })
+    expect(await repo.profiles.presence('u2')).toBeNull()
   })
 })
 
@@ -610,6 +619,24 @@ describe('memory challenges', () => {
     expect((await repo.challenges.get(other.id))?.status).toBe('pending')
     expect(await repo.challenges.get('missing')).toBeNull()
     expect(await repo.challenges.settle('missing', 'expired')).toBe(false)
+  })
+
+  it('„След играта“ marks a pending challenge and moves its expiry, only while pending', async () => {
+    const row = await repo.challenges.create(
+      { ...base, fromId: 'u1', toId: 'u2', expiresAt: 10_000 },
+      1_000,
+    )
+    expect(row.laterAt).toBeNull()
+    expect(await repo.challenges.later(row.id, 2_000, 20_000)).toBe(true)
+    expect(await repo.challenges.get(row.id)).toMatchObject({
+      status: 'pending',
+      laterAt: 2_000,
+      expiresAt: 20_000,
+    })
+    expect((await repo.challenges.incoming('u2', 15_000, 3)).map((r) => r.id)).toEqual([row.id])
+    await repo.challenges.settle(row.id, 'accepted')
+    expect(await repo.challenges.later(row.id, 3_000, 30_000)).toBe(false)
+    expect(await repo.challenges.later('missing', 3_000, 30_000)).toBe(false)
   })
 })
 

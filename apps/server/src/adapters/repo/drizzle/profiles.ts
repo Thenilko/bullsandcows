@@ -1,3 +1,4 @@
+import type { Activity } from '@bc/protocol'
 import { and, asc, eq, gte, inArray, lt, notExists, sql } from 'drizzle-orm'
 import { AppError } from '../../../http/errors'
 import type { ProfilePatch, ProfilesRepo } from '../../../ports/repo'
@@ -97,6 +98,15 @@ export function drizzleProfiles(db: Db): ProfilesRepo {
         .where(eq(profiles.id, id))
         .limit(1)
       return row?.at ? row.at.getTime() : null
+    },
+    presence: async (id) => {
+      const [row] = await db
+        .select({ at: profiles.lastSeenAt, activity: profiles.lastActivity })
+        .from(profiles)
+        .where(eq(profiles.id, id))
+        .limit(1)
+      if (!row?.at) return null
+      return { at: row.at.getTime(), activity: (row.activity as Activity | null) ?? null }
     },
     deleteInactiveGuests: async (before, limit) => {
       const cutoff = new Date(before)

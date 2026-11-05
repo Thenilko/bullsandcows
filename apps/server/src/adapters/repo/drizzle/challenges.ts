@@ -7,6 +7,7 @@ const toChallenge = (row: typeof challenges.$inferSelect): ChallengeRow => ({
   ...row,
   createdAt: row.createdAt.getTime(),
   expiresAt: row.expiresAt.getTime(),
+  laterAt: row.laterAt ? row.laterAt.getTime() : null,
 })
 
 const isUuid = (id: string): boolean =>
@@ -66,6 +67,15 @@ export function drizzleChallenges(db: Db): ChallengesRepo {
       const rows = await db
         .update(challenges)
         .set({ status })
+        .where(and(eq(challenges.id, id), eq(challenges.status, 'pending')))
+        .returning({ id: challenges.id })
+      return rows.length > 0
+    },
+    later: async (id, at, expiresAt) => {
+      if (!isUuid(id)) return false
+      const rows = await db
+        .update(challenges)
+        .set({ laterAt: new Date(at), expiresAt: new Date(expiresAt) })
         .where(and(eq(challenges.id, id), eq(challenges.status, 'pending')))
         .returning({ id: challenges.id })
       return rows.length > 0

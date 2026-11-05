@@ -1,3 +1,4 @@
+import type { Activity } from '@bc/protocol'
 import {
   LEADERBOARD_LIMIT,
   type GameRow,
@@ -54,7 +55,7 @@ export function rankLeaderboard(
   games: Iterable<GameRow>,
   profiles: ReadonlyMap<string, Profile>,
   q: LeaderboardQuery,
-  presence: ReadonlyMap<string, { readonly at: number }> = new Map(),
+  presence: ReadonlyMap<string, { readonly at: number; readonly activity?: Activity }> = new Map(),
 ): LeaderboardRow[] {
   return bestPerPlayer(games, profiles, q)
     .slice(0, LEADERBOARD_LIMIT)
@@ -68,6 +69,7 @@ export function rankLeaderboard(
       avatarSpecies: profiles.get(g.userId)?.avatarSpecies ?? 'bull',
       goldFrameUntil: profiles.get(g.userId)?.goldFrameUntil ?? null,
       lastSeenAt: presence.get(g.userId)?.at ?? null,
+      lastActivity: presence.get(g.userId)?.activity ?? null,
     }))
 }
 

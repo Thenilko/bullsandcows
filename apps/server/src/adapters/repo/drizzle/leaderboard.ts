@@ -12,6 +12,7 @@ import {
   or,
   type SQL,
 } from 'drizzle-orm'
+import type { Activity } from '@bc/protocol'
 import {
   LEADERBOARD_LIMIT,
   type LeaderboardPlace,
@@ -42,6 +43,7 @@ function bestPerPlayer(db: Db, q: LeaderboardQuery, alsoGuest?: string) {
       avatarSpecies: profiles.avatarSpecies,
       goldFrameUntil: profiles.goldFrameUntil,
       lastSeenAt: profiles.lastSeenAt,
+      lastActivity: profiles.lastActivity,
       isGuest: profiles.isGuest,
       finishedAt: games.finishedAt,
       startedAt: games.startedAt,
@@ -78,6 +80,7 @@ export async function drizzleLeaderboard(db: Db, q: LeaderboardQuery): Promise<L
       avatarSpecies: best.avatarSpecies,
       goldFrameUntil: best.goldFrameUntil,
       lastSeenAt: best.lastSeenAt,
+      lastActivity: best.lastActivity,
       startedAt: best.startedAt,
       finishedAt: best.finishedAt,
     })
@@ -92,6 +95,7 @@ export async function drizzleLeaderboard(db: Db, q: LeaderboardQuery): Promise<L
         : null,
     goldFrameUntil: r.goldFrameUntil ? new Date(r.goldFrameUntil).getTime() : null,
     lastSeenAt: r.lastSeenAt ? new Date(r.lastSeenAt).getTime() : null,
+    lastActivity: (r.lastActivity as Activity | null) ?? null,
   }))
 }
 

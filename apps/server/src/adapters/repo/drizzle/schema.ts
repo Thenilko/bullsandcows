@@ -425,6 +425,8 @@ export const challenges = pgTable(
     status: text('status').$type<ChallengeStatus>().notNull().default('pending'),
     createdAt: ts('created_at').notNull().defaultNow(),
     expiresAt: ts('expires_at').notNull(),
+    /** „След играта“: the target will answer once their game is over. */
+    laterAt: ts('later_at'),
   },
   (t) => [
     index('challenges_to_status_idx').on(t.toId, t.status),

@@ -199,6 +199,8 @@ export interface LeaderboardRow {
   readonly goldFrameUntil: number | null
   /** The player's last presence ping (Unix ms); null: never seen. */
   readonly lastSeenAt: number | null
+  /** What that ping had open; null: never seen. */
+  readonly lastActivity: Activity | null
 }
 
 /** Won counted daily games of several days at once (for "top X%" of past days). */
@@ -238,6 +240,7 @@ export interface BoardEntry {
   readonly avatarSpecies: AvatarSpecies
   readonly goldFrameUntil: number | null
   readonly lastSeenAt: number | null
+  readonly lastActivity: Activity | null
   /** Rating (raw), live streak, xp or finished games. */
   readonly value: number
   readonly best?: number
@@ -277,6 +280,13 @@ export interface ProfilesRepo {
   touch(id: string, at: number, activity: Activity): Promise<void>
   /** The last presence ping (Unix ms); null when never seen or the profile does not exist. */
   lastSeen(id: string): Promise<number | null>
+  /** The last presence ping and what it had open; null when never seen or the profile does not exist. */
+  presence(id: string): Promise<Presence | null>
+}
+
+export interface Presence {
+  readonly at: number
+  readonly activity: Activity | null
 }
 
 /** One badge of a player: `tier` 0–3, `progress` its metric, `earnedAt` when the tier was reached. */
@@ -763,6 +773,8 @@ export interface ChallengeRow {
   readonly status: ChallengeStatus
   readonly createdAt: number
   readonly expiresAt: number
+  /** When the target answered „След играта“ during a game; null: not (yet). */
+  readonly laterAt: number | null
 }
 
 export type NewChallenge = Pick<
@@ -786,6 +798,11 @@ export interface ChallengesRepo {
   cancelBetween(fromId: string, toId: string): Promise<void>
   /** Moves a pending challenge to `status`; false (nothing changed) when it is not pending any more. */
   settle(id: string, status: Exclude<ChallengeStatus, 'pending'>): Promise<boolean>
+  /**
+   * „След играта“: marks a pending challenge `laterAt = at` and moves its expiry to `expiresAt`; false (nothing
+   * changed) when it is not pending any more.
+   */
+  later(id: string, at: number, expiresAt: number): Promise<boolean>
 }
 
 export interface Repo {

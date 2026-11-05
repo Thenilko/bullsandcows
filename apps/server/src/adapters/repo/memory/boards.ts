@@ -12,7 +12,7 @@ import type { MemoryStore } from './store'
 type Record3 = Pick<BoardEntry, 'wins' | 'losses' | 'draws'>
 type Extra = Omit<
   BoardEntry,
-  'userId' | 'username' | 'xp' | 'avatarSpecies' | 'goldFrameUntil' | 'lastSeenAt'
+  'userId' | 'username' | 'xp' | 'avatarSpecies' | 'goldFrameUntil' | 'lastSeenAt' | 'lastActivity'
 >
 
 /** Kinds counted on „Игри“: solo daily/free and every duel (bots included); practice never counts. */
@@ -141,6 +141,7 @@ export function memoryBoards(store: MemoryStore): BoardsRepo {
           avatarSpecies: p.avatarSpecies,
           goldFrameUntil: p.goldFrameUntil,
           lastSeenAt: store.presence.get(p.id)?.at ?? null,
+          lastActivity: store.presence.get(p.id)?.activity ?? null,
           ...extra,
         })),
     placeOf: async (q, userId) => {

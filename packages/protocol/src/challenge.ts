@@ -42,11 +42,19 @@ export const ChallengeDto = z.object({
   from: z.object({ username: z.string(), level: z.number().int(), avatarSpecies: SpeciesSchema }),
   settings: InviteSettingsDto,
   expiresAt: z.number().int(),
+  /** The target answered „След играта“ during a game: the sender waits for them to finish. */
+  later: z.boolean().optional(),
 })
 export type ChallengeDto = z.infer<typeof ChallengeDto>
 
 export const IncomingChallengesDto = z.object({ challenges: z.array(ChallengeDto) })
 export type IncomingChallengesDto = z.infer<typeof IncomingChallengesDto>
 
-export const ChallengeStatusDto = z.object({ status: ChallengeStatusSchema })
+export const ChallengeStatusDto = z.object({
+  status: ChallengeStatusSchema,
+  /** Pending, and the target answered „След играта“. */
+  later: z.boolean().optional(),
+  /** Pending, and the target is online in a game, a duel or matchmaking right now. */
+  playing: z.boolean().optional(),
+})
 export type ChallengeStatusDto = z.infer<typeof ChallengeStatusDto>

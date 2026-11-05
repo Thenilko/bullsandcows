@@ -1,4 +1,4 @@
-import type { AvatarSpecies } from '@bc/protocol'
+import type { Activity, AvatarSpecies } from '@bc/protocol'
 import { sql, type SQL } from 'drizzle-orm'
 import {
   LEADERBOARD_LIMIT,
@@ -21,7 +21,8 @@ const ms = (value: unknown): number | null =>
   value === null || value === undefined ? null : new Date(value as string | Date).getTime()
 
 /** The profile columns every board shows; `p` is the profile, members only. */
-const PROFILE_COLS = sql`p.id as user_id, p.username, p.xp, p.avatar_species, p.gold_frame_until, p.last_seen_at`
+const PROFILE_COLS = sql`p.id as user_id, p.username, p.xp, p.avatar_species, p.gold_frame_until, p.last_seen_at,
+  p.last_activity`
 
 /** A finished duel between two human seats (alias `d`). */
 const HUMAN_DUEL = sql`d.finished_at is not null and d.opponent_kind <> 'bot'
@@ -127,6 +128,7 @@ function toEntry(r: Row): BoardEntry {
     avatarSpecies: r.avatar_species as AvatarSpecies,
     goldFrameUntil: ms(r.gold_frame_until),
     lastSeenAt: ms(r.last_seen_at),
+    lastActivity: (r.last_activity as Activity | null) ?? null,
     value: num(r.value),
     ...Object.fromEntries(Object.entries(extra).filter(([, v]) => v !== undefined)),
   }

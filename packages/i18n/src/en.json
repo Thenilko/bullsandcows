@@ -223,8 +223,18 @@
     "fogLong": "Fog · {{count}} possible numbers",
     "clockAttempt": "{{clock}} · guess {{attempt}}",
     "attemptMode": "Guess {{attempt}} · {{mode}}",
-    "mode": { "daily": "daily number", "dailyN": "daily number #{{n}}", "free": "free play", "weekly": "weekly challenge" },
-    "modeTitle": { "daily": "Daily number", "dailyN": "Daily number #{{n}}", "free": "Free play", "weekly": "Weekly challenge" },
+    "mode": {
+      "daily": "daily number",
+      "dailyN": "daily number #{{n}}",
+      "free": "free play",
+      "weekly": "weekly challenge"
+    },
+    "modeTitle": {
+      "daily": "Daily number",
+      "dailyN": "Daily number #{{n}}",
+      "free": "Free play",
+      "weekly": "Weekly challenge"
+    },
     "modeTab": { "daily": "Daily", "free": "Free" },
     "modeGroup": "Mode",
     "inputArea": "Enter a number",
@@ -591,9 +601,12 @@
     "button": "Challenge",
     "buttonLabel": "Challenge {{name}} to a duel",
     "online": "Online",
+    "playing": "playing",
+    "playingLabel": "{{name}} is playing right now",
     "confirm": {
       "title": "Challenge {{name}}",
       "text": "A live duel as soon as they accept. The challenge is open for 10 minutes.",
+      "playing": "{{name}} is in a game right now. They will see the challenge during it and can answer at once or join once the game is over.",
       "format": "Duel type",
       "send": "Send",
       "cancel": "Cancel"
@@ -601,6 +614,8 @@
     "wait": {
       "title": "You challenged {{name}}",
       "waiting": "Waiting for {{name}} to accept",
+      "playing": "{{name}} is playing right now — they will see the invite",
+      "later": "{{name}} is in a game — they will come after it",
       "declined": "{{name}} declined",
       "expired": "{{name}} did not answer in time.",
       "back": "Back to the leaderboard"
@@ -608,8 +623,10 @@
     "inbox": {
       "area": "Duel challenge",
       "title": "{{name}} challenged you to a duel",
+      "waiting": "{{name}} is waiting for you to duel",
       "expires": "{{time}} left",
       "accept": "Accept",
+      "later": "After this game",
       "decline": "Decline"
     }
   },
@@ -665,7 +682,10 @@
   "badge": {
     "noWaste": { "name": "No wasted move", "desc": "A win without a single illogical guess" },
     "sherlock": { "name": "Sherlock", "desc": "A 4-digit number solved in 4 guesses or fewer" },
-    "allCows": { "name": "All cows", "desc": "A guess with every digit right, all in the wrong place" },
+    "allCows": {
+      "name": "All cows",
+      "desc": "A guess with every digit right, all in the wrong place"
+    },
     "lucky": { "name": "Lucky", "desc": "Solved on the first or second guess" },
     "five": { "name": "Five digits", "desc": "A win with 5 digits" },
     "pure": { "name": "Pure logic", "desc": "A game of 100% logic" },
@@ -683,7 +703,10 @@
     "bot2": { "name": "Scarecrow · Medium", "desc": "Beat the Scarecrow on Medium" },
     "bot3": { "name": "Scarecrow · Hard", "desc": "Beat the Scarecrow on Hard" },
     "bot4": { "name": "Scarecrow · Expert", "desc": "Beat the Scarecrow on Expert" },
-    "formats": { "name": "All formats", "desc": "A win with 3, 4 and 5 digits, with and without zero" },
+    "formats": {
+      "name": "All formats",
+      "desc": "A win with 3, 4 and 5 digits, with and without zero"
+    },
     "notes": { "name": "Note-taker", "desc": "Games where you used the notebook" },
     "invite": { "name": "Brought a friend", "desc": "An invited friend who played a game" },
     "family": { "name": "Family farm", "desc": "Member of a family farm" },
@@ -718,10 +741,26 @@
     "collection": "Collection",
     "summary": "{{earned}} badges · {{tiers}} tiers · {{left}} to go",
     "count": "{{earned}} / {{total}}",
-    "category": { "logic": "Logic", "speed": "Speed", "consistency": "Consistency", "duel": "Duels", "bot": "The Scarecrow", "collector": "Collector", "together": "Together", "hidden": "Hidden" },
+    "category": {
+      "logic": "Logic",
+      "speed": "Speed",
+      "consistency": "Consistency",
+      "duel": "Duels",
+      "bot": "The Scarecrow",
+      "collector": "Collector",
+      "together": "Together",
+      "hidden": "Hidden"
+    },
     "tier": { "none": "not earned", "bronze": "bronze", "silver": "silver", "gold": "gold" },
     "tileAria": "{{name}}: {{tier}}",
-    "need": { "times_one": "{{count}} time", "times_other": "{{count}} times", "days_one": "{{count}} day", "days_other": "{{count}} days", "formats_one": "{{count}} format", "formats_other": "{{count}} formats" },
+    "need": {
+      "times_one": "{{count}} time",
+      "times_other": "{{count}} times",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days",
+      "formats_one": "{{count}} format",
+      "formats_other": "{{count}} formats"
+    },
     "progress": "{{progress}} of {{next}} to the next tier",
     "allDone": "Every tier collected",
     "xpNote": "+50 XP for every tier",
@@ -1248,7 +1287,7 @@
       "noDuels": "No finished duels yet.",
       "noThink": "No guesses yet."
     },
-        "feed": {
+    "feed": {
       "heading": "All games",
       "when": "When",
       "against": "Against",
