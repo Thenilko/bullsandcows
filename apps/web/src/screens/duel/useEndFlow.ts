@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useBadgeToasts } from '../../features/badges/toastStore'
 import { useDuelStore } from '../../features/duel/store'
 import { invalidateBadges } from '../../features/stats/useBadges'
+import { refreshMe } from '../../features/stats/useMe'
 import { invalidatePasture } from '../../features/pasture/usePasture'
 import { useUnlocks } from '../../features/pasture/unlockStore'
 import { useBuzz } from '../../features/duel/useFeedback'
@@ -17,8 +18,9 @@ const WIN_BUZZ = [40, 60, 40, 60, 160]
 const LOSE_BUZZ = [80]
 
 /**
- * On match end: win/lose sound and vibration, then the result route after `RESULT_DELAY_MS` (the solo 900 ms), where the new badge
- * tiers (from `ended`) pop up one by one. Returns whether it ended.
+ * On match end: win/lose sound and vibration, then the result route after `RESULT_DELAY_MS` (the solo 900 ms),
+ * where the new badge tiers (from `ended`) pop up one by one and the profile reloads (the duel's XP and
+ * rating). Returns whether it ended.
  */
 export function useEndFlow(roomId: string, state: PublicState, go: (to: string) => void): boolean {
   const endedEvent = useDuelStore((s) => s.ended)
@@ -35,6 +37,7 @@ export function useEndFlow(roomId: string, state: PublicState, go: (to: string) 
       go(`/duel/${encodeURIComponent(roomId)}/result`)
       invalidateBadges(qc)
       invalidatePasture(qc)
+      refreshMe(qc)
       const ended = useDuelStore.getState().ended
       useBadgeToasts.getState().push(ended?.newBadges)
       useUnlocks.getState().push(ended?.newUnlocks)
