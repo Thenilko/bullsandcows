@@ -329,6 +329,24 @@ describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
     })
   })
 
+  describe('app settings', () => {
+    it('stores one JSON value per key, overwrites it and forgets it', async () => {
+      expect(await repo.settings.get('bot')).toBeNull()
+      const first = {
+        raceThinkMs: [30000, 20000, 15000, 9000],
+        lostHint: [0.7, 0.5, 0.3],
+        proSample: 8,
+      }
+      await repo.settings.put('bot', first)
+      expect(await repo.settings.get('bot')).toEqual(first)
+      await repo.settings.put('bot', { ...first, proSample: 12 })
+      expect(await repo.settings.get('bot')).toEqual({ ...first, proSample: 12 })
+      await repo.settings.remove('bot')
+      expect(await repo.settings.get('bot')).toBeNull()
+      await repo.settings.remove('bot')
+    })
+  })
+
   describe('admin overview', () => {
     it('counts users, Sofia days, kinds and duels, and lists the recently active first', async () => {
       const at = Date.parse('2026-10-29T10:00:00Z')

@@ -1,5 +1,12 @@
 import { DEFAULT_RATING, isInviteCode, isValidCode } from '@bc/game-core'
-import { BotLevelSchema, FormatSchema, LenSchema, SpeciesSchema, type ErrorCode } from '@bc/protocol'
+import {
+  BotConfigDto,
+  BotLevelSchema,
+  FormatSchema,
+  LenSchema,
+  SpeciesSchema,
+  type ErrorCode,
+} from '@bc/protocol'
 import { z } from 'zod'
 import { createMatch, join } from '../duel/match'
 import type { RoomInfo } from '../duel/roomClient'
@@ -36,6 +43,8 @@ export const CreateBody = z.object({
       zero: z.boolean(),
       opponentKind: z.enum(['human', 'quick', 'bot']),
       botLevel: BotLevelSchema.optional(),
+      /** Bot rooms: the tuning to play with (the admin's at creation); the built-in one when absent. */
+      bot: BotConfigDto.optional(),
       /** Dev/test E2E only; ignored unless the room's environment allows it. */
       testSecret: z.string().max(8).optional(),
     })
@@ -92,9 +101,10 @@ export function createRoom(
     meta: initialMeta(now, body.inviteCode ?? null, testSecret),
   }
   if (opts.botLevel === undefined) return base
-  const joined = join(base.match, base.secrets, botInfo(opts.botLevel))
+  const withBot = opts.bot ? { ...base, meta: { ...base.meta, bot: opts.bot } } : base
+  const joined = join(withBot.match, withBot.secrets, botInfo(opts.botLevel))
   if ('error' in joined) return refuse(500, 'ERR_INTERNAL')
-  return { ...base, match: joined.match, secrets: joined.secrets }
+  return { ...withBot, match: joined.match, secrets: joined.secrets }
 }
 
 /** Seat b for `info`; the room must be waiting for exactly that. */

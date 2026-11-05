@@ -1,5 +1,7 @@
+import { BotConfigDto } from '@bc/protocol'
 import { Hono } from 'hono'
 import { z } from 'zod'
+import { adminBotConfig, resetBotConfig, saveBotConfig } from '../../admin/botConfig'
 import { adminGame, adminGames, adminVoidGame } from '../../admin/games'
 import { adminDuelStats } from '../../admin/duelStats'
 import { adminOnline } from '../../admin/online'
@@ -9,6 +11,7 @@ import { AppError } from '../errors'
 import { requireAdmin } from '../middleware/auth'
 import { ok } from '../respond'
 import type { AppEnv } from '../types'
+import { validate } from '../validate'
 
 const UsersQuery = z.object({ offset: z.coerce.number().int().min(0).max(1_000_000).default(0) })
 
@@ -17,7 +20,7 @@ const GamesQuery = z.object({
   user: z.string().min(1).max(64).optional(),
 })
 
-/** `/api/admin/*`: read-only numbers for the admin (`app_metadata.role = 'admin'`); 403 for everyone else. */
+/** `/api/admin/*`: numbers and a few settings for the admin (`app_metadata.role = 'admin'`); 403 for everyone else. */
 export function adminRoutes(): Hono<AppEnv> {
   const routes = new Hono<AppEnv>()
   routes.use('*', requireAdmin())
@@ -49,6 +52,11 @@ export function adminRoutes(): Hono<AppEnv> {
     if (!game) throw new AppError('ERR_NOT_FOUND', 404)
     return ok(c, game)
   })
+  routes.get('/bot', async (c) => ok(c, await adminBotConfig(c.get('deps').repo.settings)))
+  routes.put('/bot', validate('json', BotConfigDto), async (c) =>
+    ok(c, await saveBotConfig(c.get('deps').repo.settings, c.req.valid('json'))),
+  )
+  routes.delete('/bot', async (c) => ok(c, await resetBotConfig(c.get('deps').repo.settings)))
   routes.get('/games/:id', async (c) => {
     const { repo } = c.get('deps')
     const detail = await adminGame(repo, c.req.param('id'))

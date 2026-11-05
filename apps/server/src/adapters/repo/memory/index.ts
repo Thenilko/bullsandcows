@@ -7,6 +7,7 @@ import { memoryFarms } from './farms'
 import { memoryGames } from './games'
 import { memoryProfiles } from './profiles'
 import { memoryPasture } from './pasture'
+import { memorySettings } from './settings'
 import { memoryShares } from './shares'
 import { createStore, type MemoryStore } from './store'
 import { memoryWeekly } from './weekly'
@@ -16,6 +17,7 @@ export function createMemoryRepo(
   store: MemoryStore = createStore(),
 ): RepoHandle {
   return {
+    settings: memorySettings(store),
     profiles: memoryProfiles(store, clock),
     games: memoryGames(store, clock),
     duels: memoryDuels(store, clock),

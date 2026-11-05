@@ -37,6 +37,18 @@ describe('createApi', () => {
     expect(new Headers(init.headers).get('content-type')).toBe('application/json')
   })
 
+  it('sends PUT with a JSON body', async () => {
+    const f = reply(200, { ok: true, data: null })
+    await createApi(() => null, f).put('/api/admin/bot', { proSample: 6 })
+    const [url, init] = (f as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      RequestInit,
+    ]
+    expect(url).toBe('/api/admin/bot')
+    expect(init.method).toBe('PUT')
+    expect(init.body).toBe('{"proSample":6}')
+  })
+
   it('calls onUnauthorized on 401', async () => {
     const onUnauthorized = vi.fn()
     const api = createApi(() => 't', reply(401, { ok: false, error: { code: 'ERR_AUTH' } }), { onUnauthorized })

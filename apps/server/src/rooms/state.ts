@@ -1,3 +1,4 @@
+import type { BotConfig } from '@bc/game-core'
 import type { RoomStatus } from '../duel/roomClient'
 import type { Match, Secrets } from '../duel/types'
 
@@ -37,6 +38,8 @@ export interface RoomMeta {
   readonly inviteCode: string | null
   /** Dev/test E2E only: replaces the random race secret and the bot's classic secret. */
   readonly testSecret?: string | null
+  /** Bot rooms: the tuning chosen at creation, so an admin change never alters a running game. */
+  readonly bot?: BotConfig
 }
 
 /** Row ids chosen when a result is claimed, so every retry writes the same rows. */

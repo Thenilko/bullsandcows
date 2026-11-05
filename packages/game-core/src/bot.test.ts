@@ -4,8 +4,10 @@ import {
   BOT_PRO_SAMPLE,
   BOT_RANDOM_CHANCE,
   BOT_THINK_BASE,
+  DEFAULT_BOT_CONFIG,
   botGuess,
   botThinkMs,
+  type BotConfig,
   type BotLevel,
 } from './bot'
 import { bestProbe } from './botSearch'
@@ -213,5 +215,46 @@ describe('botThinkMs', () => {
     expect(botThinkMs(4, false, () => 0)).toBe(9000)
     expect(botThinkMs(4, false, () => 0.9999)).toBe(15000)
     expect(botThinkMs(3, false, () => 0)).toBe(14000)
+  })
+})
+
+describe('custom config', () => {
+  const custom: BotConfig = {
+    raceThinkMs: [5000, 4000, 3000, 2000],
+    lostHint: [0, 1, 0.5],
+    proSample: 1,
+  }
+
+  it('defaults to the built-in constants', () => {
+    expect(DEFAULT_BOT_CONFIG).toEqual({
+      raceThinkMs: [35000, 25000, 18000, 12000],
+      lostHint: [0.8, 0.6, 0.45],
+      proSample: BOT_PRO_SAMPLE,
+    })
+  })
+
+  it('uses the configured race think base; classic stays as it was', () => {
+    expect(botThinkMs(1, false, () => 0.5, custom)).toBe(5000)
+    expect(botThinkMs(4, false, () => 0, custom)).toBe(-1000)
+    expect(botThinkMs(4, true, () => 0, custom)).toBe(botThinkMs(4, true, () => 0))
+  })
+
+  it('uses the configured lost-hint chance per level', () => {
+    const cands = ['5678', '5679']
+    expect(botGuess(cands, ['1234'], 1, 4, false, sequenceRng([0.01, 0]), custom)).toBe('5678')
+    const lost = botGuess(cands, ['1234'], 2, 4, false, sequenceRng([0.99, 0]), custom)
+    expect([...cands, '1234']).not.toContain(lost)
+    expect(botGuess(cands, ['1234'], 3, 4, false, sequenceRng([0.6, 0.99]), custom)).toBe('5679')
+  })
+
+  it('the expert weighs `proSample` candidates: a single draw with a sample of one', () => {
+    const pool = all4.filter((c) => c !== '1234').slice(0, 50)
+    let draws = 0
+    const rng = () => {
+      draws++
+      return 0.5
+    }
+    expect(botGuess(pool, ['1234'], 4, 4, false, rng, custom)).toBe(pool[25])
+    expect(draws).toBe(1)
   })
 })

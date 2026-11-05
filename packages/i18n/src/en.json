@@ -1090,6 +1090,27 @@
         "other": "Other"
       }
     },
+    "botCfg": {
+      "heading": "Bot",
+      "intro": "Applies to new games against the bot; games already running finish with the old values.",
+      "isDefault": "The defaults are in use.",
+      "isCustom": "Your values are in use.",
+      "level": "Level",
+      "think": "Think per move in a race (s)",
+      "lostHint": "Loses a hint (%)",
+      "neverLoses": "never",
+      "sample": "Candidates the expert weighs",
+      "sampleHint": "More is stronger ({{min}}–{{max}})",
+      "bounds": "Thinking is {{min}} to {{max}} s, give or take a few random seconds. A lost hint is a random move that does not fit the answers.",
+      "defaultValue": "default: {{value}}",
+      "invalid": "A value is out of bounds.",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Saved. New games against the bot use these values.",
+      "reset": "Reset to defaults",
+      "resetDone": "Back to the defaults.",
+      "saveError": "Not saved. Please try again."
+    },
     "duels": {
       "heading": "Duels and the bot",
       "window_one": "Over the last {{count}} day.",

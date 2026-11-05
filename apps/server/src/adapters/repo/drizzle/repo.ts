@@ -7,12 +7,14 @@ import { drizzleFarms } from './farms'
 import { drizzleGames } from './games'
 import { drizzleProfiles } from './profiles'
 import { drizzlePasture } from './pasture'
+import { drizzleSettings } from './settings'
 import { drizzleShares } from './shares'
 import { drizzleWeekly } from './weekly'
 
 /** Postgres-backed repo; mirrors the memory repo method for method. */
 export function createDrizzleRepo(handle: DbHandle): RepoHandle {
   return {
+    settings: drizzleSettings(handle.db),
     profiles: drizzleProfiles(handle.db),
     games: drizzleGames(handle.db),
     duels: drizzleDuels(handle.db),

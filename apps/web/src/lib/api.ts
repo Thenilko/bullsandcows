@@ -14,6 +14,7 @@ export interface ApiClient {
   get<T>(path: string): Promise<T>
   post<T>(path: string, body?: unknown): Promise<T>
   patch<T>(path: string, body: unknown): Promise<T>
+  put<T>(path: string, body: unknown): Promise<T>
   del<T>(path: string): Promise<T>
 }
 
@@ -32,7 +33,7 @@ export interface ApiOptions {
 /** Auth endpoints answer 401 for wrong credentials or tokens they were sent; that ends no session. */
 const isAuthPath = (path: string) => path.startsWith('/api/auth/')
 
-type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE'
+type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
 
 function buildInit(method: Method, token: string | null, body: unknown): RequestInit {
   const headers = new Headers()
@@ -93,6 +94,7 @@ export function createApi(
     get: (path) => request('GET', path),
     post: (path, body) => request('POST', path, body),
     patch: (path, body) => request('PATCH', path, body),
+    put: (path, body) => request('PUT', path, body),
     del: (path) => request('DELETE', path),
   }
 }

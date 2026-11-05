@@ -1,4 +1,4 @@
-import { inviteCode, isInviteCode, levelFromXp } from '@bc/game-core'
+import { DEFAULT_BOT_CONFIG, inviteCode, isInviteCode, levelFromXp } from '@bc/game-core'
 import {
   CreateBotBody,
   CreateInviteBody,
@@ -8,6 +8,7 @@ import {
   type JoinInviteDto,
 } from '@bc/protocol'
 import { Hono, type Context } from 'hono'
+import { loadBotConfig } from '../../admin/botConfig'
 import { ensureProfile } from '../../auth/profiles'
 import {
   durableRoomClient,
@@ -154,8 +155,20 @@ export function botsRoutes(): Hono<AppEnv> {
     const { len, zero, format, level } = c.req.valid('json')
     const secret = testSecret(c, len, zero)
     const host = await playerInfo(c)
+    const bot = await loadBotConfig(c.get('deps').repo.settings).catch((err: unknown) => {
+      console.error(`bot settings unavailable, using the defaults: ${String(err)}`)
+      return DEFAULT_BOT_CONFIG
+    })
     const room = rooms(c).fresh()
-    const opts = { format, len, zero, opponentKind: 'bot', botLevel: level, ...withTestSecret(secret) } as const
+    const opts = {
+      format,
+      len,
+      zero,
+      opponentKind: 'bot',
+      botLevel: level,
+      bot,
+      ...withTestSecret(secret),
+    } as const
     const { token } = await room.create({ opts, host })
     const dto: BotRoomDto = { roomId: room.id, token }
     return ok(c, dto, 201)
