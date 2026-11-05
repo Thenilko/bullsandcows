@@ -21,7 +21,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
-import type { DuelFormat, GameKind, OpponentKind } from '../../../ports/repo'
+import type { ChallengeStatus, DuelFormat, GameKind, OpponentKind } from '../../../ports/repo'
 
 const ts = (name: string) => timestamp(name, { withTimezone: true, mode: 'date' })
 const lenColumn = () => smallint('len').$type<Len>().notNull()
@@ -398,3 +398,37 @@ export const appSettings = pgTable('app_settings', {
   value: jsonb('value').notNull(),
   updatedAt: ts('updated_at').notNull().defaultNow(),
 }).enableRLS()
+
+/**
+ * „Предизвикай“ from the leaderboard: a live duel offered to an online player through an invite room
+ * (`invite_code`). A `pending` row past `expires_at` reads as expired; nothing sweeps them.
+ */
+export const challenges = pgTable(
+  'challenges',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    fromId: uuid('from_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    toId: uuid('to_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    inviteCode: text('invite_code').notNull(),
+    format: text('format').$type<DuelFormat>().notNull(),
+    len: lenColumn(),
+    zero: boolean('zero').notNull(),
+    status: text('status').$type<ChallengeStatus>().notNull().default('pending'),
+    createdAt: ts('created_at').notNull().defaultNow(),
+    expiresAt: ts('expires_at').notNull(),
+  },
+  (t) => [
+    index('challenges_to_status_idx').on(t.toId, t.status),
+    index('challenges_from_to_idx').on(t.fromId, t.toId),
+    check('challenges_format_check', sql`${t.format} in ('race', 'classic')`),
+    check(
+      'challenges_status_check',
+      sql`${t.status} in ('pending', 'accepted', 'declined', 'cancelled', 'expired')`,
+    ),
+    lenCheck('challenges', t.len),
+  ],
+).enableRLS()

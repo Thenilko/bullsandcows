@@ -1,4 +1,11 @@
-import type { BotRoomDto, CreateBotBody, CreateInviteBody, InviteDto, InviteInfoDto, JoinInviteDto } from '@bc/protocol'
+import type {
+  BotRoomDto,
+  CreateBotBody,
+  CreateInviteBody,
+  InviteDto,
+  InviteInfoDto,
+  JoinInviteDto,
+} from '@bc/protocol'
 import { api } from '../auth/client'
 
 const code = (c: string): string => encodeURIComponent(c)
@@ -12,8 +19,16 @@ export const duelApi = {
 
 const INVITE_KEY = 'bc.invite'
 
+/** The host's invite; a leaderboard challenge also carries its id and the challenged player's name. */
+export type HostInvite = InviteDto & { challengeId?: string; toUsername?: string }
+
+const challengePart = (v: Partial<HostInvite>): Pick<HostInvite, 'challengeId' | 'toUsername'> =>
+  typeof v.challengeId === 'string' && typeof v.toUsername === 'string'
+    ? { challengeId: v.challengeId, toUsername: v.toUsername }
+    : {}
+
 /** The host's own invite, kept so the waiting screen survives a reload. */
-export function saveInvite(invite: InviteDto): void {
+export function saveInvite(invite: HostInvite): void {
   try {
     sessionStorage.setItem(INVITE_KEY, JSON.stringify(invite))
   } catch {
@@ -21,13 +36,13 @@ export function saveInvite(invite: InviteDto): void {
   }
 }
 
-export function readInvite(codeValue: string): InviteDto | null {
+export function readInvite(codeValue: string): HostInvite | null {
   try {
     const raw = sessionStorage.getItem(INVITE_KEY)
-    const v = raw ? (JSON.parse(raw) as Partial<InviteDto>) : null
+    const v = raw ? (JSON.parse(raw) as Partial<HostInvite>) : null
     if (!v || v.code !== codeValue) return null
     return typeof v.url === 'string' && typeof v.roomId === 'string' && typeof v.token === 'string'
-      ? { code: v.code, url: v.url, roomId: v.roomId, token: v.token }
+      ? { code: v.code, url: v.url, roomId: v.roomId, token: v.token, ...challengePart(v) }
       : null
   } catch {
     return null

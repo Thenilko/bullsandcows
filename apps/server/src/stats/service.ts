@@ -13,6 +13,7 @@ import type {
   MeDto,
   SettingsPatch,
 } from '@bc/protocol'
+import { isOnline } from '../admin/online'
 import { ensureProfile } from '../auth/profiles'
 import { AppError } from '../http/errors'
 import type { AuthUser } from '../ports/auth'
@@ -21,6 +22,7 @@ import {
   LEADERBOARD_LIMIT,
   type LeaderboardPlace,
   type LeaderboardQuery,
+  type LeaderboardRow,
   type Profile,
   type PublicGameRow,
   type Repo,
@@ -122,6 +124,7 @@ export class StatsService implements DistributionSource {
     const date = this.today()
     const query = { ...q, date, weekStartMs: sofiaWeekStart(this.deps.clock.now()) }
     const rows = await this.deps.repo.games.leaderboard(query)
+    const now = this.deps.clock.now()
     const ranked = rows.map((r, i) => {
       const level = levelFromXp(r.xp)
       return {
@@ -134,7 +137,8 @@ export class StatsService implements DistributionSource {
         level,
         rankKey: rankKeyForLevel(level),
         avatarSpecies: r.avatarSpecies,
-        goldFrame: hasGoldFrame(r.goldFrameUntil, this.deps.clock.now()),
+        goldFrame: hasGoldFrame(r.goldFrameUntil, now),
+        ...this.presenceOf(r, user.id, now),
       }
     })
     // Below the repo's list the caller's place is counted separately.
@@ -147,6 +151,12 @@ export class StatsService implements DistributionSource {
       rows: ranked.slice(0, LEADERBOARD_ROWS),
       me: place && (await this.placeOf(place, q, date)),
     }
+  }
+
+  /** Online flag for every row; the user id only where „Предизвикай“ needs it (online and not me). */
+  private presenceOf(r: LeaderboardRow, me: string, now: number) {
+    const online = isOnline(r.lastSeenAt, now)
+    return online && r.userId !== me ? { online, id: r.userId } : { online }
   }
 
   /** "Today" ranks daily games; week/all mix daily and free, measured against free play. */

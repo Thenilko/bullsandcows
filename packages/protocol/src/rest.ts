@@ -114,7 +114,9 @@ export const PastureItemDto = z.object({
   key: PastureKeySchema,
   unlocked: z.boolean(),
   shown: z.boolean(),
-  progress: z.object({ current: z.number().int().min(0), target: z.number().int().min(1) }).optional(),
+  progress: z
+    .object({ current: z.number().int().min(0), target: z.number().int().min(1) })
+    .optional(),
 })
 export type PastureItemDto = z.infer<typeof PastureItemDto>
 
@@ -268,7 +270,14 @@ export const GameViewDto = z.object({
 export type GameViewDto = z.infer<typeof GameViewDto>
 
 export const LangSchema = z.enum(['bg', 'en'])
-export const GameKindSchema = z.enum(['daily', 'free', 'duel_race', 'duel_classic', 'bot', 'weekly'])
+export const GameKindSchema = z.enum([
+  'daily',
+  'free',
+  'duel_race',
+  'duel_classic',
+  'bot',
+  'weekly',
+])
 export const PeriodSchema = z.enum(['today', 'week', 'all'])
 /** Mirrors `RANK_KEYS` in game-core; the client translates them. */
 export const RankKeySchema = z.enum([
@@ -305,6 +314,10 @@ export const LeaderboardRowDto = z.object({
   avatarSpecies: SpeciesSchema,
   /** A top-10 finish in the weekly challenge: the gold frame until the end of the next week. */
   goldFrame: z.boolean().optional(),
+  /** The player's user id (the target of „Предизвикай“). */
+  id: z.string().optional(),
+  /** Seen in the app within the last few minutes. */
+  online: z.boolean().optional(),
 })
 export type LeaderboardRowDto = z.infer<typeof LeaderboardRowDto>
 
@@ -449,7 +462,11 @@ const BoolQuery = z.enum(['true', 'false']).transform((v) => v === 'true')
 export const DistributionQuery = z.object({ len: LenQuery, zero: BoolQuery, kind: KindSchema })
 export type DistributionQuery = z.infer<typeof DistributionQuery>
 
-export const DailyStatusQuery = z.object({ len: LenQuery, zero: BoolQuery, device: DeviceIdSchema.optional() })
+export const DailyStatusQuery = z.object({
+  len: LenQuery,
+  zero: BoolQuery,
+  device: DeviceIdSchema.optional(),
+})
 export type DailyStatusQuery = z.infer<typeof DailyStatusQuery>
 
 /**

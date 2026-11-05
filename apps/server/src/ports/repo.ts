@@ -1,6 +1,13 @@
 import type { Len, Outcome, Rating, WeeklyRuleKey } from '@bc/game-core'
 import type { Lang } from '@bc/i18n'
-import type { Activity, AvatarSpecies, BadgeKey, BarnColor, PastureKey, ShareChannel } from '@bc/protocol'
+import type {
+  Activity,
+  AvatarSpecies,
+  BadgeKey,
+  BarnColor,
+  PastureKey,
+  ShareChannel,
+} from '@bc/protocol'
 
 export type GameKind = 'daily' | 'free' | 'duel_race' | 'duel_classic' | 'bot' | 'weekly'
 export type SoloKind = Extract<GameKind, 'daily' | 'free'>
@@ -190,6 +197,8 @@ export interface LeaderboardRow {
   readonly xp: number
   readonly avatarSpecies: AvatarSpecies
   readonly goldFrameUntil: number | null
+  /** The player's last presence ping (Unix ms); null: never seen. */
+  readonly lastSeenAt: number | null
 }
 
 /** Won counted daily games of several days at once (for "top X%" of past days). */
@@ -228,6 +237,8 @@ export interface ProfilesRepo {
   deleteInactiveGuests(before: number, limit: number): Promise<string[]>
   /** The presence ping: when the player was last seen and what was open; a missing profile is ignored. */
   touch(id: string, at: number, activity: Activity): Promise<void>
+  /** The last presence ping (Unix ms); null when never seen or the profile does not exist. */
+  lastSeen(id: string): Promise<number | null>
 }
 
 /** One badge of a player: `tier` 0–3, `progress` its metric, `earnedAt` when the tier was reached. */
@@ -642,9 +653,20 @@ export interface AdminDuelStatsRows {
     noWinner: number
     humanAttempts: number | null
   }[]
-  readonly outcomes: readonly { format: DuelFormat; opponentKind: OpponentKind; reason: string; count: number }[]
+  readonly outcomes: readonly {
+    format: DuelFormat
+    opponentKind: OpponentKind
+    reason: string
+    count: number
+  }[]
   /** Seconds per guess; gaps of `maxGapMs` or more (a player who walked away) are left out. */
-  readonly think: readonly { scope: 'solo' | 'duel'; len: number; moves: number; p50: number; p90: number }[]
+  readonly think: readonly {
+    scope: 'solo' | 'duel'
+    len: number
+    moves: number
+    p50: number
+    p90: number
+  }[]
 }
 
 export interface AdminOnlineRow {
@@ -669,6 +691,46 @@ export interface SettingsRepo {
   remove(key: SettingKey): Promise<void>
 }
 
+export type ChallengeStatus = 'pending' | 'accepted' | 'declined' | 'cancelled' | 'expired'
+
+/** „Предизвикай“ from the leaderboard: a live duel offered to an online player through an invite room. */
+export interface ChallengeRow {
+  readonly id: string
+  readonly fromId: string
+  readonly toId: string
+  readonly inviteCode: string
+  readonly format: DuelFormat
+  readonly len: Len
+  readonly zero: boolean
+  /** As stored: a `pending` row past `expiresAt` is expired for every reader. */
+  readonly status: ChallengeStatus
+  readonly createdAt: number
+  readonly expiresAt: number
+}
+
+export type NewChallenge = Pick<
+  ChallengeRow,
+  'fromId' | 'toId' | 'inviteCode' | 'format' | 'len' | 'zero' | 'expiresAt'
+>
+
+/** An incoming challenge with what the card shows of its sender. */
+export interface IncomingChallengeRow extends ChallengeRow {
+  readonly fromUsername: string
+  readonly fromXp: number
+  readonly fromAvatarSpecies: AvatarSpecies
+}
+
+export interface ChallengesRepo {
+  create(challenge: NewChallenge, now: number): Promise<ChallengeRow>
+  get(id: string): Promise<ChallengeRow | null>
+  /** Pending challenges to `toId` that have not expired at `now`, newest first, at most `limit`. */
+  incoming(toId: string, now: number, limit: number): Promise<IncomingChallengeRow[]>
+  /** Marks every pending challenge from `fromId` to `toId` cancelled (a new one replaces them). */
+  cancelBetween(fromId: string, toId: string): Promise<void>
+  /** Moves a pending challenge to `status`; false (nothing changed) when it is not pending any more. */
+  settle(id: string, status: Exclude<ChallengeStatus, 'pending'>): Promise<boolean>
+}
+
 export interface Repo {
   readonly settings: SettingsRepo
   readonly profiles: ProfilesRepo
@@ -680,6 +742,7 @@ export interface Repo {
   readonly farms: FarmsRepo
   readonly weekly: WeeklyRepo
   readonly admin: AdminRepo
+  readonly challenges: ChallengesRepo
 }
 
 /** A repo bound to resources that must be released when the request ends. */

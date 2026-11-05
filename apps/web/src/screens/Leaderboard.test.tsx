@@ -5,8 +5,9 @@ import { boardFixture } from '../test/fixtures'
 import { renderRoute } from '../test/renderRoute'
 
 const get = vi.fn()
+const post = vi.fn()
 vi.mock('../features/auth/client', () => ({
-  api: { get: (p: string) => get(p), patch: vi.fn(), post: vi.fn() },
+  api: { get: (p: string) => get(p), patch: vi.fn(), post: (p: string, b?: unknown) => post(p, b) },
 }))
 
 const { Leaderboard } = await import('./Leaderboard')
@@ -17,6 +18,8 @@ function show() {
 
 beforeEach(() => {
   get.mockReset()
+  post.mockReset()
+  sessionStorage.clear()
 })
 
 function desktopViewport() {
@@ -91,5 +94,59 @@ describe('Leaderboard', () => {
     show()
     expect(await screen.findByText(/още няма/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Играй сега' })).toBeInTheDocument()
+  })
+
+  it('challenges an online player: confirm with the board settings, then the waiting screen', async () => {
+    const rows = boardFixture.rows.map((r) =>
+      r.username === 'Ники' ? { ...r, online: true, id: 'u-niki' } : r,
+    )
+    get.mockResolvedValue({ ...boardFixture, rows })
+    const created = {
+      code: 'ABCDE',
+      url: 'https://x/d/ABCDE',
+      roomId: 'r1',
+      token: 't1',
+      challengeId: 'c1',
+      toUsername: 'Ники',
+    }
+    post.mockResolvedValue(created)
+    show()
+    fireEvent.click(await screen.findByRole('button', { name: 'Предизвикай Ники на дуел' }))
+    const dialog = screen.getByRole('dialog', { name: 'Предизвикай Ники' })
+    expect(dialog).toHaveTextContent('4 цифри')
+    expect(dialog).toHaveTextContent('без 0')
+    expect(screen.getByRole('radio', { name: 'Надпревара' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+    fireEvent.click(screen.getByRole('radio', { name: 'Класически' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Изпрати' }))
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith('/api/challenges', {
+        to: 'u-niki',
+        len: 4,
+        zero: false,
+        format: 'classic',
+      }),
+    )
+    expect(await screen.findByText('elsewhere')).toBeInTheDocument()
+    expect(JSON.parse(sessionStorage.getItem('bc.invite') ?? '{}')).toMatchObject({
+      challengeId: 'c1',
+      toUsername: 'Ники',
+    })
+  })
+
+  it('keeps the confirm open with the reason when the player went offline', async () => {
+    const rows = boardFixture.rows.map((r) =>
+      r.username === 'Ники' ? { ...r, online: true, id: 'u-niki' } : r,
+    )
+    get.mockResolvedValue({ ...boardFixture, rows })
+    post.mockRejectedValue(new ApiError('ERR_OFFLINE', 409))
+    show()
+    fireEvent.click(await screen.findByRole('button', { name: 'Предизвикай Ники на дуел' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Изпрати' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Играчът вече не е на линия.')
+    fireEvent.click(screen.getByRole('button', { name: 'Отказ' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 })

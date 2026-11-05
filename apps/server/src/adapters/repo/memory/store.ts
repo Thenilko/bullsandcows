@@ -1,6 +1,7 @@
 import type { Activity, BadgeKey } from '@bc/protocol'
 import type {
   BadgeState,
+  ChallengeRow,
   DuelRow,
   FarmMemberRow,
   FarmRow,
@@ -46,6 +47,7 @@ export interface MemoryStore {
   readonly presence: Map<string, { readonly at: number; readonly activity: Activity }>
   /** `app_settings`: one JSON value per key. */
   readonly settings: Map<SettingKey, unknown>
+  readonly challenges: Map<string, ChallengeRow>
   nextGuessId: number
 }
 
@@ -67,6 +69,7 @@ export const createStore = (): MemoryStore => ({
   weeklyResults: new Map(),
   presence: new Map(),
   settings: new Map(),
+  challenges: new Map(),
   nextGuessId: 1,
 })
 

@@ -30,15 +30,15 @@ const CREATE_LIMIT = { max: 20, windowMs: 60_000, name: 'rooms' } as const
 const CODE_ATTEMPTS = 5
 const LIVE: readonly RoomInfo['status'][] = ['waiting', 'started']
 
-const rooms = (c: Context<AppEnv>): RoomClient => {
+export const rooms = (c: Context<AppEnv>): RoomClient => {
   const deps = c.get('deps')
   return deps.rooms ?? durableRoomClient(deps.env.DUEL)
 }
 
-const limitCreation = () => rateLimit({ ...CREATE_LIMIT, key: (c) => c.get('user').id })
+export const limitCreation = () => rateLimit({ ...CREATE_LIMIT, key: (c) => c.get('user').id })
 
 /** The caller as a room participant; the profile is created on first use. */
-async function playerInfo(c: Context<AppEnv>): Promise<PlayerInfo> {
+export async function playerInfo(c: Context<AppEnv>): Promise<PlayerInfo> {
   const user = c.get('user')
   const profile = await ensureProfile(c.get('deps').repo, user)
   return {
@@ -54,7 +54,7 @@ async function playerInfo(c: Context<AppEnv>): Promise<PlayerInfo> {
 const randomUnit = (): number => crypto.getRandomValues(new Uint32Array(1))[0]! / 2 ** 32
 
 /** Picks a code whose room is not live, so a running duel is never hijacked. */
-async function freeInviteRoom(client: RoomClient): Promise<{ code: string; room: Room }> {
+export async function freeInviteRoom(client: RoomClient): Promise<{ code: string; room: Room }> {
   for (let attempt = 0; attempt < CODE_ATTEMPTS; attempt += 1) {
     const code = inviteCode(randomUnit)
     const room = client.invite(code)
@@ -65,7 +65,7 @@ async function freeInviteRoom(client: RoomClient): Promise<{ code: string; room:
 }
 
 /** Dev/test E2E only: the room's race secret (and the bot's classic secret). */
-const withTestSecret = (secret: string | undefined): { testSecret?: string } =>
+export const withTestSecret = (secret: string | undefined): { testSecret?: string } =>
   secret === undefined ? {} : { testSecret: secret }
 
 function codeParam(c: Context<AppEnv>): string {
@@ -80,7 +80,7 @@ const ERROR_STATUS = {
   ERR_NOT_FOUND: 404,
 } as const
 
-async function mapRoomError<T>(action: () => Promise<T>): Promise<T> {
+export async function mapRoomError<T>(action: () => Promise<T>): Promise<T> {
   try {
     return await action()
   } catch (err) {
@@ -93,7 +93,9 @@ async function mapRoomError<T>(action: () => Promise<T>): Promise<T> {
 }
 
 /** The live room behind a code, or the matching API error. */
-async function liveInvite(room: Room): Promise<RoomInfo & { status: 'waiting' | 'started' }> {
+export async function liveInvite(
+  room: Room,
+): Promise<RoomInfo & { status: 'waiting' | 'started' }> {
   const info = await room.info()
   if (!info) throw new AppError('ERR_NOT_FOUND', 404)
   if (info.status === 'waiting' || info.status === 'started')

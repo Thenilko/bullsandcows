@@ -19,6 +19,7 @@ export const ERROR_CODES = [
   'ERR_ALREADY_IN_FARM',
   'ERR_FORBIDDEN',
   'ERR_WEEKLY_PLAYED',
+  'ERR_OFFLINE',
   'ERR_INTERNAL',
 ] as const
 

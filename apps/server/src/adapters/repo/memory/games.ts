@@ -109,7 +109,8 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
       }
       return Object.fromEntries(byDate)
     },
-    leaderboard: async (q) => rankLeaderboard(store.games.values(), store.profiles, q),
+    leaderboard: async (q) =>
+      rankLeaderboard(store.games.values(), store.profiles, q, store.presence),
     leaderboardRankOf: async (q, userId) => rankOf(store.games.values(), store.profiles, q, userId),
     recordDailyNumber: async (date, len, zero, idx) => {
       const key = `${date}|${len}|${zero ? 1 : 0}`
