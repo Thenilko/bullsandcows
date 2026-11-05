@@ -38,6 +38,7 @@ function bestPerPlayer(db: Db, q: LeaderboardQuery) {
       xp: profiles.xp,
       avatarSpecies: profiles.avatarSpecies,
       goldFrameUntil: profiles.goldFrameUntil,
+      lastSeenAt: profiles.lastSeenAt,
       finishedAt: games.finishedAt,
       startedAt: games.startedAt,
     })
@@ -70,6 +71,7 @@ export async function drizzleLeaderboard(db: Db, q: LeaderboardQuery): Promise<L
       xp: best.xp,
       avatarSpecies: best.avatarSpecies,
       goldFrameUntil: best.goldFrameUntil,
+      lastSeenAt: best.lastSeenAt,
       startedAt: best.startedAt,
       finishedAt: best.finishedAt,
     })
@@ -78,8 +80,12 @@ export async function drizzleLeaderboard(db: Db, q: LeaderboardQuery): Promise<L
     .limit(LEADERBOARD_LIMIT)
   return rows.map(({ startedAt, finishedAt, ...r }) => ({
     ...r,
-    durationMs: startedAt && finishedAt ? new Date(finishedAt).getTime() - new Date(startedAt).getTime() : null,
+    durationMs:
+      startedAt && finishedAt
+        ? new Date(finishedAt).getTime() - new Date(startedAt).getTime()
+        : null,
     goldFrameUntil: r.goldFrameUntil ? new Date(r.goldFrameUntil).getTime() : null,
+    lastSeenAt: r.lastSeenAt ? new Date(r.lastSeenAt).getTime() : null,
   }))
 }
 

@@ -1,4 +1,4 @@
-import type { LeaderboardDto } from '@bc/protocol'
+import type { LeaderboardDto, LeaderboardRowDto } from '@bc/protocol'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, Cta, Podium } from '../../components/ui'
@@ -6,7 +6,7 @@ import type { PodiumRow } from '../../components/ui/Podium'
 import { UpgradeDialog } from '../../features/auth/UpgradeDialog'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { BoardFilters, type BoardFilterState } from './BoardFilters'
-import { BoardRows } from './BoardRows'
+import { BoardRows, PodiumAction } from './BoardRows'
 
 export type BoardStatus = 'loading' | 'error' | 'guest' | 'ready'
 
@@ -16,14 +16,29 @@ export interface BoardViewProps {
   onFilters(next: BoardFilterState): void
   data?: LeaderboardDto
   onPlay(): void
+  /** „Предизвикай“ next to online players (the leaderboard screen); absent in the gallery. */
+  onChallenge?(row: LeaderboardRowDto): void
 }
 
 const NOTE = { margin: 0, fontWeight: 700, color: '#4A5640', lineHeight: 1.45 } as const
 
-function podiumRows(data: LeaderboardDto): PodiumRow[] {
+function podiumRows(
+  data: LeaderboardDto,
+  onChallenge?: (row: LeaderboardRowDto) => void,
+): PodiumRow[] {
   return data.rows.flatMap((r) =>
     r.rank === 1 || r.rank === 2 || r.rank === 3
-      ? [{ rank: r.rank, name: r.username, score: r.score, rankKey: r.rankKey, species: r.avatarSpecies, gold: r.goldFrame === true }]
+      ? [
+          {
+            rank: r.rank,
+            name: r.username,
+            score: r.score,
+            rankKey: r.rankKey,
+            species: r.avatarSpecies,
+            gold: r.goldFrame === true,
+            action: <PodiumAction row={r} onChallenge={onChallenge} />,
+          },
+        ]
       : [],
   )
 }
@@ -104,14 +119,24 @@ function PlaceAside({ data, onPlay }: { data: LeaderboardDto; onPlay(): void }) 
   )
 }
 
-function Ready({ data, onPlay, wide }: { data: LeaderboardDto; onPlay(): void; wide: boolean }) {
+function Ready({
+  data,
+  onPlay,
+  wide,
+  onChallenge,
+}: {
+  data: LeaderboardDto
+  onPlay(): void
+  wide: boolean
+  onChallenge?(row: LeaderboardRowDto): void
+}) {
   if (data.rows.length === 0) return <Empty onPlay={onPlay} />
   return (
     <>
       <div style={wide ? { maxWidth: 560, width: '100%', alignSelf: 'center' } : undefined}>
-        <Podium rows={podiumRows(data)} />
+        <Podium rows={podiumRows(data, onChallenge)} />
       </div>
-      <BoardRows rows={data.rows} wide={wide} />
+      <BoardRows rows={data.rows} wide={wide} onChallenge={onChallenge} />
       {data.me && !wide ? <YourPlace me={data.me} /> : null}
     </>
   )
@@ -124,6 +149,7 @@ function Body({
   data,
   onPlay,
   wide,
+  onChallenge,
 }: BoardViewProps & { wide: boolean }) {
   const { t } = useTranslation()
   if (status === 'guest') return <GuestGate />
@@ -140,7 +166,9 @@ function Body({
           {t('error.unknown')}
         </p>
       ) : null}
-      {status === 'ready' && data ? <Ready data={data} onPlay={onPlay} wide={wide} /> : null}
+      {status === 'ready' && data ? (
+        <Ready data={data} onPlay={onPlay} wide={wide} onChallenge={onChallenge} />
+      ) : null}
     </>
   )
 }
@@ -148,7 +176,7 @@ function Body({
 export function BoardView(props: BoardViewProps) {
   const { t } = useTranslation()
   const desktop = useIsDesktop()
-  const { status, filters, onFilters, data, onPlay } = props
+  const { status, filters, onFilters, data, onPlay, onChallenge } = props
   const title = t('board.titleDigits', { count: filters.len })
   if (!desktop) {
     return (
@@ -197,6 +225,7 @@ export function BoardView(props: BoardViewProps) {
           onFilters={onFilters}
           data={data}
           onPlay={onPlay}
+          onChallenge={onChallenge}
           wide
         />
       </section>

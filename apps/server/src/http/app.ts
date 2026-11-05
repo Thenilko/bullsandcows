@@ -6,6 +6,7 @@ import { securityHeaders } from './middleware/headers'
 import { fail, ok } from './respond'
 import { adminRoutes } from './routes/admin'
 import { authRoutes } from './routes/auth'
+import { challengesRoutes } from './routes/challenges'
 import { botsRoutes, duelsRoutes } from './routes/duels'
 import { farmsRoutes } from './routes/farms'
 import { gamesRoutes } from './routes/games'
@@ -39,6 +40,7 @@ export function createApp(deps: AppDeps): Hono<AppEnv> {
   app.route('/api/games', gamesRoutes())
   app.route('/api/duels', duelsRoutes())
   app.route('/api/bots', botsRoutes())
+  app.route('/api/challenges', challengesRoutes())
   app.route('/api/stats', statsRoutes())
   app.route('/api/leaderboard', leaderboardRoutes())
   app.route('/api/me', meRoutes())

@@ -518,6 +518,32 @@
       "rematchExpired": "The rematch offer expired"
     }
   },
+  "challenge": {
+    "button": "Challenge",
+    "buttonLabel": "Challenge {{name}} to a duel",
+    "online": "Online",
+    "confirm": {
+      "title": "Challenge {{name}}",
+      "text": "A live duel as soon as they accept. The challenge is open for 10 minutes.",
+      "format": "Duel type",
+      "send": "Send",
+      "cancel": "Cancel"
+    },
+    "wait": {
+      "title": "You challenged {{name}}",
+      "waiting": "Waiting for {{name}} to accept",
+      "declined": "{{name}} declined",
+      "expired": "{{name}} did not answer in time.",
+      "back": "Back to the leaderboard"
+    },
+    "inbox": {
+      "area": "Duel challenge",
+      "title": "{{name}} challenged you to a duel",
+      "expires": "{{time}} left",
+      "accept": "Accept",
+      "decline": "Decline"
+    }
+  },
   "outcome": {
     "win": "Victory!",
     "lose": "Defeat",
@@ -657,6 +683,7 @@
     "ERR_ALREADY_IN_FARM": "You are in a farm already. Leave it from its settings first.",
     "ERR_FORBIDDEN": "Only the owner of the farm can do this.",
     "ERR_WEEKLY_PLAYED": "You have played the weekly challenge today. Come back tomorrow!",
+    "ERR_OFFLINE": "That player is not online any more.",
     "ERR_INTERNAL": "Something went wrong. Try again.",
     "network": "No connection. Check your internet and try again.",
     "unknown": "Something went wrong. Try again."

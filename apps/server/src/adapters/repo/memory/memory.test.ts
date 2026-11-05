@@ -300,15 +300,21 @@ describe('memory games', () => {
     const day = { kind: 'daily' as const, dailyDate: '2026-10-20' }
     await finishedGame(day, { attempts: 5 })
     await finishedGame({ ...day, userId: 'g1' }, { attempts: 1 })
-    expect(await repo.games.wonAttempts({ kind: 'daily', len: 4, zero: false, date: '2026-10-20' })).toEqual([5])
-    expect(await repo.games.wonAttemptsByDate({ len: 4, zero: false, dates: ['2026-10-20'] })).toEqual({ '2026-10-20': [5] })
+    expect(
+      await repo.games.wonAttempts({ kind: 'daily', len: 4, zero: false, date: '2026-10-20' }),
+    ).toEqual([5])
+    expect(
+      await repo.games.wonAttemptsByDate({ len: 4, zero: false, dates: ['2026-10-20'] }),
+    ).toEqual({ '2026-10-20': [5] })
   })
 
   it('finds the counted daily of any account by the browser it was started on', async () => {
     const day = { kind: 'daily' as const, dailyDate: '2026-10-20' }
     const counted = await repo.games.create({ ...newGame(day), deviceId: 'dev-1' })
     expect(counted).not.toHaveProperty('deviceId')
-    expect((await repo.games.dailiesOnDevice('dev-1', '2026-10-20', 4, false)).map((g) => g.id)).toEqual([counted.id])
+    expect(
+      (await repo.games.dailiesOnDevice('dev-1', '2026-10-20', 4, false)).map((g) => g.id),
+    ).toEqual([counted.id])
     expect(await repo.games.dailiesOnDevice('dev-2', '2026-10-20', 4, false)).toEqual([])
     expect(await repo.games.dailiesOnDevice('dev-1', '2026-10-20', 5, false)).toEqual([])
   })
@@ -421,12 +427,32 @@ describe('memory leaderboard', () => {
     )
     await finishedGame({ userId: 'u3' }, { attempts: 1, score: 1200 })
     expect(await repo.games.leaderboard({ ...q, period: 'today' })).toEqual([
-      { userId: 'u2', username: 'Rada', attempts: 5, score: 700, durationMs: null, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
-      { userId: 'u1', username: 'Mira', attempts: 6, score: 700, durationMs: null, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
+      {
+        userId: 'u2',
+        username: 'Rada',
+        attempts: 5,
+        score: 700,
+        durationMs: null,
+        xp: 0,
+        avatarSpecies: 'bull',
+        goldFrameUntil: null,
+        lastSeenAt: null,
+      },
+      {
+        userId: 'u1',
+        username: 'Mira',
+        attempts: 6,
+        score: 700,
+        durationMs: null,
+        xp: 0,
+        avatarSpecies: 'bull',
+        goldFrameUntil: null,
+        lastSeenAt: null,
+      },
     ])
   })
 
-  it('carries each player\'s xp and avatar character with the row', async () => {
+  it("carries each player's xp and avatar character with the row", async () => {
     const day = { kind: 'daily' as const, dailyDate: date }
     await repo.profiles.addXp('u2', 3_200)
     await repo.profiles.update('u2', { avatarSpecies: 'cow' })
@@ -466,8 +492,28 @@ describe('memory leaderboard', () => {
     await finishedGame({ userId: 'u3', kind: 'bot' }, { attempts: 1, score: 1200 })
     await finishedGame({ userId: 'u3', practice: true }, { attempts: 1, score: 1200 })
     expect(await repo.games.leaderboard({ ...q, period: 'week' })).toEqual([
-      { userId: 'u2', username: 'Rada', attempts: 3, score: 1000, durationMs: null, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
-      { userId: 'u1', username: 'Mira', attempts: 4, score: 900, durationMs: null, xp: 0, avatarSpecies: 'bull', goldFrameUntil: null },
+      {
+        userId: 'u2',
+        username: 'Rada',
+        attempts: 3,
+        score: 1000,
+        durationMs: null,
+        xp: 0,
+        avatarSpecies: 'bull',
+        goldFrameUntil: null,
+        lastSeenAt: null,
+      },
+      {
+        userId: 'u1',
+        username: 'Mira',
+        attempts: 4,
+        score: 900,
+        durationMs: null,
+        xp: 0,
+        avatarSpecies: 'bull',
+        goldFrameUntil: null,
+        lastSeenAt: null,
+      },
     ])
     expect((await repo.games.leaderboard({ ...q, period: 'all' }))[0]).toEqual({
       userId: 'u1',
@@ -478,7 +524,70 @@ describe('memory leaderboard', () => {
       xp: 0,
       avatarSpecies: 'bull',
       goldFrameUntil: null,
+      lastSeenAt: null,
     })
+  })
+
+  it('carries the last presence ping with the row', async () => {
+    now = 2_500
+    await finishedGame({ userId: 'u1' }, { attempts: 4, score: 900 })
+    await repo.profiles.touch('u1', 2_400, 'board')
+    expect((await repo.games.leaderboard({ ...q, period: 'week' }))[0]?.lastSeenAt).toBe(2_400)
+    expect(await repo.profiles.lastSeen('u1')).toBe(2_400)
+    expect(await repo.profiles.lastSeen('u2')).toBeNull()
+  })
+})
+
+describe('memory challenges', () => {
+  const base = { inviteCode: 'ABCDE', format: 'race' as const, len: 4 as const, zero: false }
+
+  beforeEach(async () => {
+    await member('u1', 'Mira')
+    await member('u2', 'Rada')
+    await member('u3', 'Ivo')
+  })
+
+  it('lists pending unexpired challenges to a player newest first, with the sender', async () => {
+    const old = await repo.challenges.create(
+      { ...base, fromId: 'u1', toId: 'u2', expiresAt: 10_000 },
+      1_000,
+    )
+    const fresh = await repo.challenges.create(
+      { ...base, fromId: 'u3', toId: 'u2', expiresAt: 12_000 },
+      2_000,
+    )
+    await repo.challenges.create({ ...base, fromId: 'u1', toId: 'u3', expiresAt: 12_000 }, 2_000)
+    const rows = await repo.challenges.incoming('u2', 5_000, 3)
+    expect(rows.map((r) => [r.id, r.fromUsername])).toEqual([
+      [fresh.id, 'Ivo'],
+      [old.id, 'Mira'],
+    ])
+    expect(rows[0]).toMatchObject({ status: 'pending', fromXp: 0, fromAvatarSpecies: 'bull' })
+    expect((await repo.challenges.incoming('u2', 11_000, 3)).map((r) => r.id)).toEqual([fresh.id])
+    expect(await repo.challenges.incoming('u2', 5_000, 1)).toHaveLength(1)
+  })
+
+  it('settles a pending challenge once and cancels open ones between two players', async () => {
+    const a = await repo.challenges.create(
+      { ...base, fromId: 'u1', toId: 'u2', expiresAt: 10_000 },
+      1_000,
+    )
+    const b = await repo.challenges.create(
+      { ...base, fromId: 'u1', toId: 'u2', expiresAt: 10_000 },
+      1_000,
+    )
+    const other = await repo.challenges.create(
+      { ...base, fromId: 'u1', toId: 'u3', expiresAt: 10_000 },
+      1_000,
+    )
+    expect(await repo.challenges.settle(a.id, 'declined')).toBe(true)
+    expect(await repo.challenges.settle(a.id, 'accepted')).toBe(false)
+    await repo.challenges.cancelBetween('u1', 'u2')
+    expect((await repo.challenges.get(a.id))?.status).toBe('declined')
+    expect((await repo.challenges.get(b.id))?.status).toBe('cancelled')
+    expect((await repo.challenges.get(other.id))?.status).toBe('pending')
+    expect(await repo.challenges.get('missing')).toBeNull()
+    expect(await repo.challenges.settle('missing', 'expired')).toBe(false)
   })
 })
 

@@ -3,64 +3,12 @@ import { isInviteCode } from '@bc/game-core'
 import { describe, expect, it } from 'vitest'
 import { createFakeAuth } from '../../adapters/auth/fake'
 import { createMemoryRepo } from '../../adapters/repo/memory'
-import {
-  RoomError,
-  type PlayerInfo,
-  type Room,
-  type RoomClient,
-  type RoomInfo,
-  type RoomOpts,
-} from '../../duel/roomClient'
+import type { RoomClient } from '../../duel/roomClient'
 import { parseEnv, type Env } from '../../env'
 import { createApp } from '../app'
+import { fakeRooms } from './fakeRooms.testkit'
 
 const clock = { now: () => Date.parse('2026-10-20T09:00:00Z') }
-
-interface FakeState {
-  opts?: RoomOpts
-  host?: PlayerInfo
-  inviteCode?: string
-  joined: PlayerInfo[]
-  status: RoomInfo['status']
-}
-
-/** In-memory rooms: invite rooms by code, fresh rooms by counter. */
-function fakeRooms() {
-  const rooms = new Map<string, FakeState>()
-  let seq = 0
-  const make = (key: string): Room => ({
-    id: `room-${key}`,
-    async create({ opts, host, inviteCode }) {
-      rooms.set(key, { opts, host, inviteCode, joined: [], status: 'waiting' })
-      return { token: `tok-host-${key}` }
-    },
-    async join({ info }) {
-      const r = rooms.get(key)
-      if (!r) throw new RoomError('ERR_NOT_FOUND')
-      if (r.status === 'expired') throw new RoomError('ERR_INVITE_EXPIRED')
-      if (r.joined.length >= 1) throw new RoomError('ERR_ROOM_FULL')
-      r.joined.push(info)
-      r.status = 'started'
-      return { token: `tok-${info.id}` }
-    },
-    async info() {
-      const r = rooms.get(key)
-      if (!r?.opts || !r.host) return null
-      const { format, len, zero } = r.opts
-      return {
-        status: r.status,
-        host: { id: r.host.id, username: r.host.username, level: r.host.level },
-        settings: { format, len, zero },
-        players: 1 + r.joined.length,
-      }
-    },
-  })
-  const client: RoomClient = {
-    invite: (code) => make(`invite:${code}`),
-    fresh: () => make(`fresh:${(seq += 1)}`),
-  }
-  return { client, rooms }
-}
 
 let seq = 0
 const newUser = () => {
@@ -273,7 +221,15 @@ describe('test secret hook', () => {
   it('passes x-test-secret to the room in test and dev, without echoing it', async () => {
     for (const ENVIRONMENT of ['test', 'dev'] as const) {
       const invite = setup({ ENVIRONMENT })
-      const res = await call(invite.app, newUser(), 'POST', '/api/duels/invites', settings, false, TEST)
+      const res = await call(
+        invite.app,
+        newUser(),
+        'POST',
+        '/api/duels/invites',
+        settings,
+        false,
+        TEST,
+      )
       expect(res.status).toBe(201)
       expect(created(invite)?.testSecret).toBe('1234')
       expect(JSON.stringify(await json(res))).not.toContain('1234')
@@ -302,7 +258,9 @@ describe('test secret hook', () => {
     await createInvite(plain, newUser())
     expect(created(plain) && 'testSecret' in created(plain)!).toBe(false)
     const bad = setup()
-    const res = await call(bad.app, newUser(), 'POST', '/api/bots', bot, false, { 'x-test-secret': '1123' })
+    const res = await call(bad.app, newUser(), 'POST', '/api/bots', bot, false, {
+      'x-test-secret': '1123',
+    })
     expect(res.status).toBe(400)
     expect((await json(res)).error.code).toBe('ERR_CODE')
     expect(bad.rooms.size).toBe(0)

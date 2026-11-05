@@ -82,6 +82,7 @@ export function memoryProfiles(store: MemoryStore, clock: Clock): ProfilesRepo {
     touch: async (id, at, activity) => {
       if (store.profiles.has(id)) store.presence.set(id, { at, activity })
     },
+    lastSeen: async (id) => (store.profiles.has(id) ? (store.presence.get(id)?.at ?? null) : null),
     deleteInactiveGuests: async (before, limit) => {
       const games = [...store.games.values()]
       const due = [...store.profiles.values()]

@@ -50,6 +50,7 @@ export function rankLeaderboard(
   games: Iterable<GameRow>,
   profiles: ReadonlyMap<string, Profile>,
   q: LeaderboardQuery,
+  presence: ReadonlyMap<string, { readonly at: number }> = new Map(),
 ): LeaderboardRow[] {
   return bestPerPlayer(games, profiles, q)
     .slice(0, LEADERBOARD_LIMIT)
@@ -62,6 +63,7 @@ export function rankLeaderboard(
       xp: profiles.get(g.userId)?.xp ?? 0,
       avatarSpecies: profiles.get(g.userId)?.avatarSpecies ?? 'bull',
       goldFrameUntil: profiles.get(g.userId)?.goldFrameUntil ?? null,
+      lastSeenAt: presence.get(g.userId)?.at ?? null,
     }))
 }
 

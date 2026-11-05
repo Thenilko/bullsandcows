@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { RouterProvider } from 'react-router'
 import { BadgeToastHost } from '../features/badges/BadgeToastHost'
+import { ChallengeInbox } from '../features/challenge/ChallengeInbox'
 import { OnboardingHost } from '../features/onboarding/Onboarding'
 import { openOnFirstVisit } from '../features/onboarding/store'
 import { UnlockHost } from '../features/pasture/UnlockHost'
@@ -39,6 +40,7 @@ export function App() {
       <OfflineBanner />
       <RouterProvider router={router} />
       <BadgeToastHost />
+      <ChallengeInbox router={router} />
       <UnlockHost onOpenPasture={() => void router.navigate('/profile/pasture')} />
       <OnboardingHost />
     </Providers>
