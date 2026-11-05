@@ -4,6 +4,7 @@ import { act, fireEvent, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { codes, filterCandidates, isConsistent } from '@bc/game-core'
+import { WIN_DELAY_MS } from '../features/solo/feedback'
 import { ApiError } from '../lib/api'
 import { renderWithI18n } from '../test/render'
 
@@ -39,12 +40,16 @@ function history(entries: readonly (readonly [string, number, number])[]): GameV
   })
 }
 const started: GameViewDto = { ...base, startedAt: Date.now() - 5000 }
-const ME = { profile: { vibrate: false, sound: false, defaultLen: 4 }, currentGameId: null } as unknown as MeDto
+const ME = {
+  profile: { vibrate: false, sound: false, defaultLen: 4 },
+  currentGameId: null,
+} as unknown as MeDto
 
 function serve(game: GameViewDto) {
   api.get.mockImplementation(async (path: string) => {
     if (path === '/api/games/g1') return game
-    if (path.startsWith('/api/stats/distribution')) return { histogram: [0, 0, 10, 10], sample: 20, fallback: true }
+    if (path.startsWith('/api/stats/distribution'))
+      return { histogram: [0, 0, 10, 10], sample: 20, fallback: true }
     throw new Error(`unexpected GET ${path}`)
   })
 }
@@ -97,7 +102,9 @@ describe('Play before the start', () => {
 
   it('goes back to the Start gate with an error when POST start fails, and can retry', async () => {
     serve(base)
-    api.post.mockRejectedValueOnce(new ApiError('ERR_INTERNAL', 500)).mockResolvedValue({ startedAt: 99 })
+    api.post
+      .mockRejectedValueOnce(new ApiError('ERR_INTERNAL', 500))
+      .mockResolvedValue({ startedAt: 99 })
     show()
     await screen.findByRole('button', { name: 'Старт' })
     vi.useFakeTimers()
@@ -130,9 +137,16 @@ describe('Play before the start', () => {
 })
 
 describe('Play after the start', () => {
-  it('submits 1234 and navigates to the result 1800 ms after a solved verdict', async () => {
+  it('submits 1234 and prefetches the result and navigates to it WIN_DELAY_MS after a solved verdict', async () => {
     serve(started)
-    api.post.mockResolvedValue({ bulls: 4, cows: 0, consistent: true, left: 1, solved: true, score: 900 })
+    api.post.mockResolvedValue({
+      bulls: 4,
+      cows: 0,
+      consistent: true,
+      left: 1,
+      solved: true,
+      score: 900,
+    })
     show()
     await screen.findByLabelText('Цифра 1')
     vi.useFakeTimers()
@@ -140,9 +154,14 @@ describe('Play after the start', () => {
     type('1234')
     key('Enter')
     await act(async () => void (await vi.advanceTimersByTimeAsync(0)))
-    expect(api.post).toHaveBeenCalledWith('/api/games/g1/guesses', { guess: '1234', usedNotes: false })
+    expect(api.post).toHaveBeenCalledWith('/api/games/g1/guesses', {
+      guess: '1234',
+      usedNotes: false,
+    })
     expect(screen.queryByText('result page')).not.toBeInTheDocument()
-    await act(async () => void (await vi.advanceTimersByTimeAsync(1799)))
+    // The result's data is fetched while the winning row plays out.
+    expect(api.get).toHaveBeenCalledWith(expect.stringContaining('/api/stats/distribution?len=4'))
+    await act(async () => void (await vi.advanceTimersByTimeAsync(WIN_DELAY_MS - 1)))
     expect(screen.queryByText('result page')).not.toBeInTheDocument()
     await act(async () => void (await vi.advanceTimersByTimeAsync(1)))
     expect(screen.getByText('result page')).toBeInTheDocument()
@@ -196,7 +215,9 @@ describe('Play after the start', () => {
     await screen.findByLabelText('Цифра 1')
     type('1234')
     key('Enter')
-    expect(await screen.findByText('Много бързаш — изчакай малко и опитай пак.')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Много бързаш — изчакай малко и опитай пак.'),
+    ).toBeInTheDocument()
   })
 
   it('lists the history newest first with the wasted marker', async () => {

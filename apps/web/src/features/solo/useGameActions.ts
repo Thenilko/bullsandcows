@@ -1,5 +1,5 @@
 import type { GameViewDto, MeDto, NewBadgeDto, PastureKey } from '@bc/protocol'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef } from 'react'
 import { isComplete } from '../../lib/code'
 import { useNavigate } from 'react-router'
@@ -11,7 +11,9 @@ import { hasNotes } from '../notebook/store'
 import { invalidatePasture } from '../pasture/usePasture'
 import { useUnlocks } from '../pasture/unlockStore'
 import { invalidateBadges } from '../stats/useBadges'
-import { giveUpGame, sendGuess, startGame } from './api'
+import { distributionQuery } from '../stats/useDistribution'
+import { fetchGame } from '../stats/useGameResult'
+import { distributionKind, giveUpGame, sendGuess, startGame } from './api'
 import { withGuess } from './derive'
 import { playRejected, playVerdict, playWin, WIN_DELAY_MS } from './feedback'
 import { gameKey, toUiError } from './gameKey'
@@ -38,6 +40,17 @@ export interface GameFlags {
 
 const readUi = (id: string) => useSolo.getState().ui[id] ?? INITIAL_UI
 
+/**
+ * Fetches the finished game and its distribution while the winning row plays out, so the result (and its
+ * confetti) shows at once instead of after two more round trips.
+ */
+function prefetchResult(qc: QueryClient, game: GameViewDto): void {
+  void qc
+    .fetchQuery({ queryKey: gameKey(game.id), queryFn: () => fetchGame(game.id) })
+    .catch(() => undefined)
+  void qc.prefetchQuery(distributionQuery(game.len, game.zero, distributionKind(game.kind)))
+}
+
 /** Shared plumbing: error reporting and leaving for the result page (or `resultPath`). */
 function useGameEffects(gameId: string, resultPath = `/result/${gameId}`) {
   const navigate = useNavigate()
@@ -47,7 +60,8 @@ function useGameEffects(gameId: string, resultPath = `/result/${gameId}`) {
     (e: unknown) => {
       const code = toUiError(e)
       useSolo.getState().fail(gameId, code)
-      if (code === 'ERR_FINISHED' || code === 'ERR_NOT_STARTED') void qc.refetchQueries({ queryKey: gameKey(gameId) })
+      if (code === 'ERR_FINISHED' || code === 'ERR_NOT_STARTED')
+        void qc.refetchQueries({ queryKey: gameKey(gameId) })
     },
     [gameId, qc],
   )
@@ -81,7 +95,9 @@ function useStartActions(gameId: string, started: boolean) {
     useSolo.getState().markStarted(gameId, Date.now())
     try {
       const r = await startGame(gameId)
-      qc.setQueryData<GameViewDto>(gameKey(gameId), (g) => (g ? { ...g, startedAt: r.startedAt } : g))
+      qc.setQueryData<GameViewDto>(gameKey(gameId), (g) =>
+        g ? { ...g, startedAt: r.startedAt } : g,
+      )
     } catch (e) {
       useSolo.getState().unstart(gameId)
       onError(e)
@@ -123,7 +139,11 @@ function useInputActions(gameId: string, { game, started, finished }: GameFlags)
   return { press, back, select }
 }
 
-function useSubmit(gameId: string, { game, started, finished, resultPath }: GameFlags, busyRef: React.RefObject<boolean>) {
+function useSubmit(
+  gameId: string,
+  { game, started, finished, resultPath }: GameFlags,
+  busyRef: React.RefObject<boolean>,
+) {
   const { qc, onError, toResult } = useGameEffects(gameId, resultPath)
   const vibrate = useSession((s) => s.me?.profile.vibrate ?? false)
   const winTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -132,7 +152,11 @@ function useSubmit(gameId: string, { game, started, finished, resultPath }: Game
   return useCallback(async () => {
     const cur = readUi(gameId)
     if (!game || !started || finished || cur.solved || busyRef.current) return
-    const err: UiError | null = !isComplete(cur.cur, game.len) ? 'LEN' : game.guesses.some((g) => g.guess === cur.cur) ? 'REPEAT' : null
+    const err: UiError | null = !isComplete(cur.cur, game.len)
+      ? 'LEN'
+      : game.guesses.some((g) => g.guess === cur.cur)
+        ? 'REPEAT'
+        : null
     if (err) {
       useSolo.getState().fail(gameId, err)
       playRejected(vibrate)
@@ -150,6 +174,7 @@ function useSubmit(gameId: string, { game, started, finished, resultPath }: Game
       // A lost weekly game locks the input like a win does (`solved` only gates input and leaving).
       useSolo.getState().verdict(gameId, r, r.solved || r.over === true)
       playVerdict(r, vibrate)
+      if (r.solved || r.over) prefetchResult(qc, game)
       if (r.solved) {
         winTimer.current = setTimeout(() => {
           playWin(vibrate)
@@ -170,7 +195,11 @@ function useSubmit(gameId: string, { game, started, finished, resultPath }: Game
   }, [game, started, finished, gameId, qc, vibrate, onError, toResult, busyRef])
 }
 
-function useGiveUp(gameId: string, { started, finished, resultPath }: GameFlags, busyRef: React.RefObject<boolean>) {
+function useGiveUp(
+  gameId: string,
+  { started, finished, resultPath }: GameFlags,
+  busyRef: React.RefObject<boolean>,
+) {
   const { onError, toResult } = useGameEffects(gameId, resultPath)
   return useCallback(async () => {
     if (!started || finished || busyRef.current) return

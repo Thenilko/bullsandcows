@@ -2,7 +2,8 @@ import { buzz } from '../../lib/haptics'
 import { sfx } from '../../lib/sound'
 import type { Verdict } from './store'
 
-export const WIN_DELAY_MS = 1800
+/** The winning row's bulls play out before the result; its data is fetched meanwhile. */
+export const WIN_DELAY_MS = 900
 const ERROR_BUZZ = [30, 40, 30]
 const WIN_BUZZ = [40, 60, 40, 60, 160]
 

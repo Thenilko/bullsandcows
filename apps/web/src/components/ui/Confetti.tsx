@@ -6,10 +6,16 @@ const PIECES = Array.from({ length: 26 }, (_, i) => ({
   l: `${(i * 37) % 100}%`,
   c: PALETTE[i % 5],
   t: `${2.6 + (i % 5) * 0.4}s`,
-  d: `${(i % 7) * 0.25}s`,
+  // Negative: every piece is already mid-fall on the first frame, so the shower starts at once.
+  d: `-${((i % 7) * 0.25).toFixed(2)}s`,
 }))
 
-const LAYER_STYLE = { position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' } as const
+const LAYER_STYLE = {
+  position: 'absolute',
+  inset: 0,
+  overflow: 'hidden',
+  pointerEvents: 'none',
+} as const
 const BANNER_STYLE = {
   position: 'absolute',
   left: 0,
@@ -36,7 +42,11 @@ export function Confetti({ active }: { active: boolean }) {
   return (
     <div aria-hidden="true" style={LAYER_STYLE}>
       {PIECES.map((p, i) => (
-        <span key={i} className="confetti" style={{ left: p.l, background: p.c, animationDuration: p.t, animationDelay: p.d }} />
+        <span
+          key={i}
+          className="confetti"
+          style={{ left: p.l, background: p.c, animationDuration: p.t, animationDelay: p.d }}
+        />
       ))}
     </div>
   )
