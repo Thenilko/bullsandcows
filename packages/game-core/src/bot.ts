@@ -5,38 +5,37 @@ export type BotLevel = 1 | 2 | 3 | 4
 export type Rng = () => number
 
 /**
- * Base think time per level (index = level - 1). In a race the speed decides as much as the guesses, so the
- * two easy levels think about as long as a person does (people take 20–60 s a guess); the expert answers in
- * 2–3 s. In classic the turns alternate and the speed only paces the game.
+ * Base think time per level (index = level - 1). In a race the speed decides as much as the guesses, so every
+ * level thinks about as long as a person does (people take 20–60 s a guess); the expert is a quick, sure
+ * player at about 12 s, not a machine answering at once. In classic the turns alternate and the speed only
+ * paces the game.
  */
 export const BOT_THINK_BASE = {
-  race: [35000, 22000, 12000, 2500],
+  race: [35000, 25000, 18000, 12000],
   classic: [3600, 3000, 2500, 2000],
 } as const
 
 /** Race jitter per level (index = level - 1), added to the base think time. */
 export const BOT_RACE_JITTER = [
   [-5000, 5000],
+  [-5000, 5000],
   [-4000, 4000],
-  [-2000, 2500],
-  [-500, 500],
+  [-3000, 3000],
 ] as const
 
 /**
  * Chance per move (after the first) that the level plays a random untried code instead of one that fits the
- * answers so far. About 10 guesses on 4 digits at „Лесно“, about 7 (an average person) at „Средно“; „Трудно“
- * always plays a fitting code (about 5).
+ * answers so far — a lost hint. On 4 digits (people average about 7 guesses): about 10 at „Лесно“, 7 at
+ * „Средно“, 6 at „Трудно“. The expert never loses a hint.
  */
-export const BOT_RANDOM_CHANCE = { 1: 0.8, 2: 0.6 } as const
+export const BOT_RANDOM_CHANCE = { 1: 0.8, 2: 0.6, 3: 0.45 } as const
 
 /**
- * How the expert chooses a guess (after the first move, which is a random code: every first guess is
- * equivalent): every code is a probe (inconsistent ones too) and the expected pool size after the answer is
- * minimised, within `budget` probe×candidate evaluations (see `expertProbes`).
+ * The expert plays like a strong person, not a solver: only codes that fit every answer, and of a handful
+ * of them it weighs (`BOT_PRO_SAMPLE`) the one whose answer would leave the fewest candidates on average.
+ * It never plays a deliberately wrong „probe“ code and does not search every code. About 5 guesses on 4 digits.
  */
-export const BOT_SEARCH = {
-  4: { budget: 6_000_000 },
-} as const
+export const BOT_PRO_SAMPLE = 6
 
 const MIN_POOL_FOR_SEARCH = 3
 const CLASSIC_JITTER = [-500, 700] as const
@@ -45,30 +44,12 @@ function pick<T>(arr: readonly T[], rng: Rng): T {
   return arr[Math.floor(rng() * arr.length)]
 }
 
-const draws = (pool: readonly string[], k: number, rng: Rng): string[] =>
-  Array.from({ length: k }, () => pick(pool, rng))
-
-/**
- * The expert's probe set for the budget: all codes when they fit, else the whole pool, else a sample
- * of the pool. `rng` is consumed only in the last case (one draw per probe).
- */
-export function expertProbes(
-  pool: readonly string[],
-  all: readonly string[],
-  budget: number,
-  rng: Rng,
-): readonly string[] {
-  if (all.length * pool.length <= budget) return all
-  if (pool.length * pool.length <= budget) return pool
-  return draws(pool, Math.max(1, Math.floor(budget / pool.length)), rng)
-}
-
 /**
  * Picks the bot's next guess. Order in which `rng` is consumed (tests rely on it):
- *  1. levels 1–2 with prior guesses: one draw for the random-branch roll; if it fires,
- *     one more draw picks uniformly from all codes not yet guessed.
- *  2. no prior guesses, or fewer than 3 candidates, or level <= 3: one draw picking from the pool.
- *  3. level 4: no draws unless the probe set has to be sampled (`expertProbes`).
+ *  1. levels 1–3 with prior guesses: one draw for the lost-hint roll; if it fires, one more draw picks
+ *     uniformly from all codes not yet guessed.
+ *  2. no prior guesses, fewer than 3 candidates, or levels 1–3: one draw picking from the pool.
+ *  3. level 4: `BOT_PRO_SAMPLE` draws from the pool (none when the pool is that small), then the best of them.
  */
 export function botGuess(
   cands: readonly string[],
@@ -80,21 +61,19 @@ export function botGuess(
 ): string {
   const remaining = cands.filter((c) => !guessed.includes(c))
   const pool = remaining.length > 0 ? remaining : cands
-  const randomChance = level === 1 || level === 2 ? BOT_RANDOM_CHANCE[level] : 0
-  if (randomChance > 0 && guessed.length > 0 && rng() < randomChance) {
+  if (level !== 4 && guessed.length > 0 && rng() < BOT_RANDOM_CHANCE[level]) {
     return pick(
       codes(len, zero).filter((c) => !guessed.includes(c)),
       rng,
     )
   }
-  if (level <= 3 || guessed.length === 0 || pool.length < MIN_POOL_FOR_SEARCH)
+  if (level !== 4 || guessed.length === 0 || pool.length < MIN_POOL_FOR_SEARCH)
     return pick(pool, rng)
-  return bestProbe(
-    pool,
-    expertProbes(pool, codes(len, zero), BOT_SEARCH[4].budget, rng),
-    len,
-    'expected',
-  )
+  const options =
+    pool.length <= BOT_PRO_SAMPLE
+      ? pool
+      : Array.from({ length: BOT_PRO_SAMPLE }, () => pick(pool, rng))
+  return bestProbe(pool, options, len, 'expected')
 }
 
 function jitter([a, b]: readonly [number, number], rng: Rng): number {

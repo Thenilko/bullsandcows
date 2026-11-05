@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   BOT_RACE_JITTER,
+  BOT_PRO_SAMPLE,
   BOT_RANDOM_CHANCE,
-  BOT_SEARCH,
   BOT_THINK_BASE,
   botGuess,
   botThinkMs,
-  expertProbes,
   type BotLevel,
 } from './bot'
+import { bestProbe } from './botSearch'
 import { filterCandidates } from './candidates'
 import { codes, isValidCode } from './codes'
 import { bullsCows } from './verdict'
@@ -18,20 +18,20 @@ const LEVELS: readonly BotLevel[] = [1, 2, 3, 4]
 const all4 = codes(4, false)
 
 describe('constants', () => {
-  it('keep the easy levels beatable: slow in a race and often off the answers', () => {
-    expect(BOT_THINK_BASE.race).toEqual([35000, 22000, 12000, 2500])
+  it("keep every level at a person's pace and only the expert sure of every hint", () => {
+    expect(BOT_THINK_BASE.race).toEqual([35000, 25000, 18000, 12000])
     expect(BOT_THINK_BASE.classic).toEqual([3600, 3000, 2500, 2000])
     expect(BOT_RACE_JITTER).toEqual([
       [-5000, 5000],
+      [-5000, 5000],
       [-4000, 4000],
-      [-2000, 2500],
-      [-500, 500],
+      [-3000, 3000],
     ])
-    expect(BOT_RANDOM_CHANCE).toEqual({ 1: 0.8, 2: 0.6 })
-    expect(BOT_SEARCH).toEqual({ 4: { budget: 6_000_000 } })
+    expect(BOT_RANDOM_CHANCE).toEqual({ 1: 0.8, 2: 0.6, 3: 0.45 })
+    expect(BOT_PRO_SAMPLE).toBe(6)
   })
 
-  it('average guesses on 4 digits: about 10 easy, 7 normal, 5 hard', () => {
+  it('average guesses on 4 digits: about 10 easy, 7 normal, 6 hard, 5 expert', () => {
     const avg = (level: BotLevel): number => {
       const rng = mulberry32(level * 1000 + 7)
       let total = 0
@@ -54,8 +54,11 @@ describe('constants', () => {
     expect(avg(1)).toBeGreaterThan(9)
     expect(avg(2)).toBeGreaterThan(6.5)
     expect(avg(2)).toBeLessThan(8)
-    expect(avg(3)).toBeLessThan(5.6)
-  })
+    expect(avg(3)).toBeGreaterThan(5.8)
+    expect(avg(3)).toBeLessThan(6.8)
+    expect(avg(4)).toBeLessThan(5.4)
+    expect(avg(4)).toBeLessThan(avg(3))
+  }, 30_000)
 })
 
 describe('botGuess', () => {
@@ -84,20 +87,20 @@ describe('botGuess', () => {
     }
   })
 
-  it('level 3 picks from the candidates', () => {
+  it('level 4 always picks from the candidates', () => {
+    const cands = all.slice(0, 40)
     for (let seed = 0; seed < 100; seed++) {
-      const g = botGuess(['1234', '5678'], ['9876'], 3, 4, false, mulberry32(seed))
-      expect(['1234', '5678']).toContain(g)
+      expect(cands).toContain(botGuess(cands, ['9876'], 4, 4, false, mulberry32(seed)))
     }
   })
 
   it('falls back to all candidates when every one was already guessed', () => {
-    expect(botGuess(['1234'], ['1234'], 3, 4, false, () => 0)).toBe('1234')
+    expect(botGuess(['1234'], ['1234'], 4, 4, false, () => 0)).toBe('1234')
   })
 
-  it('levels 1 and 2 sometimes guess outside the candidates (inconsistent guess)', () => {
+  it('levels 1–3 sometimes guess outside the candidates (a lost hint)', () => {
     const cands = ['5678', '5679']
-    for (const level of [1, 2] as const) {
+    for (const level of [1, 2, 3] as const) {
       const g = botGuess(cands, ['1234'], level, 4, false, sequenceRng([0.1, 0]))
       expect(cands).not.toContain(g)
       expect(g).toBe('1235')
@@ -126,29 +129,27 @@ describe('botGuess', () => {
       botGuess(['5678', '5679'], ['1234'], 1, 4, false, sequenceRng([0.7, 0])),
     )
     expect(botGuess(['5678', '5679'], ['1234'], 2, 4, false, sequenceRng([0.7, 0]))).toBe('5678')
+    expect(botGuess(['5678', '5679'], ['1234'], 3, 4, false, sequenceRng([0.5, 0.99]))).toBe('5679')
   })
 
-  it('level 3 consumes one draw; level 4 none when every code fits the budget', () => {
-    const countCalls = (level: BotLevel): number => {
+  it('level 3 rolls then draws; level 4 draws its sample, or none from a small pool', () => {
+    const countCalls = (level: BotLevel, pool: readonly string[]): number => {
       let calls = 0
-      botGuess(all.slice(0, 300), ['9876'], level, 4, false, () => {
+      botGuess(pool, ['9876'], level, 4, false, () => {
         calls++
-        return 0
+        return 0.99
       })
       return calls
     }
-    expect(countCalls(3)).toBe(1)
-    expect(countCalls(4)).toBe(0)
+    expect(countCalls(3, all.slice(0, 300))).toBe(2)
+    expect(countCalls(4, all.slice(0, 300))).toBe(BOT_PRO_SAMPLE)
+    expect(countCalls(4, all.slice(0, BOT_PRO_SAMPLE))).toBe(0)
   })
 
-  it('level 4 plays an inconsistent probe when it splits the candidates better', () => {
-    // The four candidates differ only in the last digit: any of them leaves three
-    // indistinguishable; a code that places 5 last and 6 elsewhere sorts them into three answers.
-    const cands = ['1234', '1235', '1236', '1237']
-    const g = botGuess(cands, ['1289'], 4, 4, false, () => 0)
-    expect(cands).not.toContain(g)
-    const answers = new Set(cands.map((c) => JSON.stringify(bullsCows(c, g))))
-    expect(answers.size).toBe(3)
+  it('the expert keeps, of the candidates it weighs, the one that splits the rest best', () => {
+    const cands = ['1234', '1243', '2134', '5678', '5687']
+    const g = botGuess(cands, ['9012'], 4, 4, false, () => 0)
+    expect(g).toBe(bestProbe(cands, cands, 4, 'expected'))
   })
 
   it('with one or two candidates left every level guesses a candidate', () => {
@@ -158,24 +159,6 @@ describe('botGuess', () => {
       )
       expect(botGuess(['5678'], ['1234'], level, 4, false, () => 0.99)).toBe('5678')
     }
-  })
-})
-
-describe('expertProbes', () => {
-  const all = codes(4, false)
-
-  it('uses every code when the budget allows, else the pool, else a sample of the pool', () => {
-    const pool = all.slice(0, 100)
-    expect(expertProbes(pool, all, all.length * 100, () => 0)).toBe(all)
-    expect(expertProbes(pool, all, 100 * 100, () => 0)).toBe(pool)
-    let calls = 0
-    const sample = expertProbes(pool, all, 100 * 7, () => {
-      calls++
-      return 0.5
-    })
-    expect(sample).toHaveLength(7)
-    expect(calls).toBe(7)
-    expect(sample.every((p) => pool.includes(p))).toBe(true)
   })
 })
 
@@ -222,13 +205,13 @@ describe('botThinkMs', () => {
   it('computes race and classic timings with jitter', () => {
     expect(botThinkMs(1, false, () => 0)).toBe(30000)
     expect(botThinkMs(4, true, () => 0.9999)).toBe(2700)
-    expect(botThinkMs(2, false, () => 0.5)).toBe(22000)
+    expect(botThinkMs(2, false, () => 0.5)).toBe(25000)
     expect(botThinkMs(3, true, () => 0)).toBe(2000)
   })
 
-  it('keeps the expert race move between 2 and 3 seconds', () => {
-    expect(botThinkMs(4, false, () => 0)).toBe(2000)
-    expect(botThinkMs(4, false, () => 0.9999)).toBe(3000)
-    expect(botThinkMs(3, false, () => 0)).toBe(10000)
+  it("keeps the expert race move at a quick person's 9–15 seconds", () => {
+    expect(botThinkMs(4, false, () => 0)).toBe(9000)
+    expect(botThinkMs(4, false, () => 0.9999)).toBe(15000)
+    expect(botThinkMs(3, false, () => 0)).toBe(14000)
   })
 })
