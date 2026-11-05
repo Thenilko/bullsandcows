@@ -25,6 +25,8 @@ export const DEV_SCREEN_KEYS: readonly string[] = [
   'result-practice',
   'board',
   'board-guest',
+  'board-guest-place',
+  'result-guest',
   'profile',
   'profile-guest',
   'board-duels',

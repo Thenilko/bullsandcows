@@ -292,6 +292,20 @@ export interface BadgesRepo {
   listOf(userId: string): Promise<BadgeState[]>
   /** Inserts or overwrites the rows for the keys given (tier, progress, earnedAt). */
   save(userId: string, rows: readonly BadgeState[]): Promise<void>
+  /**
+   * „Пионер“: gives the member the badge and `xp` once, atomically, while fewer than `limit` members hold it
+   * (concurrent calls never go past the limit). False (nothing changed) when it is held already, all spots
+   * are taken, or the profile is missing or a guest.
+   */
+  grantPioneer(userId: string, grant: PioneerGrant): Promise<boolean>
+  /** Members holding „Пионер“. */
+  pioneerCount(): Promise<number>
+}
+
+export interface PioneerGrant {
+  readonly now: number
+  readonly limit: number
+  readonly xp: number
 }
 
 export interface ShareRow {
@@ -334,6 +348,11 @@ export interface GamesRepo {
   leaderboard(query: LeaderboardQuery): Promise<LeaderboardRow[]>
   /** The player's best game and rank in the same order; null when not ranked (or a guest). */
   leaderboardRankOf(query: LeaderboardQuery, userId: string): Promise<LeaderboardPlace | null>
+  /**
+   * A guest's „would be“ place: their best game ranked among the members as if they were one (same order,
+   * ties by finish time, then user id). Null without a game that counts. Never adds the guest to any list.
+   */
+  leaderboardPhantomOf(query: LeaderboardQuery, userId: string): Promise<LeaderboardPlace | null>
   /** Audit row for the day's number; idempotent. */
   recordDailyNumber(date: string, len: Len, zero: boolean, idx: number): Promise<void>
   /** Newest first. */

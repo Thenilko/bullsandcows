@@ -31,22 +31,28 @@ export function Leaderboard() {
   )
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const [params, setParams] = useSearchParams()
-  // Guests only ever see „Точки“ (its guest view); the other boards are for members.
+  // Guests only ever see „Точки“: the members' board with the place they would take („Щеше да си №N“).
   const kind: BoardChoice = guestSession ? 'points' : parseBoardChoice(params.get('kind'))
   const [period, setPeriod] = useState<BoardPeriod>('today')
   const board = useLeaderboard(
     filters.period,
     filters.len,
     filters.zero,
-    !guestSession && kind === 'points',
+    kind === 'points',
+    guestSession,
   )
   const other = useBoard(kind === 'points' ? 'duels' : kind, period, kind !== 'points')
   const otherStatus: KindBoardStatus = other.isError ? 'error' : other.data ? 'ready' : 'loading'
   const refused =
     (board.error instanceof ApiError && board.error.code === 'ERR_GUEST') ||
     (other.error instanceof ApiError && other.error.code === 'ERR_GUEST')
-  const status: BoardStatus =
-    guestSession || refused ? 'guest' : board.isError ? 'error' : board.data ? 'ready' : 'loading'
+  const status: BoardStatus = refused
+    ? 'guest'
+    : board.isError
+      ? 'error'
+      : board.data
+        ? 'ready'
+        : 'loading'
   const [target, setTarget] = useState<ChallengeTarget | null>(null)
   const send = useSendChallenge()
   const sendError =
@@ -94,7 +100,8 @@ export function Leaderboard() {
           onFilters={setFilters}
           data={board.data}
           onPlay={() => void navigate('/new')}
-          onChallenge={openConfirm}
+          onChallenge={guestSession ? undefined : openConfirm}
+          guest={guestSession}
         />
       ) : (
         <KindBoard

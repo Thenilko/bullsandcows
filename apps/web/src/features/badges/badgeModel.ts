@@ -114,7 +114,7 @@ const EMPTY = (key: BadgeKey): BadgeStateDto => ({
   earnedAt: null,
 })
 
-/** All 29 badges in the order of `BADGES`; those the server did not mention are at tier 0. */
+/** All 30 badges in the order of `BADGES`; those the server did not mention are at tier 0. */
 export function badgeViews(states: readonly BadgeStateDto[] | undefined): BadgeView[] {
   const byKey = new Map((Array.isArray(states) ? states : []).map((s) => [s.key, s]))
   return BADGES.map((def) => badgeView(byKey.get(def.key) ?? EMPTY(def.key)))

@@ -91,7 +91,7 @@ const BADGE_PROGRESS: Readonly<Partial<Record<BadgeKey, number>>> = {
   duelist: 23, unbeaten: 6, comeback: 1, rematch: 3, bot1: 1, bot2: 1, formats: 4, notes: 31, teller: 8,
 }
 
-/** All 29 badges as `GET /api/me/badges` returns them, with the artboard's tiers. */
+/** All 30 badges as `GET /api/me/badges` returns them, with the artboard's tiers. */
 export const badgesFixture: BadgeStateDto[] = BADGES.map((def) => {
   const progress = BADGE_PROGRESS[def.key] ?? 0
   const tier = tierFor(def, progress)
@@ -120,4 +120,11 @@ export const duelsBoardFixture: BoardDto = {
     { rank: 5, username: 'Мира', value: 1502, wins: 4, losses: 4, you: true, level: 2, rankKey: 'herdsman', avatarSpecies: 'bull' },
   ],
   me: { rank: 5, value: 1502 },
+}
+
+/** A guest's view of the same board: nobody is „you“, and the guest would be 5th („Щеше да си №5“). */
+export const guestBoardFixture: LeaderboardDto = {
+  rows: boardFixture.rows.map((r) => (r.you ? { ...r, username: 'Дари', you: false } : r)),
+  me: null,
+  phantom: { rank: 5, score: 790, attempts: 5 },
 }

@@ -7,16 +7,16 @@ import { BadgesTab } from './BadgesTab'
 const DATA = { states: badgesFixture, loading: false, error: false }
 
 describe('BadgesTab', () => {
-  it('renders the collection card and the 29 tiles in 8 groups with their tier pips', () => {
+  it('renders the collection card and the 30 tiles in 8 groups with their tier pips', () => {
     const { container } = renderWithI18n(<BadgesTab badges={DATA} guest={false} onOpen={() => undefined} />)
-    expect(screen.getByText('16 значки · 19 степени · 13 предстоят')).toBeInTheDocument()
+    expect(screen.getByText('16 значки · 19 степени · 14 предстоят')).toBeInTheDocument()
     expect(screen.getByRole('progressbar', { name: 'Колекция' })).toHaveAttribute('aria-valuenow', '16')
     const groups = screen.getAllByRole('region')
     expect(groups.map((g) => g.getAttribute('aria-labelledby'))).toEqual([
       'badges-logic', 'badges-speed', 'badges-consistency', 'badges-duel', 'badges-bot', 'badges-collector', 'badges-together', 'badges-hidden',
     ])
     expect(groups[0]?.querySelectorAll('.bdg')).toHaveLength(6)
-    expect(container.querySelectorAll('.bdg')).toHaveLength(29)
+    expect(container.querySelectorAll('.bdg')).toHaveLength(30)
     expect(screen.getByText('Логика').parentElement).toHaveTextContent('4 / 6')
     const noWaste = screen.getByRole('button', { name: 'Без излишен ход: сребро' })
     expect(noWaste.querySelector('.md')).toHaveClass('md-silver')
@@ -47,7 +47,7 @@ describe('BadgesTab', () => {
     const onOpen = vi.fn()
     renderWithI18n(<BadgesTab badges={{ states: undefined, loading: false, error: false }} guest onOpen={onOpen} />)
     expect(screen.getByText('Влез, за да събираш значки')).toBeInTheDocument()
-    expect(document.querySelectorAll('.bdg.locked')).toHaveLength(29)
+    expect(document.querySelectorAll('.bdg.locked')).toHaveLength(30)
     fireEvent.click(screen.getByRole('button', { name: 'Шерлок: не е спечелена' }))
     expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ key: 'sherlock', tier: 0 }))
   })
@@ -57,6 +57,6 @@ describe('BadgesTab', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Зареждане…')
     rerender(<BadgesTab badges={{ states: undefined, loading: false, error: true }} guest={false} onOpen={() => undefined} />)
     expect(screen.getByRole('alert')).toBeInTheDocument()
-    expect(document.querySelectorAll('.bdg')).toHaveLength(29)
+    expect(document.querySelectorAll('.bdg')).toHaveLength(30)
   })
 })

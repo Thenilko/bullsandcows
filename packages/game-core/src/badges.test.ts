@@ -14,10 +14,10 @@ import {
 } from './badges'
 
 describe('BADGES', () => {
-  it('defines the 29 keys of the spec in 8 groups, once each, in key order', () => {
-    expect(BADGES).toHaveLength(29)
+  it('defines the 29 keys of the spec and „Пионер“ in 8 groups, once each, in key order', () => {
+    expect(BADGES).toHaveLength(30)
     expect(BADGES.map((b) => b.key)).toEqual([...BADGE_KEYS])
-    expect(new Set(BADGE_KEYS).size).toBe(29)
+    expect(new Set(BADGE_KEYS).size).toBe(30)
     expect([...BADGES_BY_CATEGORY.entries()].map(([c, b]) => [c, b.length])).toEqual([
       ['logic', 6],
       ['speed', 2],
@@ -25,7 +25,7 @@ describe('BADGES', () => {
       ['duel', 4],
       ['bot', 4],
       ['collector', 2],
-      ['together', 4],
+      ['together', 5],
       ['hidden', 3],
     ])
     expect(BADGE_CATEGORIES).toHaveLength(8)
@@ -63,6 +63,7 @@ describe('BADGES', () => {
       mirror: [1],
       ladder: [1],
       zeroHero: [1],
+      pioneer: [1],
     })
     for (const b of BADGES) {
       expect([1, 3], b.key).toContain(b.thresholds.length)
@@ -80,6 +81,8 @@ describe('BADGES', () => {
       'ladder',
       'zeroHero',
     ])
+    expect(BADGES.filter((b) => b.granted).map((b) => b.key)).toEqual(['pioneer'])
+    expect(badgeDef('pioneer').category).toBe('together')
   })
 
   it('points every badge at an i18n pair and a glyph', () => {

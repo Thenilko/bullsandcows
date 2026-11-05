@@ -30,3 +30,13 @@ export function dayStreakFromDates(dates: Iterable<string>): DayStreak {
   const sorted = [...new Set(dates)].sort()
   return sorted.reduce(nextDayStreak, NO_STREAK)
 }
+
+/**
+ * The day streak as it stands today: alive while the last won day is today or yesterday (today's number can
+ * still continue it), 0 once a day was missed.
+ */
+export function liveDayStreak(streak: DayStreak, today: string): number {
+  const { streakDate } = streak
+  if (streakDate === null) return 0
+  return streakDate === today || streakDate === previousDate(today) ? streak.currentStreak : 0
+}

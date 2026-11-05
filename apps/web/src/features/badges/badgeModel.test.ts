@@ -52,9 +52,9 @@ describe('badgeView', () => {
 })
 
 describe('badgeViews / groupBadges / collectionSummary', () => {
-  it('lists all 29 in the order of the definitions, missing ones at tier 0', () => {
+  it('lists all 30 in the order of the definitions, missing ones at tier 0', () => {
     const views = badgeViews([state('noWaste', 2, 14, 50)])
-    expect(views).toHaveLength(29)
+    expect(views).toHaveLength(30)
     expect(views[0]?.key).toBe('noWaste')
     expect(views[0]?.tier).toBe(2)
     expect(views[1]?.tier).toBe(0)
@@ -71,13 +71,13 @@ describe('badgeViews / groupBadges / collectionSummary', () => {
       ['duel', 4, 4],
       ['bot', 4, 2],
       ['collector', 2, 1],
-      ['together', 4, 1],
+      ['together', 5, 1],
       ['hidden', 3, 0],
     ])
   })
 
   it('sums badges and tiers for the collection card', () => {
-    expect(collectionSummary(badgeViews(badgesFixture))).toEqual({ earned: 16, total: 29, tiers: 19, left: 13, fraction: 16 / 29 })
+    expect(collectionSummary(badgeViews(badgesFixture))).toEqual({ earned: 16, total: 30, tiers: 19, left: 14, fraction: 16 / 30 })
   })
 })
 

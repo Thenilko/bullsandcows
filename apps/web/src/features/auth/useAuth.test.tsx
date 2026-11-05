@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { MemoryRouter, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RETURN_TO_KEY } from '../../app/RequireAuth'
+import { useBadgeToasts } from '../badges/toastStore'
 import { useSession } from './session'
 import { useAuth } from './useAuth'
 
@@ -48,6 +49,18 @@ describe('useAuth', () => {
     expect(useSession.getState().me).toEqual(AUTH.me)
     expect(result.current.auth.isAuthenticated).toBe(true)
     await waitFor(() => expect(result.current.path).toBe('/'))
+  })
+
+  it('celebrates „Пионер“ from an upgrade with the badge toast, and nothing for a plain login', async () => {
+    useBadgeToasts.getState().clear()
+    stubFetch(200, { ok: true, data: AUTH })
+    const { result } = mount()
+    await act(() => result.current.auth.login('Mira', 'secret1'))
+    expect(useBadgeToasts.getState().queue).toEqual([])
+    stubFetch(200, { ok: true, data: { ...AUTH, newBadges: [{ key: 'pioneer', tier: 1 }] } })
+    await act(() => result.current.auth.upgrade('Mira', 'mira@x.bg', 'secret1'))
+    expect(useBadgeToasts.getState().queue).toEqual([{ key: 'pioneer', tier: 1 }])
+    useBadgeToasts.getState().clear()
   })
 
   it('navigates to returnTo once and clears it', async () => {

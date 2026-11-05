@@ -27,8 +27,11 @@ function periodFilter(q: LeaderboardQuery): SQL | undefined {
   return q.period === 'all' ? solo : and(solo, gte(games.finishedAt, new Date(q.weekStartMs)))
 }
 
-/** Each member's best won counted solo game in the period; guests excluded. */
-function bestPerPlayer(db: Db, q: LeaderboardQuery) {
+/**
+ * Each member's best won counted solo game in the period; guests excluded, except `alsoGuest` (for that
+ * guest's own phantom place, never for a list).
+ */
+function bestPerPlayer(db: Db, q: LeaderboardQuery, alsoGuest?: string) {
   return db
     .selectDistinctOn([games.userId], {
       userId: games.userId,
@@ -39,6 +42,7 @@ function bestPerPlayer(db: Db, q: LeaderboardQuery) {
       avatarSpecies: profiles.avatarSpecies,
       goldFrameUntil: profiles.goldFrameUntil,
       lastSeenAt: profiles.lastSeenAt,
+      isGuest: profiles.isGuest,
       finishedAt: games.finishedAt,
       startedAt: games.startedAt,
     })
@@ -52,7 +56,9 @@ function bestPerPlayer(db: Db, q: LeaderboardQuery) {
         eq(games.won, true),
         eq(games.practice, false),
         isNotNull(games.finishedAt),
-        eq(profiles.isGuest, false),
+        alsoGuest === undefined
+          ? eq(profiles.isGuest, false)
+          : or(eq(profiles.isGuest, false), eq(games.userId, alsoGuest)),
       ),
     )
     .orderBy(games.userId, desc(games.score), asc(games.finishedAt))
@@ -95,13 +101,35 @@ export async function drizzleRankOf(
   q: LeaderboardQuery,
   userId: string,
 ): Promise<LeaderboardPlace | null> {
-  const best = bestPerPlayer(db, q)
+  return placeIn(db, bestPerPlayer(db, q), userId, false)
+}
+
+/** A guest's place as if they were a member (the members and this one guest ranked together). */
+export async function drizzlePhantomOf(
+  db: Db,
+  q: LeaderboardQuery,
+  userId: string,
+): Promise<LeaderboardPlace | null> {
+  return placeIn(db, bestPerPlayer(db, q, userId), userId, true)
+}
+
+async function placeIn(
+  db: Db,
+  best: ReturnType<typeof bestPerPlayer>,
+  userId: string,
+  guest: boolean,
+): Promise<LeaderboardPlace | null> {
   const [mine] = await db
-    .select({ attempts: best.attempts, score: best.score, finishedAt: best.finishedAt })
+    .select({
+      attempts: best.attempts,
+      score: best.score,
+      finishedAt: best.finishedAt,
+      isGuest: best.isGuest,
+    })
     .from(best)
     .where(eq(best.userId, userId))
     .limit(1)
-  if (!mine?.finishedAt) return null
+  if (!mine?.finishedAt || mine.isGuest !== guest) return null
   const sameScore = eq(best.score, mine.score)
   const [ahead] = await db
     .select({ n: count() })

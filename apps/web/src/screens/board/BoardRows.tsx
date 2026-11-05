@@ -1,9 +1,10 @@
-import type { LeaderboardRowDto } from '@bc/protocol'
+import type { LeaderboardRowDto, PhantomPlaceDto } from '@bc/protocol'
 import { useTranslation } from 'react-i18next'
 import { cx } from '../../components/ui/cx'
 import { RankAvatar } from '../../components/ui/RankAvatar'
 import { formatClock } from '../result/resultModel'
 import styles from './challenge.module.css'
+import { PhantomRow } from './GuestBoard'
 
 const FIRST_LIST_RANK = 4
 const ROW_AVATAR = 30
@@ -124,21 +125,31 @@ export function PlayerName<R extends ChallengeTarget>({
   )
 }
 
+/** Where the guest's row goes among the listed rows: before the first member it would push down. */
+export function phantomIndex(rest: readonly LeaderboardRowDto[], phantom: PhantomPlaceDto): number {
+  const at = rest.findIndex((r) => r.rank >= phantom.rank)
+  return at === -1 ? rest.length : at
+}
+
 /** Rows from the 4th place down (the podium shows the first three). */
 export function BoardRows({
   rows,
   wide = false,
   onChallenge,
+  phantom,
 }: {
   rows: readonly LeaderboardRowDto[]
   /** Desktop table: header labels and a plain attempts column. */
   wide?: boolean
   /** „Предизвикай“ next to online players; without it the rows only show who is online. */
   onChallenge?(row: LeaderboardRowDto): void
+  /** A guest's „would be“ place, drawn as a dashed row where it would stand (a podium place: on top). */
+  phantom?: PhantomPlaceDto | null
 }) {
   const { t } = useTranslation()
   const rest = rows.filter((r) => r.rank >= FIRST_LIST_RANK)
   const cols = wide ? WIDE_COLUMNS : undefined
+  const ghostAt = phantom ? phantomIndex(rest, phantom) : -1
   return (
     <>
       {wide ? <WideHeader /> : null}
@@ -152,7 +163,10 @@ export function BoardRows({
           listStyle: 'none',
         }}
       >
-        {rest.map((r, i) => (
+        {rest.flatMap((r, i) => [
+          ...(i === ghostAt && phantom
+            ? [<PhantomRow key="phantom" phantom={phantom} wide={wide} columns={cols} />]
+            : []),
           <li
             key={`${r.rank}-${r.username}`}
             className={cx('lbrow', 'rise', r.you && 'you')}
@@ -183,8 +197,11 @@ export function BoardRows({
               </span>
             ) : null}
             <span style={{ fontWeight: 900, textAlign: 'right' }}>{r.score}</span>
-          </li>
-        ))}
+          </li>,
+        ])}
+        {phantom && ghostAt === rest.length ? (
+          <PhantomRow phantom={phantom} wide={wide} columns={cols} />
+        ) : null}
       </ol>
     </>
   )

@@ -15,7 +15,7 @@ import {
 import type { GamePatch, GamesRepo, WonAttemptsQuery } from '../../../ports/repo'
 import type { Db } from './client'
 import { required } from './errors'
-import { drizzleLeaderboard, drizzleRankOf } from './leaderboard'
+import { drizzleLeaderboard, drizzlePhantomOf, drizzleRankOf } from './leaderboard'
 import { toDate, toGame, toGuess, toPublicGame } from './mappers'
 import { dailyNumbers, games, guesses } from './schema'
 
@@ -155,6 +155,7 @@ export function drizzleGames(db: Db): GamesRepo {
     },
     leaderboard: (q) => drizzleLeaderboard(db, q),
     leaderboardRankOf: (q, userId) => drizzleRankOf(db, q, userId),
+    leaderboardPhantomOf: (q, userId) => drizzlePhantomOf(db, q, userId),
     recordDailyNumber: async (date, len, zero, idx) => {
       await db.insert(dailyNumbers).values({ date, len, zero, idx }).onConflictDoNothing()
     },

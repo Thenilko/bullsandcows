@@ -10,7 +10,7 @@ import type {
   PublicGameRow,
   WonAttemptsQuery,
 } from '../../../ports/repo'
-import { rankLeaderboard, rankOf } from './leaderboard'
+import { phantomOf, rankLeaderboard, rankOf } from './leaderboard'
 import { copy, defined, publicGame, type MemoryStore } from './store'
 
 function matchesWon(g: GameRow, q: WonAttemptsQuery): boolean {
@@ -112,6 +112,8 @@ export function memoryGames(store: MemoryStore, clock: Clock): GamesRepo {
     leaderboard: async (q) =>
       rankLeaderboard(store.games.values(), store.profiles, q, store.presence),
     leaderboardRankOf: async (q, userId) => rankOf(store.games.values(), store.profiles, q, userId),
+    leaderboardPhantomOf: async (q, userId) =>
+      phantomOf(store.games.values(), store.profiles, q, userId),
     recordDailyNumber: async (date, len, zero, idx) => {
       const key = `${date}|${len}|${zero ? 1 : 0}`
       if (!store.dailyNumbers.has(key)) store.dailyNumbers.set(key, idx)

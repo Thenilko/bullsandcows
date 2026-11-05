@@ -4,6 +4,7 @@ import { useLocation } from 'react-router'
 import { RETURN_TO_KEY } from '../../app/RequireAuth'
 import { Card, Cta, Field } from '../../components/ui'
 import { sfx } from '../../lib/sound'
+import { PioneerLine } from './PioneerLine'
 import { useAuth } from './useAuth'
 
 const MIN_NAME = 2
@@ -79,6 +80,7 @@ export function UpgradeDialog() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        <PioneerLine />
         <p role="status" style={ERROR_STYLE}>
           {local || server}
         </p>

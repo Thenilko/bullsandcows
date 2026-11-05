@@ -162,6 +162,8 @@ const METRICS: Readonly<Record<BadgeKey, (facts: BadgeFacts) => number>> = {
   mirror: (f) => eventSeen(f, 'mirror'),
   ladder: (f) => eventSeen(f, 'ladder'),
   zeroHero: (f) => eventSeen(f, 'zeroHero'),
+  // Granted on sign-up (auth/pioneer.ts), never derived; the recompute does not even ask.
+  pioneer: () => 0,
 }
 
 /** The progress of one badge from the facts; always 0 for a badge that is not available yet. */

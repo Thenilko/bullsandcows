@@ -268,7 +268,19 @@
     "title_one": "You've played {{count}} game as a guest",
     "title_other": "You've played {{count}} games as a guest",
     "body": "Create a profile to keep all {{xp}} points, your level and badges — and get on the leaderboard.",
-    "later": "Later"
+    "later": "Later",
+    "phantomToday": "Today you would be #{{rank}} on the leaderboard",
+    "phantomWeek": "This week you would be #{{rank}} on the leaderboard",
+    "keepPlace": "Create a profile and the place is yours — along with your points and badges."
+  },
+  "pioneer": {
+    "left_one": "{{count}} spot left for the “Pioneer” badge + 100 XP",
+    "left_other": "{{count}} spots left for the “Pioneer” badge + 100 XP"
+  },
+  "guestStreak": {
+    "area": "Guest streak",
+    "text_one": "A {{count}}-day streak! As a guest you lose it if you change phones or clear your browser — keep it with a profile.",
+    "text_other": "A {{count}}-day streak! As a guest you lose it if you change phones or clear your browser — keep it with a profile."
   },
   "result": {
     "area": "Result",
@@ -391,7 +403,10 @@
       "friends": "Play a duel with someone and they will show up here"
     },
     "toDuel": "Go to duels",
-    "duelNow": "Play a duel"
+    "duelNow": "Play a duel",
+    "phantomName": "You (guest)",
+    "phantomCard": "You would be #{{rank}} — create a profile and the place is yours",
+    "phantomNone": "These are the shepherds with a profile. Win a game with these settings to see where you would be."
   },
   "profile": {
     "area": "Profile",
@@ -677,6 +692,7 @@
     "mirror": { "name": "Mirror", "desc": "A guess that is the secret number reversed" },
     "ladder": { "name": "Ladder", "desc": "A win over a secret with consecutive digits" },
     "zeroHero": { "name": "Zero hero", "desc": "A win over a secret that starts with 0" },
+    "pioneer": { "name": "Pioneer", "desc": "Among the first 100 shepherds with a profile" },
     "hidden": { "name": "???", "desc": "A hidden badge — find it yourself" }
   },
   "share": {
@@ -709,6 +725,7 @@
     "progress": "{{progress}} of {{next}} to the next tier",
     "allDone": "Every tier collected",
     "xpNote": "+50 XP for every tier",
+    "xpNoteOnce": "+100 XP once — only for the first 100 shepherds with a profile",
     "soon": "soon",
     "soonNote": "This badge comes with a future part of the game.",
     "guestNote": "Sign in to collect badges",

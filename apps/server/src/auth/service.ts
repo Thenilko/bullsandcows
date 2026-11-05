@@ -1,9 +1,18 @@
 import type { Lang } from '@bc/i18n'
-import type { AuthResponseDto, GuestProfileResponseDto, LoginBody, ResetBody, UpgradeBody } from '@bc/protocol'
+import type {
+  AuthResponseDto,
+  GuestProfileResponseDto,
+  LoginBody,
+  NewBadgeDto,
+  ResetBody,
+  UpgradeBody,
+} from '@bc/protocol'
 import { AppError } from '../http/errors'
 import type { AuthPort, AuthUser, Session } from '../ports/auth'
+import { systemClock, type Clock } from '../ports/clock'
 import type { Repo } from '../ports/repo'
 import type { StatsService } from '../stats/service'
+import { grantPioneer, pioneerSpots } from './pioneer'
 import { createWithGeneratedName, ensureProfile } from './profiles'
 
 export interface AuthDeps {
@@ -12,6 +21,7 @@ export interface AuthDeps {
   readonly stats: StatsService
   /** Where the password reset link lands (`<origin>/reset`). */
   readonly appOrigin: string
+  readonly clock?: Clock
 }
 
 export interface RegisterInput {
@@ -49,7 +59,8 @@ export class AuthService {
       vibrate: true,
       defaultLen: 4,
     })
-    return this.respond(session)
+    const newBadges = await this.pioneer(session.user.id)
+    return this.respond(session, newBadges)
   }
 
   /** `identifier` is an email (contains "@") or a username; failures never say which part. */
@@ -88,8 +99,24 @@ export class AuthService {
     const email = input.email.toLowerCase()
     await auth.upgrade(user.id, email, input.password)
     await repo.profiles.update(user.id, { username: input.username, email, isGuest: false })
+    const newBadges = await this.pioneer(user.id)
     // The guest's token still says `is_anonymous`; sign in again for one that does not.
-    return this.respond(await auth.signIn(email, input.password))
+    return this.respond(await auth.signIn(email, input.password), newBadges)
+  }
+
+  /** `GET /api/auth/pioneer`: spots left for „Пионер“. */
+  pioneerSpots() {
+    return pioneerSpots(this.deps.repo)
+  }
+
+  /** The profile is a member now; a failing grant must not undo (or fail) the sign-up itself. */
+  private async pioneer(userId: string) {
+    try {
+      return await grantPioneer(this.deps.repo, userId, (this.deps.clock ?? systemClock).now())
+    } catch (err) {
+      console.error(`pioneer grant failed: ${err instanceof Error ? err.message : String(err)}`)
+      return []
+    }
   }
 
   /** Always "sent", whether or not the address has an account. */
@@ -113,7 +140,11 @@ export class AuthService {
     return (await this.deps.repo.profiles.getByUsername(identifier))?.email ?? null
   }
 
-  private async respond(session: Session): Promise<AuthResponseDto> {
-    return { session, me: await this.deps.stats.me(session.user) }
+  private async respond(
+    session: Session,
+    newBadges: readonly NewBadgeDto[] = [],
+  ): Promise<AuthResponseDto> {
+    const me = await this.deps.stats.me(session.user)
+    return newBadges.length > 0 ? { session, me, newBadges: [...newBadges] } : { session, me }
   }
 }

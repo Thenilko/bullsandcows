@@ -61,6 +61,8 @@ export const devScreens: Record<string, () => ReactElement> = {
   'result-practice': lazyStats('ResultPractice'),
   board: lazyStats('Board'),
   'board-guest': lazyStats('BoardGuest'),
+  'board-guest-place': lazyStats('BoardGuestPlace'),
+  'result-guest': lazyStats('ResultGuest'),
   profile: lazyStats('Profile'),
   'profile-guest': lazyStats('ProfileGuest'),
   'board-duels': lazyStats('BoardDuels'),
