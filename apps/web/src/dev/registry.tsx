@@ -63,6 +63,7 @@ export const devScreens: Record<string, () => ReactElement> = {
   'board-guest': lazyStats('BoardGuest'),
   profile: lazyStats('Profile'),
   'profile-guest': lazyStats('ProfileGuest'),
+  'board-duels': lazyStats('BoardDuels'),
   notebook: NotebookScreen,
   'play-desktop-notebook': PlayDesktopNotebookScreen,
   'duel-setup': lazyDuel('DuelSetupScreen'),

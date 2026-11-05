@@ -85,6 +85,13 @@
       "when": 1793872232095,
       "tag": "0011_challenges",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793873404347,
+      "tag": "0012_board_indexes",
+      "breakpoints": true
     }
   ]
 }

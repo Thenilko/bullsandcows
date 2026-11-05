@@ -1,6 +1,7 @@
 import type { RepoHandle } from '../../../ports/repo'
 import { drizzleAdmin } from './admin'
 import { drizzleBadges } from './badges'
+import { drizzleBoards } from './boards'
 import { drizzleChallenges } from './challenges'
 import type { DbHandle } from './client'
 import { drizzleDuels } from './duels'
@@ -26,6 +27,7 @@ export function createDrizzleRepo(handle: DbHandle): RepoHandle {
     weekly: drizzleWeekly(handle.db),
     admin: drizzleAdmin(handle.db),
     challenges: drizzleChallenges(handle.db),
+    boards: drizzleBoards(handle.db),
     close: () => handle.close(),
   }
 }

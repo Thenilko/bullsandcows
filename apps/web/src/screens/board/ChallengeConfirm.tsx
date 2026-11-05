@@ -1,8 +1,9 @@
-import type { DuelFormat, LeaderboardRowDto } from '@bc/protocol'
+import type { DuelFormat } from '@bc/protocol'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Cta, RankAvatar, Seg, Soft } from '../../components/ui'
 import { Sheet } from '../../components/ui/Sheet'
+import type { ChallengeTarget } from './BoardRows'
 
 const FORMATS: readonly DuelFormat[] = ['race', 'classic']
 const CHIP = { background: '#FFFFFF', border: '1.5px solid #DCD4BF' } as const
@@ -22,7 +23,7 @@ const LABEL = {
 } as const
 
 export interface ChallengeConfirmProps {
-  row: LeaderboardRowDto
+  row: ChallengeTarget
   len: number
   zero: boolean
   sending: boolean

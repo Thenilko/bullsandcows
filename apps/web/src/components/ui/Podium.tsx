@@ -15,6 +15,8 @@ export interface PodiumRow {
   gold?: boolean
   /** Under the name, e.g. the online dot and „Предизвикай“ of the leaderboard. */
   action?: ReactNode
+  /** On the plate instead of the points (the other boards: rating, streak, xp, games). */
+  label?: string
 }
 
 export interface PodiumProps {
@@ -102,7 +104,7 @@ export function Podium({ rows }: PodiumProps) {
                 {row.rank}
               </span>
               <span style={{ fontSize: 12, fontWeight: 800 }}>
-                {t('common.pointsShort', { count: row.score })}
+                {row.label ?? t('common.pointsShort', { count: row.score })}
               </span>
             </Bar>
           </div>

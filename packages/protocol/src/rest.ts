@@ -329,6 +329,43 @@ export const LeaderboardDto = z.object({
 })
 export type LeaderboardDto = z.infer<typeof LeaderboardDto>
 
+/** `GET /api/leaderboard/:kind`: the boards besides „Точки“ (members only). */
+export const BOARD_KINDS = ['duels', 'streaks', 'herders', 'games', 'friends'] as const
+export const BoardKindSchema = z.enum(BOARD_KINDS)
+export type BoardKind = z.infer<typeof BoardKindSchema>
+/** The „Игри“ board's periods (Sofia time); the other kinds ignore it. */
+export const BoardPeriodSchema = z.enum(['today', 'week', 'month'])
+export type BoardPeriod = z.infer<typeof BoardPeriodSchema>
+
+export const BoardRowDto = LeaderboardRowDto.pick({
+  rank: true,
+  username: true,
+  you: true,
+  level: true,
+  rankKey: true,
+  avatarSpecies: true,
+  goldFrame: true,
+  id: true,
+  online: true,
+}).extend({
+  /** What the board ranks by: duel rating, live day streak, xp or finished games. */
+  value: z.number().int(),
+  /** „Серии“: the best streak ever. */
+  best: z.number().int().optional(),
+  /** „Дуели“: the player's human duels; „Приятели“: your record against this player. */
+  wins: z.number().int().optional(),
+  losses: z.number().int().optional(),
+  draws: z.number().int().optional(),
+})
+export type BoardRowDto = z.infer<typeof BoardRowDto>
+
+export const BoardDto = z.object({
+  kind: BoardKindSchema,
+  rows: z.array(BoardRowDto),
+  me: z.object({ rank: z.number().int(), value: z.number().int() }).nullable(),
+})
+export type BoardDto = z.infer<typeof BoardDto>
+
 export const ProfileDto = z.object({
   id: z.string(),
   username: z.string(),
@@ -480,6 +517,9 @@ export interface DailyStatusDto {
 
 export const LeaderboardQuery = z.object({ period: PeriodSchema, len: LenQuery, zero: BoolQuery })
 export type LeaderboardQuery = z.infer<typeof LeaderboardQuery>
+
+export const BoardQuery = z.object({ period: BoardPeriodSchema.default('today') })
+export type BoardQuery = z.infer<typeof BoardQuery>
 
 /** Duel formats a room can run. */
 export const DuelFormatSchema = z.enum(['race', 'classic'])

@@ -1,6 +1,7 @@
 import { systemClock, type Clock } from '../../../ports/clock'
 import type { RepoHandle } from '../../../ports/repo'
 import { memoryAdmin } from './admin'
+import { memoryBoards } from './boards'
 import { memoryBadges } from './badges'
 import { memoryChallenges } from './challenges'
 import { memoryDuels } from './duels'
@@ -29,6 +30,7 @@ export function createMemoryRepo(
     weekly: memoryWeekly(store, clock),
     admin: memoryAdmin(store),
     challenges: memoryChallenges(store),
+    boards: memoryBoards(store),
     close: async () => undefined,
   }
 }

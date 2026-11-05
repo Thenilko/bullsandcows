@@ -38,8 +38,14 @@ function WideHeader() {
   )
 }
 
+/** What „Предизвикай“ needs of a row, on „Точки“ and on the other boards alike. */
+export type ChallengeTarget = Pick<
+  LeaderboardRowDto,
+  'username' | 'avatarSpecies' | 'rankKey' | 'goldFrame' | 'id' | 'online' | 'you'
+>
+
 /** Can be challenged: online, not me, and the server sent the id. */
-export const isChallengeable = (r: LeaderboardRowDto): boolean =>
+export const isChallengeable = (r: ChallengeTarget): boolean =>
   r.online === true && !r.you && r.id !== undefined
 
 /** Green while the player is in the app. */
@@ -48,12 +54,12 @@ export function OnlineDot() {
   return <span className={styles.dot} role="img" aria-label={t('challenge.online')} />
 }
 
-export function ChallengeButton({
+export function ChallengeButton<R extends ChallengeTarget>({
   row,
   onChallenge,
 }: {
-  row: LeaderboardRowDto
-  onChallenge(row: LeaderboardRowDto): void
+  row: R
+  onChallenge(row: R): void
 }) {
   const { t } = useTranslation()
   return (
@@ -69,12 +75,12 @@ export function ChallengeButton({
 }
 
 /** The podium's line under the name: the dot and the button of an online player (nothing otherwise). */
-export function PodiumAction({
+export function PodiumAction<R extends ChallengeTarget>({
   row,
   onChallenge,
 }: {
-  row: LeaderboardRowDto
-  onChallenge?(row: LeaderboardRowDto): void
+  row: R
+  onChallenge?(row: R): void
 }) {
   if (row.online !== true || row.you) return null
   return (
@@ -88,12 +94,12 @@ export function PodiumAction({
 }
 
 /** The name cell: the name, a green dot while online, and „Предизвикай“ when `onChallenge` is given. */
-function PlayerName({
+export function PlayerName<R extends ChallengeTarget>({
   row,
   onChallenge,
 }: {
-  row: LeaderboardRowDto
-  onChallenge?(row: LeaderboardRowDto): void
+  row: R
+  onChallenge?(row: R): void
 }) {
   const online = row.online === true && !row.you
   return (
