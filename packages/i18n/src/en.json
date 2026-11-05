@@ -263,6 +263,13 @@
     "giveUp": "I give up",
     "close": "Close"
   },
+  "guestNudge": {
+    "area": "Shepherd without a profile",
+    "title_one": "You've played {{count}} game as a guest",
+    "title_other": "You've played {{count}} games as a guest",
+    "body": "Create a profile to keep all {{xp}} points, your level and badges — and get on the leaderboard.",
+    "later": "Later"
+  },
   "result": {
     "area": "Result",
     "kicker": {

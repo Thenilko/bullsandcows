@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useParams } from 'react-router'
 import { FALLBACK_HISTOGRAM } from '@bc/game-core'
 import { Shell } from '../app/layouts/Shell'
+import { GuestNudge } from '../features/auth/GuestNudge'
 import { shareFromResult } from '../features/share/shareModel'
 import { ShareSheet } from '../features/share/ShareSheet'
 import { distributionKind } from '../features/solo/api'
@@ -33,6 +34,7 @@ function Loaded({ model, sharing = false }: { model: ResultModel; sharing?: bool
         onAgain={() => void navigate('/new')}
         onShare={openShare}
         onBoard={() => void navigate('/board')}
+        footer={<GuestNudge />}
       />
       {open ? <ShareSheet model={share} onClose={() => setOpen(false)} /> : null}
     </Shell>
