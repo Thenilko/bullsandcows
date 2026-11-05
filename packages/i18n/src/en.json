@@ -320,6 +320,7 @@
       "today": "Today",
       "week": "Week",
       "all": "All",
+      "month": "Month",
       "allTime": "All time"
     },
     "col": {
@@ -340,7 +341,57 @@
     "noBestGame": "none yet",
     "playNow": "Play now",
     "guestOnly": "The leaderboard is for registered shepherds.",
-    "createProfile": "Create a profile"
+    "createProfile": "Create a profile",
+    "kind": {
+      "aria": "Leaderboard type",
+      "points": "Points",
+      "duels": "Duels",
+      "streaks": "Streaks",
+      "herders": "Shepherds",
+      "games": "Games",
+      "friends": "Friends"
+    },
+    "kindTitle": {
+      "duels": "Duels · rating",
+      "streaks": "Streaks · days in a row",
+      "herders": "Shepherds · XP",
+      "games": "Most games",
+      "friends": "Friends · XP"
+    },
+    "value": {
+      "duels": "{{count}}",
+      "streaks_one": "{{count}} day",
+      "streaks_other": "{{count}} days",
+      "herders": "{{count}} XP",
+      "games_one": "{{count}} game",
+      "games_other": "{{count}} games",
+      "friends": "{{count}} XP"
+    },
+    "valueCol": {
+      "duels": "RATING",
+      "streaks": "STREAK",
+      "herders": "XP",
+      "games": "GAMES",
+      "friends": "XP"
+    },
+    "sub": {
+      "record": "{{wins}}–{{losses}}",
+      "recordLong": "{{wins}} wins, {{losses}} losses",
+      "h2h": "{{wins}}–{{losses}}–{{draws}}",
+      "h2hLong": "You vs {{name}}: {{wins}} wins, {{losses}} losses, {{draws}} draws",
+      "best": "best {{best}}",
+      "level": "{{title}} · level {{level}}"
+    },
+    "youValue": "You are #{{rank}} · {{value}}",
+    "empty": {
+      "duels": "Nobody has played a duel against a person yet. Be the first!",
+      "streaks": "Nobody has a streak going. Solve the number of the day to start yours.",
+      "herders": "Nobody has earned XP yet.",
+      "games": "No games played in this period yet.",
+      "friends": "Play a duel with someone and they will show up here"
+    },
+    "toDuel": "Go to duels",
+    "duelNow": "Play a duel"
   },
   "profile": {
     "area": "Profile",

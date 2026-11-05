@@ -27,6 +27,7 @@ export const DEV_SCREEN_KEYS: readonly string[] = [
   'board-guest',
   'profile',
   'profile-guest',
+  'board-duels',
   'notebook',
   'play-desktop-notebook',
   'duel-setup',

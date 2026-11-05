@@ -323,6 +323,7 @@
       "today": "Днес",
       "week": "Седмица",
       "all": "Всички",
+      "month": "Месец",
       "allTime": "Всички времена"
     },
     "col": {
@@ -343,7 +344,57 @@
     "noBestGame": "още няма",
     "playNow": "Играй сега",
     "guestOnly": "Класацията е за регистрирани пастири.",
-    "createProfile": "Направи си профил"
+    "createProfile": "Направи си профил",
+    "kind": {
+      "aria": "Вид класация",
+      "points": "Точки",
+      "duels": "Дуели",
+      "streaks": "Серии",
+      "herders": "Пастири",
+      "games": "Игри",
+      "friends": "Приятели"
+    },
+    "kindTitle": {
+      "duels": "Дуели · рейтинг",
+      "streaks": "Серии · поредни дни",
+      "herders": "Пастири · опит",
+      "games": "Най-много игри",
+      "friends": "Приятели · опит"
+    },
+    "value": {
+      "duels": "{{count}}",
+      "streaks_one": "{{count}} ден",
+      "streaks_other": "{{count}} дни",
+      "herders": "{{count}} т.",
+      "games_one": "{{count}} игра",
+      "games_other": "{{count}} игри",
+      "friends": "{{count}} т."
+    },
+    "valueCol": {
+      "duels": "РЕЙТИНГ",
+      "streaks": "СЕРИЯ",
+      "herders": "ОПИТ",
+      "games": "ИГРИ",
+      "friends": "ОПИТ"
+    },
+    "sub": {
+      "record": "{{wins}}–{{losses}}",
+      "recordLong": "{{wins}} победи, {{losses}} загуби",
+      "h2h": "{{wins}}–{{losses}}–{{draws}}",
+      "h2hLong": "Ти срещу {{name}}: {{wins}} победи, {{losses}} загуби, {{draws}} равни",
+      "best": "рекорд {{best}}",
+      "level": "{{title}} · ниво {{level}}"
+    },
+    "youValue": "Ти си №{{rank}} · {{value}}",
+    "empty": {
+      "duels": "Още никой не е изиграл дуел с човек. Бъди първият!",
+      "streaks": "Никой няма жива серия. Познай числото на деня и започни своята.",
+      "herders": "Още никой не е събрал опит.",
+      "games": "Още няма изиграни игри за този период.",
+      "friends": "Изиграй дуел с някого и ще се появи тук"
+    },
+    "toDuel": "Към дуелите",
+    "duelNow": "Изиграй дуел"
   },
   "profile": {
     "area": "Профил",

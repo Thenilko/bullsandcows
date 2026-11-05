@@ -1,18 +1,22 @@
-import type { LeaderboardRowDto } from '@bc/protocol'
+import type { BoardPeriod } from '@bc/protocol'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { BandChips, SceneCaption } from '../app/layouts/BandChips'
 import { Shell } from '../app/layouts/Shell'
 import { useSession } from '../features/auth/session'
 import { useSendChallenge } from '../features/challenge/useSendChallenge'
+import { useBoard } from '../features/stats/useBoard'
 import { useLeaderboard } from '../features/stats/useLeaderboard'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { ApiError } from '../lib/api'
 import { sfx } from '../lib/sound'
 import type { BoardFilterState } from './board/BoardFilters'
+import { BoardKindChips, parseBoardChoice, type BoardChoice } from './board/BoardKindChips'
+import type { ChallengeTarget } from './board/BoardRows'
 import { BoardView, type BoardStatus } from './board/BoardView'
 import { ChallengeConfirm } from './board/ChallengeConfirm'
+import { KindBoard, type KindBoardStatus } from './board/KindBoard'
 import { BoardSwitch } from './farm/BoardSwitch'
 import { IDLE_SCENE } from './idleScene'
 
@@ -26,11 +30,24 @@ export function Leaderboard() {
     (s) => s.session?.user.isGuest === true || s.me?.profile.isGuest === true,
   )
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
-  const board = useLeaderboard(filters.period, filters.len, filters.zero, !guestSession)
-  const refused = board.error instanceof ApiError && board.error.code === 'ERR_GUEST'
+  const [params, setParams] = useSearchParams()
+  // Guests only ever see „Точки“ (its guest view); the other boards are for members.
+  const kind: BoardChoice = guestSession ? 'points' : parseBoardChoice(params.get('kind'))
+  const [period, setPeriod] = useState<BoardPeriod>('today')
+  const board = useLeaderboard(
+    filters.period,
+    filters.len,
+    filters.zero,
+    !guestSession && kind === 'points',
+  )
+  const other = useBoard(kind === 'points' ? 'duels' : kind, period, kind !== 'points')
+  const otherStatus: KindBoardStatus = other.isError ? 'error' : other.data ? 'ready' : 'loading'
+  const refused =
+    (board.error instanceof ApiError && board.error.code === 'ERR_GUEST') ||
+    (other.error instanceof ApiError && other.error.code === 'ERR_GUEST')
   const status: BoardStatus =
     guestSession || refused ? 'guest' : board.isError ? 'error' : board.data ? 'ready' : 'loading'
-  const [target, setTarget] = useState<LeaderboardRowDto | null>(null)
+  const [target, setTarget] = useState<ChallengeTarget | null>(null)
   const send = useSendChallenge()
   const sendError =
     send.error instanceof ApiError
@@ -39,7 +56,12 @@ export function Leaderboard() {
         ? t('error.unknown')
         : null
 
-  function openConfirm(row: LeaderboardRowDto) {
+  function chooseKind(next: BoardChoice) {
+    sfx.play('tap')
+    setParams(next === 'points' ? {} : { kind: next }, { replace: true })
+  }
+
+  function openConfirm(row: ChallengeTarget) {
     sfx.play('tap')
     send.reset()
     setTarget(row)
@@ -52,19 +74,40 @@ export function Leaderboard() {
         desktop ? (
           <SceneCaption text={t('caption.board')} />
         ) : (
-          <BandChips title={t('nav.board')} sub={t('common.digits', { count: filters.len })} />
+          <BandChips
+            title={t('nav.board')}
+            sub={
+              kind === 'points'
+                ? t('common.digits', { count: filters.len })
+                : t(`board.kind.${kind}`)
+            }
+          />
         )
       }
     >
       <BoardSwitch value="all" />
-      <BoardView
-        status={status}
-        filters={filters}
-        onFilters={setFilters}
-        data={board.data}
-        onPlay={() => void navigate('/new')}
-        onChallenge={openConfirm}
-      />
+      {guestSession || refused ? null : <BoardKindChips value={kind} onChange={chooseKind} />}
+      {kind === 'points' || refused ? (
+        <BoardView
+          status={status}
+          filters={filters}
+          onFilters={setFilters}
+          data={board.data}
+          onPlay={() => void navigate('/new')}
+          onChallenge={openConfirm}
+        />
+      ) : (
+        <KindBoard
+          kind={kind}
+          period={period}
+          onPeriod={setPeriod}
+          status={otherStatus}
+          data={other.data}
+          onPlay={() => void navigate('/new')}
+          onDuel={() => void navigate('/duel/new')}
+          onChallenge={openConfirm}
+        />
+      )}
       {target?.id ? (
         <ChallengeConfirm
           row={target}

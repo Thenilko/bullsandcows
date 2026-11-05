@@ -1,4 +1,4 @@
-import type { BadgeKey, BadgeStateDto, DistributionDto, GameViewDto, LeaderboardDto, MeDto } from '@bc/protocol'
+import type { BadgeKey, BadgeStateDto, BoardDto, DistributionDto, GameViewDto, LeaderboardDto, MeDto } from '@bc/protocol'
 import { BADGES, FALLBACK_HISTOGRAM, nextThreshold, tierFor } from '@bc/game-core'
 
 const START = 1_700_000_000_000
@@ -107,4 +107,17 @@ export const boardFixture: LeaderboardDto = {
     { rank: 5, username: 'Мира', attempts: 6, score: 770, durationMs: 141_000, you: true, level: 2, rankKey: 'herdsman', avatarSpecies: 'bull' },
   ],
   me: { rank: 5, score: 770, top: 40 },
+}
+
+/** „Дуели“: rating with W–L; Ники is online (the „Предизвикай“ button). */
+export const duelsBoardFixture: BoardDto = {
+  kind: 'duels',
+  rows: [
+    { rank: 1, username: 'Ани', value: 1712, wins: 24, losses: 6, you: false, level: 22, rankKey: 'steward', avatarSpecies: 'cow' },
+    { rank: 2, username: 'Боби', value: 1648, wins: 17, losses: 9, you: false, level: 11, rankKey: 'pastor', avatarSpecies: 'bull' },
+    { rank: 3, username: 'Цвети', value: 1590, wins: 12, losses: 8, you: false, level: 7, rankKey: 'shepherd', avatarSpecies: 'cow' },
+    { rank: 4, username: 'Ники', value: 1544, wins: 9, losses: 7, you: false, level: 3, rankKey: 'herdsman', avatarSpecies: 'bull', online: true, id: 'u-niki' },
+    { rank: 5, username: 'Мира', value: 1502, wins: 4, losses: 4, you: true, level: 2, rankKey: 'herdsman', avatarSpecies: 'bull' },
+  ],
+  me: { rank: 5, value: 1502 },
 }

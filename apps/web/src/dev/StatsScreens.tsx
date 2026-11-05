@@ -3,9 +3,11 @@ import { Shell } from '../app/layouts/Shell'
 import { buildResult } from '../screens/result/resultModel'
 import { ResultView } from '../screens/result/ResultView'
 import { IDLE_SCENE } from '../screens/idleScene'
+import { BoardKindChips } from '../screens/board/BoardKindChips'
 import { BoardView } from '../screens/board/BoardView'
+import { KindBoard } from '../screens/board/KindBoard'
 import { ProfileView } from '../screens/profile/ProfileView'
-import { badgesFixture, boardFixture, fallbackDistribution, lostGame, meFixture, wonGame } from './statsFixtures'
+import { badgesFixture, boardFixture, duelsBoardFixture, fallbackDistribution, lostGame, meFixture, wonGame } from './statsFixtures'
 
 const BADGES = { states: badgesFixture, loading: false, error: false }
 
@@ -41,6 +43,23 @@ export const Board = () => (
 export const BoardGuest = () => (
   <Shell scene={IDLE_SCENE} screen="board">
     <BoardView status="guest" filters={FILTERS} onFilters={noop} onPlay={noop} />
+  </Shell>
+)
+
+/** The chips over the board and „Дуели“ (rating and W–L). */
+export const BoardDuels = () => (
+  <Shell scene={IDLE_SCENE} screen="board">
+    <BoardKindChips value="duels" onChange={noop} />
+    <KindBoard
+      kind="duels"
+      period="today"
+      onPeriod={noop}
+      status="ready"
+      data={duelsBoardFixture}
+      onPlay={noop}
+      onDuel={noop}
+      onChallenge={noop}
+    />
   </Shell>
 )
 

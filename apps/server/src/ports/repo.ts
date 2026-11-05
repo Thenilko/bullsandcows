@@ -218,6 +218,44 @@ export interface LeaderboardPlace {
 /** Upper bound for leaderboard rows returned by any repo. */
 export const LEADERBOARD_LIMIT = 100
 
+export type BoardKind = 'duels' | 'streaks' | 'herders' | 'games' | 'friends'
+
+/** One of the extra boards (`GET /api/leaderboard/:kind`); guests are never on any of them. */
+export interface BoardRepoQuery {
+  readonly kind: BoardKind
+  /** „Приятели“ is the viewer's own circle: them and their human duel opponents. */
+  readonly viewer: string
+  /** „Игри“: games finished from then on (Unix ms). */
+  readonly sinceMs: number
+  /** „Серии“: a streak whose last day is before this Sofia date is broken (yesterday). */
+  readonly liveFrom: string
+}
+
+export interface BoardEntry {
+  readonly userId: string
+  readonly username: string
+  readonly xp: number
+  readonly avatarSpecies: AvatarSpecies
+  readonly goldFrameUntil: number | null
+  readonly lastSeenAt: number | null
+  /** Rating (raw), live streak, xp or finished games. */
+  readonly value: number
+  readonly best?: number
+  readonly wins?: number
+  readonly losses?: number
+  readonly draws?: number
+}
+
+export interface BoardsRepo {
+  /**
+   * Best first, at most `LEADERBOARD_LIMIT`. Orders: duels rating desc; streaks live desc, best desc;
+   * herders and friends xp desc; games count desc, earlier last finish; then user id asc everywhere.
+   */
+  top(query: BoardRepoQuery): Promise<BoardEntry[]>
+  /** The player's place in the same order; null when not on the board. */
+  placeOf(query: BoardRepoQuery, userId: string): Promise<{ rank: number; value: number } | null>
+}
+
 export interface ProfilesRepo {
   get(id: string): Promise<Profile | null>
   /** Case-insensitive. */
@@ -743,6 +781,7 @@ export interface Repo {
   readonly weekly: WeeklyRepo
   readonly admin: AdminRepo
   readonly challenges: ChallengesRepo
+  readonly boards: BoardsRepo
 }
 
 /** A repo bound to resources that must be released when the request ends. */

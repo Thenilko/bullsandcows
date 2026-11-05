@@ -108,6 +108,8 @@ export const games = pgTable(
       .where(sql`${t.kind} = 'daily' and not ${t.practice} and ${t.deviceId} is not null`),
     index('games_daily_idx').on(t.kind, t.len, t.zero, t.dailyDate, t.won),
     index('games_finished_idx').on(t.kind, t.len, t.zero, t.finishedAt, t.won),
+    // „Игри“ board: every game finished in a period, whatever the kind or settings.
+    index('games_finished_at_idx').on(t.finishedAt),
     // At most one counted daily game per player, date and settings; repeats are practice.
     uniqueIndex('games_daily_counted_idx')
       .on(t.userId, t.dailyDate, t.len, t.zero)
@@ -170,6 +172,9 @@ export const duels = pgTable(
   },
   (t) => [
     index('duels_invite_code_idx').on(t.inviteCode),
+    // A player's duels (history, „Приятели“): either seat.
+    index('duels_player_a_idx').on(t.playerA),
+    index('duels_player_b_idx').on(t.playerB),
     check('duels_format_check', sql`${t.format} in ('race', 'classic')`),
     check('duels_opponent_kind_check', sql`${t.opponentKind} in ('quick', 'friend', 'bot')`),
     lenCheck('duels', t.len),
