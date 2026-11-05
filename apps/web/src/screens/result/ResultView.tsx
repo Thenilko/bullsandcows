@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Chip, Confetti, Cta, Inset, RankHead, Soft } from '../../components/ui'
 import { Bar } from '../../components/ui/Bar'
@@ -53,6 +54,8 @@ export interface ResultViewProps {
   onAgain(): void
   onShare(): void
   onBoard(): void
+  /** Shown under the actions (the guest's profile banner). */
+  footer?: ReactNode
 }
 
 function Stars({ model, size }: { model: ResultModel; size: number }) {
@@ -164,7 +167,7 @@ function Actions({
   onBoard,
   shareLabel,
   desktop,
-}: Omit<ResultViewProps, 'model'> & { desktop: boolean }) {
+}: Omit<ResultViewProps, 'model' | 'footer'> & { desktop: boolean }) {
   const { t } = useTranslation()
   if (!desktop) {
     return (
@@ -193,7 +196,7 @@ function Actions({
 }
 
 /** M5 bottom sheet / D5 centred card over a dimmed pasture. */
-export function ResultView({ model, shareLabel, onAgain, onShare, onBoard }: ResultViewProps) {
+export function ResultView({ model, shareLabel, onAgain, onShare, onBoard, footer }: ResultViewProps) {
   const { t } = useTranslation()
   const desktop = useIsDesktop()
   return (
@@ -245,6 +248,7 @@ export function ResultView({ model, shareLabel, onAgain, onShare, onBoard }: Res
           onShare={onShare}
           onBoard={onBoard}
         />
+        {footer}
       </section>
     </>
   )
