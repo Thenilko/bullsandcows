@@ -120,6 +120,16 @@ describe('DuelPlay', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Остават 15 секунди за хода!')
   })
 
+  it('says when a timed-out move passed instead of ending the game', () => {
+    show(fixtureState({ turnDeadline: Date.now() + 60_000 }))
+    act(() => useDuelStore.getState().apply({ t: 'warning', msLeft: 15_000 }))
+    act(() => useDuelStore.getState().apply({ t: 'skipped', mine: true, strikesLeft: 2 }))
+    expect(
+      screen.getByText('Времето изтече — ходът мина. Още 2 пропуснати хода подред са загуба.'),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('timer')).not.toHaveAttribute('data-warning', 'true')
+  })
+
   it('announces opponent moves with a toast', () => {
     show(fixtureState({ format: 'race', turn: null, opp: fixtureOpp({ left: 900 }) }))
     act(() => useDuelStore.getState().apply({ t: 'oppMoved', attempts: 3, left: 900 }))

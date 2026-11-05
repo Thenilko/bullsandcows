@@ -477,7 +477,10 @@
       "toast": {
         "solved": "{{name}} guessed the number!",
         "classic": "{{name}}: {{guess}} → {{bulls}}B {{cows}}C",
-        "race": "{{name}} made guess #{{attempt}}"
+        "race": "{{name}} made guess #{{attempt}}",
+        "skippedMine_one": "Time ran out — your move passed. One more missed move in a row loses.",
+        "skippedMine_other": "Time ran out — your move passed. {{count}} more missed moves in a row lose.",
+        "skippedOpp": "{{name}} ran out of time — your move."
       },
       "promptNoZero": "Enter {{count}} different digits from 1 to 9",
       "promptZero": "Enter {{count}} different digits (0 allowed)",

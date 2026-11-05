@@ -20,6 +20,7 @@ export type ToastInfo =
   | { kind: 'solved'; n: number }
   | { kind: 'classic'; n: number; guess: string; bulls: number; cows: number }
   | { kind: 'race'; n: number; attempt: number }
+  | { kind: 'skipped'; n: number; mine: boolean; strikesLeft: number }
 
 export interface DuelStoreData {
   /** Room the data belongs to; a different room starts from scratch. */
@@ -129,6 +130,8 @@ function reduceMsg(s: DuelStoreData, msg: ServerMsg): Partial<DuelStoreData> {
       return { startAt: null, warning: null }
     case 'warning':
       return { warning: { msLeft: msg.msLeft, at: Date.now() } }
+    case 'skipped':
+      return { warning: null, toast: { kind: 'skipped', n: Date.now(), mine: msg.mine, strikesLeft: msg.strikesLeft } }
     case 'ended':
       return { ended: { outcome: msg.outcome, reason: msg.reason, secrets: msg.secrets, rating: msg.rating, xp: msg.xp, newBadges: msg.newBadges, newUnlocks: msg.newUnlocks }, warning: null }
     case 'rematchOffer':

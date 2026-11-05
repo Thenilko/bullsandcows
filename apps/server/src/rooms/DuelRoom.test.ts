@@ -1,7 +1,7 @@
 import { exports } from 'cloudflare:workers'
 import { afterEach, describe, expect, it } from 'vitest'
 import { RoomError } from '../duel/roomClient'
-import { COUNTDOWN_MS, RECONNECT_MS, TURN_MS, TURN_WARN_MS } from '../duel/types'
+import { COUNTDOWN_MS, MAX_SKIPS, RECONNECT_MS, TURN_MS, TURN_WARN_MS } from '../duel/types'
 import {
   CLASSIC,
   FAR_FUTURE,
@@ -305,7 +305,7 @@ describe('DuelRoom classic', () => {
     return { ca, cb, startAt, onTurn: turn === 'a' ? ca : cb, offTurn: turn === 'a' ? cb : ca }
   }
 
-  it('warns at 45 s and ends by timeout at 60 s', async () => {
+  it('warns at 45 s, passes the move at 60 s and ends after three missed moves in a row', async () => {
     const s = track(await setup(CLASSIC))
     const { startAt, onTurn, offTurn } = await startClassic(s)
     await alarmAt(s, startAt + TURN_MS - TURN_WARN_MS)
@@ -313,6 +313,11 @@ describe('DuelRoom classic', () => {
     expect(of(onTurn, 'warning')).toEqual([{ t: 'warning', msLeft: TURN_WARN_MS }])
     expect(of(offTurn, 'warning')).toEqual([])
     await alarmAt(s, startAt + TURN_MS)
+    await got(onTurn, 'skipped')
+    await got(offTurn, 'skipped')
+    expect(last(onTurn, 'skipped')).toEqual({ t: 'skipped', mine: true, strikesLeft: MAX_SKIPS - 1 })
+    expect(last(offTurn, 'skipped')).toEqual({ t: 'skipped', mine: false, strikesLeft: MAX_SKIPS - 1 })
+    for (let turn = 2; turn <= 2 * MAX_SKIPS - 1; turn += 1) await alarmAt(s, startAt + turn * TURN_MS)
     await got(onTurn, 'ended')
     await got(offTurn, 'ended')
     expect(last(onTurn, 'ended')).toMatchObject({ outcome: 'lose', reason: 'timeout' })

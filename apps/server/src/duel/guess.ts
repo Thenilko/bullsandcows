@@ -48,7 +48,7 @@ function record(m: Match, seat: Seat, code: string, target: string, now: number)
   return { match: withPlayer(m, seat, { guesses, left }), solved, events }
 }
 
-const passTurn = (m: Match, s: Secrets, to: Seat, now: number, events: readonly Emit[]): Step =>
+export const passTurn = (m: Match, s: Secrets, to: Seat, now: number, events: readonly Emit[]): Step =>
   step({ ...m, turn: to, turnDeadline: now + TURN_MS, turnNo: m.turnNo + 1 }, s, events)
 
 /**
@@ -99,7 +99,10 @@ export function applyGuess(m: Match, s: Secrets, seat: Seat, code: string, now: 
   const target = targetOf(m, s, seat)
   if (target === null) return fail('ERR_INTERNAL')
   const r = record(m, seat, code, target, now)
-  if (m.format === 'classic') return afterClassic(r, s, seat, now)
+  if (m.format === 'classic') {
+    const skips = { ...(m.skips ?? { a: 0, b: 0 }), [seat]: 0 }
+    return afterClassic({ ...r, match: { ...r.match, skips } }, s, seat, now)
+  }
   if (r.solved) return endMatch(r.match, s, { winner: seat, reason: 'solved' }, now, r.events)
   return step(r.match, s, r.events)
 }

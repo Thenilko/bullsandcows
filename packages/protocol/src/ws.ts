@@ -152,6 +152,8 @@ export const ServerMsg = z.discriminatedUnion('t', [
   z.object({ t: z.literal('countdown'), startAt: z.number() }),
   z.object({ t: z.literal('started'), startedAt: z.number() }),
   z.object({ t: z.literal('warning'), msLeft: z.number() }),
+  /** Classic: the player on turn ran out of time and the move passed; `strikesLeft` more in a row lose. */
+  z.object({ t: z.literal('skipped'), mine: z.boolean(), strikesLeft: Int }),
   z.object({
     t: z.literal('ended'),
     outcome: OutcomeSchema,
