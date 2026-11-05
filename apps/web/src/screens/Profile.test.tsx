@@ -60,7 +60,7 @@ describe('Profile', () => {
     const { container } = show()
     expect(await screen.findByText('изиграни игри')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Значки' })).toBeInTheDocument()
-    expect(container.querySelectorAll('.bdg')).toHaveLength(29)
+    expect(container.querySelectorAll('.bdg')).toHaveLength(30)
     fireEvent.click(await screen.findByRole('button', { name: 'Без излишен ход: сребро' }))
     expect(screen.getByRole('dialog', { name: 'Значка' })).toHaveTextContent('Победа без нито един нелогичен опит')
   })
@@ -85,12 +85,12 @@ describe('Profile', () => {
     expect(screen.getByRole('radio', { name: 'Профил' })).toHaveAttribute('aria-checked', 'true')
   })
 
-  it('opens the badges tab from the URL with the 29 tiles and their tiers', async () => {
+  it('opens the badges tab from the URL with the 30 tiles and their tiers', async () => {
     const { container } = show('/profile?tab=badges')
-    expect(await screen.findByText('16 значки · 19 степени · 13 предстоят')).toBeInTheDocument()
+    expect(await screen.findByText('16 значки · 19 степени · 14 предстоят')).toBeInTheDocument()
     expect(screen.getByText('Колекция')).toBeInTheDocument()
-    expect(container.querySelectorAll('.bdg')).toHaveLength(29)
-    expect(container.querySelectorAll('.bdg.locked')).toHaveLength(13)
+    expect(container.querySelectorAll('.bdg')).toHaveLength(30)
+    expect(container.querySelectorAll('.bdg.locked')).toHaveLength(14)
     expect(screen.getAllByRole('button', { name: '???: не е спечелена' })).toHaveLength(3)
     expect(screen.queryByText('Говедар · ниво 2')).toBeNull()
   })

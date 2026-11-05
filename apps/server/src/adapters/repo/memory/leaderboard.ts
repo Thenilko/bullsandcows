@@ -25,17 +25,21 @@ const compareIds = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0
 const better = (a: Finished, b: Finished): number =>
   b.score - a.score || a.finishedAt - b.finishedAt || compareIds(a.userId, b.userId)
 
-/** Each member's best ranked game in the period, best first. Guests are never ranked. */
+/**
+ * Each member's best ranked game in the period, best first. Guests are never ranked, except `alsoGuest`
+ * (for that guest's own phantom place, never for a list).
+ */
 function bestPerPlayer(
   games: Iterable<GameRow>,
   profiles: ReadonlyMap<string, Profile>,
   q: LeaderboardQuery,
+  alsoGuest?: string,
 ): Finished[] {
   const best = new Map<string, Finished>()
   for (const g of games) {
     if (!isRanked(g) || !inPeriod(g, q)) continue
     const profile = profiles.get(g.userId)
-    if (!profile || profile.isGuest) continue
+    if (!profile || (profile.isGuest && profile.id !== alsoGuest)) continue
     const current = best.get(g.userId)
     if (!current || better(g, current) < 0) best.set(g.userId, g)
   }
@@ -74,6 +78,20 @@ export function rankOf(
   userId: string,
 ): LeaderboardPlace | null {
   const ranked = bestPerPlayer(games, profiles, q)
+  const index = ranked.findIndex((g) => g.userId === userId)
+  const game = ranked[index]
+  return game ? { attempts: game.attempts, score: game.score, rank: index + 1 } : null
+}
+
+/** The guest's place as if they were a member; null for a member or without a game that counts. */
+export function phantomOf(
+  games: Iterable<GameRow>,
+  profiles: ReadonlyMap<string, Profile>,
+  q: LeaderboardQuery,
+  userId: string,
+): LeaderboardPlace | null {
+  if (profiles.get(userId)?.isGuest !== true) return null
+  const ranked = bestPerPlayer(games, profiles, q, userId)
   const index = ranked.findIndex((g) => g.userId === userId)
   const game = ranked[index]
   return game ? { attempts: game.attempts, score: game.score, rank: index + 1 } : null

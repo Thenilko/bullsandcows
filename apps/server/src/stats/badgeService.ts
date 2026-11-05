@@ -41,9 +41,12 @@ const SCOPE_EXTRA: Readonly<Record<BadgeScope, readonly BadgeKey[]>> = {
   all: [],
 }
 
+/** Granted badges („Пионер“) are in no scope: no history can give or take them. */
 export const badgesInScope = (scope: BadgeScope): BadgeKey[] =>
   BADGES.filter(
-    (b) => SCOPE_CATEGORIES[scope].includes(b.category) || SCOPE_EXTRA[scope].includes(b.key),
+    (b) =>
+      b.granted !== true &&
+      (SCOPE_CATEGORIES[scope].includes(b.category) || SCOPE_EXTRA[scope].includes(b.key)),
   ).map((b) => b.key)
 
 export interface BadgeProgressEntry {
@@ -89,7 +92,7 @@ export function mergeBadgeStates(
   return { rows, newBadges, newTiers }
 }
 
-/** The API shape of all 29 badges: keys only (a hidden one at tier 0 is shown as „???“). */
+/** The API shape of all 30 badges: keys only (a hidden one at tier 0 is shown as „???“). */
 export function toBadgeStates(current: readonly BadgeState[]): BadgeStateDto[] {
   const stored = new Map(current.map((s) => [s.key, s]))
   return BADGES.map((def) => {

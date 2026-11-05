@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ApiError, createApi } from '../../lib/api'
 import { RETURN_TO_KEY } from '../../app/RequireAuth'
+import { useBadgeToasts } from '../badges/toastStore'
 import { api } from './client'
 import { useSession } from './session'
 import { adoptSession, signInGuestOnClient, signOutSupabase } from './SupabaseSession'
@@ -75,6 +76,8 @@ export function useAuth(): AuthApi {
     async (task: () => Promise<AuthResponseDto>): Promise<void> => {
       await run(task, (res) => {
         useSession.getState().setAuth(res)
+        // „Пионер“ on a sign-up or an upgrade: the same „Нова значка!“ as any other badge.
+        useBadgeToasts.getState().push(res.newBadges)
         void adoptSession(res.session)
         void navigate(takeReturnTo(), { replace: true })
       })

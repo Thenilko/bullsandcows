@@ -131,6 +131,73 @@ describe('guest', () => {
   })
 })
 
+describe('„Пионер“', () => {
+  const PIONEER = [{ key: 'pioneer', tier: 1 }]
+
+  it('comes with the upgrade of a guest and with a sign-up, once, with 100 XP', async () => {
+    const { session } = await service.guest()
+    const upgraded = await service.upgrade(session.user, mira)
+    expect(upgraded.newBadges).toEqual(PIONEER)
+    expect(upgraded.me.badges.pioneer).toBe(true)
+    const direct = await service.register({
+      username: 'Rada',
+      email: 'r@x.bg',
+      password: 'secret1',
+    })
+    expect(direct.newBadges).toEqual(PIONEER)
+    expect(direct.me.xp).toBe(100)
+    const again = await service.login({ identifier: 'Rada', password: 'secret1' })
+    expect(again).not.toHaveProperty('newBadges')
+    expect(again.me.xp).toBe(100)
+    expect(await service.pioneerSpots()).toEqual({ left: 98, limit: 100 })
+  })
+
+  it('is not for guests: a guest gets it only when they make a profile', async () => {
+    const { session } = await service.guest()
+    expect((await service.ensureGuest(session.user)).me.badges.pioneer).toBe(false)
+    expect(await repo.badges.pioneerCount()).toBe(0)
+  })
+
+  it('stops at 100 members, also when sign-ups race', async () => {
+    for (let i = 0; i < 95; i += 1) {
+      await repo.profiles.create({
+        id: `old${i}`,
+        username: `Old${i}`,
+        email: null,
+        isGuest: false,
+      })
+      await repo.badges.grantPioneer(`old${i}`, { now: 1, limit: 100, xp: 100 })
+    }
+    const guests = await Promise.all(Array.from({ length: 8 }, () => service.guest()))
+    const results = await Promise.all(
+      guests.map(({ session }, i) =>
+        service.upgrade(session.user, {
+          username: `New${i}`,
+          email: `n${i}@x.bg`,
+          password: 'secret1',
+        }),
+      ),
+    )
+    expect(results.filter((r) => r.newBadges !== undefined)).toHaveLength(5)
+    expect(results.filter((r) => r.me.xp === 100)).toHaveLength(5)
+    expect(await repo.badges.pioneerCount()).toBe(100)
+    expect(await service.pioneerSpots()).toEqual({ left: 0, limit: 100 })
+  })
+
+  it('never fails the upgrade itself when the grant fails', async () => {
+    const broken: Repo = {
+      ...repo,
+      badges: { ...repo.badges, grantPioneer: () => Promise.reject(new Error('db down')) },
+    }
+    const quiet = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const { session } = await build(broken).guest()
+    const upgraded = await build(broken).upgrade(session.user, mira)
+    expect(upgraded.me.profile.isGuest).toBe(false)
+    expect(upgraded).not.toHaveProperty('newBadges')
+    quiet.mockRestore()
+  })
+})
+
 describe('upgrade', () => {
   it('turns a guest into a member and returns a fresh member session', async () => {
     const { session } = await service.guest()
@@ -139,7 +206,8 @@ describe('upgrade', () => {
     expect(upgraded.session.user).toEqual({ id: session.user.id, isGuest: false })
     expect(upgraded.session.accessToken).not.toBe(session.accessToken)
     expect(upgraded.me.profile).toMatchObject({ username: 'Mira', isGuest: false })
-    expect(upgraded.me.xp).toBe(400)
+    // The games' 400 stay; „Пионер“ adds its one-time 100.
+    expect(upgraded.me.xp).toBe(500)
     expect((await repo.profiles.get(session.user.id))?.email).toBe('mira@example.com')
   })
 

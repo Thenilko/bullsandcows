@@ -9,6 +9,8 @@ import { validate } from '../validate'
 
 /** Guests are cheap and anonymous: a family or a school behind one IP may start many. */
 const GUEST_LIMIT = { max: 60, windowMs: 60_000, name: 'auth-guest' } as const
+/** „Остават N места“: a count read by every sign-up form. */
+const PIONEER_LIMIT = { max: 60, windowMs: 60_000, name: 'auth-pioneer' } as const
 /** Calls that name an account: per IP and account, so one account cannot be hammered. */
 const ACCOUNT_LIMIT = { max: 10, windowMs: 60_000, name: 'auth' } as const
 /** Same calls, all accounts together: one IP cannot spray many account names. */
@@ -49,6 +51,10 @@ export function authRoutes(): Hono<AppEnv> {
     validate('json', UpgradeBody),
     ...limitAccount('email'),
     async (c) => ok(c, await authService(c).upgrade(c.get('user'), c.req.valid('json'))),
+  )
+  // Public (the sign-up form shows it before there is a session); one count query.
+  routes.get('/pioneer', rateLimit({ ...PIONEER_LIMIT, key: clientIp }), async (c) =>
+    ok(c, await authService(c).pioneerSpots()),
   )
   routes.post('/reset', validate('json', ResetBody), ...limitAccount('email'), async (c) =>
     ok(c, await authService(c).reset(c.req.valid('json'))),

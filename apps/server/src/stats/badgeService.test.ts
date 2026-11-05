@@ -86,7 +86,9 @@ describe('scopes and facts', () => {
     expect(badgesInScope('game')).not.toContain('teller')
     expect(badgesInScope('game')).toContain('invite')
     expect(badgesInScope('game')).toContain('mirror')
-    expect(badgesInScope('all')).toHaveLength(BADGES.length)
+    // Every badge but the granted „Пионер“, which no recompute touches.
+    expect(badgesInScope('all')).toHaveLength(BADGES.length - 1)
+    expect(badgesInScope('all')).not.toContain('pioneer')
   })
 
   it('turns duel rows into facts from the player side, oldest first', () => {

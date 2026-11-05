@@ -6,7 +6,7 @@ import { guestLogin } from './helpers'
  * desktop) and the detail that opens from a tile, as a bottom sheet or a modal. A guest sees everything locked.
  */
 
-test('badges: the collection with 29 tiles, the detail from a tile on phone and desktop', async ({ page }, info) => {
+test('badges: the collection with 30 tiles, the detail from a tile on phone and desktop', async ({ page }, info) => {
   await guestLogin(page)
   const phone = info.project.name === 'mobile'
   await page.goto(phone ? '/profile?tab=badges' : '/profile')
@@ -17,8 +17,8 @@ test('badges: the collection with 29 tiles, the detail from a tile on phone and 
     await expect(page.getByRole('region', { name: 'Значки' })).toBeVisible()
   }
   await expect(page.getByText('Влез, за да събираш значки')).toBeVisible()
-  await expect(page.locator('.bdg')).toHaveCount(29)
-  await expect(page.locator('.bdg.locked')).toHaveCount(29)
+  await expect(page.locator('.bdg')).toHaveCount(30)
+  await expect(page.locator('.bdg.locked')).toHaveCount(30)
   await expect(page.getByRole('button', { name: '???: не е спечелена' })).toHaveCount(3)
 
   const tile = page.getByRole('button', { name: 'Шерлок: не е спечелена' })

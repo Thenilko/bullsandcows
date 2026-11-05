@@ -7,6 +7,7 @@ import { UpgradeDialog } from '../../features/auth/UpgradeDialog'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { BoardFilters, type BoardFilterState } from './BoardFilters'
 import { BoardRows, PodiumAction } from './BoardRows'
+import { GuestPlaceCard } from './GuestBoard'
 
 export type BoardStatus = 'loading' | 'error' | 'guest' | 'ready'
 
@@ -18,6 +19,8 @@ export interface BoardViewProps {
   onPlay(): void
   /** „Предизвикай“ next to online players (the leaderboard screen); absent in the gallery. */
   onChallenge?(row: LeaderboardRowDto): void
+  /** The viewer is a guest: the members' board with their phantom place and the create-profile card. */
+  guest?: boolean
 }
 
 const NOTE = { margin: 0, fontWeight: 700, color: '#4A5640', lineHeight: 1.45 } as const
@@ -124,20 +127,37 @@ function Ready({
   onPlay,
   wide,
   onChallenge,
+  guest = false,
 }: {
   data: LeaderboardDto
   onPlay(): void
   wide: boolean
   onChallenge?(row: LeaderboardRowDto): void
+  guest?: boolean
 }) {
-  if (data.rows.length === 0) return <Empty onPlay={onPlay} />
+  // On a desktop the guest's card is the aside.
+  const card = guest && !wide ? <GuestPlaceCard phantom={data.phantom} /> : null
+  if (data.rows.length === 0) {
+    return (
+      <>
+        <Empty onPlay={onPlay} />
+        {card}
+      </>
+    )
+  }
   return (
     <>
       <div style={wide ? { maxWidth: 560, width: '100%', alignSelf: 'center' } : undefined}>
         <Podium rows={podiumRows(data, onChallenge)} />
       </div>
-      <BoardRows rows={data.rows} wide={wide} onChallenge={onChallenge} />
+      <BoardRows
+        rows={data.rows}
+        wide={wide}
+        onChallenge={onChallenge}
+        phantom={guest ? data.phantom : undefined}
+      />
       {data.me && !wide ? <YourPlace me={data.me} /> : null}
+      {card}
     </>
   )
 }
@@ -150,6 +170,7 @@ function Body({
   onPlay,
   wide,
   onChallenge,
+  guest,
 }: BoardViewProps & { wide: boolean }) {
   const { t } = useTranslation()
   if (status === 'guest') return <GuestGate />
@@ -167,7 +188,7 @@ function Body({
         </p>
       ) : null}
       {status === 'ready' && data ? (
-        <Ready data={data} onPlay={onPlay} wide={wide} onChallenge={onChallenge} />
+        <Ready data={data} onPlay={onPlay} wide={wide} onChallenge={onChallenge} guest={guest} />
       ) : null}
     </>
   )
@@ -176,7 +197,7 @@ function Body({
 export function BoardView(props: BoardViewProps) {
   const { t } = useTranslation()
   const desktop = useIsDesktop()
-  const { status, filters, onFilters, data, onPlay, onChallenge } = props
+  const { status, filters, onFilters, data, onPlay, onChallenge, guest } = props
   const title = t('board.titleDigits', { count: filters.len })
   if (!desktop) {
     return (
@@ -226,10 +247,12 @@ export function BoardView(props: BoardViewProps) {
           data={data}
           onPlay={onPlay}
           onChallenge={onChallenge}
+          guest={guest}
           wide
         />
       </section>
-      {showAside ? <PlaceAside data={data} onPlay={onPlay} /> : null}
+      {showAside && guest ? <GuestPlaceCard phantom={data.phantom} aside /> : null}
+      {showAside && !guest ? <PlaceAside data={data} onPlay={onPlay} /> : null}
     </div>
   )
 }

@@ -412,6 +412,28 @@ describe('memory leaderboard', () => {
     expect(await repo.games.leaderboardRankOf(today, 'nobody')).toBeNull()
   })
 
+  it('places a guest as if they were a member, without listing them', async () => {
+    const day = { kind: 'daily' as const, dailyDate: date }
+    now = 2_500
+    await finishedGame({ ...day, userId: 'u1' }, { attempts: 5, score: 800 })
+    now = 2_700
+    await finishedGame({ ...day, userId: 'g1' }, { attempts: 5, score: 800 })
+    now = 2_900
+    await finishedGame({ ...day, userId: 'u2' }, { attempts: 5, score: 800 })
+    await finishedGame({ ...day, userId: 'u3' }, { attempts: 3, score: 1000 })
+    const today = { ...q, period: 'today' as const }
+    expect(await repo.games.leaderboardPhantomOf(today, 'g1')).toEqual({
+      attempts: 5,
+      score: 800,
+      rank: 3,
+    })
+    expect((await repo.games.leaderboard(today)).map((r) => r.userId)).toEqual(['u3', 'u1', 'u2'])
+    // Members' places are untouched by the guest; a member has no phantom; no game, no phantom.
+    expect((await repo.games.leaderboardRankOf(today, 'u2'))?.rank).toBe(3)
+    expect(await repo.games.leaderboardPhantomOf(today, 'u1')).toBeNull()
+    expect(await repo.games.leaderboardPhantomOf({ ...today, len: 5 }, 'g1')).toBeNull()
+  })
+
   it('ranks today by score, ties by earlier finish, only won counted daily games', async () => {
     const day = { kind: 'daily' as const, dailyDate: date }
     now = 3_000
@@ -687,5 +709,26 @@ describe('memory games with a given id', () => {
     expect(first.id).toBe('g-fixed')
     expect(again).toEqual(first)
     expect(await repo.games.history('u1', 10)).toHaveLength(1)
+  })
+})
+
+describe('memory „Пионер“', () => {
+  const grant = { now: 5_000, limit: 3, xp: 100 }
+
+  it('gives the badge and the XP once, only to members, never past the limit', async () => {
+    for (const id of ['p1', 'p2', 'p3', 'p4']) await member(id, id.toUpperCase())
+    await repo.profiles.create({ id: 'g1', username: 'guest-PP11', email: null, isGuest: true })
+    expect(await repo.badges.grantPioneer('g1', grant)).toBe(false)
+    expect(await repo.badges.grantPioneer('nobody', grant)).toBe(false)
+    const outcomes = await Promise.all(
+      ['p1', 'p2', 'p1', 'p3', 'p4'].map((id) => repo.badges.grantPioneer(id, grant)),
+    )
+    expect(outcomes).toEqual([true, true, false, true, false])
+    expect(await repo.badges.pioneerCount()).toBe(3)
+    expect((await repo.profiles.get('p1'))?.xp).toBe(100)
+    expect((await repo.profiles.get('p4'))?.xp).toBe(0)
+    expect(await repo.badges.listOf('p1')).toEqual([
+      { key: 'pioneer', tier: 1, progress: 1, earnedAt: 5_000 },
+    ])
   })
 })

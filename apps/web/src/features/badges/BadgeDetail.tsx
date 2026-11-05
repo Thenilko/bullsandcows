@@ -61,7 +61,7 @@ export function BadgeDetail({ view, onClose }: BadgeDetailProps) {
           {progressText}
         </span>
       </div>
-      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)' }}>{t('badges.xpNote')}</span>
+      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-muted-aa)' }}>{t(view.def.granted === true ? 'badges.xpNoteOnce' : 'badges.xpNote')}</span>
       <Soft style={{ width: '100%' }} onClick={onClose}>
         {t('common.close')}
       </Soft>

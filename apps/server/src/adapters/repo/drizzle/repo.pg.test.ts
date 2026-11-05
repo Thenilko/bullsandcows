@@ -728,4 +728,93 @@ describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
       expect(await repo.profiles.lastSeen(crypto.randomUUID())).toBeNull()
     })
   })
+
+  describe('phantom place of a guest', () => {
+    const day = '2030-01-07'
+    const q = { period: 'today' as const, len: 5 as const, zero: true, date: day, weekStartMs: 0 }
+    async function won(userId: string, score: number, at: number) {
+      const g = await repo.games.create({
+        userId,
+        kind: 'daily',
+        len: 5,
+        zero: true,
+        secret: '01234',
+        dailyDate: day,
+        practice: false,
+      })
+      await repo.games.update(g.id, { finishedAt: at, attempts: 5, won: true, score })
+    }
+
+    it('ranks the guest among the members (ties by finish) and never lists them', async () => {
+      const [a, b, c] = [await profile('pa'), await profile('pb'), await profile('pc')]
+      const guest = crypto.randomUUID()
+      await repo.profiles.create({ id: guest, username: `gp${n}`, email: null, isGuest: true })
+      expect(await repo.games.leaderboardPhantomOf(q, guest)).toBeNull()
+      await won(a, 900, NOW)
+      await won(b, 800, NOW)
+      await won(guest, 800, NOW + 1_000)
+      await won(c, 800, NOW + 2_000)
+      expect(await repo.games.leaderboardPhantomOf(q, guest)).toEqual({
+        attempts: 5,
+        score: 800,
+        rank: 3,
+      })
+      const rows = await repo.games.leaderboard(q)
+      expect(rows.map((r) => r.userId)).toEqual([a, b, c])
+      expect((await repo.games.leaderboardRankOf(q, c))?.rank).toBe(3)
+      expect(await repo.games.leaderboardRankOf(q, guest)).toBeNull()
+      expect(await repo.games.leaderboardPhantomOf(q, a)).toBeNull()
+    })
+  })
+
+  describe('„Пионер“', () => {
+    const pioneers = async () =>
+      Number(
+        (
+          await sql`select count(*)::int as n from user_badges b join profiles p on p.id = b.user_id
+            where b.badge_key = 'pioneer' and b.tier > 0 and not p.is_guest`
+        )[0]?.n,
+      )
+
+    it('never goes past the limit when grants race, and pays the XP once', async () => {
+      await sql`delete from user_badges where badge_key = 'pioneer'`
+      const ids = await Promise.all(Array.from({ length: 12 }, () => profile('pio')))
+      const guest = crypto.randomUUID()
+      await repo.profiles.create({ id: guest, username: `gpio${n}`, email: null, isGuest: true })
+      const grant = { now: NOW, limit: 5, xp: 100 }
+      const outcomes = await Promise.all(
+        [...ids, ids[0] ?? '', guest].map((id) => repo.badges.grantPioneer(id, grant)),
+      )
+      expect(outcomes.filter(Boolean)).toHaveLength(5)
+      expect(await repo.badges.pioneerCount()).toBe(5)
+      const xp = await Promise.all(ids.map(async (id) => (await repo.profiles.get(id))?.xp))
+      expect(xp.filter((v) => v === 100)).toHaveLength(5)
+      expect(xp.filter((v) => v === 0)).toHaveLength(7)
+      expect(await repo.badges.listOf(guest)).toEqual([])
+    })
+
+    it('backfills the oldest members up to 100, idempotently (migration 0013)', async () => {
+      await sql`delete from user_badges where badge_key = 'pioneer'`
+      const oldest = await profile('first')
+      await sql`update profiles set created_at = '2020-01-01' where id = ${oldest}`
+      const members = Number(
+        (await sql`select count(*)::int as n from profiles where not is_guest`)[0]?.n,
+      )
+      const text = readFileSync(new URL('0013_pioneer_backfill.sql', MIGRATIONS), 'utf8')
+      const backfill = () =>
+        sql.begin(async (tx) => {
+          for (const statement of text.split('--> statement-breakpoint')) {
+            if (statement.trim()) await tx.unsafe(statement)
+          }
+        })
+      const xpBefore = (await repo.profiles.get(oldest))?.xp ?? 0
+      await backfill()
+      expect(await pioneers()).toBe(Math.min(100, members))
+      expect((await repo.badges.listOf(oldest)).map((b) => b.key)).toContain('pioneer')
+      expect((await repo.profiles.get(oldest))?.xp).toBe(xpBefore + 100)
+      await backfill()
+      expect(await pioneers()).toBe(Math.min(100, members))
+      expect((await repo.profiles.get(oldest))?.xp).toBe(xpBefore + 100)
+    })
+  })
 })

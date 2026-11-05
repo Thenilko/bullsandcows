@@ -242,15 +242,95 @@ describe('leaderboard', () => {
     expect((await stats.leaderboard(ivo, q)).me?.rank).toBe(103)
   })
 
-  it('refuses guests', async () => {
-    await expect(stats.leaderboard(guest, q)).rejects.toMatchObject({
-      code: 'ERR_GUEST',
-      status: 403,
+  describe('for a guest („Щеше да си №N“)', () => {
+    it('shows the members and where the guest would be, never the guest', async () => {
+      await played({ ...daily, userId: rada.id }, { score: 900 })
+      await played({ ...daily, userId: mira.id }, { score: 700 })
+      await played({ ...daily, userId: guest.id }, { score: 800, attempts: 5 })
+      await repo.profiles.touch(rada.id, now, 'board')
+      const board = await stats.leaderboard(guest, q)
+      // Online is shown, but without the id „Предизвикай“ needs (guests cannot challenge).
+      expect(board.rows[0]).toMatchObject({ online: true })
+      expect(board.rows[0]).not.toHaveProperty('id')
+      expect(board.rows.map((r) => [r.rank, r.username, r.you])).toEqual([
+        [1, 'Rada', false],
+        [2, 'Mira', false],
+      ])
+      expect(board.me).toBeNull()
+      expect(board.phantom).toEqual({ rank: 2, score: 800, attempts: 5 })
+      // Members see exactly what they saw before: no phantom key, no guest row.
+      const member = await stats.leaderboard(mira, q)
+      expect(member).not.toHaveProperty('phantom')
+      expect(member.rows.map((r) => r.username)).toEqual(['Rada', 'Mira'])
+    })
+
+    it('places a tie after members who finished earlier and before those who finished later', async () => {
+      await played({ ...daily, userId: rada.id }, { score: 800 })
+      now += 1_000
+      await played({ ...daily, userId: guest.id }, { score: 800 })
+      now += 1_000
+      await played({ ...daily, userId: mira.id }, { score: 800 })
+      expect((await stats.leaderboard(guest, q)).phantom?.rank).toBe(2)
+    })
+
+    it('counts the members beyond the shown rows', async () => {
+      for (let i = 1; i <= 120; i += 1) {
+        await repo.profiles.create({ id: `m${i}`, username: `M${i}`, email: null, isGuest: false })
+        await played({ ...daily, userId: `m${i}` }, { score: 2000 - i })
+      }
+      now += 1_000
+      // 114 members score more, M115 ties and finished earlier.
+      await played({ ...daily, userId: guest.id }, { score: 1885 })
+      const board = await stats.leaderboard(guest, q)
+      expect(board.rows).toHaveLength(50)
+      expect(board.phantom?.rank).toBe(116)
+    })
+
+    it('has no phantom without a counted win, and never lists other guests', async () => {
+      await repo.profiles.create({ id: 'g2', username: 'guest-CD34', email: null, isGuest: true })
+      await played({ ...daily, userId: 'g2' }, { score: 999 })
+      await played({ ...daily, userId: rada.id }, { score: 500 })
+      await played({ ...daily, userId: guest.id, practice: true }, { score: 900 })
+      await played({ ...daily, userId: guest.id, len: 5 }, { score: 900 })
+      await played({ ...daily, userId: guest.id, zero: true }, { score: 900 })
+      const board = await stats.leaderboard(guest, q)
+      expect(board.phantom).toBeNull()
+      expect(board.rows.map((r) => r.username)).toEqual(['Rada'])
+      // g2's own game does not push this guest down either.
+      await played({ ...daily, userId: guest.id }, { score: 400 })
+      expect((await stats.leaderboard(guest, q)).phantom?.rank).toBe(2)
+    })
+
+    it('ranks the week with the best of daily and free games', async () => {
+      await played({ userId: rada.id }, { score: 1000 })
+      await played({ userId: guest.id }, { score: 600 })
+      await played({ userId: guest.id }, { score: 1100, attempts: 3 })
+      const week = await stats.leaderboard(guest, { ...q, period: 'week' })
+      expect(week.phantom).toEqual({ rank: 1, score: 1100, attempts: 3 })
+      expect(week.rows.map((r) => r.username)).toEqual(['Rada'])
+    })
+
+    it('treats a guest token of an upgraded profile as a member', async () => {
+      await repo.profiles.update(guest.id, { isGuest: false })
+      await played({ ...daily, userId: guest.id }, { score: 800 })
+      const board = await stats.leaderboard(guest, q)
+      expect(board).not.toHaveProperty('phantom')
+      expect(board.rows.map((r) => r.you)).toEqual([true])
     })
   })
 })
 
 describe('me', () => {
+  it('reports the live day streak (the guest streak warning reads it)', async () => {
+    await repo.profiles.setProgressVersion(guest.id, PROGRESS_VERSION)
+    await repo.profiles.setStreak(guest.id, { currentStreak: 3, bestStreak: 3, streakDate: DATE })
+    expect((await stats.me(guest)).dayStreak).toBe(3)
+    now += DAY_MS
+    expect((await stats.me(guest)).dayStreak).toBe(3)
+    now += DAY_MS
+    expect((await stats.me(guest)).dayStreak).toBe(0)
+  })
+
   it('derives level, xp into level and rank title from xp', async () => {
     await repo.profiles.addXp(mira.id, 3700)
     const me = await stats.me(mira)

@@ -82,11 +82,36 @@ describe('leaderboard route', () => {
     expect(JSON.stringify(board)).not.toContain('lb1')
   })
 
-  it('refuses guests with ERR_GUEST and bad periods with ERR_INPUT', async () => {
-    const { app } = setup()
+  it('gives a guest the members and a phantom place, never the guest row, and refuses bad periods', async () => {
+    const { app, repo } = setup()
+    await repo.profiles.create({ id: 'lb1', username: 'Ana', email: null, isGuest: false })
+    await repo.profiles.create({ id: 'g9', username: 'guest-ZZ99', email: null, isGuest: true })
+    for (const [id, score] of [
+      ['lb1', 900],
+      ['g9', 950],
+    ] as const) {
+      const game = await repo.games.create({
+        userId: id,
+        kind: 'free',
+        len: 4,
+        zero: false,
+        secret: '1234',
+        dailyDate: null,
+        practice: false,
+      })
+      await repo.games.update(game.id, { finishedAt: NOW, won: true, attempts: 4, score })
+    }
     const guest = await get(app, 'fake:g9:g:guest', '/api/leaderboard?period=week&len=4&zero=false')
-    expect(guest.status).toBe(403)
-    expect(await json(guest)).toEqual({ ok: false, error: { code: 'ERR_GUEST' } })
+    expect(guest.status).toBe(200)
+    const board = LeaderboardDto.parse((await json(guest)).data)
+    expect(board.rows.map((r) => [r.rank, r.username])).toEqual([[1, 'Ana']])
+    expect(board.phantom).toEqual({ rank: 1, score: 950, attempts: 4 })
+    expect(board.me).toBeNull()
+    const member = await json(
+      await get(app, 'fake:lb1:Ana', '/api/leaderboard?period=week&len=4&zero=false'),
+    )
+    expect(member.data.rows.map((r: { username: string }) => r.username)).toEqual(['Ana'])
+    expect(member.data).not.toHaveProperty('phantom')
     const bad = await get(app, 'fake:u9:U', '/api/leaderboard?period=year&len=4&zero=false')
     expect(bad.status).toBe(400)
   })

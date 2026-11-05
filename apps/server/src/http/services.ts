@@ -9,6 +9,6 @@ export function statsService(c: Context<AppEnv>): StatsService {
 }
 
 export function authService(c: Context<AppEnv>): AuthService {
-  const { repo, auth, env } = c.get('deps')
-  return new AuthService({ repo, auth, stats: statsService(c), appOrigin: env.APP_ORIGIN })
+  const { repo, auth, env, clock } = c.get('deps')
+  return new AuthService({ repo, auth, stats: statsService(c), appOrigin: env.APP_ORIGIN, clock })
 }

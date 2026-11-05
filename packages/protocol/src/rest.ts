@@ -19,7 +19,7 @@ export const SessionDto = z.object({
 })
 export type SessionDto = z.infer<typeof SessionDto>
 
-/** Mirrors `BADGE_KEYS` in game-core (the 29 badges of the spec); the client translates them. */
+/** Mirrors `BADGE_KEYS` in game-core (the 29 badges of the spec and „Пионер“); the client translates them. */
 export const BADGE_KEYS = [
   'noWaste',
   'sherlock',
@@ -50,6 +50,7 @@ export const BADGE_KEYS = [
   'mirror',
   'ladder',
   'zeroHero',
+  'pioneer',
 ] as const
 export const BadgeKeySchema = z.enum(BADGE_KEYS)
 export type BadgeKey = z.infer<typeof BadgeKeySchema>
@@ -321,11 +322,24 @@ export const LeaderboardRowDto = z.object({
 })
 export type LeaderboardRowDto = z.infer<typeof LeaderboardRowDto>
 
+/**
+ * Guests only: the place the guest's best game of the board would take among the members („Щеше да си №N“).
+ * The guest is never in `rows`; null when they have no game that would count.
+ */
+export const PhantomPlaceDto = z.object({
+  rank: z.number().int(),
+  score: z.number().int(),
+  attempts: z.number().int(),
+})
+export type PhantomPlaceDto = z.infer<typeof PhantomPlaceDto>
+
 export const LeaderboardDto = z.object({
   rows: z.array(LeaderboardRowDto),
   me: z
     .object({ rank: z.number().int(), score: z.number().int(), top: z.number().int() })
     .nullable(),
+  /** Present only in a guest's response (members never get the key). */
+  phantom: PhantomPlaceDto.nullable().optional(),
 })
 export type LeaderboardDto = z.infer<typeof LeaderboardDto>
 
@@ -423,6 +437,8 @@ export const MeDto = z.object({
   recent: z.array(RecentGameDto),
   /** Present (true) only for admins: the client shows the link to `/admin`. */
   isAdmin: z.literal(true).optional(),
+  /** Consecutive days with a won number of the day that are still alive (won today or yesterday), else 0. */
+  dayStreak: z.number().int().optional(),
 })
 export type MeDto = z.infer<typeof MeDto>
 
@@ -482,12 +498,21 @@ export type UpgradeBody = z.infer<typeof UpgradeBody>
 export const ResetBody = z.object({ email: EmailSchema })
 export type ResetBody = z.infer<typeof ResetBody>
 
-export const AuthResponseDto = z.object({ session: SessionDto, me: MeDto })
+/** `newBadges`: badges the sign-up or the upgrade earned („Пионер“), for the „Нова значка!“ toast. */
+export const AuthResponseDto = z.object({
+  session: SessionDto,
+  me: MeDto,
+  newBadges: z.array(NewBadgeDto).optional(),
+})
 export type AuthResponseDto = z.infer<typeof AuthResponseDto>
 
 /** `POST /api/auth/guest` with the Bearer of a client-side anonymous sign-in: the client keeps its own session. */
 export const GuestProfileResponseDto = z.object({ session: z.null(), me: MeDto })
 export type GuestProfileResponseDto = z.infer<typeof GuestProfileResponseDto>
+
+/** `GET /api/auth/pioneer` (public): spots left for „Пионер“ (0 once all are taken). */
+export const PioneerDto = z.object({ left: z.number().int().min(0), limit: z.number().int() })
+export type PioneerDto = z.infer<typeof PioneerDto>
 
 export const ResetResponseDto = z.object({ sent: z.literal(true) })
 export type ResetResponseDto = z.infer<typeof ResetResponseDto>

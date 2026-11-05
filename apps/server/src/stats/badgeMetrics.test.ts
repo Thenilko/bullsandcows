@@ -143,14 +143,20 @@ const CASES: Readonly<Record<string, readonly [BadgeFacts, BadgeFacts]>> = {
 }
 
 describe('badgeProgress', () => {
-  it('has a positive and a negative example for every available badge', () => {
-    for (const def of BADGES.filter((b) => b.available)) {
+  it('has a positive and a negative example for every available badge derived from facts', () => {
+    for (const def of BADGES.filter((b) => b.available && b.granted !== true)) {
       const pair = CASES[def.key]
       expect(pair, def.key).toBeDefined()
       const [yes, no] = pair!
       expect(tierFor(def, badgeProgress(def.key, yes)), `${def.key} positive`).toBeGreaterThan(0)
       expect(tierFor(def, badgeProgress(def.key, no)), `${def.key} negative`).toBe(0)
     }
+  })
+
+  it('never derives a granted badge („Пионер“) from any facts', () => {
+    expect(
+      badgeProgress('pioneer', facts({ shares: 999, bestDayStreak: 999, games: [game()] })),
+    ).toBe(0)
   })
 
   it('stays at zero for the badges that are not available yet, whatever the facts', () => {

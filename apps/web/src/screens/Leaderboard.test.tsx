@@ -1,7 +1,8 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../lib/api'
-import { boardFixture } from '../test/fixtures'
+import { useSession } from '../features/auth/session'
+import { boardFixture, guestBoardFixture, meFixture } from '../test/fixtures'
 import { renderRoute } from '../test/renderRoute'
 
 const get = vi.fn()
@@ -78,6 +79,68 @@ describe('Leaderboard', () => {
     await waitFor(() =>
       expect(get).toHaveBeenLastCalledWith('/api/leaderboard?period=week&len=5&zero=false'),
     )
+  })
+
+  describe('for a guest', () => {
+    beforeEach(() => {
+      useSession.setState({
+        session: {
+          accessToken: 't',
+          refreshToken: '',
+          expiresAt: 0,
+          user: { id: 'g1', isGuest: true },
+        },
+        me: { ...meFixture, profile: { ...meFixture.profile, isGuest: true } },
+      })
+    })
+    afterEach(() => useSession.setState({ session: null, me: null }))
+
+    it('shows the real board with the dashed „Ти (гост)“ row at its place and the sticky card', async () => {
+      get.mockImplementation((p: string) =>
+        Promise.resolve(
+          p.startsWith('/api/leaderboard') ? guestBoardFixture : { left: 82, limit: 100 },
+        ),
+      )
+      const { container } = show()
+      expect(await screen.findByText('Ти (гост)')).toBeInTheDocument()
+      expect(get).toHaveBeenCalledWith('/api/leaderboard?period=today&len=4&zero=false')
+      const items = Array.from(container.querySelectorAll('ol > li'))
+      expect(items.map((li) => li.textContent)).toEqual([
+        expect.stringContaining('Ники'),
+        expect.stringContaining('Ти (гост)'),
+        expect.stringContaining('Дари'),
+      ])
+      expect(screen.getByTestId('phantom-row')).toHaveTextContent('790')
+      expect(container.querySelector('.lbrow.you')).toBeNull()
+      expect(screen.queryByText(/Ти си №/)).toBeNull()
+      expect(screen.queryByRole('button', { name: /Предизвикай/ })).toBeNull()
+      const card = screen.getByTestId('guest-place')
+      expect(card).toHaveTextContent('Щеше да си №5 — направи си профил и мястото остава твое')
+      expect(
+        await screen.findByText('Остават 82 места за значка „Пионер“ + 100 XP'),
+      ).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: 'Направи си профил' }))
+      expect(await screen.findByLabelText('Парола')).toBeInTheDocument()
+    })
+
+    it('puts a podium place on top of the list and keeps the invitation without a phantom', async () => {
+      const board = (phantom: unknown) => (p: string) =>
+        Promise.resolve(
+          p.startsWith('/api/leaderboard')
+            ? { ...guestBoardFixture, phantom }
+            : { left: 0, limit: 100 },
+        )
+      get.mockImplementation(board({ rank: 2, score: 990, attempts: 4 }))
+      const first = show()
+      await screen.findByText('Ти (гост)')
+      expect(first.container.querySelector('ol > li')).toHaveTextContent('Ти (гост)')
+      first.unmount()
+      get.mockImplementation(board(null))
+      show()
+      expect(await screen.findByText(/Спечели игра с тези настройки/)).toBeInTheDocument()
+      expect(screen.queryByText('Ти (гост)')).toBeNull()
+      expect(screen.getByRole('button', { name: 'Направи си профил' })).toBeInTheDocument()
+    })
   })
 
   it('offers a profile to guests after ERR_GUEST', async () => {

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { Shell } from '../app/layouts/Shell'
 import { Card, Cta, PanelFooter, Pill, Soft, Toggle } from '../components/ui'
+import { GuestStreakCard } from '../features/auth/GuestStreakCard'
 import { useSession } from '../features/auth/session'
 import { NudgeBanner } from '../features/farm/NudgeBanner'
 import { ME_KEY, useMe } from '../features/stats/useMe'
@@ -166,6 +167,7 @@ export function NewGame({ initial, weekly }: { initial?: NewGameInitial; weekly?
     <Shell scene={IDLE_SCENE} screen="new">
       <section aria-label={t('newGame.title')} style={COL}>
         <NudgeBanner />
+        <GuestStreakCard />
         {weekly ?? <WeeklySlot />}
         <h1
           className="rise"

@@ -1,5 +1,5 @@
 /**
- * The 29 badges in 8 groups (spec: docs/superpowers/specs/2026-10-22-share-and-badge-tiers.md,
+ * The 30 badges in 8 groups (spec: docs/superpowers/specs/2026-10-22-share-and-badge-tiers.md,
  * part B). One threshold = a single badge (tier 0/1, drawn gold); three = bronze/silver/gold.
  * `progress` is the badge's metric (count, days, formats…); the server derives it in
  * `apps/server/src/stats/badgeMetrics.ts`.
@@ -34,6 +34,7 @@ export const BADGE_KEYS = [
   'mirror',
   'ladder',
   'zeroHero',
+  'pioneer',
 ] as const
 export type BadgeKey = (typeof BADGE_KEYS)[number]
 
@@ -81,6 +82,7 @@ export const BADGE_GLYPHS = {
     'M18 8a3 3 0 1 0 0-6a3 3 0 1 0 0 6M6 15a3 3 0 1 0 0-6a3 3 0 1 0 0 6M18 22a3 3 0 1 0 0-6a3 3 0 1 0 0 6M8.6 13.5l6.8 4M15.4 6.5l-6.8 4',
   star: 'M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z',
   question: 'M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.3-2.7 4M12 17.5h.01',
+  flag: 'M6 21V4M6 4h11l-2.5 4 2.5 4H6',
 } as const
 export type BadgeGlyph = keyof typeof BADGE_GLYPHS
 
@@ -97,14 +99,24 @@ export interface BadgeDef {
   readonly hidden?: boolean
   /** False: the feature it needs is not shipped yet („скоро“); progress stays 0. */
   readonly available: boolean
+  /**
+   * Handed out by the server on an event (never derived from the history): the recompute leaves it alone.
+   * `pioneer` is the only one: the first `PIONEER_LIMIT` profiles.
+   */
+  readonly granted?: boolean
 }
+
+/** „Пионер“: the first this many registered profiles get the badge. */
+export const PIONEER_LIMIT = 100
+/** The one-time XP bonus that comes with „Пионер“ (instead of the usual badge tier XP). */
+export const PIONEER_XP = 100
 
 const def = (
   key: BadgeKey,
   category: BadgeCategory,
   glyph: BadgeGlyph,
   thresholds: readonly number[],
-  extra: Partial<Pick<BadgeDef, 'hidden' | 'available'>> = {},
+  extra: Partial<Pick<BadgeDef, 'hidden' | 'available' | 'granted'>> = {},
 ): BadgeDef => ({
   key,
   category,
@@ -154,6 +166,8 @@ export const BADGES: readonly BadgeDef[] = [
   def('mirror', 'hidden', 'question', [1], { hidden: true }),
   def('ladder', 'hidden', 'question', [1], { hidden: true }),
   def('zeroHero', 'hidden', 'question', [1], { hidden: true }),
+  // Заедно, but last in the catalog (keys only grow at the end): given, never derived
+  def('pioneer', 'together', 'flag', [1], { granted: true }),
 ]
 
 const BY_KEY: ReadonlyMap<BadgeKey, BadgeDef> = new Map(BADGES.map((b) => [b.key, b]))

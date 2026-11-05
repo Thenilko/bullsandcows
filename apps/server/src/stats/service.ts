@@ -15,7 +15,6 @@ import type {
 } from '@bc/protocol'
 import { isOnline } from '../admin/online'
 import { ensureProfile } from '../auth/profiles'
-import { AppError } from '../http/errors'
 import type { AuthUser } from '../ports/auth'
 import type { Clock } from '../ports/clock'
 import {
@@ -40,7 +39,7 @@ import {
   toProfileDto,
   toRecent,
 } from './me'
-import { dayStreakFromDates } from './streak'
+import { dayStreakFromDates, liveDayStreak } from './streak'
 import { hasGoldFrame } from '../weekly/model'
 import { sofiaWeekStart } from './time'
 import { cacheKey, type DistributionQuery, type DistributionSource } from './top'
@@ -120,27 +119,14 @@ export class StatsService implements DistributionSource {
   }
 
   async leaderboard(user: AuthUser, q: LeaderboardInput): Promise<LeaderboardDto> {
-    if (user.isGuest) throw new AppError('ERR_GUEST', 403)
     const date = this.today()
     const query = { ...q, date, weekStartMs: sofiaWeekStart(this.deps.clock.now()) }
+    // The token's `is_anonymous` outlives an upgrade until it expires: the profile decides.
+    if (user.isGuest && (await this.deps.repo.profiles.get(user.id))?.isGuest !== false) {
+      return this.guestLeaderboard(user, query)
+    }
     const rows = await this.deps.repo.games.leaderboard(query)
-    const now = this.deps.clock.now()
-    const ranked = rows.map((r, i) => {
-      const level = levelFromXp(r.xp)
-      return {
-        rank: i + 1,
-        username: r.username,
-        attempts: r.attempts,
-        score: r.score,
-        durationMs: r.durationMs,
-        you: r.userId === user.id,
-        level,
-        rankKey: rankKeyForLevel(level),
-        avatarSpecies: r.avatarSpecies,
-        goldFrame: hasGoldFrame(r.goldFrameUntil, now),
-        ...this.presenceOf(r, user.id, now),
-      }
-    })
+    const ranked = this.toRows(rows, user.id)
     // Below the repo's list the caller's place is counted separately.
     const place: LeaderboardPlace | null =
       ranked.find((r) => r.you) ??
@@ -151,6 +137,56 @@ export class StatsService implements DistributionSource {
       rows: ranked.slice(0, LEADERBOARD_ROWS),
       me: place && (await this.placeOf(place, q, date)),
     }
+  }
+
+  /**
+   * The members' board as everyone sees it (without the „Предизвикай“ ids: guests cannot challenge) and the
+   * guest's phantom place („Щеше да си №N“). The guest never appears in `rows`.
+   */
+  private async guestLeaderboard(user: AuthUser, query: LeaderboardQuery): Promise<LeaderboardDto> {
+    const [rows, phantom] = await Promise.all([
+      this.deps.repo.games.leaderboard(query),
+      this.deps.repo.games.leaderboardPhantomOf(query, user.id),
+    ])
+    // No `id`: it is only there for „Предизвикай“, which guests cannot use.
+    const ranked = this.toRows(rows, user.id).map((r) => ({
+      rank: r.rank,
+      username: r.username,
+      attempts: r.attempts,
+      score: r.score,
+      durationMs: r.durationMs,
+      you: false,
+      level: r.level,
+      rankKey: r.rankKey,
+      avatarSpecies: r.avatarSpecies,
+      goldFrame: r.goldFrame,
+      online: r.online,
+    }))
+    return {
+      rows: ranked.slice(0, LEADERBOARD_ROWS),
+      me: null,
+      phantom: phantom && { rank: phantom.rank, score: phantom.score, attempts: phantom.attempts },
+    }
+  }
+
+  private toRows(rows: readonly LeaderboardRow[], me: string) {
+    const now = this.deps.clock.now()
+    return rows.map((r, i) => {
+      const level = levelFromXp(r.xp)
+      return {
+        rank: i + 1,
+        username: r.username,
+        attempts: r.attempts,
+        score: r.score,
+        durationMs: r.durationMs,
+        you: r.userId === me,
+        level,
+        rankKey: rankKeyForLevel(level),
+        avatarSpecies: r.avatarSpecies,
+        goldFrame: hasGoldFrame(r.goldFrameUntil, now),
+        ...this.presenceOf(r, me, now),
+      }
+    })
   }
 
   /** Online flag for every row; the user id only where „Предизвикай“ needs it (online and not me). */
@@ -184,6 +220,7 @@ export class StatsService implements DistributionSource {
       badges: { ...heldBadges(await repo.badges.listOf(user.id)) },
       recent: finished.slice(0, RECENT_GAMES).map(toRecent),
       ...(user.isAdmin === true ? { isAdmin: true as const } : {}),
+      dayStreak: liveDayStreak(current, this.today()),
     }
   }
 

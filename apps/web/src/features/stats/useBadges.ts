@@ -5,7 +5,7 @@ import { shouldRetry } from './retry'
 
 export const BADGES_KEY = ['badges'] as const
 
-/** `GET /api/me/badges`: all 29 badges with tier and progress (guests get everything at tier 0). */
+/** `GET /api/me/badges`: all 30 badges with tier and progress (guests get everything at tier 0). */
 export function useBadges(enabled = true) {
   return useQuery({
     queryKey: BADGES_KEY,

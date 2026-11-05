@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dayStreakFromDates, nextDayStreak, previousDate } from './streak'
+import { dayStreakFromDates, liveDayStreak, nextDayStreak, previousDate } from './streak'
 
 const none = { currentStreak: 0, bestStreak: 0, streakDate: null }
 
@@ -67,5 +67,16 @@ describe('dayStreakFromDates', () => {
       bestStreak: 3,
       streakDate: '2026-10-21',
     })
+  })
+})
+
+describe('liveDayStreak', () => {
+  const streak = (streakDate: string | null) => ({ currentStreak: 4, bestStreak: 9, streakDate })
+
+  it('is the current streak while its last day is today or yesterday, else 0', () => {
+    expect(liveDayStreak(streak('2026-10-21'), '2026-10-21')).toBe(4)
+    expect(liveDayStreak(streak('2026-10-20'), '2026-10-21')).toBe(4)
+    expect(liveDayStreak(streak('2026-10-19'), '2026-10-21')).toBe(0)
+    expect(liveDayStreak(streak(null), '2026-10-21')).toBe(0)
   })
 })
