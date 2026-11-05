@@ -1,9 +1,19 @@
-import { act, fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { FIXTURE_T0, fixtureMe, fixtureOpp, fixtureState, myGuess } from '../../dev/duelFixtures'
+import {
+  FIXTURE_T0,
+  fixtureMe,
+  fixtureOpp,
+  fixtureState,
+  myGuess,
+  oppGuess,
+} from '../../dev/duelFixtures'
+import { useCoach } from '../../features/coach/store'
 import { useDuelStore } from '../../features/duel/store'
+import { useNotesSheet } from '../../features/notebook/sheet'
 import { useNotebookStore } from '../../features/notebook/store'
+import { WIN_DELAY_MS } from '../../features/solo/feedback'
 import { renderWithI18n } from '../../test/render'
 import { DuelPlay } from './DuelPlay'
 
@@ -14,7 +24,12 @@ function show(state = fixtureState()) {
   return renderWithI18n(
     <MemoryRouter initialEntries={['/duel/r1']}>
       <Routes>
-        <Route path="/duel/:roomId" element={<DuelPlay roomId="r1" state={useDuelStore.getState().state ?? state} send={send} />} />
+        <Route
+          path="/duel/:roomId"
+          element={
+            <DuelPlay roomId="r1" state={useDuelStore.getState().state ?? state} send={send} />
+          }
+        />
         <Route path="/duel/:roomId/result" element={<p>result screen</p>} />
       </Routes>
     </MemoryRouter>,
@@ -29,6 +44,8 @@ beforeEach(() => {
   sessionStorage.clear()
   localStorage.clear()
   useNotebookStore.setState({ games: {} })
+  useNotesSheet.setState({ open: false })
+  useCoach.setState({ seen: new Set(['notes', 'board']) })
 })
 
 afterEach(() => {
@@ -44,18 +61,70 @@ describe('DuelPlay', () => {
     expect(screen.getByTestId('opp-progress')).toBeInTheDocument()
   })
 
-  it('shows the PasDuel top row over the scene: back to the setup, the title, the sound toggle', () => {
-    show()
-    const back = screen.getByRole('button', { name: 'Към нова игра' })
-    expect(back.closest('main')).toBeNull()
-    expect(screen.getByText(/^Дуел · /)).toHaveClass('ps-hud')
-    expect(screen.getByRole('button', { name: /звука/ })).toBeInTheDocument()
+  it('shows the solo pills over the scene (the title, the turn timer, the clock) and no PasDuel top row', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(FIXTURE_T0 + 20_000)
+    show(fixtureState({ turnDeadline: FIXTURE_T0 + 45_000 }))
+    const title = screen.getByText('Дуел · Класически')
+    expect(title).toHaveClass('ps-hud')
+    expect(title.closest('main')).toBeNull()
+    expect(screen.getByRole('timer')).toHaveClass('ps-hud')
+    expect(screen.getByRole('timer')).toHaveTextContent('00:25')
+    expect(screen.getByText('00:20')).toHaveClass('ps-hud')
+    expect(screen.queryByRole('button', { name: 'Към нова игра' })).toBeNull()
   })
 
-  it('opens the notebook sheet from the top row with my attempts and their candidate counts', () => {
+  it('heads the panel like the solo game: „Опит N“, whose turn, the last verdict, the notebook and the sound', () => {
+    show(fixtureState({ me: fixtureMe({ guesses: [myGuess('5678', 0, 1)] }) }))
+    const panel = screen.getByRole('region', { name: 'Дуел · Класически' })
+    expect(panel).toHaveTextContent('Опит 2твой ход')
+    expect(panel).toHaveTextContent('Последно 5678: 0 бика, 1 крава')
+    expect(within(panel).getByRole('button', { name: 'Тефтерче' })).toBeInTheDocument()
+    expect(within(panel).getByRole('button', { name: /звука/ })).toBeInTheDocument()
+  })
+
+  it('states the rule before the first guess: the race note, or the digits in a classic duel', () => {
+    const { unmount } = show(fixtureState({ format: 'race', turn: null }))
+    expect(
+      screen.getByText('Боби познава същото число. Печели първият, който го открие.'),
+    ).toBeInTheDocument()
+    unmount()
+    show()
+    expect(screen.getByText('Въведи 4 различни цифри от 1 до 9')).toBeInTheDocument()
+  })
+
+  it('hangs my attempts on the wooden board and, in a classic duel, the opponent against my number', () => {
+    sessionStorage.setItem('bc.mySecret.r1', '4321')
+    show(
+      fixtureState({
+        me: fixtureMe({ guesses: [myGuess('1234', 1, 2)] }),
+        opp: fixtureOpp({ guesses: [oppGuess('9021', 0, 2)] }),
+      }),
+    )
+    const board = screen.getByRole('region', { name: 'Твоите опити' })
+    expect(board.closest('main')).toBeNull()
+    expect(board).toHaveTextContent('1234')
+    expect(within(board).getByRole('list', { name: 'Боби срещу твоето 4321' })).toHaveTextContent(
+      '9021',
+    )
+  })
+
+  it('keeps the race board to my attempts', () => {
+    show(
+      fixtureState({
+        format: 'race',
+        turn: null,
+        me: fixtureMe({ guesses: [myGuess('1234', 1, 2)] }),
+      }),
+    )
+    expect(screen.getByRole('region', { name: 'Твоите опити' })).toHaveTextContent('1234')
+    expect(screen.queryByText(/срещу твоето/)).toBeNull()
+  })
+
+  it('opens the notebook sheet from the panel with my attempts and their candidate counts', () => {
     show(fixtureState({ me: { ...fixtureMe(), guesses: [myGuess('5678', 0, 0)], left: 120 } }))
     const opener = screen.getByRole('button', { name: 'Тефтерче' })
-    expect(opener.closest('main')).toBeNull()
+    expect(opener.closest('main')).not.toBeNull()
     fireEvent.click(opener)
     const sheet = screen.getByRole('dialog', { name: 'Тефтерче' })
     expect(sheet).toBeInTheDocument()
@@ -67,7 +136,10 @@ describe('DuelPlay', () => {
   })
 
   it('shows notebook marks on the keypad; the notebook belongs to this match, not the room', () => {
-    localStorage.setItem(`bc.notebook.r1:${FIXTURE_T0}`, JSON.stringify({ marks: { '7': 1 }, text: '' }))
+    localStorage.setItem(
+      `bc.notebook.r1:${FIXTURE_T0}`,
+      JSON.stringify({ marks: { '7': 1 }, text: '' }),
+    )
     localStorage.setItem('bc.notebook.r1', JSON.stringify({ marks: { '8': 1 }, text: '' }))
     show()
     expect(digit('7')).toHaveClass('nx')
@@ -136,20 +208,29 @@ describe('DuelPlay', () => {
     expect(screen.getByText('Боби направи опит №3')).toBeInTheDocument()
   })
 
-  it('goes to the result 1400 ms after the match ends', () => {
+  it('goes to the result as quickly as the solo game (WIN_DELAY_MS) after the match ends', () => {
     vi.useFakeTimers()
     show()
     act(() => {
-      useDuelStore.getState().apply({ t: 'ended', outcome: 'win', reason: 'solved', secrets: { mine: '1234', theirs: '4321' }, rating: null, xp: 120 })
+      useDuelStore.getState().apply({
+        t: 'ended',
+        outcome: 'win',
+        reason: 'solved',
+        secrets: { mine: '1234', theirs: '4321' },
+        rating: null,
+        xp: 120,
+      })
     })
-    act(() => vi.advanceTimersByTime(1399))
+    act(() => vi.advanceTimersByTime(WIN_DELAY_MS - 1))
     expect(screen.queryByText('result screen')).not.toBeInTheDocument()
     act(() => vi.advanceTimersByTime(1))
     expect(screen.getByText('result screen')).toBeInTheDocument()
   })
 
-  it('gives up on request', () => {
+  it('gives up from the notebook, as in the solo game', () => {
     show()
+    expect(screen.queryByRole('button', { name: 'Предавам се' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Тефтерче' }))
     fireEvent.click(screen.getByRole('button', { name: 'Предавам се' }))
     expect(send).toHaveBeenCalledWith({ t: 'giveUp' })
   })

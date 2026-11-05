@@ -23,7 +23,10 @@ async function expectInViewport(page: Page, target: Locator) {
   const vp = page.viewportSize()!
   expect(box, 'element must be rendered').not.toBeNull()
   const { x, y, width, height } = box!
-  expect(x >= 0 && y >= 0 && x + width <= vp.width + 0.5 && y + height <= vp.height + 0.5, `fully inside ${vp.width}x${vp.height}: ${JSON.stringify(box)}`).toBe(true)
+  expect(
+    x >= 0 && y >= 0 && x + width <= vp.width + 0.5 && y + height <= vp.height + 0.5,
+    `fully inside ${vp.width}x${vp.height}: ${JSON.stringify(box)}`,
+  ).toBe(true)
 }
 
 async function expectKeypadWhole(page: Page) {
@@ -43,7 +46,12 @@ async function expectCountdownCoversViewport(page: Page, layer: Locator) {
   await expect(layer).toBeVisible()
   const vp = page.viewportSize()!
   const box = (await layer.boundingBox())!
-  expect([Math.round(box.x), Math.round(box.y), Math.round(box.width), Math.round(box.height)]).toEqual([0, 0, vp.width, vp.height])
+  expect([
+    Math.round(box.x),
+    Math.round(box.y),
+    Math.round(box.width),
+    Math.round(box.height),
+  ]).toEqual([0, 0, vp.width, vp.height])
 }
 
 /** Scrolls the panel and every scrolling block inside it (the duel tail under the keypad) to the end. */
@@ -57,19 +65,39 @@ async function scrollPanelToEnd(page: Page) {
 }
 
 /**
- * PasDuel compact play: the scene keeps at least 230px (200px under 640px), so the fence and the animals of
- * the bottom-aligned meadow stay in view; the opponent strip sits under the top row (back, title, sound).
+ * Duel compact play, laid out as the solo game: the scene keeps at least 230px (200px under 640px), so the fence
+ * and the animals of the bottom-aligned meadow stay in view; „Меню“ and the pills at the top, the attempts board
+ * under them, the opponent strip just above the panel — the board always ends above the strip.
  */
 async function expectDuelScene(page: Page) {
   const vp = page.viewportSize()!
   const scene = (await page.getByTestId('scene').boundingBox())!
   const minScene = vp.height < 640 ? 200 : 230
-  expect(scene.height, `scene height ${scene.height} within [${minScene}, 380]`).toBeGreaterThanOrEqual(minScene)
+  expect(
+    scene.height,
+    `scene height ${scene.height} within [${minScene}, 380]`,
+  ).toBeGreaterThanOrEqual(minScene)
   expect(scene.height).toBeLessThanOrEqual(380)
   const strip = page.locator('.ostrip')
   await expectInViewport(page, strip)
-  expect(Math.round((await strip.boundingBox())!.y)).toBe(60)
-  await expectInViewport(page, page.getByRole('button', { name: 'Към нова игра' }))
+  const box = (await strip.boundingBox())!
+  expect(box.y + box.height, 'the strip stays on the scene').toBeLessThanOrEqual(
+    scene.y + scene.height,
+  )
+  const board = page.getByTestId('guess-board')
+  if ((await board.count()) > 0) {
+    const b = (await board.boundingBox())!
+    expect(b.y + b.height, 'the board ends above the strip').toBeLessThanOrEqual(box.y)
+  }
+  await expectInViewport(page, page.getByRole('button', { name: 'Изход от играта' }))
+}
+
+/** „Предавам се“ at the foot of the notebook sheet, as in the solo game. */
+async function expectGiveUpInNotebook(page: Page) {
+  await page.getByRole('button', { name: 'Тефтерче', exact: true }).click()
+  await expectInViewport(page, page.getByRole('button', { name: 'Предавам се' }))
+  await expect(page.getByRole('button', { name: 'Предавам се' })).toBeEnabled()
+  await page.getByRole('dialog').getByRole('button', { name: 'Затвори' }).click()
 }
 
 test('solo: new game, start card, full-screen countdown, focus mode, „Меню“', async ({ page }) => {
@@ -163,10 +191,12 @@ test('bot race: setup button, „Готов!“, countdown and the race panel fi
   await typeGuess(page, '5678')
   await expectFocusMode(page)
   await expectDuelScene(page)
-  await expect(page.getByRole('button', { name: 'Предавам се' })).toBeEnabled()
+  await expectGiveUpInNotebook(page)
 })
 
-test('bot classic: hide the secret, then the classic panel with the opponent card', async ({ page }) => {
+test('bot classic: hide the secret, then the classic panel with the opponent card', async ({
+  page,
+}) => {
   await pinSecret(page, '**/api/bots', SECRET)
   await guestLogin(page)
   await page.getByRole('button', { name: /^Срещу бот/ }).click()
@@ -188,13 +218,17 @@ test('bot classic: hide the secret, then the classic panel with the opponent car
 
   // Both secrets are in: the full-screen 3-2-1, then the classic panel.
   await expectCountdownCoversViewport(page, page.locator('.cd'))
-  await expect(page.getByRole('button', { name: 'Пусни стадото!' })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('button', { name: 'Пусни стадото!' })).toBeVisible({
+    timeout: 15_000,
+  })
   await untilPlaying(page)
 
-  // MK12: the keypad stays whole, the opponent card may scroll below it.
+  // MK12: the keypad stays whole; after my first guess the board also lists the bot against my number.
   await expectFocusMode(page)
   await expectDuelScene(page)
+  await typeGuess(page, '5678')
   await expect(page.getByText('срещу твоето 9876')).toBeAttached()
-  await scrollPanelToEnd(page)
-  await expectInViewport(page, page.getByRole('button', { name: 'Предавам се' }))
+  await expectFocusMode(page)
+  await expectDuelScene(page)
+  await expectGiveUpInNotebook(page)
 })

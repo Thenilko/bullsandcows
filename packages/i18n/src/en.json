@@ -537,11 +537,9 @@
       "oppThinking": "{{name}} is thinking",
       "botThinking": "The Scarecrow is thinking…",
       "tryingToGuess": "Trying to guess your {{secret}}",
-      "myGuesses": "Your guesses",
       "oppVs": "{{name}} vs your {{secret}}",
       "noOppGuesses": "no guesses yet",
       "raceNote": "{{name}} is guessing the same number. First to find it wins.",
-      "giveUp": "I give up",
       "oppProgress": "guess {{attempt}} · {{left}} left",
       "oppStatus": {
         "solved": "got it!",
@@ -549,7 +547,6 @@
         "waiting": "waiting",
         "trying": "guessing"
       },
-      "chip": { "bulls": "{{count}}B", "cows": "{{count}}C" },
       "toast": {
         "solved": "{{name}} guessed the number!",
         "classic": "{{name}}: {{guess}} → {{bulls}}B {{cows}}C",
@@ -559,14 +556,14 @@
         "skippedOpp": "{{name}} ran out of time — your move."
       },
       "promptNoZero": "Enter {{count}} different digits from 1 to 9",
-      "promptZero": "Enter {{count}} different digits (0 allowed)",
-      "last": "Last {{guess}}: {{bulls}}, {{cows}} · {{left}} left"
+      "promptZero": "Enter {{count}} different digits (0 allowed)"
     },
     "result": {
       "kicker": {
         "solo": "SOLO",
         "bot": "VS THE SCARECROW · {{level}}",
-        "duel": "DUEL · {{format}}"
+        "duel": "DUEL · {{format}}",
+        "classic": "THEIRS {{theirs}} · YOURS {{mine}}"
       },
       "sub": {
         "winOpp": "You beat {{name}}. The bulls are in the barn.",
@@ -578,13 +575,8 @@
       },
       "solved": "solved",
       "unsolved": "not solved",
-      "rating": "RATING",
-      "ratingChange": "{{from}} → {{to}}",
-      "secrets": {
-        "classic": "Theirs: {{theirs}} · yours: {{mine}}",
-        "race": "The number was {{secret}}"
-      },
-      "secretsXp": "{{secrets}} · +{{xp}} XP",
+      "mode": { "bot": "Vs the Scarecrow · {{level}}" },
+      "stat": { "xp": "XP", "rating": "rating {{to}}" },
       "rematch": "Rematch",
       "again": "Once more",
       "newGame": "New game",

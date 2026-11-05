@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { digit, guestLogin, newPlayer, pinSecret, typeGuess, untilPlaying } from './helpers'
-import { expectNoSideScroll, registeredPlayer } from './journey'
+import { expectNoSideScroll, inNotebook, registeredPlayer } from './journey'
 
 /** Every duel: the quick match, a classic duel with a friend, a rematch and each level of the bot. */
 
@@ -9,7 +9,9 @@ const ready = async (page: Page) => {
   await page.getByRole('button', { name: 'Готов!' }).click()
 }
 
-test('quick match: two profiles find each other, one gives up, the other wins with a rating change', async ({ browser }, info) => {
+test('quick match: two profiles find each other, one gives up, the other wins with a rating change', async ({
+  browser,
+}, info) => {
   const a = await registeredPlayer(browser, info, 'Quick')
   const b = await registeredPlayer(browser, info, 'Match')
   try {
@@ -19,18 +21,22 @@ test('quick match: two profiles find each other, one gives up, the other wins wi
       await p.getByRole('radio', { name: /Надпревара/ }).click()
       await p.getByRole('button', { name: 'Търси противник' }).click()
     }
-    await expect(a.page.getByRole('heading', { name: 'Противникът е намерен!' })).toBeVisible({ timeout: 20_000 })
-    await expect(b.page.getByRole('heading', { name: 'Противникът е намерен!' })).toBeVisible({ timeout: 20_000 })
+    await expect(a.page.getByRole('heading', { name: 'Противникът е намерен!' })).toBeVisible({
+      timeout: 20_000,
+    })
+    await expect(b.page.getByRole('heading', { name: 'Противникът е намерен!' })).toBeVisible({
+      timeout: 20_000,
+    })
     await expect(a.page.getByText(b.name)).toBeVisible()
     await expectNoSideScroll(a.page)
     for (const p of [a.page, b.page]) await ready(p)
     await untilPlaying(a.page)
     await untilPlaying(b.page)
 
-    await b.page.getByRole('button', { name: 'Предавам се' }).click()
+    await inNotebook(b.page, () => b.page.getByRole('button', { name: 'Предавам се' }).click())
     await expect(a.page).toHaveURL(/\/duel\/[^/]+\/result$/)
     await expect(a.page.getByRole('heading', { name: 'Победа!' })).toBeVisible()
-    await expect(a.page.getByText('РЕЙТИНГ')).toBeVisible()
+    await expect(a.page.getByText(/^рейтинг \d+$/)).toBeVisible()
     await expect(b.page).toHaveURL(/\/duel\/[^/]+\/result$/)
     await expect(b.page.getByRole('heading', { name: 'Загуба' })).toBeVisible()
     await expectNoSideScroll(b.page)
@@ -63,7 +69,10 @@ async function hideSecret(page: Page, secret: string) {
   await confirm.click()
 }
 
-test('classic duel with a friend: both hide a number, turns, the host wins, rematch offered and accepted', async ({ page: host, browser }, info) => {
+test('classic duel with a friend: both hide a number, turns, the host wins, rematch offered and accepted', async ({
+  page: host,
+  browser,
+}, info) => {
   const guest = await newPlayer(browser, info)
   try {
     await guestLogin(host)
@@ -81,8 +90,12 @@ test('classic duel with a friend: both hide a number, turns, the host wins, rema
     for (const p of [host, guest]) await ready(p)
     await hideSecret(host, '1234')
     await hideSecret(guest, '5678')
-    await expect(host.getByRole('button', { name: 'Пусни стадото!' })).toBeVisible({ timeout: 15_000 })
-    await expect(guest.getByRole('button', { name: 'Пусни стадото!' })).toBeVisible({ timeout: 15_000 })
+    await expect(host.getByRole('button', { name: 'Пусни стадото!' })).toBeVisible({
+      timeout: 15_000,
+    })
+    await expect(guest.getByRole('button', { name: 'Пусни стадото!' })).toBeVisible({
+      timeout: 15_000,
+    })
 
     // Whoever moves first, the host guesses the friend's number on their own turn.
     const hostTurn = digit(host, '1')
@@ -99,13 +112,15 @@ test('classic duel with a friend: both hide a number, turns, the host wins, rema
     const won = host.getByRole('heading', { name: 'Победа!' })
     const lastMove = digit(guest, '9')
     await expect(async () => {
-      expect((await won.isVisible()) || (await lastMove.isEnabled().catch(() => false))).toBe(true)
+      expect(
+        (await won.isVisible()) || (await lastMove.isEnabled({ timeout: 500 }).catch(() => false)),
+      ).toBe(true)
     }).toPass({ timeout: 15_000 })
     if (!(await won.isVisible())) await typeGuess(guest, '9876')
 
     await expect(host).toHaveURL(/\/duel\/[^/]+\/result$/)
     await expect(host.getByRole('heading', { name: 'Победа!' })).toBeVisible()
-    await expect(host.getByText('Неговото: 5678 · твоето: 1234', { exact: false })).toBeVisible()
+    await expect(host.getByText('НЕГОВОТО 5678 · ТВОЕТО 1234')).toBeVisible()
     await expect(guest).toHaveURL(/\/duel\/[^/]+\/result$/)
     await expect(guest.getByRole('heading', { name: 'Загуба' })).toBeVisible()
 
@@ -135,13 +150,18 @@ for (const level of ['Лесно', 'Средно', 'Трудно', 'Експер
     await typeGuess(page, '1234')
     await expect(page).toHaveURL(/\/duel\/[^/]+\/result$/)
     await expect(page.getByRole('heading', { name: 'Победа!' })).toBeVisible()
-    await expect(page.getByText(`СРЕЩУ ПЛАШИЛОТО · ${level.toUpperCase()}`, { exact: false })).toBeVisible()
-    await page.getByRole('region', { name: 'Резултат' }).getByRole('button', { name: 'Нова игра' }).click()
+    await expect(page.getByText(`Срещу Плашилото · ${level}`)).toBeVisible()
+    await page
+      .getByRole('region', { name: 'Резултат' })
+      .getByRole('button', { name: 'Нова игра' })
+      .click()
     await expect(page).toHaveURL(/\/(new|bot\/new|duel\/new)$/)
   })
 }
 
-test('bot classic: the Scarecrow guesses on its turns and giving up ends it as a loss', async ({ page }) => {
+test('bot classic: the Scarecrow guesses on its turns and giving up ends it as a loss', async ({
+  page,
+}) => {
   await guestLogin(page)
   await page.goto('/bot/new')
   await page.getByRole('button', { name: 'Средно', exact: true }).click()
@@ -149,8 +169,10 @@ test('bot classic: the Scarecrow guesses on its turns and giving up ends it as a
   await page.getByRole('button', { name: 'Срещу Плашилото' }).click()
   await ready(page)
   await hideSecret(page, '9876')
-  await expect(page.getByRole('button', { name: 'Пусни стадото!' })).toBeVisible({ timeout: 15_000 })
-  await page.getByRole('button', { name: 'Предавам се' }).click()
+  await expect(page.getByRole('button', { name: 'Пусни стадото!' })).toBeVisible({
+    timeout: 15_000,
+  })
+  await inNotebook(page, () => page.getByRole('button', { name: 'Предавам се' }).click())
   await expect(page).toHaveURL(/\/duel\/[^/]+\/result$/)
   await expect(page.getByRole('heading', { name: 'Загуба' })).toBeVisible()
 })

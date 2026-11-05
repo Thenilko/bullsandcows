@@ -77,7 +77,10 @@
   translate: -50% -50%;
 }
 
-/* HUD rows over the scene: chips / PasDuel top row at the top, the opponent strip just above the panel's edge. */
+/*
+ * HUD rows over the scene: chips / PasDuel top row at the top, the opponent strip just above the panel's edge.
+ * Under the strip's row the attempts board stops `--board-reserve` higher, so the two never overlap.
+ */
 .hudTop,
 .hudBottom {
   position: absolute;
@@ -92,6 +95,10 @@
 
 .hudBottom {
   bottom: var(--hud-bottom);
+}
+
+.scene:has(.hudBottom) {
+  --board-reserve: calc(var(--hud-bottom) + 62px - var(--overlap));
 }
 
 .panelBody {
@@ -152,12 +159,6 @@
     height: auto;
     min-height: 230px;
     max-height: 380px;
-  }
-
-  /* PasDuel: the opponent strip moves under the top row instead of covering the meadow. */
-  .play .hudBottom {
-    top: 60px;
-    bottom: auto;
   }
 
   .play .panelBody {

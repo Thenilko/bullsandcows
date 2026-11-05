@@ -27,6 +27,7 @@ test('bot duel: easy race starts at once and is won with the pinned secret', asy
   await expect(page).toHaveURL(/\/duel\/[^/]+\/result$/)
   await expect(page.getByRole('heading', { name: 'Победа!' })).toBeVisible()
   await expect(page.getByText('Изпревари Плашилото', { exact: false })).toBeVisible()
-  await expect(page.getByText(`Числото беше ${SECRET}`, { exact: false })).toBeVisible()
-  await expect(page.getByText('РЕЙТИНГ')).toHaveCount(0)
+  await expect(page.getByText(`ЧИСЛОТО Е ${SECRET}`)).toBeVisible()
+  // A bot match never moves the rating: no rating tile.
+  await expect(page.getByText(/^рейтинг \d+$/)).toHaveCount(0)
 })

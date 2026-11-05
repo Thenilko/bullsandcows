@@ -65,6 +65,31 @@ describe('bottom hud (the PasDuel opponent strip)', () => {
   })
 })
 
+describe('top hud and the opponent strip together (duel play)', () => {
+  const render = (Shell: typeof MobileShell) =>
+    renderWithI18n(
+      <MemoryRouter>
+        <Shell scene={IDLE_SCENE} screen="play" hud={<span>chips</span>} strip={<span>strip</span>}>
+          <p>content</p>
+        </Shell>
+      </MemoryRouter>,
+    )
+
+  it('mobile: the chips at the top, the strip at the lower edge of the scene', () => {
+    const { getByText } = render(MobileShell)
+    expect((getByText('chips').parentElement as HTMLElement).className).toMatch(/hudTop/)
+    expect((getByText('strip').parentElement as HTMLElement).className).toMatch(/hudBottom/)
+  })
+
+  it('desktop: the chips in `.dk-hud`, the strip in `.dk-strip`, neither in the column', () => {
+    mockViewport(...IMMERSIVE)
+    const { getByText } = render(DesktopShell)
+    expect(getByText('chips').parentElement).toHaveClass('dk-hud')
+    expect(getByText('strip').parentElement).toHaveClass('dk-strip')
+    expect(getByText('strip').closest('main')).toBeNull()
+  })
+})
+
 describe('DesktopShell modes', () => {
   function shell(props: Partial<ShellProps> & { screen: ScreenKey }) {
     const { container, unmount } = renderWithI18n(
@@ -116,7 +141,10 @@ describe('DesktopShell modes', () => {
     const d = shell({ screen: 'rules' })
     expect(d.scene.querySelector('svg')).toHaveAttribute('viewBox', '80 0 1440 900')
     mockViewport(...SPLIT)
-    expect(shell({ screen: 'rules' }).scene.querySelector('svg')).toHaveAttribute('viewBox', '200 200 1160 700')
+    expect(shell({ screen: 'rules' }).scene.querySelector('svg')).toHaveAttribute(
+      'viewBox',
+      '200 200 1160 700',
+    )
   })
 
   it('immersive: the top hud is shown only over the game', () => {
@@ -142,7 +170,11 @@ describe('MobileShell frame', () => {
       </MemoryRouter>,
     )
     const root = container.firstElementChild?.firstElementChild as HTMLElement
-    const out = { root: root.className, panelTop: root.style.getPropertyValue('--panel-top'), main: container.querySelector('main')?.className ?? '' }
+    const out = {
+      root: root.className,
+      panelTop: root.style.getPropertyValue('--panel-top'),
+      main: container.querySelector('main')?.className ?? '',
+    }
     unmount()
     return out
   }
