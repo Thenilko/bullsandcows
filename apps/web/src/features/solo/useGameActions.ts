@@ -1,10 +1,9 @@
-import type { GameViewDto, MeDto, NewBadgeDto, PastureKey } from '@bc/protocol'
+import type { GameViewDto, NewBadgeDto, PastureKey } from '@bc/protocol'
 import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef } from 'react'
 import { isComplete } from '../../lib/code'
 import { useNavigate } from 'react-router'
 import { sfx } from '../../lib/sound'
-import { api } from '../auth/client'
 import { useSession } from '../auth/session'
 import { useBadgeToasts } from '../badges/toastStore'
 import { hasNotes } from '../notebook/store'
@@ -12,6 +11,7 @@ import { invalidatePasture } from '../pasture/usePasture'
 import { useUnlocks } from '../pasture/unlockStore'
 import { invalidateBadges } from '../stats/useBadges'
 import { distributionQuery } from '../stats/useDistribution'
+import { refreshMe } from '../stats/useMe'
 import { fetchGame } from '../stats/useGameResult'
 import { distributionKind, giveUpGame, sendGuess, startGame } from './api'
 import { withGuess } from './derive'
@@ -75,10 +75,7 @@ function useGameEffects(gameId: string, resultPath = `/result/${gameId}`) {
       void qc.invalidateQueries({ queryKey: gameKey(gameId) })
       invalidateBadges(qc)
       invalidatePasture(qc)
-      api.get<MeDto>('/api/me').then(
-        (me) => useSession.getState().setMe(me),
-        () => void qc.invalidateQueries({ queryKey: ['me'] }),
-      )
+      refreshMe(qc)
       void navigate(resultPath)
       useBadgeToasts.getState().push(newBadges)
       useUnlocks.getState().push(newUnlocks)
