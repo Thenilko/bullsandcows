@@ -8,6 +8,7 @@ import { Keypad, Slots } from '../../components/ui'
 import { useDuelStore } from '../../features/duel/store'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { IDLE_SCENE } from './scenes'
+import { useDuelKeyboard } from './useDuelKeyboard'
 import { useSecretInput } from './useSecretInput'
 
 export interface HideSecretProps {
@@ -30,11 +31,23 @@ export function HideSecret({ roomId, state, send }: HideSecretProps) {
   const input = useSecretInput(roomId, state, send)
   const [showDigits, setShowDigits] = useState(false)
   const hidden = state.me.hasSecret
+  useDuelKeyboard({
+    active: !hidden,
+    zero: state.zero,
+    press: input.press,
+    back: input.back,
+    submit: input.confirm,
+  })
   const oppName = state.opponentKind === 'bot' ? t('bot.name') : (state.opp?.username ?? '')
 
   const display = showDigits ? cur : MASK.repeat(cur.length)
   return (
-    <Shell scene={IDLE_SCENE} screen="duel" panelTop={PANEL_TOP} topHud={<DuelTopRow title={t('duel.title.secret')} />}>
+    <Shell
+      scene={IDLE_SCENE}
+      screen="duel"
+      panelTop={PANEL_TOP}
+      topHud={<DuelTopRow title={t('duel.title.secret')} />}
+    >
       <section aria-label={t('duel.title.secret')} style={COL}>
         <h1 className="rise" style={{ margin: 0, fontSize: 26, fontWeight: 900 }}>
           {t('duel.secret.title')}
