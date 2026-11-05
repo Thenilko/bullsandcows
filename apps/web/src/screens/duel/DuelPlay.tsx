@@ -197,7 +197,12 @@ function OppToast({ toast, name }: { toast: ToastInfo | null; name: string }) {
             bulls: toast.bulls,
             cows: toast.cows,
           })
-        : t('duel.play.toast.race', { name, attempt: toast.attempt })
+        : toast.kind === 'skipped'
+          ? t(toast.mine ? 'duel.play.toast.skippedMine' : 'duel.play.toast.skippedOpp', {
+              name,
+              count: toast.strikesLeft,
+            })
+          : t('duel.play.toast.race', { name, attempt: toast.attempt })
   return (
     <Overlay>
       <Toast tick={toast.n}>{text}</Toast>

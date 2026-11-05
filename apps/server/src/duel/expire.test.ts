@@ -5,7 +5,15 @@ import { markDisconnected, markReconnected } from './match'
 import { settle } from './settle'
 import { PLAY_AT, T0, classicInPlay, eventsTo, lobby, ok, raceInPlay, readyBoth } from './testing'
 import { offerRematch } from './rematch'
-import { COUNTDOWN_MS, RACE_CAP_MS, RECONNECT_MS, REMATCH_MS, TURN_MS, TURN_WARN_MS } from './types'
+import {
+  COUNTDOWN_MS,
+  MAX_SKIPS,
+  RACE_CAP_MS,
+  RECONNECT_MS,
+  REMATCH_MS,
+  TURN_MS,
+  TURN_WARN_MS,
+} from './types'
 
 describe('expire', () => {
   it('does nothing when nothing is due', () => {
@@ -15,15 +23,58 @@ describe('expire', () => {
     expect(s.events).toEqual([])
   })
 
-  it('makes the player on turn lose by timeout when the turn deadline passes', () => {
+  it('passes the move to the opponent when the turn deadline passes', () => {
     const g = classicInPlay()
     const before = structuredClone(g)
     const s = ok(expire(g.match, g.secrets, PLAY_AT + TURN_MS))
-    expect(s.match.outcome).toEqual({ winner: 'b', reason: 'timeout' })
-    expect(eventsTo(s.events, 'a')).toContainEqual(
-      expect.objectContaining({ t: 'ended', outcome: 'lose', reason: 'timeout' }),
-    )
+    expect(s.match.phase).toBe('playing')
+    expect(s.match.turn).toBe('b')
+    expect(s.match.turnDeadline).toBe(PLAY_AT + 2 * TURN_MS)
+    expect(s.match.skips).toEqual({ a: 1, b: 0 })
+    expect(s.events).toEqual([
+      { to: 'a', msg: { t: 'skipped', mine: true, strikesLeft: MAX_SKIPS - 1 } },
+      { to: 'b', msg: { t: 'skipped', mine: false, strikesLeft: MAX_SKIPS - 1 } },
+    ])
     expect(g).toEqual(before)
+  })
+
+  it('times the next turn from the missed deadline even when the alarm is late', () => {
+    const g = classicInPlay()
+    const s = ok(expire(g.match, g.secrets, PLAY_AT + TURN_MS + 4000))
+    expect(s.match.turnDeadline).toBe(PLAY_AT + 2 * TURN_MS)
+  })
+
+  it('loses by timeout only on the third missed move in a row', () => {
+    const g = classicInPlay()
+    let m = g.match
+    let t = PLAY_AT
+    for (let i = 0; i < 2 * (MAX_SKIPS - 1); i += 1) {
+      t += TURN_MS
+      const s = ok(expire(m, g.secrets, t))
+      expect(s.match.phase).toBe('playing')
+      m = s.match
+    }
+    expect(m.skips).toEqual({ a: MAX_SKIPS - 1, b: MAX_SKIPS - 1 })
+    const end = ok(expire(m, g.secrets, t + TURN_MS))
+    expect(end.match.outcome).toEqual({ winner: 'b', reason: 'timeout' })
+  })
+
+  it('forgets missed moves once the player guesses', () => {
+    const g = classicInPlay()
+    const s1 = ok(expire(g.match, g.secrets, PLAY_AT + TURN_MS))
+    const s2 = ok(applyGuess(s1.match, s1.secrets, 'b', '1235', PLAY_AT + TURN_MS + 1000))
+    expect(s2.match.skips).toEqual({ a: 1, b: 0 })
+    const s3 = ok(applyGuess(s2.match, s2.secrets, 'a', '1236', PLAY_AT + TURN_MS + 2000))
+    expect(s3.match.skips).toEqual({ a: 0, b: 0 })
+  })
+
+  it('loses by timeout when the missed move was the last one after the opponent solved', () => {
+    const g = classicInPlay()
+    const secretB = g.secrets.b!
+    const solved = ok(applyGuess(g.match, g.secrets, 'a', secretB, PLAY_AT + 1000))
+    expect(solved.match.turn).toBe('b')
+    const s = ok(expire(solved.match, solved.secrets, PLAY_AT + 1000 + TURN_MS))
+    expect(s.match.outcome).toEqual({ winner: 'a', reason: 'timeout' })
   })
 
   it('warns the player on turn once, 15 s before the deadline', () => {
@@ -68,7 +119,8 @@ describe('expire', () => {
     const still = ok(expire(d.match, d.secrets, t + RECONNECT_MS + 1))
     expect(still.match.phase).toBe('playing')
     const s = ok(expire(still.match, still.secrets, PLAY_AT + TURN_MS))
-    expect(s.match.outcome).toEqual({ winner: 'b', reason: 'timeout' })
+    expect(s.match.turn).toBe('b')
+    expect(s.match.phase).toBe('playing')
   })
 
   it('starts the reconnect window when a disconnected player gets the turn back off turn', () => {
@@ -85,7 +137,8 @@ describe('expire', () => {
     expect(late.match.outcome).toEqual({ winner: 'a', reason: 'disconnect' })
     const d2 = ok(markDisconnected(g.match, g.secrets, 'b', PLAY_AT + 40_000))
     const late2 = ok(expire(d2.match, d2.secrets, PLAY_AT + 75_000))
-    expect(late2.match.outcome).toEqual({ winner: 'b', reason: 'timeout' })
+    expect(late2.match.phase).toBe('playing')
+    expect(late2.match.turn).toBe('b')
   })
 
   it('prefers an earlier disconnect over the race cap when evaluated late', () => {

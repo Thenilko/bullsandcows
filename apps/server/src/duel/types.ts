@@ -14,6 +14,8 @@ export type { EndReason, Format, OpponentKind, Phase, Seat }
 
 export const TURN_MS = 60_000
 export const TURN_WARN_MS = 15_000
+/** Classic: this many timed-out turns in a row lose the match (one or two just pass the move). */
+export const MAX_SKIPS = 3
 export const RACE_CAP_MS = 15 * 60_000
 export const RECONNECT_MS = 30_000
 export const COUNTDOWN_MS = 2100
@@ -73,6 +75,8 @@ export interface Match {
   readonly turnNo: number
   /** The `turnNo` the last 15 s warning was sent for; one warning per turn. */
   readonly warnedTurn: number | null
+  /** Classic: timed-out turns in a row per seat (absent in rooms from before). */
+  readonly skips?: { readonly a: number; readonly b: number }
   /** Per seat: when that seat's rematch offer expires, or null. */
   readonly rematch: { readonly a: number | null; readonly b: number | null }
   /** This match was accepted as a rematch of the previous one (absent for the first). */

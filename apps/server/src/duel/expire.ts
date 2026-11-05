@@ -1,10 +1,13 @@
 import { endMatch } from './end'
+import { passTurn } from './guess'
 import {
   COUNTDOWN_MS,
+  MAX_SKIPS,
   RACE_CAP_MS,
   RECONNECT_MS,
   TURN_WARN_MS,
   otherSeat,
+  playerAt,
   step,
   type Match,
   type MatchOutcome,
@@ -20,14 +23,40 @@ interface Due {
   readonly at: number
   readonly rank: number
   readonly outcome: MatchOutcome
+  /** Classic turn timeout that only passes the move instead of ending the match. */
+  readonly skip?: true
 }
 
-/** Classic: the player on turn loses when the turn deadline passes, connected or not. */
+const strikesOf = (m: Match, seat: Seat): number => (m.skips?.[seat] ?? 0) + 1
+
+/**
+ * Classic: when the turn deadline passes (connected or not) the move passes to the opponent. It loses
+ * the match only on the `MAX_SKIPS`-th timeout in a row, or when it was the last move after the
+ * opponent had already solved.
+ */
 function turnDue(m: Match): Due[] {
   if (m.phase !== 'playing' || m.turn === null || m.turnDeadline === null) return []
-  return [
-    { at: m.turnDeadline, rank: 0, outcome: { winner: otherSeat(m.turn), reason: 'timeout' } },
-  ]
+  const other = otherSeat(m.turn)
+  const last = playerAt(m, other).guesses.at(-1)
+  const lastMove = last !== undefined && last.bulls === m.len
+  const outcome: MatchOutcome = { winner: other, reason: 'timeout' }
+  const skip = !lastMove && strikesOf(m, m.turn) < MAX_SKIPS
+  return [{ at: m.turnDeadline, rank: 0, outcome, ...(skip ? { skip: true as const } : {}) }]
+}
+
+/** Passes a timed-out move to the opponent and tells both. */
+function skipTurn(m: Match, s: Secrets, now: number): Step {
+  if (m.turn === null) return step(m, s)
+  const seat = m.turn
+  const strikes = strikesOf(m, seat)
+  const skips = { ...(m.skips ?? { a: 0, b: 0 }), [seat]: strikes }
+  const strikesLeft = MAX_SKIPS - strikes
+  // The next turn runs from the missed deadline, so a late alarm does not shorten it.
+  const from = m.turnDeadline ?? now
+  return passTurn({ ...m, skips }, s, otherSeat(seat), from, [
+    { to: seat, msg: { t: 'skipped', mine: true, strikesLeft } },
+    { to: otherSeat(seat), msg: { t: 'skipped', mine: false, strikesLeft } },
+  ])
 }
 
 /** Reconnect windows; the seat on turn is governed by the turn clock alone (Review Focus 4). */
@@ -82,6 +111,7 @@ function warning(m: Match, s: Secrets, now: number): Step {
  */
 export function expire(m: Match, s: Secrets, now: number): Step {
   const due = firstDue(m, now)
+  if (due?.skip) return skipTurn(m, s, now)
   if (due) return endMatch(m, s, due.outcome, now)
   return warning(m, s, now)
 }
