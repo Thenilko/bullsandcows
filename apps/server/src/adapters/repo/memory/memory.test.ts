@@ -34,6 +34,17 @@ async function finishedGame(
   return repo.games.update(game.id, { finishedAt: now, won: true, ...result })
 }
 
+describe('memory settings', () => {
+  it('keeps a detached copy per key and forgets it on remove', async () => {
+    const value = { proSample: 8, lostHint: [0.7, 0.5, 0.3] }
+    await repo.settings.put('bot', value)
+    value.lostHint[0] = 0
+    expect(await repo.settings.get('bot')).toEqual({ proSample: 8, lostHint: [0.7, 0.5, 0.3] })
+    await repo.settings.remove('bot')
+    expect(await repo.settings.get('bot')).toBeNull()
+  })
+})
+
 describe('memory profiles', () => {
   it('creates a profile with defaults', async () => {
     const p = await member('u1', 'Mira')

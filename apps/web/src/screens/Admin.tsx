@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { useAdminOverview } from '../features/admin/useAdminOverview'
 import { useMe } from '../features/stats/useMe'
 import { ApiError } from '../lib/api'
+import { AdminBot } from './admin/AdminBot'
 import { AdminChart } from './admin/AdminChart'
 import { AdminDuels } from './admin/AdminDuels'
 import { AdminGames } from './admin/AdminGames'
@@ -75,6 +76,9 @@ export function Admin() {
           </Section>
           <Section id="admin-duels" title={t('admin.duels.heading')} wide>
             <AdminDuels enabled={isAdmin} lang={lang} />
+          </Section>
+          <Section id="admin-bot" title={t('admin.botCfg.heading')} wide>
+            <AdminBot enabled={isAdmin} />
           </Section>
           <Section id="admin-feed" title={t('admin.feed.heading')} wide>
             <AdminGames enabled={isAdmin} lang={lang} />

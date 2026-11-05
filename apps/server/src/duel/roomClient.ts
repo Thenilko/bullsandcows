@@ -1,4 +1,4 @@
-import type { Len, Rating } from '@bc/game-core'
+import type { BotConfig, Len, Rating } from '@bc/game-core'
 import type { AvatarSpecies, DuelFormat, ErrorCode } from '@bc/protocol'
 
 export interface PlayerInfo {
@@ -20,6 +20,8 @@ export interface RoomSettings {
 export interface RoomOpts extends RoomSettings {
   readonly opponentKind: 'human' | 'quick' | 'bot'
   readonly botLevel?: 1 | 2 | 3 | 4
+  /** Bot rooms: the tuning, fixed for the room's life (rematches included). */
+  readonly bot?: BotConfig
   /** Dev/test E2E only (the Worker reads it only there): the race and bot secret. */
   readonly testSecret?: string
 }

@@ -24,6 +24,44 @@ describe('CreateBody', () => {
 })
 
 describe('createRoom', () => {
+  it('keeps the bot tuning of a bot room in the meta', () => {
+    const bot = {
+      raceThinkMs: [30000, 20000, 15000, 9000],
+      lostHint: [0.7, 0.5, 0.3],
+      proSample: 10,
+    }
+    const body = CreateBody.parse({
+      opts: { ...opts, opponentKind: 'bot', botLevel: 2, bot },
+      host: alice,
+    })
+    const st = createRoom(null, body, T0, 'tok')
+    if (isRefusal(st)) throw new Error('refused')
+    expect(st.meta.bot).toEqual(bot)
+    expect(st.match.players.b?.id).toBe('bot')
+    const plain = createRoom(
+      null,
+      CreateBody.parse({ opts: { ...opts, opponentKind: 'bot', botLevel: 2 }, host: alice }),
+      T0,
+      'tok',
+    )
+    if (isRefusal(plain)) throw new Error('refused')
+    expect(plain.meta.bot).toBeUndefined()
+  })
+
+  it('refuses a bot tuning out of bounds', () => {
+    const bot = {
+      raceThinkMs: [30000, 20000, 15000, 9000],
+      lostHint: [0.7, 0.5, 0.3],
+      proSample: 99,
+    }
+    expect(
+      CreateBody.safeParse({
+        opts: { ...opts, opponentKind: 'bot', botLevel: 2, bot },
+        host: alice,
+      }).success,
+    ).toBe(false)
+  })
+
   it('keeps the invite code in the room meta and maps human to friend', () => {
     const st = createRoom(null, { opts, host: alice, inviteCode: 'K7M2Q' }, T0, 'tok')
     if (isRefusal(st)) throw new Error('refused')

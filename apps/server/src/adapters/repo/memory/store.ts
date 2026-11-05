@@ -10,6 +10,7 @@ import type {
   PastureSettings,
   Profile,
   PublicGameRow,
+  SettingKey,
   ShareRow,
   WeeklyPlayRow,
   WeeklyResultRow,
@@ -43,6 +44,8 @@ export interface MemoryStore {
   readonly weeklyResults: Map<string, WeeklyResultRow>
   /** Per user: the last presence ping. */
   readonly presence: Map<string, { readonly at: number; readonly activity: Activity }>
+  /** `app_settings`: one JSON value per key. */
+  readonly settings: Map<SettingKey, unknown>
   nextGuessId: number
 }
 
@@ -63,6 +66,7 @@ export const createStore = (): MemoryStore => ({
   weeklyPlays: new Map(),
   weeklyResults: new Map(),
   presence: new Map(),
+  settings: new Map(),
   nextGuessId: 1,
 })
 

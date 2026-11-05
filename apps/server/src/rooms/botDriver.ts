@@ -1,8 +1,10 @@
 import {
+  DEFAULT_BOT_CONFIG,
   botGuess,
   botThinkMs,
   codes,
   filterCandidates,
+  type BotConfig,
   type BotLevel,
   type Rng,
 } from '@bc/game-core'
@@ -23,6 +25,7 @@ export function botMove(
   level: BotLevel,
   now: number,
   rng: Rng = Math.random,
+  config: BotConfig = DEFAULT_BOT_CONFIG,
 ): Step {
   const bot = m.players.b
   if (!bot) return fail('ERR_NOT_STARTED')
@@ -32,13 +35,19 @@ export function botMove(
     codes(m.len, m.zero),
   )
   if (targetOf(m, s, 'b') === null) return fail('ERR_INTERNAL')
-  const code = botGuess(cands, guessed, level, m.len, m.zero, rng)
+  const code = botGuess(cands, guessed, level, m.len, m.zero, rng, config)
   return applyGuess(m, s, 'b', code, now)
 }
 
 /** When the bot should move next, counted from `now`. */
-export function botDueAt(m: Match, level: BotLevel, now: number, rng: Rng): number {
-  return now + Math.max(MIN_THINK_MS, botThinkMs(level, m.format === 'classic', rng))
+export function botDueAt(
+  m: Match,
+  level: BotLevel,
+  now: number,
+  rng: Rng,
+  config: BotConfig = DEFAULT_BOT_CONFIG,
+): number {
+  return now + Math.max(MIN_THINK_MS, botThinkMs(level, m.format === 'classic', rng, config))
 }
 
 /** Whether the bot is to move right now: race while playing, classic on its turn. */

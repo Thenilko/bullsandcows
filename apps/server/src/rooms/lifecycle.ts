@@ -136,13 +136,13 @@ const botMoveRule: Rule = (st, now, rng) => {
       : { state: { ...st, meta: { ...meta, botAt: null } }, events: [] }
   }
   if (meta.botAt == null) {
-    const botAt = botDueAt(m, level, now, rng)
+    const botAt = botDueAt(m, level, now, rng, meta.bot)
     return { state: { ...st, meta: { ...meta, botAt } }, events: [] }
   }
   if (meta.botAt > now) return null
   const cleared = { ...st, meta: { ...meta, botAt: null } }
   return (
-    fromStep(cleared, botMove(m, st.secrets, level, now, rng)) ?? {
+    fromStep(cleared, botMove(m, st.secrets, level, now, rng, meta.bot)) ?? {
       state: cleared,
       events: [],
     }

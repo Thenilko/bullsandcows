@@ -1,3 +1,4 @@
+import { DEFAULT_BOT_CONFIG } from '@bc/game-core'
 import { describe, expect, it } from 'vitest'
 import { applyGuess } from '../duel/guess'
 import { PLAY_AT, classicInPlay, eventsTo, ok, raceInPlay, rngZero } from '../duel/testing'
@@ -80,5 +81,13 @@ describe('botToMove and botDueAt', () => {
   it('never thinks for less than a second', () => {
     const m = raceBot().match
     expect(botDueAt(m, 4, 0, () => 0) - 0).toBeGreaterThanOrEqual(MIN_THINK_MS)
+  })
+
+  it("thinks for the room's configured race base, still at least a second", () => {
+    const m = raceBot().match
+    const config = { ...DEFAULT_BOT_CONFIG, raceThinkMs: [40000, 30000, 20000, 60000] as const }
+    expect(botDueAt(m, 4, 100, () => 0.5, config)).toBe(100 + 60000)
+    const quick = { ...DEFAULT_BOT_CONFIG, raceThinkMs: [1000, 1000, 1000, 1000] as const }
+    expect(botDueAt(m, 4, 100, () => 0, quick)).toBe(100 + MIN_THINK_MS)
   })
 })

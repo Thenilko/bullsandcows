@@ -12,6 +12,7 @@ import {
   doublePrecision,
   index,
   integer,
+  jsonb,
   pgTable,
   primaryKey,
   smallint,
@@ -390,3 +391,10 @@ export const weeklyResults = pgTable(
     index('weekly_results_user_idx').on(t.userId, t.weekId),
   ],
 ).enableRLS()
+
+/** App-wide settings the admin edits (`/admin`), one JSON value per key; read and validated by the server. */
+export const appSettings = pgTable('app_settings', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').notNull(),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
+}).enableRLS()

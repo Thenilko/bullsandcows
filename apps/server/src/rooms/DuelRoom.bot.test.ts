@@ -1,5 +1,5 @@
 import { runInDurableObject } from 'cloudflare:test'
-import { BOT_RACE_JITTER, BOT_THINK_BASE } from '@bc/game-core'
+import { BOT_RACE_JITTER, BOT_THINK_BASE, DEFAULT_BOT_CONFIG } from '@bc/game-core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { RoomOpts } from '../duel/roomClient'
 import { COUNTDOWN_MS, type Match, type Secrets } from '../duel/types'
@@ -103,6 +103,16 @@ describe('DuelRoom bot: race', () => {
     expect(last(s.c, 'oppMoved')).toMatchObject({ t: 'oppMoved', attempts: 1 })
     const again = await botTimer(s)
     expect(again).toBeGreaterThan(at!)
+  })
+
+  it("thinks for the tuning the room was created with (the admin's bot settings)", async () => {
+    const bot = { ...DEFAULT_BOT_CONFIG, raceThinkMs: [35000, 60000, 18000, 12000] as const }
+    const s = await setup({ ...botOpts('race', 2), bot })
+    await start(s)
+    const [lo, hi] = BOT_RACE_JITTER[1]
+    const at = await botTimer(s)
+    expect(at).toBeGreaterThanOrEqual(s.clock.t + 60000 + lo)
+    expect(at).toBeLessThanOrEqual(s.clock.t + 60000 + hi)
   })
 
   it('ends the match with the human losing when the bot solves it (level 2: xp 0)', async () => {

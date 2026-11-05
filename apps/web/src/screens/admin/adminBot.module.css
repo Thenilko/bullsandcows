@@ -1,0 +1,61 @@
+/* „Бот“: the bot tuning form; shares the table and buttons of admin.module.css. */
+.form {
+  display: grid;
+  gap: 14px;
+}
+
+.input {
+  font: inherit;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  width: 7ch;
+  padding: 6px 8px;
+  border: 2px solid var(--c-ink);
+  border-radius: var(--radius-sm);
+  background: var(--c-card);
+  color: var(--c-ink);
+}
+
+.input:focus-visible {
+  outline: 3px solid var(--c-sun);
+  outline-offset: 2px;
+}
+
+.input:invalid {
+  border-color: var(--c-red);
+}
+
+.hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-muted-aa);
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  font-weight: 800;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.error,
+.ok {
+  margin: 0;
+  font-weight: 800;
+}
+
+.error {
+  color: var(--c-red);
+}
+
+.ok {
+  color: #3f7a2c;
+}

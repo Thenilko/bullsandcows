@@ -657,7 +657,20 @@ export interface AdminOnlineRow {
   readonly game: AdminGameRow | null
 }
 
+/** The keys of `app_settings`; each value is validated by whoever reads it. */
+export type SettingKey = 'bot'
+
+/** App-wide settings the admin edits: one JSON value per key, unvalidated here. */
+export interface SettingsRepo {
+  /** The stored value, or null when the key was never saved (or was reset). */
+  get(key: SettingKey): Promise<unknown>
+  put(key: SettingKey, value: unknown): Promise<void>
+  /** Forgets the key, so readers fall back to their defaults. */
+  remove(key: SettingKey): Promise<void>
+}
+
 export interface Repo {
+  readonly settings: SettingsRepo
   readonly profiles: ProfilesRepo
   readonly games: GamesRepo
   readonly duels: DuelsRepo
