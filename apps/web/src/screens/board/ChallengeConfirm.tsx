@@ -5,7 +5,7 @@ import { Cta, RankAvatar, Seg, Soft } from '../../components/ui'
 import { Sheet } from '../../components/ui/Sheet'
 import type { ChallengeTarget } from './BoardRows'
 
-const FORMATS: readonly DuelFormat[] = ['race', 'classic']
+const FORMATS: readonly DuelFormat[] = ['classic', 'race']
 const CHIP = { background: '#FFFFFF', border: '1.5px solid #DCD4BF' } as const
 const HEAD = { display: 'flex', alignItems: 'center', gap: 12 } as const
 const TEXT = {
@@ -44,7 +44,7 @@ export function ChallengeConfirm({
   onClose,
 }: ChallengeConfirmProps) {
   const { t } = useTranslation()
-  const [format, setFormat] = useState<DuelFormat>('race')
+  const [format, setFormat] = useState<DuelFormat>('classic')
   const title = t('challenge.confirm.title', { name: row.username })
   return (
     <Sheet label={title} onClose={onClose} variant="card" width={420} testId="challenge-confirm">
