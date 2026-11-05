@@ -49,3 +49,19 @@ export async function typeGuess(page: Page, guess: string): Promise<void> {
   for (const d of guess) await digit(page, d).click()
   await page.getByRole('button', { name: 'Пусни стадото!' }).click()
 }
+
+/** The notebook opener on phones; null on desktop, where the notebook card is always on screen. Waits for the screen first. */
+export async function notebookOpener(page: Page) {
+  // Reading the opener at once races the render (e.g. right after a reload): wait for the keypad.
+  await expect(digit(page, '1')).toBeVisible()
+  const opener = page.getByRole('button', { name: 'Тефтерче', exact: true })
+  return (await opener.isVisible()) ? opener : null
+}
+
+/** The attempts list: inside the notebook sheet on phones, in the notebook card on desktop. */
+export async function expectGuessListed(page: Page, guess: string): Promise<void> {
+  const opener = await notebookOpener(page)
+  if (opener) await opener.click()
+  await expect(page.getByRole('list', { name: 'Опити' }).getByText(guess)).toBeVisible()
+  if (opener) await page.getByRole('button', { name: 'Затвори' }).click()
+}

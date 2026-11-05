@@ -1,4 +1,5 @@
 import { expect, test, type Browser, type Page } from '@playwright/test'
+import { notebookOpener } from './helpers'
 
 /**
  * ЧАСТ 3 „Седмично предизвикателство“ end to end at the artboard sizes: П6 / Р7 / П7 (390×844), the compact
@@ -74,8 +75,8 @@ for (const [width, height] of SIZES) {
     })
 
     // Give up from the notebook (a sheet on phones, the taped card on desktop): the game is over.
-    const opener = page.getByRole('button', { name: 'Тефтерче', exact: true })
-    if ((await opener.count()) > 0) await opener.click()
+    const opener = await notebookOpener(page)
+    if (opener) await opener.click()
     await page.getByRole('button', { name: 'Предавам се' }).click()
 
     // Р7 / ПД9 / ПДН4: back on the week, the CTA waits until tomorrow.
