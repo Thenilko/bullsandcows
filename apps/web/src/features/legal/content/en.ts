@@ -237,6 +237,37 @@ export const en: InfoPages = {
     intro: 'Changes to the game, newest first.',
     entries: [
       {
+        date: '2026-11-05',
+        items: [
+          'The Scarecrow is kinder: „Easy“ is the default, every level thinks about as long as a person, and the Expert plays like a master — no computer tricks.',
+          '„Challenge“: invite an online player from the leaderboard to a duel; they accept or decline.',
+          'Classic duel: when your time runs out, the move passes to the other player. You only lose after three missed moves in a row.',
+        ],
+      },
+      {
+        date: '2026-11-04',
+        items: [
+          'A board with your guesses above the pasture: the latest on top, and a red „!“ marks a guess that does not fit the hints.',
+          'Put a digit straight in place: tap a slot, then the digit.',
+          'On phones, bubbles point out the notebook when a game starts.',
+          'The number of the day counts once: playing it again on the same device is practice, and two people with profiles on one device each play their own.',
+        ],
+      },
+      {
+        date: '2026-11-03',
+        items: [
+          'The classic duel is the default and comes first.',
+          'In „Rules“: a note for kids and parents and why the game is good for children.',
+        ],
+      },
+      {
+        date: '2026-10-29',
+        items: [
+          'A short intro the first time you open the game — six steps you can replay from „Rules“.',
+          'New art for the animals and plants in the pasture, and a description for every reward.',
+        ],
+      },
+      {
         date: '2026-10-27',
         items: [
           'Your pasture: a windmill, a duck pond, a puppy, a rooster and more rewards unlocked by levels, badges and streaks, plus a barn colour of your choice.',
