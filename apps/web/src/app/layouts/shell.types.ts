@@ -50,6 +50,11 @@ export interface ShellProps {
   hud?: ReactNode
   /** Where the hud sits: `top` (solo chips) or `bottom` (PasDuel opponent strip). */
   hudAt?: 'top' | 'bottom'
+  /**
+   * The PasDuel opponent strip next to a top `hud`: just above the panel's edge on phones, bottom-left of the
+   * scene on the desktop (as `hudAt="bottom"` places a hud).
+   */
+  strip?: ReactNode
   /** Mobile only: PasDuel's row at the top of the scene (back to the setup, title, sound), at every height. */
   topHud?: ReactNode
 }
@@ -69,7 +74,11 @@ const BOARD_PREFIXES = ['/farm', '/ferma'] as const
 const under = (pathname: string, prefixes: readonly string[]) =>
   prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))
 
-export function isTabActive(tab: (typeof TABS)[number], pathname: string, routerActive: boolean): boolean {
+export function isTabActive(
+  tab: (typeof TABS)[number],
+  pathname: string,
+  routerActive: boolean,
+): boolean {
   if (tab.to === '/board') return routerActive || under(pathname, BOARD_PREFIXES)
   if (tab.to !== '/') return routerActive
   return pathname === '/' || under(pathname, PLAY_PREFIXES)

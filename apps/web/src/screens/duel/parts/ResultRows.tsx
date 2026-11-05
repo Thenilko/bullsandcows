@@ -18,13 +18,21 @@ const TAG_UNSOLVED = { background: '#ECE5D2', color: 'var(--c-muted-aa)' } as co
 export function ResultRows({ rows }: { rows: readonly ResultRow[] }) {
   const { t } = useTranslation()
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, textAlign: 'left' }}>
       {rows.map((r, i) => (
-        <div key={r.kind} className="hrow rise" style={{ padding: 12, animationDelay: `${0.2 + i * 0.1}s` }}>
+        <div
+          key={r.kind}
+          className="hrow rise"
+          style={{ padding: 12, animationDelay: `${0.2 + i * 0.1}s` }}
+        >
           <Avatar kind={r.kind} rankKey={r.rankKey} species={r.species} size={38} />
           <b style={{ flex: 1, minWidth: 0 }}>{r.name}</b>
-          <span style={{ fontWeight: 800, color: '#4A5640' }}>{t('common.attemptsShort', { count: r.attempts })}</span>
-          <span style={{ fontWeight: 800, color: '#4A5640', fontVariantNumeric: 'tabular-nums' }}>{r.time}</span>
+          <span style={{ fontWeight: 800, color: '#4A5640' }}>
+            {t('common.attemptsShort', { count: r.attempts })}
+          </span>
+          <span style={{ fontWeight: 800, color: '#4A5640', fontVariantNumeric: 'tabular-nums' }}>
+            {r.time}
+          </span>
           <span className="tag" style={r.solved ? TAG_SOLVED : TAG_UNSOLVED}>
             {t(r.solved ? 'duel.result.solved' : 'duel.result.unsolved')}
           </span>

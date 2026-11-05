@@ -1,35 +1,42 @@
 import type { Len } from '@bc/game-core'
 import type { ClientMsg, PublicState } from '@bc/protocol'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { Shell } from '../../app/layouts/Shell'
-import { Card, Toast } from '../../components/ui'
+import { Toast } from '../../components/ui'
+import { useDueTip } from '../../features/coach/store'
 import { readMySecret } from '../../features/duel/mySecret'
 import { useDuelStore, type ToastInfo } from '../../features/duel/store'
-import { Notebook } from '../../features/notebook/Notebook'
+import { useBuzz } from '../../features/duel/useFeedback'
 import { NotebookSheet } from '../../features/notebook/NotebookSheet'
 import { NotesButton } from '../../features/notebook/NotesButton'
+import { useNotesSheet } from '../../features/notebook/sheet'
 import { useNotebook } from '../../features/notebook/store'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { useNow } from '../../hooks/useNow'
 import { sfx } from '../../lib/sound'
+import { GuessBoard, OppBoard, type BoardSection } from '../play/GuessBoard'
+import { PanelHead, PhoneHud } from '../play/PanelParts'
 import { toNotebookGuesses } from './notebookGuesses'
-import { GuessChips } from './parts/GuessChips'
-import { OppGuessesCard } from './parts/OppGuessesCard'
+import {
+  DuelDesktopPlay,
+  DuelGiveUp,
+  DuelInput,
+  DuelPills,
+  DuelStatus,
+  StripStack,
+  type DuelView,
+} from './parts/DuelPanel'
 import { OppStrip } from './parts/OppStrip'
 import { Overlay } from './parts/Overlay'
-import { PlayHeader } from './parts/PlayHeader'
-import { PlayPad } from './parts/PlayPad'
-import { DuelTopRow } from './parts/TopRow'
 import { playModel } from './playModel'
 import { playScene } from './scenes'
-import { useEndFlow } from './useEndFlow'
 import { useDuelKeyboard } from './useDuelKeyboard'
+import { useEndFlow } from './useEndFlow'
 import { useOppFeedback } from './useOppFeedback'
 import { usePlayInput } from './usePlayInput'
 import { useVerdictFeedback } from './useVerdictFeedback'
-import { useBuzz } from '../../features/duel/useFeedback'
 
 export interface DuelPlayProps {
   roomId: string
@@ -37,168 +44,161 @@ export interface DuelPlayProps {
   send(msg: ClientMsg): void
 }
 
+/** The solo play panel's top on the 390×844 artboard: duels hang the same board over the same scene. */
+const PANEL_TOP = 356
 const COL = { display: 'flex', flexDirection: 'column', gap: 'var(--panel-gap, 10px)' } as const
-// Phones: the keypad block never scrolls away; only the chips, the opponent card and „Предавам се“ below it do.
-// Desktop: the panel card scrolls as a whole, so the section keeps its natural height (`COL`).
-const SECTION = { ...COL, flex: '1 1 auto', minHeight: 0 } as const
-const HEAD = { ...COL, flex: 'none' } as const
-const TAIL = { ...COL, flex: '0 1 auto', minHeight: 0, overflowY: 'auto' } as const
-/** PasDuel mobile: a 290px scene that the panel overlaps by 24px. */
-const PANEL_TOP = 266
-const GIVE_UP = {
-  minHeight: 32,
-  fontSize: 13,
-  fontWeight: 800,
-  color: 'var(--c-muted-aa)',
-  textDecoration: 'underline',
-} as const
 
 /** The notebook's id: one per match, so a rematch in the same room starts with a clean page. */
 export const notebookId = (roomId: string, state: Pick<PublicState, 'startedAt'>): string =>
   state.startedAt === null ? roomId : `${roomId}:${state.startedAt}`
 
-/** The notebook of one match, like a solo game's by its id. */
-function useDuelNotebook(roomId: string, state: PublicState) {
-  const nb = useNotebook(notebookId(roomId, state))
+/** Classic: what the opponent has tried against my number, for the board. */
+export function oppSection(state: PublicState, label: string, empty: string): BoardSection {
+  const guesses = (state.opp?.guesses ?? []).flatMap((g) =>
+    g.guess === null ? [] : [{ guess: g.guess, bulls: g.bulls ?? 0, cows: g.cows ?? 0 }],
+  )
+  return { label, guesses, empty }
+}
+
+/** Derives everything the panel shows from the snapshot, the store and the clock. */
+function useDuelView(roomId: string, state: PublicState, send: (msg: ClientMsg) => void) {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const store = useDuelStore()
+  const ended = useEndFlow(roomId, state, (to) => void navigate(to, { replace: true }))
+  const input = usePlayInput(roomId, state, send)
+  const now = useNow(500, state.phase === 'playing' && !ended)
+  const nbId = notebookId(roomId, state)
+  const { marks } = useNotebook(nbId)
   const guesses = useMemo(
     () => toNotebookGuesses(state.me.guesses, state.len as Len, state.zero),
     [state.me.guesses, state.len, state.zero],
   )
-  return { marks: nb.marks, guesses, left: state.me.left }
-}
-
-export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
-  const desktop = useIsDesktop()
-  const buzz = useBuzz()
-  const store = useDuelStore()
-  const ended = useEndFlow(roomId, state, (to) => void navigate(to, { replace: true }))
-  useVerdictFeedback(store.verdict, buzz)
-  useOppFeedback(store.oppMoved)
-  const input = usePlayInput(roomId, state, send)
-  const now = useNow(500, state.phase === 'playing' && !ended)
-  const notebook = useDuelNotebook(roomId, state)
-  const nbId = notebookId(roomId, state)
-  const [notesOpen, setNotesOpen] = useState(false)
-  const opener = useRef<HTMLButtonElement>(null)
-  const closeNotes = useCallback(() => {
-    sfx.play('page')
-    setNotesOpen(false)
-    opener.current?.focus()
-  }, [])
-
   const m = playModel(state, store, now, ended)
-  useDuelKeyboard({
-    active: m.playing && (!m.classic || m.myTurn) && !notesOpen,
-    zero: state.zero,
-    press: input.press,
-    back: input.back,
-    submit: input.submit,
-  })
   const oppName = m.bot ? t('bot.name') : (state.opp?.username ?? '')
-  const title = m.bot
-    ? t('duel.title.playBot')
-    : t('duel.title.play', { format: t(`newGame.format.${state.format}.name`) })
   const mySecret = readMySecret(roomId)
-  const waitOverlay =
-    m.classic && m.playing && !m.myTurn
+  const waiting = m.classic && m.playing && !m.myTurn
+  const view: DuelView = {
+    state,
+    m,
+    title: m.bot
+      ? t('duel.title.playBot')
+      : t('duel.title.play', { format: t(`newGame.format.${state.format}.name`) }),
+    oppName,
+    clockMs: state.startedAt ? (state.endedAt ?? now) - state.startedAt : 0,
+    cur: store.cur,
+    sel: store.sel,
+    shake: store.shake,
+    errCode: store.errCode,
+    marks,
+    nbId,
+    guesses,
+    wait: waiting
       ? {
           title: m.bot ? t('duel.play.botThinking') : t('duel.play.oppThinking', { name: oppName }),
           secret: mySecret,
         }
-      : null
-  const notesButton = desktop ? null : (
-    <NotesButton
-      buttonRef={opener}
-      gameId={nbId}
-      onClick={() => {
-        sfx.play('page')
-        setNotesOpen(true)
-      }}
+      : null,
+    opp: m.classic
+      ? oppSection(
+          state,
+          t('duel.play.oppVs', { name: oppName, secret: mySecret }),
+          t('duel.play.noOppGuesses'),
+        )
+      : undefined,
+    input,
+    onGiveUp: () => send({ t: 'giveUp' }),
+  }
+  return { view, store }
+}
+
+/** Phones: the solo panel — status with the notebook and sound buttons, signs, keypad; „Предавам се“ in the notebook. */
+function DuelMobilePlay({ v }: { v: DuelView }) {
+  const { open, show, hide } = useNotesSheet()
+  const opener = useRef<HTMLButtonElement>(null)
+  const tip = useDueTip(v.m.playing, v.state.me.guesses.length)
+  useEffect(() => hide, [hide])
+  const close = useCallback(() => {
+    sfx.play('page')
+    hide()
+    opener.current?.focus()
+  }, [hide])
+  return (
+    <section aria-label={v.title} style={COL}>
+      <PanelHead
+        notes={
+          <NotesButton
+            buttonRef={opener}
+            gameId={v.nbId}
+            tip={tip === 'notes'}
+            onClick={() => {
+              sfx.play('page')
+              show()
+            }}
+          />
+        }
+      >
+        <DuelStatus v={v} />
+      </PanelHead>
+      <DuelInput v={v} desktop={false} />
+      {open ? (
+        <NotebookSheet
+          gameId={v.nbId}
+          guesses={v.guesses}
+          left={v.state.me.left}
+          onClose={close}
+          footer={<DuelGiveUp v={v} />}
+        />
+      ) : null}
+    </section>
+  )
+}
+
+/** A duel or a bot match in progress: the solo play screen with the opponent strip over the scene. */
+export function DuelPlay({ roomId, state, send }: DuelPlayProps) {
+  const desktop = useIsDesktop()
+  const buzz = useBuzz()
+  const { view: v, store } = useDuelView(roomId, state, send)
+  const notesOpen = useNotesSheet((s) => s.open)
+  useVerdictFeedback(store.verdict, buzz)
+  useOppFeedback(store.oppMoved)
+  useDuelKeyboard({
+    active: v.m.playing && (!v.m.classic || v.m.myTurn) && !notesOpen,
+    zero: state.zero,
+    press: v.input.press,
+    back: v.input.back,
+    submit: v.input.submit,
+  })
+  const oppStrip = (
+    <OppStrip state={state} oppName={v.oppName} status={v.m.oppStatus} thinking={v.m.botTurn} />
+  )
+  const pills = <DuelPills v={v} desktop={desktop} />
+  const hud = desktop ? (
+    pills
+  ) : (
+    <PhoneHud
+      pills={pills}
+      board={<GuessBoard guesses={v.guesses} started={v.m.playing} opp={v.opp} />}
     />
   )
+  const strip =
+    desktop && v.opp ? (
+      <StripStack board={<OppBoard section={v.opp} />} strip={oppStrip} />
+    ) : (
+      oppStrip
+    )
 
   return (
     <Shell
       scene={playScene(state, store.parity, store.miss)}
-      screen="duel"
+      screen="play"
       panelTop={PANEL_TOP}
-      hudAt="bottom"
-      hud={<OppStrip state={state} oppName={oppName} status={m.oppStatus} thinking={m.botTurn} />}
-      topHud={<DuelTopRow title={title} extra={notesButton} />}
+      fit
+      hud={hud}
+      strip={strip}
     >
-      <section aria-label={title} style={desktop ? COL : SECTION}>
-        <div style={HEAD}>
-          <PlayHeader
-            attempt={state.me.guesses.length + 1}
-            turn={m.classic ? (m.myTurn ? 'me' : 'opp') : null}
-            msLeft={m.msLeft}
-            warn={m.warn}
-            clockMs={state.startedAt ? (state.endedAt ?? now) - state.startedAt : 0}
-          />
-          <PlayPad
-            state={state}
-            cur={store.cur}
-            sel={store.sel}
-            shake={store.shake}
-            errCode={store.errCode}
-            disabled={!m.playing || (m.classic && !m.myTurn)}
-            desktop={desktop}
-            marks={notebook.marks}
-            overlay={waitOverlay}
-            onPress={input.press}
-            onBack={input.back}
-            onSubmit={input.submit}
-            onSelect={input.select}
-          />
-        </div>
-        <div style={TAIL}>
-          <GuessChips guesses={state.me.guesses} label={t('duel.play.myGuesses')} />
-          {m.classic ? (
-            <OppGuessesCard state={state} oppName={oppName} mySecret={mySecret} />
-          ) : (
-            <p
-              className="cmp-hide"
-              style={{
-                margin: 0,
-                fontSize: 12,
-                fontWeight: 700,
-                color: 'var(--c-muted-aa)',
-                textAlign: 'center',
-              }}
-            >
-              {m.botTurn ? t('duel.play.botThinking') : t('duel.play.raceNote', { name: oppName })}
-            </p>
-          )}
-          <button
-            type="button"
-            disabled={!m.playing}
-            style={GIVE_UP}
-            onClick={() => send({ t: 'giveUp' })}
-          >
-            {t('duel.play.giveUp')}
-          </button>
-        </div>
-      </section>
-      {desktop ? (
-        <Card
-          role="region"
-          aria-label={t('notebook.title')}
-          style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}
-        >
-          <Notebook gameId={nbId} guesses={notebook.guesses} left={notebook.left} layout="card" />
-        </Card>
-      ) : null}
-      {notesOpen ? (
-        <NotebookSheet
-          gameId={nbId}
-          guesses={notebook.guesses}
-          left={notebook.left}
-          onClose={closeNotes}
-        />
-      ) : null}
-      <OppToast toast={store.toast} name={oppName} />
+      {desktop ? <DuelDesktopPlay v={v} /> : <DuelMobilePlay v={v} />}
+      <OppToast toast={store.toast} name={v.oppName} />
     </Shell>
   )
 }

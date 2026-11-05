@@ -2,7 +2,13 @@ import { wideSunY } from '@bc/game-core'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, useLocation, useNavigate } from 'react-router'
-import { WIDE_VIEWBOX, WideScene, wideSceneAnimals, type SceneMode, type Tally } from '../../components/scene'
+import {
+  WIDE_VIEWBOX,
+  WideScene,
+  wideSceneAnimals,
+  type SceneMode,
+  type Tally,
+} from '../../components/scene'
 import { cx } from '../../components/ui/cx'
 import {
   HomeIcon,
@@ -93,7 +99,16 @@ function Nav() {
 
 function FlameIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="#F2C230" stroke="#B5452F" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="#F2C230"
+      stroke="#B5452F"
+      strokeWidth="2"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d="M12 2c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-5.5 1-8.5z" />
     </svg>
   )
@@ -117,7 +132,12 @@ function PlayerChips() {
         aria-label={`${t('nav.profile')}: ${me.profile.username}`}
         data-testid="header-player"
       >
-        <RankAvatar species={me.profile.avatarSpecies} rankKey={me.rankKey} size={34} gold={me.goldFrame === true} />
+        <RankAvatar
+          species={me.profile.avatarSpecies}
+          rankKey={me.rankKey}
+          size={34}
+          gold={me.goldFrame === true}
+        />
         <span className="dk-me-name">{me.profile.username}</span>
       </NavLink>
     </>
@@ -143,7 +163,11 @@ function Header({ bare, title }: { bare: boolean; title?: string }) {
       </div>
       {bare ? null : <Nav />}
       <div className="dk-tools">
-        {showNewGame ? <Soft small onClick={() => void navigate('/new')}>{t('common.newGame')}</Soft> : null}
+        {showNewGame ? (
+          <Soft small onClick={() => void navigate('/new')}>
+            {t('common.newGame')}
+          </Soft>
+        ) : null}
         {bare ? <LangSwitch /> : <PlayerChips />}
         <button
           type="button"
@@ -163,14 +187,27 @@ function Header({ bare, title }: { bare: boolean; title?: string }) {
  * 820px of height: full-bleed scene) or `dk-split` (scene card on the left, column on the right) and
  * `sc-<screen>`; dk.css places the header, hud, column and opponent strip per mode and screen.
  */
-export function DesktopShell({ scene, screen, children, title, bare = false, hud, hudAt = 'top' }: ShellProps) {
+export function DesktopShell({
+  scene,
+  screen,
+  children,
+  title,
+  bare = false,
+  hud,
+  hudAt = 'top',
+  strip: stripNode,
+}: ShellProps) {
   const { t } = useTranslation()
   const mode = useDesktopMode()
   const immersive = mode === 'immersive'
   // The opponent strip: bottom-left of the full-bleed scene, or inside the scene card.
-  const strip = hud && hudAt === 'bottom' ? <div className="dk-strip">{hud}</div> : null
+  const bottom = stripNode ?? (hudAt === 'bottom' ? hud : null)
+  const strip = bottom ? <div className="dk-strip">{bottom}</div> : null
   // Top chips (fog, clock): the immersive layout shows them only over the game.
-  const chips = hud && hudAt === 'top' && (!immersive || screen === 'play') ? <div className="dk-hud">{hud}</div> : null
+  const chips =
+    hud && hudAt === 'top' && (!immersive || screen === 'play') ? (
+      <div className="dk-hud">{hud}</div>
+    ) : null
 
   return (
     <div className={cx('dk', immersive ? 'dk-imm' : 'dk-split', `sc-${screen}`)} data-mode={mode}>

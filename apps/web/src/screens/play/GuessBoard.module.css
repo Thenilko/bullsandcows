@@ -7,7 +7,9 @@
   margin: 10px auto 0;
   display: flex;
   flex-direction: column;
-  max-height: calc(100cqh - 12px - 44px - 10px - var(--overlap, 26px) - 12px);
+  max-height: calc(
+    100cqh - 12px - 44px - 10px - var(--overlap, 26px) - 12px - var(--board-reserve, 0px)
+  );
   padding: 8px 10px 6px;
   border-radius: 12px;
   /* Walnut, darker than the digit signs: the cream text keeps at least 4.5:1 on it. */
@@ -25,13 +27,46 @@
 }
 
 .rows {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   cursor: pointer;
   scrollbar-width: thin;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* The opponent's list (classic duel): a small caption on the wood, then their rows. */
+.sub {
+  margin: 4px 0 2px;
+  padding-top: 4px;
+  font-size: 12px;
+  font-weight: 900;
+  text-shadow: 0 1px 0 rgba(70, 40, 15, 0.45);
+}
+
+.list + .sub {
+  border-top: 2px solid rgba(255, 248, 234, 0.35);
+}
+
+.empty {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* Desktop: the plank beside the opponent strip, never taller than four rows. */
+.side {
+  margin: 0;
+  max-height: none;
+}
+
+.side .rows {
+  max-height: 128px;
+  cursor: auto;
 }
 
 .row {

@@ -1,15 +1,7 @@
 import type { GameViewDto } from '@bc/protocol'
 import { useCallback, useLayoutEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
-import {
-  Chip,
-  Hud,
-  Keypad,
-  Slots,
-  Soft,
-} from '../../components/ui'
-import { SoundIconButton } from '../../components/ui/SoundIconButton'
+import { Chip, Hud } from '../../components/ui'
 import { Notebook } from '../../features/notebook/Notebook'
 import { NotebookSheet } from '../../features/notebook/NotebookSheet'
 import { NotesButton } from '../../features/notebook/NotesButton'
@@ -23,6 +15,7 @@ import { useAverageAttempts } from '../../features/solo/useDistribution'
 import { useDesktopMode } from '../../hooks/useDesktopMode'
 import { sfx } from '../../lib/sound'
 import { errorText, formatClock, modeText } from './format'
+import { GameInput, GiveUpButton, PanelHead, PhoneHud, PlayStatus } from './PanelParts'
 import { StartCountdown, StartOverlay } from './StartOverlay'
 
 export interface PlayPanelProps {
@@ -31,15 +24,8 @@ export interface PlayPanelProps {
   desktop: boolean
 }
 
-const ERR_STYLE = {
-  margin: 0,
-  minHeight: 16,
-  textAlign: 'center',
-  fontWeight: 800,
-  color: '#8A1F0B',
-} as const
-const GIVE_UP_STYLE = { color: '#8A1F0B' } as const
-const ELLIPSIS = { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } as const
+export { ExitButton } from './PanelParts'
+
 const TITLE_ROW = {
   display: 'flex',
   justifyContent: 'space-between',
@@ -63,25 +49,25 @@ function Status({ game }: { game: GameViewDto }) {
   const { t } = useTranslation()
   const last = game.guesses.at(-1)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
-      <span style={{ fontWeight: 900, fontSize: 15 }}>
-        {t('play.attemptMode', { attempt: game.attempts + 1, mode: modeText(t, game) })}
-      </span>
-      {last ? (
-        <span style={{ ...ELLIPSIS, fontWeight: 700, fontSize: 13, color: '#4A5640' }}>
-          {t('play.last', {
-            guess: last.guess,
-            bulls: t('common.bull', { count: last.bulls }),
-            cows: t('common.cow', { count: last.cows }),
-          })}
-        </span>
-      ) : null}
-      {game.practice ? (
-        <Chip style={{ alignSelf: 'flex-start', marginTop: 4, padding: '2px 8px', fontSize: 12 }}>
-          {t('common.practice')}
-        </Chip>
-      ) : null}
-    </div>
+    <PlayStatus
+      title={t('play.attemptMode', { attempt: game.attempts + 1, mode: modeText(t, game) })}
+      line={
+        last
+          ? t('play.last', {
+              guess: last.guess,
+              bulls: t('common.bull', { count: last.bulls }),
+              cows: t('common.cow', { count: last.cows }),
+            })
+          : null
+      }
+      after={
+        game.practice ? (
+          <Chip style={{ alignSelf: 'flex-start', marginTop: 4, padding: '2px 8px', fontSize: 12 }}>
+            {t('common.practice')}
+          </Chip>
+        ) : null
+      }
+    />
   )
 }
 
@@ -90,32 +76,22 @@ export function Input({ game, g, desktop }: PlayPanelProps) {
   const { ui } = g
   const { marks } = useNotebook(game.id)
   return (
-    <>
-      <Slots
-        len={game.len}
-        current={ui.cur}
-        active={g.started && !g.finished}
-        shake={ui.shake}
-        big={desktop}
-        selected={ui.sel}
-        onSelect={g.select}
-      />
-      <p role="status" style={{ ...ERR_STYLE, fontSize: desktop ? 14 : 13 }}>
-        {errorText(t, ui.err, game.len, ui.cur)}
-      </p>
-      <Keypad
-        len={game.len}
-        zero={game.zero}
-        current={ui.cur}
-        selected={ui.sel}
-        marks={marks}
-        disabled={!g.started || g.finished}
-        onPress={g.press}
-        onBack={g.back}
-        onSubmit={() => void g.submit()}
-        layout={desktop ? 'desktop' : 'mobile'}
-      />
-    </>
+    <GameInput
+      len={game.len}
+      zero={game.zero}
+      cur={ui.cur}
+      sel={ui.sel}
+      shake={ui.shake}
+      active={g.started && !g.finished}
+      disabled={!g.started || g.finished}
+      error={errorText(t, ui.err, game.len, ui.cur)}
+      marks={marks}
+      desktop={desktop}
+      onPress={g.press}
+      onBack={g.back}
+      onSubmit={() => void g.submit()}
+      onSelect={g.select}
+    />
   )
 }
 
@@ -135,17 +111,7 @@ export function Gate({ g }: { g: GameApi }) {
 }
 
 export function GiveUp({ g }: { g: GameApi }) {
-  const { t } = useTranslation()
-  return (
-    <Soft
-      small
-      style={GIVE_UP_STYLE}
-      disabled={!g.started || g.finished}
-      onClick={() => void g.giveUp()}
-    >
-      {t('notebook.giveUp')}
-    </Soft>
-  )
+  return <GiveUpButton disabled={!g.started || g.finished} onClick={() => void g.giveUp()} />
 }
 
 /**
@@ -175,19 +141,21 @@ export function MobilePlay({
       aria-label={t('play.inputArea')}
       style={{ display: 'flex', flexDirection: 'column', gap: 'var(--panel-gap, 10px)' }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <PanelHead
+        notes={
+          <NotesButton
+            buttonRef={opener}
+            gameId={game.id}
+            tip={tip === 'notes'}
+            onClick={() => {
+              sfx.play('page')
+              show()
+            }}
+          />
+        }
+      >
         <Status game={game} />
-        <NotesButton
-          buttonRef={opener}
-          gameId={game.id}
-          tip={tip === 'notes'}
-          onClick={() => {
-            sfx.play('page')
-            show()
-          }}
-        />
-        <SoundIconButton />
-      </div>
+      </PanelHead>
       <Input game={game} g={g} desktop={false} />
       <Overlay game={game} g={g} desktop={false} />
       <Gate g={g} />
@@ -253,41 +221,6 @@ const HUD_ROW = {
   alignItems: 'center',
 } as const
 
-function BackChevron() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M15 5l-7 7 7 7" />
-    </svg>
-  )
-}
-
-/** „‹ Меню“: shown by `.ps-exit` only in focus mode (compact phones hide the tab bar); leads to the leaderboard, as in PasMobile `exitPlay`. */
-export function ExitButton() {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
-  return (
-    <button
-      type="button"
-      className="ps-hud ps-exit"
-      aria-label={t('play.exitAria')}
-      onClick={() => void navigate('/board')}
-    >
-      <BackChevron />
-      {t('play.exit')}
-    </button>
-  )
-}
-
 /** HUD chips shown over the scene (M3 / D3). */
 export function PlayHud({ game, g, desktop }: PlayPanelProps) {
   const { t } = useTranslation()
@@ -305,13 +238,5 @@ export function PlayHud({ game, g, desktop }: PlayPanelProps) {
     <Hud items={items} style={{ ...HUD_ROW, flex: 1, fontSize: desktop ? 15 : undefined }} />
   )
   if (desktop) return hud
-  return (
-    <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <ExitButton />
-        {hud}
-      </div>
-      <GuessBoard guesses={game.guesses} started={g.started} />
-    </>
-  )
+  return <PhoneHud pills={hud} board={<GuessBoard guesses={game.guesses} started={g.started} />} />
 }

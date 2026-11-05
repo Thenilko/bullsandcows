@@ -7,15 +7,17 @@ import { invalidateBadges } from '../../features/stats/useBadges'
 import { invalidatePasture } from '../../features/pasture/usePasture'
 import { useUnlocks } from '../../features/pasture/unlockStore'
 import { useBuzz } from '../../features/duel/useFeedback'
+import { WIN_DELAY_MS } from '../../features/solo/feedback'
 import { sfx } from '../../lib/sound'
 import { outcomeOf } from './duelUtils'
 
-export const RESULT_DELAY_MS = 1400
+/** As in the solo game: the last verdict plays out, then the result (and its confetti) comes quickly. */
+export const RESULT_DELAY_MS = WIN_DELAY_MS
 const WIN_BUZZ = [40, 60, 40, 60, 160]
 const LOSE_BUZZ = [80]
 
 /**
- * On match end: win/lose sound and vibration, then the result route after 1400 ms, where the new badge
+ * On match end: win/lose sound and vibration, then the result route after `RESULT_DELAY_MS` (the solo 900 ms), where the new badge
  * tiers (from `ended`) pop up one by one. Returns whether it ended.
  */
 export function useEndFlow(roomId: string, state: PublicState, go: (to: string) => void): boolean {

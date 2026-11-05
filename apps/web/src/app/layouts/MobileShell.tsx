@@ -21,6 +21,7 @@ export function MobileShell({
   hudAt = 'top',
   topHud,
   sceneTop,
+  strip,
 }: ShellProps) {
   const { t } = useTranslation()
   const { pathname } = useLocation()
@@ -50,7 +51,10 @@ export function MobileShell({
             <PastureScene {...scene} pasture={pasture} label={t('nav.play')} />
           </div>
           {topHud ? <div className={styles.hudTop}>{topHud}</div> : null}
-          {hud ? <div className={hudAt === 'bottom' ? styles.hudBottom : styles.hudTop}>{hud}</div> : null}
+          {hud ? (
+            <div className={hudAt === 'bottom' ? styles.hudBottom : styles.hudTop}>{hud}</div>
+          ) : null}
+          {strip ? <div className={styles.hudBottom}>{strip}</div> : null}
         </div>
         <main id="main" className={cx('panel', styles.panelBody)}>
           {children}

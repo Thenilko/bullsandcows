@@ -1,20 +1,24 @@
-import type { ClientMsg, PublicState, RatingChangeDto } from '@bc/protocol'
-import { useState } from 'react'
+import type { ClientMsg, PublicState } from '@bc/protocol'
+import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { Shell } from '../../app/layouts/Shell'
-import { Card, Confetti, Soft } from '../../components/ui'
-import { clearRoomSession } from '../../features/duel/useRoom'
+import { Chip, Soft } from '../../components/ui'
 import { clearMySecret } from '../../features/duel/mySecret'
 import { useDuelStore } from '../../features/duel/store'
+import { clearRoomSession } from '../../features/duel/useRoom'
 import { shareFromDuel, type ShareModel } from '../../features/share/shareModel'
 import { ShareSheet } from '../../features/share/ShareSheet'
-import { rankKeyOf } from '../../lib/rank'
+import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { sfx } from '../../lib/sound'
-import { botLevelKey, fmtClock, outcomeOf, type Outcome } from './duelUtils'
+import { ResultCard, Tiles } from '../result/ResultCard'
+import { buildRows, kickerOf, reasonKey, tilesOf } from './duelResultModel'
+import { botLevelKey, outcomeOf } from './duelUtils'
 import { RematchButton } from './parts/RematchButton'
-import { ResultRows, type ResultRow } from './parts/ResultRows'
+import { ResultRows } from './parts/ResultRows'
 import { resultScene } from './scenes'
+
+export { reasonKey } from './duelResultModel'
 
 export interface DuelResultProps {
   roomId: string
@@ -24,28 +28,67 @@ export interface DuelResultProps {
   sharing?: boolean
 }
 
-const HEAD_COLOR: Readonly<Record<Outcome, string>> = { win: '#B5452F', lose: '#4A5640', draw: '#4A7FB0' }
-const COL = { display: 'flex', flexDirection: 'column', gap: 12 } as const
+const MUTED = { margin: 0, fontWeight: 700, color: '#4A5640', lineHeight: 1.45 } as const
+const LINK = {
+  minHeight: 36,
+  fontWeight: 800,
+  color: '#8E3424',
+  textDecoration: 'underline',
+} as const
 
-/** Which `outcome.reason.*` line explains the ending, if any. */
-export function reasonKey(reason: string, outcome: Outcome): string | null {
-  const side = outcome === 'win' ? 'Opp' : 'Self'
-  switch (reason) {
-    case 'giveUp':
-      return `outcome.reason.forfeit${side}`
-    case 'timeout':
-      return `outcome.reason.timeout${side}`
-    case 'disconnect':
-      return `outcome.reason.disconnect${side}`
-    case 'cap':
-      return 'outcome.reason.ceiling'
-    default:
-      return null
+/** „Дуел · Класически“ / „Срещу Плашилото · Лесно“ — the chip under the title and the kicker's fallback. */
+function useModeLabels(state: PublicState) {
+  const { t, i18n } = useTranslation()
+  const upper = (s: string) => s.toLocaleUpperCase(i18n.language)
+  if (state.opponentKind === 'bot') {
+    const level = t(`bot.level.${botLevelKey(state.botLevel)}.name`)
+    return {
+      chip: t('duel.result.mode.bot', { level }),
+      kicker: t('duel.result.kicker.bot', { level: upper(level) }),
+    }
+  }
+  const format = t(`newGame.format.${state.format}.name`)
+  return {
+    chip: t('duel.title.play', { format }),
+    kicker: t('duel.result.kicker.duel', { format: upper(format) }),
   }
 }
 
+interface ActionsProps {
+  rematch: ReactNode
+  onNewGame(): void
+  onShare(): void
+}
+
+/** As the solo result: the main button wide; on phones „Сподели“ is the link under the buttons. */
+function Actions({ rematch, onNewGame, onShare }: ActionsProps) {
+  const { t } = useTranslation()
+  const desktop = useIsDesktop()
+  if (desktop) {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 10 }}>
+        {rematch}
+        <Soft onClick={onNewGame}>{t('duel.result.newGame')}</Soft>
+        <Soft onClick={onShare}>{t('common.share')}</Soft>
+      </div>
+    )
+  }
+  return (
+    <>
+      <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 10 }}>
+        {rematch}
+        <Soft onClick={onNewGame}>{t('duel.result.newGame')}</Soft>
+      </div>
+      <button type="button" onClick={onShare} style={LINK}>
+        {t('common.share')}
+      </button>
+    </>
+  )
+}
+
+/** The end of a duel or a bot match: the solo result card with both players, the tiles and the rematch. */
 export function DuelResult({ roomId, state, send, sharing = false }: DuelResultProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const ended = useDuelStore((s) => s.ended)
   const offer = useDuelStore((s) => s.rematchOffer)
@@ -56,16 +99,22 @@ export function DuelResult({ roomId, state, send, sharing = false }: DuelResultP
   const reason = ended?.reason ?? state.outcome?.reason ?? 'solved'
   const bot = state.opponentKind === 'bot'
   const oppName = bot ? t('bot.name') : (state.opp?.username ?? '')
-  const rows = buildRows(state, outcome, reason, oppName, t('common.youNamed', { name: state.me.username }), bot)
-  const secrets = ended?.secrets ?? state.secrets
+  const mode = useModeLabels(state)
+  const myName = t('common.youNamed', { name: state.me.username })
+  const rows = buildRows(state, outcome, reason, { me: myName, opp: oppName })
   const explain = reasonKey(reason, outcome)
-  const formatLabel = t(`newGame.format.${state.format}.name`)
-  const kicker = bot
-    ? t('duel.result.kicker.bot', { level: t(`bot.level.${botLevelKey(state.botLevel)}.name`).toLocaleUpperCase(i18n.language) })
-    : t('duel.result.kicker.duel', { format: formatLabel.toLocaleUpperCase(i18n.language) })
-  const sub = outcome === 'win' ? t('duel.result.sub.winOpp', { name: oppName }) : outcome === 'draw' ? t('duel.result.sub.draw') : reason === 'solved' ? t('duel.result.sub.loseOpp', { name: oppName }) : t('duel.result.sub.lose')
+  const sub =
+    outcome === 'win'
+      ? t('duel.result.sub.winOpp', { name: oppName })
+      : outcome === 'draw'
+        ? t('duel.result.sub.draw')
+        : reason === 'solved'
+          ? t('duel.result.sub.loseOpp', { name: oppName })
+          : t('duel.result.sub.lose')
   const gameId = ended?.gameId ?? state.me.gameId ?? null
-  const [share, setShare] = useState<ShareModel | null>(() => (sharing ? shareFromDuel(state, outcome, oppName, gameId) : null))
+  const [share, setShare] = useState<ShareModel | null>(() =>
+    sharing ? shareFromDuel(state, outcome, oppName, gameId) : null,
+  )
 
   function openShare() {
     sfx.play('tap')
@@ -81,91 +130,34 @@ export function DuelResult({ roomId, state, send, sharing = false }: DuelResultP
   }
 
   return (
-    <Shell scene={resultScene(outcome === 'win', state.len)} screen="duel">
-      <section aria-label={t('result.area')} style={COL}>
-        <ResultHeader kicker={kicker} outcome={outcome} sub={sub} explain={explain ? t(explain, { name: oppName }) : null} />
+    <Shell scene={resultScene(outcome === 'win', state.len)} screen="result">
+      <ResultCard
+        kicker={kickerOf(t, state, ended?.secrets ?? state.secrets, outcome, mode.kicker)}
+        title={t(`outcome.${outcome}`)}
+        won={outcome === 'win'}
+      >
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <Chip>{mode.chip}</Chip>
+        </div>
+        <p style={MUTED}>{sub}</p>
+        {explain ? (
+          <p style={{ ...MUTED, fontSize: 14, fontWeight: 800 }}>{t(explain, { name: oppName })}</p>
+        ) : null}
         <ResultRows rows={rows} />
-        {rating ? <RatingCard rating={rating} /> : null}
-        <div className="inset" style={{ padding: '10px 14px', fontWeight: 800, fontSize: 14, textAlign: 'center' }}>
-          {secretsLine(t, state, secrets, xp)}
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
-          <RematchButton offer={offer} oppName={oppName} onRematch={() => send({ t: 'rematch' })} />
-          <Soft onClick={newGame}>{t('duel.result.newGame')}</Soft>
-        </div>
-        <Soft small onClick={openShare}>
-          {t('common.share')}
-        </Soft>
-      </section>
-      <Confetti active={outcome === 'win'} />
+        <Tiles tiles={tilesOf(t, state, xp, rating)} />
+        <Actions
+          rematch={
+            <RematchButton
+              offer={offer}
+              oppName={oppName}
+              onRematch={() => send({ t: 'rematch' })}
+            />
+          }
+          onNewGame={newGame}
+          onShare={openShare}
+        />
+      </ResultCard>
       {share ? <ShareSheet model={share} onClose={() => setShare(null)} /> : null}
     </Shell>
-  )
-}
-
-function secretsLine(t: ReturnType<typeof useTranslation>['t'], state: PublicState, secrets: PublicState['secrets'], xp: number | null): string {
-  if (!secrets) return ''
-  const text =
-    state.format === 'classic'
-      ? t('duel.result.secrets.classic', { theirs: secrets.theirs ?? '—', mine: secrets.mine ?? '—' })
-      : t('duel.result.secrets.race', { secret: secrets.mine ?? secrets.theirs ?? '—' })
-  return xp === null ? text : t('duel.result.secretsXp', { secrets: text, xp })
-}
-
-function buildRows(state: PublicState, outcome: Outcome, reason: string, oppName: string, myName: string, bot: boolean): ResultRow[] {
-  const mine = state.me.guesses.some((g) => g.bulls === state.len)
-  const theirs = state.opp?.guesses.some((g) => g.bulls === state.len) === true
-  const mySolved = mine || (reason === 'solved' && outcome !== 'lose')
-  const oppSolved = theirs || (reason === 'solved' && outcome !== 'win')
-  const clock = state.startedAt && state.endedAt ? fmtClock(state.endedAt - state.startedAt) : '—'
-  return [
-    {
-      name: myName,
-      kind: 'me',
-      rankKey: rankKeyOf(state.me),
-      species: state.me.avatarSpecies,
-      attempts: state.me.guesses.length,
-      time: mySolved ? clock : '—',
-      solved: mySolved,
-    },
-    {
-      name: oppName,
-      kind: bot ? 'bot' : 'human',
-      rankKey: state.opp ? rankKeyOf(state.opp) : undefined,
-      species: state.opp?.avatarSpecies,
-      attempts: state.opp?.guesses.length ?? 0,
-      time: oppSolved ? clock : '—',
-      solved: oppSolved,
-    },
-  ]
-}
-
-function ResultHeader({ kicker, outcome, sub, explain }: { kicker: string; outcome: Outcome; sub: string; explain: string | null }) {
-  const { t } = useTranslation()
-  return (
-    <div style={{ ...COL, alignItems: 'center', textAlign: 'center', gap: 10 }}>
-      <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: '.12em', color: 'var(--c-muted-aa)' }}>{kicker}</span>
-      <h1 className="boing" style={{ margin: 0, fontSize: 40, fontWeight: 900, lineHeight: 1, color: HEAD_COLOR[outcome] }}>
-        {t(`outcome.${outcome}`)}
-      </h1>
-      <p style={{ margin: 0, fontWeight: 700, color: '#4A5640', lineHeight: 1.45 }}>{sub}</p>
-      {explain ? <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: '#6B7560' }}>{explain}</p> : null}
-    </div>
-  )
-}
-
-function RatingCard({ rating }: { rating: RatingChangeDto }) {
-  const { t } = useTranslation()
-  return (
-    <Card style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <span style={{ fontSize: 12, fontWeight: 900, letterSpacing: '.1em', color: '#6B7560' }}>{t('duel.result.rating')}</span>
-        <span style={{ fontWeight: 900, fontSize: 18 }}>{t('duel.result.ratingChange', { from: rating.from, to: rating.to })}</span>
-      </div>
-      <span className="boing" style={{ fontSize: 30, fontWeight: 900, color: rating.delta >= 0 ? '#2E7D32' : '#B5452F', animationDelay: '.4s' }}>
-        {rating.delta >= 0 ? '+' : ''}
-        {rating.delta}
-      </span>
-    </Card>
   )
 }

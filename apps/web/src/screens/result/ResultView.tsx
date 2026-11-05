@@ -1,51 +1,15 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Chip, Confetti, Cta, Inset, RankHead, Soft } from '../../components/ui'
+import { Chip, Cta, RankHead, Soft } from '../../components/ui'
 import { Bar } from '../../components/ui/Bar'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
+import { ResultCard, Tiles } from './ResultCard'
 import type { ResultModel } from './resultModel'
 
 const STAR_PATH = 'M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z'
 const STAR_COUNT = 5
 const STAR_ON = '#F2C230'
 const STAR_OFF = '#F3EEDF'
-const FULL_SCREEN = { position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 20 } as const
-// Desktop (Desk.dc.html): the dim at 19, the modal at 20 and the confetti at 21 sit above the shell header (6).
-const OVERLAY = { position: 'fixed', inset: 0, zIndex: 10 } as const
-const OVERLAY_DESKTOP = { ...OVERLAY, zIndex: 19 } as const
-const CONFETTI_DESKTOP = { ...FULL_SCREEN, zIndex: 21 } as const
-const SHEET_BASE = {
-  position: 'fixed',
-  zIndex: 11,
-  background: '#FFFDF6',
-  display: 'flex',
-  flexDirection: 'column',
-  textAlign: 'center',
-  overflowY: 'auto',
-} as const
-const SHEET_MOBILE = {
-  ...SHEET_BASE,
-  left: 10,
-  right: 10,
-  bottom: 10,
-  maxHeight: 'calc(100dvh - 20px)',
-  borderRadius: 28,
-  boxShadow: '0 18px 40px rgba(30,40,20,.3)',
-} as const
-const SHEET_DESKTOP = {
-  ...SHEET_BASE,
-  zIndex: 20,
-  left: 0,
-  right: 0,
-  top: 90,
-  margin: '0 auto',
-  width: 'min(560px, calc(100% - 32px))',
-  maxHeight: 'calc(100dvh - 110px)',
-  padding: '30px 28px 24px',
-  borderRadius: 30,
-  boxShadow: '0 24px 60px rgba(30,40,20,.35)',
-  gap: 14,
-} as const
 const MUTED = { fontWeight: 700, color: '#4A5640', lineHeight: 1.45 } as const
 
 export interface ResultViewProps {
@@ -112,15 +76,6 @@ function TopBadge({ model, desktop }: { model: ResultModel; desktop: boolean }) 
         {t(model.daily ? 'result.beatToday' : 'result.beat', { beat: model.beat })}
       </div>
     </div>
-  )
-}
-
-function Tile({ value, label, tint }: { value: string | number; label: string; tint?: string }) {
-  return (
-    <Inset style={{ padding: '8px 2px', background: tint }}>
-      <div style={{ fontSize: 20, fontWeight: 900 }}>{value}</div>
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#4A5640' }}>{label}</div>
-    </Inset>
   )
 }
 
@@ -196,60 +151,47 @@ function Actions({
 }
 
 /** M5 bottom sheet / D5 centred card over a dimmed pasture. */
-export function ResultView({ model, shareLabel, onAgain, onShare, onBoard, footer }: ResultViewProps) {
+export function ResultView({
+  model,
+  shareLabel,
+  onAgain,
+  onShare,
+  onBoard,
+  footer,
+}: ResultViewProps) {
   const { t } = useTranslation()
   const desktop = useIsDesktop()
   return (
-    <>
-      <div
-        className="fadein"
-        data-testid="result-overlay"
-        style={desktop ? { ...OVERLAY_DESKTOP, background: 'rgba(30,40,20,.35)' } : { ...OVERLAY, background: 'rgba(30,40,20,.4)' }}
-      />
-      <div style={desktop ? CONFETTI_DESKTOP : FULL_SCREEN}>
-        <Confetti active={model.won} />
+    <ResultCard
+      kicker={t(model.won ? 'result.kicker.win' : 'result.kicker.lose', { secret: model.secret })}
+      title={t(model.won ? 'result.headline.win' : 'result.headline.lose')}
+      won={model.won}
+    >
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
+        {model.practice ? <Chip>{t('common.practice')}</Chip> : null}
+        {model.fallback ? <Chip>{t('common.approx')}</Chip> : null}
       </div>
-      <section
-        className={desktop ? 'rise' : 'sheetup result-sheet'}
-        aria-label={t('result.area')}
-        style={desktop ? SHEET_DESKTOP : SHEET_MOBILE}
-      >
-        <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: '.12em', color: 'var(--c-muted-aa)' }}>
-          {t(model.won ? 'result.kicker.win' : 'result.kicker.lose', { secret: model.secret })}
-        </span>
-        <h2 style={{ margin: '-4px 0 0', fontSize: desktop ? 36 : 28, fontWeight: 900 }}>
-          {t(model.won ? 'result.headline.win' : 'result.headline.lose')}
-        </h2>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
-          {model.practice ? <Chip>{t('common.practice')}</Chip> : null}
-          {model.fallback ? <Chip>{t('common.approx')}</Chip> : null}
-        </div>
-        {model.won ? <TopBadge model={model} desktop={desktop} /> : null}
-        <Stars model={model} size={desktop ? 34 : 28} />
-        {model.practice ? <p style={{ ...MUTED, margin: 0 }}>{t('result.practiceNote')}</p> : null}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-            gap: desktop ? 10 : 6,
-          }}
-        >
-          <Tile value={model.attempts} label={t('result.stat.attempts')} />
-          <Tile value={model.clock} label={t('result.stat.time')} />
-          <Tile value={model.score} label={t('result.stat.points')} tint="#F6E3B4" />
-          <Tile value={`${model.logic}%`} label={t('result.stat.logic')} />
-        </div>
-        <Distribution model={model} desktop={desktop} />
-        <Tip model={model} />
-        <Actions
-          desktop={desktop}
-          shareLabel={shareLabel}
-          onAgain={onAgain}
-          onShare={onShare}
-          onBoard={onBoard}
-        />
-        {footer}
-      </section>
-    </>
+      {model.won ? <TopBadge model={model} desktop={desktop} /> : null}
+      <Stars model={model} size={desktop ? 34 : 28} />
+      {model.practice ? <p style={{ ...MUTED, margin: 0 }}>{t('result.practiceNote')}</p> : null}
+      <Tiles
+        tiles={[
+          { value: model.attempts, label: t('result.stat.attempts') },
+          { value: model.clock, label: t('result.stat.time') },
+          { value: model.score, label: t('result.stat.points'), tint: '#F6E3B4' },
+          { value: `${model.logic}%`, label: t('result.stat.logic') },
+        ]}
+      />
+      <Distribution model={model} desktop={desktop} />
+      <Tip model={model} />
+      <Actions
+        desktop={desktop}
+        shareLabel={shareLabel}
+        onAgain={onAgain}
+        onShare={onShare}
+        onBoard={onBoard}
+      />
+      {footer}
+    </ResultCard>
   )
 }
