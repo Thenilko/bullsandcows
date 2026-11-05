@@ -75,7 +75,7 @@ test('guest: every screen of the main navigation and the locked ones say what a 
   const nav = page.getByRole('navigation', { name: 'Основна навигация' })
   await nav.getByRole('link', { name: 'Класация' }).click()
   await expect(page).toHaveURL(/\/board$/)
-  await expect(page.getByText('Класацията е за регистрирани пастири.')).toBeVisible()
+  await expect(page.getByText(/Тук са пастирите с профил./)).toBeVisible()
   await expectNoSideScroll(page)
 
   await page.getByRole('radio', { name: 'Семейна ферма' }).click()
