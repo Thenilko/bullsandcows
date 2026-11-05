@@ -1,4 +1,4 @@
-import type { ChallengeStatus } from '@bc/protocol'
+import type { ChallengeStatusDto } from '@bc/protocol'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router'
@@ -70,17 +70,20 @@ function useInviteActions(invite: HostInvite) {
 /** What the waiting screen of a leaderboard challenge shows, from its polled status and the room. */
 function challengeView(
   invite: HostInvite,
-  status: ChallengeStatus | undefined,
+  dto: ChallengeStatusDto | undefined,
   roomClosed: boolean,
 ): InviteChallenge | undefined {
   if (invite.challengeId === undefined || invite.toUsername === undefined) return undefined
+  const status = dto?.status
   const answer =
     status === 'declined'
       ? 'declined'
       : status === 'expired' || status === 'cancelled' || roomClosed
         ? 'expired'
         : 'pending'
-  return { to: invite.toUsername, status: answer }
+  if (answer !== 'pending') return { to: invite.toUsername, status: answer }
+  const note = dto?.later === true ? 'later' : dto?.playing === true ? 'playing' : undefined
+  return { to: invite.toUsername, status: answer, ...(note ? { note } : {}) }
 }
 
 function InviteWaiting({ invite }: { invite: HostInvite }) {
@@ -138,6 +141,8 @@ function InviteWaiting({ invite }: { invite: HostInvite }) {
 export interface InviteChallenge {
   to: string
   status: 'pending' | 'declined' | 'expired'
+  /** While pending: the target answered „След играта“, or is in a game right now. */
+  note?: 'later' | 'playing'
 }
 
 export interface InviteViewProps {
@@ -196,7 +201,17 @@ function ChallengeWaiting({
         {settings ? <SettingChips {...settings} /> : null}
         {challenge.status === 'pending' ? (
           <>
-            <WaitingLine text={t('challenge.wait.waiting', { name })} elapsedMs={elapsedMs} />
+            <WaitingLine
+              text={t(
+                challenge.note === 'later'
+                  ? 'challenge.wait.later'
+                  : challenge.note === 'playing'
+                    ? 'challenge.wait.playing'
+                    : 'challenge.wait.waiting',
+                { name },
+              )}
+              elapsedMs={elapsedMs}
+            />
             <Soft small onClick={onCancel}>
               {t('duel.invite.cancel')}
             </Soft>

@@ -1,5 +1,5 @@
 import { levelFromXp } from '@bc/game-core'
-import type { AdminOnlineDto } from '@bc/protocol'
+import { isBusyActivity, type Activity, type AdminOnlineDto } from '@bc/protocol'
 import type { Clock } from '../ports/clock'
 import type { Repo } from '../ports/repo'
 import { toAdminGame } from './games'
@@ -12,6 +12,13 @@ const ONLINE_MS = ONLINE_MINUTES * MINUTE_MS
 /** Seen within the last `ONLINE_MINUTES` (the same window as the admin's „Онлайн сега“). */
 export const isOnline = (lastSeenAt: number | null, now: number): boolean =>
   lastSeenAt !== null && lastSeenAt >= now - ONLINE_MS
+
+/** Online and in a game, a duel or matchmaking („играе“ on the boards). */
+export const isPlaying = (
+  lastSeenAt: number | null,
+  activity: Activity | null,
+  now: number,
+): boolean => isOnline(lastSeenAt, now) && isBusyActivity(activity)
 /** An unfinished game older than this is an abandoned one, not what the player is doing now. */
 const OPEN_GAME_MS = 3 * 60 * MINUTE_MS
 const ONLINE_LIMIT = 200

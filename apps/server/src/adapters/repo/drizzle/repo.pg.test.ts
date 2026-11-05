@@ -697,6 +697,24 @@ describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
       expect(await repo.challenges.settle(crypto.randomUUID(), 'expired')).toBe(false)
     })
 
+    it('„След играта“ marks a pending challenge and moves its expiry, only while pending', async () => {
+      const [from, to] = [await profile('lf'), await profile('lt')]
+      const row = await repo.challenges.create(
+        { ...base, fromId: from, toId: to, expiresAt: NOW + 60_000 },
+        NOW,
+      )
+      expect(row.laterAt).toBeNull()
+      expect(await repo.challenges.later(row.id, NOW + 1_000, NOW + 700_000)).toBe(true)
+      expect(await repo.challenges.get(row.id)).toMatchObject({
+        status: 'pending',
+        laterAt: NOW + 1_000,
+        expiresAt: NOW + 700_000,
+      })
+      expect(await repo.challenges.settle(row.id, 'declined')).toBe(true)
+      expect(await repo.challenges.later(row.id, NOW + 2_000, NOW + 800_000)).toBe(false)
+      expect(await repo.challenges.later('not-a-uuid', NOW, NOW)).toBe(false)
+    })
+
     it('carries the last ping on leaderboard rows', async () => {
       const p = await profile('lb')
       const g = await repo.games.create({
@@ -724,7 +742,22 @@ describe.skipIf(!URL_ENV)('drizzle repos on Postgres', () => {
         weekStartMs: 0,
       })
       expect(rows.find((r) => r.userId === p)?.lastSeenAt).toBe(NOW)
+      expect(rows.find((r) => r.userId === p)?.lastActivity).toBe('board')
       expect(await repo.profiles.lastSeen(p)).toBe(NOW)
+      expect(await repo.profiles.presence(p)).toEqual({ at: NOW, activity: 'board' })
+      expect(await repo.profiles.presence(crypto.randomUUID())).toBeNull()
+      await repo.profiles.addXp(p, 10)
+      await repo.profiles.touch(p, NOW, 'duel')
+      const herders = await repo.boards.top({
+        kind: 'herders',
+        viewer: p,
+        sinceMs: 0,
+        liveFrom: '2026-10-25',
+      })
+      expect(herders.find((r) => r.userId === p)).toMatchObject({
+        lastSeenAt: NOW,
+        lastActivity: 'duel',
+      })
       expect(await repo.profiles.lastSeen(crypto.randomUUID())).toBeNull()
     })
   })

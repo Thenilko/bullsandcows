@@ -60,6 +60,11 @@ export function ChallengeConfirm({
         </h2>
       </div>
       <p style={TEXT}>{t('challenge.confirm.text')}</p>
+      {row.playing === true ? (
+        <p role="note" style={{ ...TEXT, color: '#35602a', fontWeight: 800 }}>
+          {t('challenge.confirm.playing', { name: row.username })}
+        </p>
+      ) : null}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         <span className="tag" style={CHIP}>
           {t('common.digits', { count: len })}

@@ -239,6 +239,98 @@ describe('answers', () => {
   })
 })
 
+describe('„След играта“', () => {
+  async function pending() {
+    const ctx = setup()
+    const a = await ctx.member('Ани')
+    const b = await ctx.member('Боби')
+    const { data } = await json(await ctx.challenge(a, b))
+    return {
+      ctx,
+      a,
+      b,
+      id: data.challengeId as string,
+      path: `/api/challenges/${data.challengeId}`,
+    }
+  }
+
+  it('is for the target only', async () => {
+    const { ctx, a, path } = await pending()
+    const c = await ctx.member('Цвети')
+    expect((await ctx.call(a, 'POST', `${path}/later`)).status).toBe(404)
+    expect((await ctx.call(c, 'POST', `${path}/later`)).status).toBe(404)
+    expect((await ctx.call(a, 'POST', `/api/challenges/${crypto.randomUUID()}/later`)).status).toBe(
+      404,
+    )
+  })
+
+  it('keeps the challenge pending, extends its expiry and tells the sender', async () => {
+    const { ctx, a, b, id, path } = await pending()
+    ctx.advance(8 * 60_000)
+    const res = await ctx.call(b, 'POST', `${path}/later`)
+    expect(res.status).toBe(200)
+    expect((await json(res)).data).toEqual({ status: 'pending', later: true })
+    const row = await ctx.repo.challenges.get(id)
+    expect(row?.status).toBe('pending')
+    expect(row?.laterAt).toBe(START + 8 * 60_000)
+    expect(row?.expiresAt).toBe(START + 8 * 60_000 + CHALLENGE_TTL_MS)
+    // Past the first ten minutes it is still open, for both sides.
+    ctx.advance(5 * 60_000)
+    expect((await json(await ctx.call(a, 'GET', path))).data).toEqual({
+      status: 'pending',
+      later: true,
+    })
+    const incoming = (await json(await ctx.call(b, 'GET', '/api/challenges/incoming'))).data
+    expect(incoming.challenges).toHaveLength(1)
+    expect(incoming.challenges[0]).toMatchObject({ id, later: true })
+    // Accepting after the game still works.
+    expect((await ctx.call(b, 'POST', `${path}/accept`)).status).toBe(200)
+  })
+
+  it('moves the expiry only once', async () => {
+    const { ctx, b, id, path } = await pending()
+    expect((await ctx.call(b, 'POST', `${path}/later`)).status).toBe(200)
+    ctx.advance(5 * 60_000)
+    expect((await ctx.call(b, 'POST', `${path}/later`)).status).toBe(200)
+    expect((await ctx.repo.challenges.get(id))?.expiresAt).toBe(START + CHALLENGE_TTL_MS)
+  })
+
+  it('is refused once answered, cancelled or expired', async () => {
+    const declined = await pending()
+    await declined.ctx.call(declined.b, 'POST', `${declined.path}/decline`)
+    const late = await declined.ctx.call(declined.b, 'POST', `${declined.path}/later`)
+    expect(late.status).toBe(409)
+    expect((await json(late)).error.code).toBe('ERR_FINISHED')
+
+    const cancelled = await pending()
+    await cancelled.ctx.call(cancelled.a, 'POST', `${cancelled.path}/cancel`)
+    expect((await cancelled.ctx.call(cancelled.b, 'POST', `${cancelled.path}/later`)).status).toBe(
+      409,
+    )
+
+    const expired = await pending()
+    expired.ctx.advance(CHALLENGE_TTL_MS)
+    const gone = await expired.ctx.call(expired.b, 'POST', `${expired.path}/later`)
+    expect(gone.status).toBe(410)
+    expect((await expired.ctx.repo.challenges.get(expired.id))?.status).toBe('expired')
+  })
+
+  it('the sender sees while pending that the target is playing', async () => {
+    const { ctx, a, b, path } = await pending()
+    await ctx.repo.profiles.touch(b, START, 'duel')
+    expect((await json(await ctx.call(a, 'GET', path))).data).toEqual({
+      status: 'pending',
+      playing: true,
+    })
+    // Not once the target is out of the game, nor after an answer.
+    await ctx.repo.profiles.touch(b, START, 'board')
+    expect((await json(await ctx.call(a, 'GET', path))).data).toEqual({ status: 'pending' })
+    await ctx.repo.profiles.touch(b, START, 'play')
+    await ctx.call(b, 'POST', `${path}/decline`)
+    expect((await json(await ctx.call(a, 'GET', path))).data).toEqual({ status: 'declined' })
+  })
+})
+
 describe('leaderboard presence', () => {
   it('gives each row the user id and whether the player is online', async () => {
     const ctx = setup()
@@ -263,7 +355,12 @@ describe('leaderboard presence', () => {
       })
     }
     const asB = await ctx.call(b, 'GET', '/api/leaderboard?period=week&len=4&zero=false')
-    const rows = (await json(asB)).data.rows as { username: string; id?: string; online: boolean }[]
+    const rows = (await json(asB)).data.rows as {
+      username: string
+      id?: string
+      online: boolean
+      playing?: boolean
+    }[]
     expect(rows.find((r) => r.username === 'Ани')).toMatchObject({ id: a, online: true })
     // Only a row that can be challenged carries the user id: not an offline player, not me.
     const bobi = rows.find((r) => r.username === 'Боби')
@@ -275,5 +372,44 @@ describe('leaderboard presence', () => {
     ).find((r) => r.you)
     expect(mine).toMatchObject({ online: true })
     expect(mine?.id).toBeUndefined()
+    expect(bobi?.playing).toBeUndefined()
+  })
+
+  it('marks an online player in a game as playing, still with the id to challenge', async () => {
+    const ctx = setup()
+    const a = await ctx.member('Ани')
+    const b = await ctx.member('Боби')
+    for (const userId of [a, b]) {
+      const g = await ctx.repo.games.create({
+        userId,
+        kind: 'free',
+        len: 4,
+        zero: false,
+        secret: '1234',
+        dailyDate: null,
+        practice: false,
+      })
+      await ctx.repo.games.update(g.id, {
+        startedAt: START,
+        finishedAt: START + 1000,
+        attempts: 5,
+        won: true,
+        score: 100,
+      })
+    }
+    await ctx.repo.profiles.touch(a, START, 'play')
+    const rowsOf = async (viewer: string) =>
+      (await json(await ctx.call(viewer, 'GET', '/api/leaderboard?period=week&len=4&zero=false')))
+        .data.rows as { username: string; id?: string; online: boolean; playing?: boolean }[]
+    expect((await rowsOf(b)).find((r) => r.username === 'Ани')).toMatchObject({
+      id: a,
+      online: true,
+      playing: true,
+    })
+    // Never on my own row.
+    expect((await rowsOf(a)).find((r) => r.username === 'Ани')?.playing).toBeUndefined()
+    // Offline: not playing, whatever the last ping had open.
+    ctx.advance(3 * 60_000 + 1)
+    expect((await rowsOf(b)).find((r) => r.username === 'Ани')?.playing).toBeUndefined()
   })
 })

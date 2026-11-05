@@ -1,4 +1,4 @@
-import type { ChallengeDto } from '@bc/protocol'
+import { isBusyActivity, type ChallengeDto } from '@bc/protocol'
 import { rankKeyForLevel } from '@bc/game-core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
@@ -13,14 +13,12 @@ import { fmtClock } from '../../screens/duel/duelUtils'
 import { useSession } from '../auth/session'
 import { roomPath } from '../duel/api'
 import { activityOf } from '../presence/presence'
-import { challengeApi } from './api'
+import { challengeApi, INBOX_KEY } from './api'
+import { ChallengeBanner } from './ChallengeBanner'
 import styles from './inbox.module.css'
 
 /** How often a member's open tab asks for new challenges. */
 export const INBOX_POLL_MS = 10_000
-export const INBOX_KEY = ['challenges', 'incoming'] as const
-/** No interruptions while a game or a duel is on, or while matchmaking. */
-const BUSY: readonly string[] = ['play', 'duel', 'queue']
 
 interface RouterLike {
   readonly state: { readonly location: { readonly pathname: string } }
@@ -63,14 +61,16 @@ function useChime(list: readonly ChallengeDto[]) {
 
 /**
  * „{{name}} те предизвика на дуел“: polls `GET /api/challenges/incoming` while a member's tab is visible and
- * nothing is being played, and shows the newest one with a countdown, „Приеми“ and „Откажи“. Mounted once,
+ * shows the newest one with a countdown, „Приеми“ and „Откажи“. During a game, a duel or matchmaking it is a
+ * slim banner instead („След играта“ / „Откажи“) that leaves the board and the keypad free; a challenge
+ * answered „След играта“ waits until the game is over and then comes back as the full card. Mounted once,
  * outside the router (like the other hosts), so it navigates through `router`.
  */
 export function ChallengeInbox({ router }: { router: RouterLike }) {
   const member = useIsMember()
   const visible = useVisible()
-  const busy = BUSY.includes(activityOf(usePathname(router)))
-  const active = member && visible && !busy
+  const busy = isBusyActivity(activityOf(usePathname(router)))
+  const active = member && visible
   const query = useQuery({
     queryKey: INBOX_KEY,
     queryFn: () => challengeApi.incoming(),
@@ -80,11 +80,14 @@ export function ChallengeInbox({ router }: { router: RouterLike }) {
   })
   const now = useNow(1000, active)
   const [gone, setGone] = useState<ReadonlySet<string>>(new Set())
-  const list = (query.data?.challenges ?? []).filter((c) => !gone.has(c.id) && c.expiresAt > now)
+  const open = (query.data?.challenges ?? []).filter((c) => !gone.has(c.id) && c.expiresAt > now)
+  // In a game only the ones not answered yet; „След играта“ ones wait for the game to end.
+  const list = busy ? open.filter((c) => c.later !== true) : open
   useChime(active ? list : [])
   const current = list[0]
   if (!active || !current) return null
   const dismiss = (id: string) => setGone((prev) => new Set([...prev, id]))
+  if (busy) return <ChallengeBanner key={current.id} challenge={current} onGone={dismiss} />
   return (
     <ChallengeCard
       key={current.id}
@@ -127,7 +130,9 @@ export function ChallengeCard({ challenge, now, onGone, onRoom }: ChallengeCardP
       : accept.error
         ? t('error.unknown')
         : null
-  const title = t('challenge.inbox.title', { name: from.username })
+  const title = t(challenge.later ? 'challenge.inbox.waiting' : 'challenge.inbox.title', {
+    name: from.username,
+  })
   const chips = [
     t(`newGame.format.${settings.format}.name`),
     t('common.digits', { count: settings.len }),

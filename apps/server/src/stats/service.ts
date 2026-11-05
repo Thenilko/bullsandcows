@@ -13,7 +13,7 @@ import type {
   MeDto,
   SettingsPatch,
 } from '@bc/protocol'
-import { isOnline } from '../admin/online'
+import { isOnline, isPlaying } from '../admin/online'
 import { ensureProfile } from '../auth/profiles'
 import type { AuthUser } from '../ports/auth'
 import type { Clock } from '../ports/clock'
@@ -189,10 +189,15 @@ export class StatsService implements DistributionSource {
     })
   }
 
-  /** Online flag for every row; the user id only where „Предизвикай“ needs it (online and not me). */
+  /**
+   * Online flag for every row; „играе“ and the user id only where „Предизвикай“ needs them (online and not
+   * me).
+   */
   private presenceOf(r: LeaderboardRow, me: string, now: number) {
     const online = isOnline(r.lastSeenAt, now)
-    return online && r.userId !== me ? { online, id: r.userId } : { online }
+    if (!online || r.userId === me) return { online }
+    const playing = isPlaying(r.lastSeenAt, r.lastActivity, now)
+    return playing ? { online, playing, id: r.userId } : { online, id: r.userId }
   }
 
   /** "Today" ranks daily games; week/all mix daily and free, measured against free play. */

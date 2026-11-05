@@ -9,7 +9,7 @@ import {
   type JoinInviteDto,
 } from '@bc/protocol'
 import { Hono, type Context } from 'hono'
-import { isOnline } from '../../admin/online'
+import { isOnline, isPlaying } from '../../admin/online'
 import type { ChallengeRow, ChallengeStatus, IncomingChallengeRow } from '../../ports/repo'
 import { AppError } from '../errors'
 import { requireMember } from '../middleware/auth'
@@ -45,6 +45,7 @@ const toDto = (row: IncomingChallengeRow): ChallengeDto => ({
   },
   settings: { format: row.format, len: row.len, zero: row.zero },
   expiresAt: row.expiresAt,
+  ...(row.laterAt !== null ? { later: true } : {}),
 })
 
 /** The challenge if the caller is its sender or target (`side` narrows it); 404 otherwise. */
@@ -136,8 +137,17 @@ export function challengesRoutes(): Hono<AppEnv> {
   })
 
   routes.get('/:id', async (c) => {
+    const { repo, clock } = c.get('deps')
     const row = await challengeOf(c, 'either')
-    const dto: ChallengeStatusDto = { status: statusAt(row, c.get('deps').clock.now()) }
+    const now = clock.now()
+    const status = statusAt(row, now)
+    if (status !== 'pending') return ok(c, { status } satisfies ChallengeStatusDto)
+    const seen = await repo.profiles.presence(row.toId)
+    const dto: ChallengeStatusDto = {
+      status,
+      ...(row.laterAt !== null ? { later: true } : {}),
+      ...(seen && isPlaying(seen.at, seen.activity, now) ? { playing: true } : {}),
+    }
     return ok(c, dto)
   })
 
@@ -157,6 +167,21 @@ export function challengesRoutes(): Hono<AppEnv> {
       await repo.challenges.settle(row.id, 'expired')
       throw new AppError('ERR_INVITE_EXPIRED', 410)
     }
+  })
+
+  // „След играта“: the target is in a game and will answer once it is over; the challenge stays open that
+  // long. Only the first answer moves the expiry, so it cannot be kept open past the invite room.
+  routes.post('/:id/later', async (c) => {
+    const { repo, clock } = c.get('deps')
+    const row = await openChallenge(c, 'to')
+    if (row.laterAt === null) {
+      const now = clock.now()
+      const expiresAt = Math.max(row.expiresAt, now + CHALLENGE_TTL_MS)
+      if (!(await repo.challenges.later(row.id, now, expiresAt)))
+        throw new AppError('ERR_FINISHED', 409)
+    }
+    const dto: ChallengeStatusDto = { status: 'pending', later: true }
+    return ok(c, dto)
   })
 
   routes.post('/:id/decline', async (c) => {

@@ -319,6 +319,8 @@ export const LeaderboardRowDto = z.object({
   id: z.string().optional(),
   /** Seen in the app within the last few minutes. */
   online: z.boolean().optional(),
+  /** Online and in a game, a duel or matchmaking right now („играе“); can still be challenged. */
+  playing: z.boolean().optional(),
 })
 export type LeaderboardRowDto = z.infer<typeof LeaderboardRowDto>
 
@@ -361,6 +363,7 @@ export const BoardRowDto = LeaderboardRowDto.pick({
   goldFrame: true,
   id: true,
   online: true,
+  playing: true,
 }).extend({
   /** What the board ranks by: duel rating, live day streak, xp or finished games. */
   value: z.number().int(),

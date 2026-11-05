@@ -100,20 +100,53 @@ describe('ChallengeInbox', () => {
     expect(await screen.findByRole('alert')).toBeInTheDocument()
   })
 
-  it('stays quiet for guests and during a game', async () => {
+  it('stays quiet for guests', async () => {
     get.mockResolvedValue({ challenges: [challenge()] })
     signIn(true)
-    const { unmount } = renderWithI18n(<ChallengeInbox router={fakeRouter()} />)
+    renderWithI18n(<ChallengeInbox router={fakeRouter()} />)
     await act(async () => undefined)
     expect(get).not.toHaveBeenCalled()
-    unmount()
-    signIn()
+  })
+
+  it('during a game shows a slim banner instead of the card, and the card after the game', async () => {
+    get.mockResolvedValue({ challenges: [challenge()] })
     const router = fakeRouter('/play/g1')
     renderWithI18n(<ChallengeInbox router={router} />)
-    await act(async () => undefined)
-    expect(get).not.toHaveBeenCalled()
+    const banner = await screen.findByRole('complementary', { name: 'Предизвикателство за дуел' })
+    expect(banner).toHaveTextContent('Ани те предизвика на дуел')
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Приеми' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'След играта' })).toBeInTheDocument()
     act(() => router.go('/board'))
     expect(await screen.findByRole('alertdialog')).toBeInTheDocument()
+  })
+
+  it('„След играта“ hides the banner for the rest of the game, then the card says they wait', async () => {
+    get.mockResolvedValue({ challenges: [challenge()] })
+    post.mockResolvedValue({ status: 'pending', later: true })
+    const router = fakeRouter('/duel/room-9')
+    renderWithI18n(<ChallengeInbox router={router} />)
+    fireEvent.click(await screen.findByRole('button', { name: 'След играта' }))
+    await waitFor(() => expect(screen.queryByRole('complementary')).toBeNull())
+    expect(post).toHaveBeenCalledWith('/api/challenges/c1/later', undefined)
+    // The server keeps answering with the challenge marked; still no banner while in the game.
+    get.mockResolvedValue({ challenges: [challenge({ later: true })] })
+    act(() => router.go('/duel/room-9/result'))
+    act(() => router.go('/board'))
+    const card = await screen.findByRole('alertdialog')
+    expect(card).toHaveTextContent('Ани те чака за дуел')
+    expect(router.navigate).not.toHaveBeenCalled()
+  })
+
+  it('„Откажи“ in the banner declines without leaving the game', async () => {
+    get.mockResolvedValue({ challenges: [challenge()] })
+    post.mockResolvedValue({ status: 'declined' })
+    const router = fakeRouter('/play/g1')
+    renderWithI18n(<ChallengeInbox router={router} />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Откажи' }))
+    await waitFor(() => expect(screen.queryByRole('complementary')).toBeNull())
+    expect(post).toHaveBeenCalledWith('/api/challenges/c1/decline', undefined)
+    expect(router.navigate).not.toHaveBeenCalled()
   })
 
   it('hides an expired challenge', async () => {

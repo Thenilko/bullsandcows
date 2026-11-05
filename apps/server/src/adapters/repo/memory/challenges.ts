@@ -12,6 +12,7 @@ export function memoryChallenges(store: MemoryStore): ChallengesRepo {
         id: crypto.randomUUID(),
         status: 'pending',
         createdAt: now,
+        laterAt: null,
       }
       store.challenges.set(row.id, copy(row))
       return copy(row)
@@ -47,6 +48,12 @@ export function memoryChallenges(store: MemoryStore): ChallengesRepo {
       const found = store.challenges.get(id)
       if (!found || found.status !== 'pending') return false
       store.challenges.set(id, { ...found, status })
+      return true
+    },
+    later: async (id, at, expiresAt) => {
+      const found = store.challenges.get(id)
+      if (!found || found.status !== 'pending') return false
+      store.challenges.set(id, { ...found, laterAt: at, expiresAt })
       return true
     },
   }

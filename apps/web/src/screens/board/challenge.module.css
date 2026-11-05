@@ -69,3 +69,17 @@
 .podium .button {
   align-self: center;
 }
+
+/* „играе“: the online player is in a game right now (still challengeable). */
+.playing {
+  flex: none;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #e6f0dc;
+  border: 1px solid #a9c98f;
+  color: #35602a;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.4;
+  white-space: nowrap;
+}

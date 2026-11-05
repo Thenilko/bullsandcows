@@ -111,8 +111,13 @@ describe('GET /api/leaderboard/:kind', () => {
       [1, 1],
     ])
     expect(res.rows[0]).toMatchObject({ online: true, id: a })
+    expect(res.rows[0]?.playing).toBeUndefined()
     expect(res.rows[1]?.id).toBeUndefined()
     expect(res.me).toEqual({ rank: 2, value: 1500 })
+    // In a duel right now: „играе“, and still challengeable.
+    await ctx.repo.profiles.touch(a, NOW, 'duel')
+    const busy = await ctx.board(b, '/api/leaderboard/duels')
+    expect(busy.rows[0]).toMatchObject({ online: true, id: a, playing: true })
     expect(JSON.stringify(res)).not.toContain('GOST')
   })
 
