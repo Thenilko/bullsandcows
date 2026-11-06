@@ -18,7 +18,8 @@ const TAB_PARAM = 'tab'
 function useProfileTab(): [ProfileTab, (tab: ProfileTab) => void] {
   const [params, setParams] = useSearchParams()
   const tab: ProfileTab = params.get(TAB_PARAM) === 'badges' ? 'badges' : 'profile'
-  const setTab = (next: ProfileTab) => setParams(next === 'badges' ? { [TAB_PARAM]: 'badges' } : {}, { replace: true })
+  const setTab = (next: ProfileTab) =>
+    setParams(next === 'badges' ? { [TAB_PARAM]: 'badges' } : {}, { replace: true })
   return [tab, setTab]
 }
 
@@ -39,7 +40,10 @@ export function Profile() {
         desktop ? (
           <SceneCaption text={t('caption.profile')} />
         ) : !me.data ? undefined : (
-          <BandChips title={t('nav.profile')} sub={t('profile.streakBand', { count: me.data.stats.streak })} />
+          <BandChips
+            title={t('nav.profile')}
+            sub={t('profile.streakBand', { count: me.data.stats.streak })}
+          />
         )
       }
     >
@@ -52,6 +56,7 @@ export function Profile() {
           onPatch={(patch) => update.mutate(patch)}
           onLogout={logout}
           onPasture={() => void navigate('/profile/pasture')}
+          onFarm={() => void navigate('/farm')}
         />
       ) : (
         <p role={me.isError ? 'alert' : 'status'} style={{ fontWeight: 800, textAlign: 'center' }}>

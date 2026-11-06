@@ -935,6 +935,7 @@
     "week": "The week",
     "weekEnd": "until Sunday 23:59",
     "weekEmpty": "Nobody has points this week yet — the number of the day brings them.",
+    "profileLink": "Invite your family with a code",
     "loadFailed": "The farm did not load. Try again in a moment.",
     "guest": "A farm is a closed leaderboard for family and friends. You need a profile to create a farm or join one.",
     "join": {

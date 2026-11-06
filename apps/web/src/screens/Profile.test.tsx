@@ -62,7 +62,9 @@ describe('Profile', () => {
     expect(screen.getByRole('region', { name: 'Значки' })).toBeInTheDocument()
     expect(container.querySelectorAll('.bdg')).toHaveLength(30)
     fireEvent.click(await screen.findByRole('button', { name: 'Без излишен ход: сребро' }))
-    expect(screen.getByRole('dialog', { name: 'Значка' })).toHaveTextContent('Победа без нито един нелогичен опит')
+    expect(screen.getByRole('dialog', { name: 'Значка' })).toHaveTextContent(
+      'Победа без нито един нелогичен опит',
+    )
   })
 
   it('links to the admin panel only for the admin', async () => {
@@ -72,7 +74,10 @@ describe('Profile', () => {
     unmount()
     answer({ ...meFixture, isAdmin: true })
     show()
-    expect(await screen.findByRole('link', { name: /Админ панел/ })).toHaveAttribute('href', '/admin')
+    expect(await screen.findByRole('link', { name: /Админ панел/ })).toHaveAttribute(
+      'href',
+      '/admin',
+    )
   })
 
   it('shows level, title, xp and stats', async () => {
@@ -158,17 +163,29 @@ describe('Profile', () => {
   })
 
   it('lets me pick the cow as my avatar and redraws the header with it', async () => {
-    patch.mockResolvedValue({ ...meFixture, profile: { ...meFixture.profile, avatarSpecies: 'cow' } })
+    patch.mockResolvedValue({
+      ...meFixture,
+      profile: { ...meFixture.profile, avatarSpecies: 'cow' },
+    })
     show()
     expect(await screen.findByRole('img', { name: 'Бик, Говедар' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('radio', { name: 'Крава' }))
-    await waitFor(() => expect(patch).toHaveBeenCalledWith('/api/me/settings', { avatarSpecies: 'cow' }))
+    await waitFor(() =>
+      expect(patch).toHaveBeenCalledWith('/api/me/settings', { avatarSpecies: 'cow' }),
+    )
     expect(await screen.findByRole('img', { name: 'Крава, Говедар' })).toBeInTheDocument()
   })
 
   it('leads to „Твоето пасище“', async () => {
     show()
     fireEvent.click(await screen.findByTestId('pasture-link'))
+    expect(await screen.findByText('elsewhere')).toBeInTheDocument()
+  })
+
+  it('leads to „Семейна ферма“', async () => {
+    show()
+    expect(await screen.findByText('Покани семейството с код')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('farm-link'))
     expect(await screen.findByText('elsewhere')).toBeInTheDocument()
   })
 })
