@@ -7,6 +7,7 @@ import { badgeViews, type BadgeView } from '../../features/badges/badgeModel'
 import { BadgeDetail } from '../../features/badges/BadgeDetail'
 import { BadgesTab, type BadgesData } from '../../features/badges/BadgesTab'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
+import { FarmLink } from './FarmLink'
 import { PastureLink } from './PastureLink'
 import { ProfileHeader } from './ProfileHeader'
 import { SettingsCard } from './SettingsCard'
@@ -24,6 +25,8 @@ export interface ProfileViewProps {
   onLogout(): void
   /** Opens „Твоето пасище“ (`/profile/pasture`); without it the link is not shown (dev gallery). */
   onPasture?(): void
+  /** Opens „Семейна ферма“ (`/farm`); without it the link is not shown (dev gallery). */
+  onFarm?(): void
   /** Opens with this badge's detail (dev gallery). */
   detailKey?: BadgeKey
 }
@@ -44,14 +47,25 @@ function GuestUpgrade() {
 }
 
 /** The detail sheet state, seeded from `detailKey` for the gallery. */
-function useDetail(badges: BadgesData, detailKey: BadgeKey | undefined): [BadgeView | null, (v: BadgeView | null) => void] {
+function useDetail(
+  badges: BadgesData,
+  detailKey: BadgeKey | undefined,
+): [BadgeView | null, (v: BadgeView | null) => void] {
   const [detail, setDetail] = useState<BadgeView | null>(() =>
     detailKey ? (badgeViews(badges.states).find((v) => v.key === detailKey) ?? null) : null,
   )
   return [detail, setDetail]
 }
 
-function DesktopProfile({ me, badges, onPatch, onLogout, onPasture, detailKey }: ProfileViewProps) {
+function DesktopProfile({
+  me,
+  badges,
+  onPatch,
+  onLogout,
+  onPasture,
+  onFarm,
+  detailKey,
+}: ProfileViewProps) {
   const { t } = useTranslation()
   const [detail, setDetail] = useDetail(badges, detailKey)
   return (
@@ -68,6 +82,7 @@ function DesktopProfile({ me, badges, onPatch, onLogout, onPasture, detailKey }:
         <ProfileHeader me={me} desktop />
         <StatTiles stats={me.stats} desktop />
         {onPasture ? <PastureLink onOpen={onPasture} /> : null}
+        {onFarm ? <FarmLink onOpen={onFarm} /> : null}
         <BucketChart buckets={me.buckets} desktop />
         <SettingsCard profile={me.profile} onPatch={onPatch} desktop />
         {me.profile.isGuest ? <GuestUpgrade /> : null}
@@ -86,7 +101,17 @@ function DesktopProfile({ me, badges, onPatch, onLogout, onPasture, detailKey }:
   )
 }
 
-function MobileProfile({ me, badges, tab, onTab, onPatch, onLogout, onPasture, detailKey }: ProfileViewProps) {
+function MobileProfile({
+  me,
+  badges,
+  tab,
+  onTab,
+  onPatch,
+  onLogout,
+  onPasture,
+  onFarm,
+  detailKey,
+}: ProfileViewProps) {
   const { t } = useTranslation()
   const [detail, setDetail] = useDetail(badges, detailKey)
   const tabs = [
@@ -94,7 +119,10 @@ function MobileProfile({ me, badges, tab, onTab, onPatch, onLogout, onPasture, d
     { value: 'badges' as const, label: t('badges.tab') },
   ]
   return (
-    <section aria-label={t('profile.area')} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 14 }}>
+    <section
+      aria-label={t('profile.area')}
+      style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 14 }}
+    >
       <Seg value={tab} options={tabs} onChange={onTab} label={t('profile.area')} />
       {tab === 'badges' ? (
         <BadgesTab badges={badges} guest={me.profile.isGuest} onOpen={setDetail} />
@@ -104,6 +132,7 @@ function MobileProfile({ me, badges, tab, onTab, onPatch, onLogout, onPasture, d
             <ProfileHeader me={me} />
             <StatTiles stats={me.stats} />
             {onPasture ? <PastureLink onOpen={onPasture} /> : null}
+            {onFarm ? <FarmLink onOpen={onFarm} /> : null}
           </div>
           <div style={COLUMN}>
             <h2 style={H2}>{t('profile.yourGames')}</h2>
