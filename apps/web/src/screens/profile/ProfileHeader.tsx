@@ -17,7 +17,9 @@ export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: bo
   const { t } = useTranslation()
   const width = Math.min(100, Math.round((me.xpIntoLevel / me.xpForNextLevel) * 100))
   const avatarSize = desktop ? 110 : 84
-  const avatar = desktop ? { ...AVATAR, width: avatarSize, height: avatarSize, flex: 'none' } : AVATAR
+  const avatar = desktop
+    ? { ...AVATAR, width: avatarSize, height: avatarSize, flex: 'none' }
+    : AVATAR
   const rankKey = myRankKey(me)
   const species = mySpecies(me)
   const info = (
@@ -82,7 +84,12 @@ export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: bo
         }}
       >
         <span className="float" style={avatar}>
-          <RankAvatar species={species} rankKey={rankKey} size={avatarSize} gold={me.goldFrame === true} />
+          <RankAvatar
+            species={species}
+            rankKey={rankKey}
+            size={avatarSize}
+            gold={me.goldFrame === true}
+          />
         </span>
         {info}
       </header>
@@ -94,7 +101,12 @@ export function ProfileHeader({ me, desktop = false }: { me: MeDto; desktop?: bo
       style={{ padding: 28, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 24 }}
     >
       <span className="float" style={avatar}>
-        <RankAvatar species={species} rankKey={rankKey} size={avatarSize} gold={me.goldFrame === true} />
+        <RankAvatar
+          species={species}
+          rankKey={rankKey}
+          size={avatarSize}
+          gold={me.goldFrame === true}
+        />
       </span>
       <div style={{ flex: 1, minWidth: 220, display: 'flex', flexDirection: 'column', gap: 6 }}>
         {info}
