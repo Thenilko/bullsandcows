@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { useSession } from '../../features/auth/session'
 import { duelApi, roomPath, saveInvite } from '../../features/duel/api'
+import { loadLastSetup, saveLastSetup } from '../../features/setup/lastSetup'
 import { ApiError } from '../../lib/api'
 import { sfx } from '../../lib/sound'
 import { settingsQuery } from './parts/params'
@@ -45,11 +46,13 @@ export function useSetupForm(mode: SetupMode): SetupForm {
   const navigate = useNavigate()
   const isGuest = useSession((s) => s.session?.user.isGuest ?? false)
   const defaultLen = useSession((s) => s.me?.profile.defaultLen ?? 4)
-  const [len, setLen] = useState<Len>(defaultLen)
-  const [zero, setZero] = useState(false)
-  const [format, setFormat] = useState<DuelFormat>('classic')
-  const [picked, setOpponent] = useState<Opponent>(isGuest ? 'friend' : 'quick')
-  const [level, setLevel] = useState<BotLevel>(DEFAULT_BOT_LEVEL)
+  // The settings of the last game started from this screen come back.
+  const [last] = useState(() => loadLastSetup(mode))
+  const [len, setLen] = useState<Len>(last.len ?? defaultLen)
+  const [zero, setZero] = useState(last.zero ?? false)
+  const [format, setFormat] = useState<DuelFormat>(last.format ?? 'classic')
+  const [picked, setOpponent] = useState<Opponent>(isGuest ? 'friend' : (last.opponent ?? 'quick'))
+  const [level, setLevel] = useState<BotLevel>(last.level ?? DEFAULT_BOT_LEVEL)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const opponent: Opponent = isGuest ? 'friend' : picked
@@ -73,6 +76,7 @@ export function useSetupForm(mode: SetupMode): SetupForm {
   async function submit() {
     sfx.play('tap')
     const settings = { len, zero, format }
+    saveLastSetup(mode, mode === 'bot' ? { ...settings, level } : { ...settings, opponent: picked })
     if (mode === 'duel' && opponent === 'quick') {
       void navigate(`/duel/queue?${settingsQuery(settings)}`)
       return
@@ -88,5 +92,21 @@ export function useSetupForm(mode: SetupMode): SetupForm {
     }
   }
 
-  return { len, zero, format, opponent, level, isGuest, busy, error, setLen, setZero, setFormat, setOpponent, setLevel, switchMode, submit }
+  return {
+    len,
+    zero,
+    format,
+    opponent,
+    level,
+    isGuest,
+    busy,
+    error,
+    setLen,
+    setZero,
+    setFormat,
+    setOpponent,
+    setLevel,
+    switchMode,
+    submit,
+  }
 }
