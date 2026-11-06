@@ -9,6 +9,7 @@ import { Card, Cta, PanelFooter, Pill, Soft, Toggle } from '../components/ui'
 import { GuestStreakCard } from '../features/auth/GuestStreakCard'
 import { useSession } from '../features/auth/session'
 import { NudgeBanner } from '../features/farm/NudgeBanner'
+import { loadLastSetup, saveLastSetup } from '../features/setup/lastSetup'
 import { ME_KEY, useMe } from '../features/stats/useMe'
 import { createGame, type GameKind } from '../features/solo/api'
 import { useDailyStatus } from '../features/solo/useDailyStatus'
@@ -123,7 +124,10 @@ function DailyCard({ len, zero }: { len: Len; zero: boolean }) {
       ? t('newGame.daily.won', { count: played.attempts })
       : t('newGame.daily.lost')
   return (
-    <Card style={{ padding: 'var(--card-pad, 16px)', display: 'flex', flexDirection: 'column', gap: 6 }} data-testid="daily-card">
+    <Card
+      style={{ padding: 'var(--card-pad, 16px)', display: 'flex', flexDirection: 'column', gap: 6 }}
+      data-testid="daily-card"
+    >
       <b>{t('newGame.daily.title', { number: status.number })}</b>
       <span style={{ fontSize: 13, fontWeight: 700, color: '#4A5640' }}>{line}</span>
     </Card>
@@ -131,16 +135,26 @@ function DailyCard({ len, zero }: { len: Len; zero: boolean }) {
 }
 
 /** /new — solo setup (PasDuel setup with mode=solo), the weekly card on top (П6; `weekly` replaces it in the gallery). */
-export function NewGame({ initial, weekly }: { initial?: NewGameInitial; weekly?: React.ReactNode }) {
+export function NewGame({
+  initial,
+  weekly,
+}: {
+  initial?: NewGameInitial
+  weekly?: React.ReactNode
+}) {
   const { t } = useTranslation()
   const desktop = useIsDesktop()
   const navigate = useNavigate()
   const me = useSession((s) => s.me)
   // Fresh profile on every visit: `currentGameId` is how „Продължи“ knows about a game left through „Меню“.
   const fresh = useMe().data
-  const [len, setLen] = useState<Len>(initial?.len ?? me?.profile.defaultLen ?? 4)
-  const [zero, setZero] = useState(initial?.zero ?? false)
-  const [picked, setKind] = useState<GameKind | null>(initial?.kind ?? null)
+  // The last game's settings come back (a remembered daily falls to the default: free once today's is done).
+  const [last] = useState(() => loadLastSetup('solo'))
+  const [len, setLen] = useState<Len>(initial?.len ?? last.len ?? me?.profile.defaultLen ?? 4)
+  const [zero, setZero] = useState(initial?.zero ?? last.zero ?? false)
+  const [picked, setKind] = useState<GameKind | null>(
+    initial?.kind ?? (last.kind === 'free' ? 'free' : null),
+  )
   const daily = useDailyStatus(len, zero)
   // Until the player picks: today's number, or free play once it is done (a daily again is only practice).
   const kind: GameKind = picked ?? (daily?.played ? 'free' : 'daily')
@@ -149,6 +163,7 @@ export function NewGame({ initial, weekly }: { initial?: NewGameInitial; weekly?
   const create = useMutation({
     mutationFn: () => createGame({ len, zero, kind }),
     onSuccess: (game) => {
+      saveLastSetup('solo', { len, zero, kind })
       // `me.currentGameId` changes with a new game.
       void qc.invalidateQueries({ queryKey: ME_KEY })
       void navigate(`/play/${game.id}`)

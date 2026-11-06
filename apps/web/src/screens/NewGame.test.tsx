@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { MeDto } from '@bc/protocol'
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithI18n } from '../test/render'
@@ -50,32 +50,47 @@ beforeEach(() => {
   )
 })
 
-let daily: { number: number; played: { won: boolean; attempts: number } | null } = { number: 8, played: null }
+let daily: { number: number; played: { won: boolean; attempts: number } | null } = {
+  number: 8,
+  played: null,
+}
 beforeEach(() => {
   daily = { number: 8, played: null }
 })
 
 describe('NewGame', () => {
-  it('shows today\'s number and keeps the daily game while it is not played', async () => {
+  it("shows today's number and keeps the daily game while it is not played", async () => {
     show()
     expect(await screen.findByText('Число на деня #8')).toBeInTheDocument()
     expect(screen.getByText('Едно и също за всички днес.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Дневно' })).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('once today\'s number is guessed, says so and switches to free play', async () => {
+  it("once today's number is guessed, says so and switches to free play", async () => {
     daily = { number: 8, played: { won: true, attempts: 5 } }
     show()
-    expect(await screen.findByText('Едно и също за всички днес. Вече го позна — 5 опита.')).toBeInTheDocument()
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Свободно' })).toHaveAttribute('aria-pressed', 'true'))
+    expect(
+      await screen.findByText('Едно и също за всички днес. Вече го позна — 5 опита.'),
+    ).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Свободно' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      ),
+    )
   })
 
   it('defaults to the profile length, no zero, daily and shows the average', async () => {
     show()
     expect(screen.getByRole('button', { name: '4' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('switch', { name: 'Разреши цифрата 0' })).toHaveAttribute('aria-checked', 'false')
+    expect(screen.getByRole('switch', { name: 'Разреши цифрата 0' })).toHaveAttribute(
+      'aria-checked',
+      'false',
+    )
     expect(screen.getByRole('button', { name: 'Дневно' })).toHaveAttribute('aria-pressed', 'true')
-    expect(await screen.findByText('4 цифри · числото на деня · средно 3.5 опита')).toBeInTheDocument()
+    expect(
+      await screen.findByText('4 цифри · числото на деня · средно 3.5 опита'),
+    ).toBeInTheDocument()
     expect(api.get).toHaveBeenCalledWith('/api/stats/distribution?len=4&zero=false&kind=daily')
   })
 
@@ -88,6 +103,20 @@ describe('NewGame', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Старт' }))
     expect(await screen.findByText('play page')).toBeInTheDocument()
     expect(api.post).toHaveBeenCalledWith('/api/games', { len: 5, zero: true, kind: 'free' })
+  })
+
+  it('opens with the settings of the last started game', async () => {
+    api.post.mockResolvedValue({ id: 'new1' })
+    show()
+    fireEvent.click(screen.getByRole('button', { name: '3' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Свободно' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Старт' }))
+    await screen.findByText('play page')
+    cleanup()
+    show()
+    expect(screen.getByRole('button', { name: '3' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Свободно' })).toHaveAttribute('aria-pressed', 'true')
+    expect(await screen.findByText(/^3 цифри · свободна игра/)).toBeInTheDocument()
   })
 
   it('invalidates the cached profile after creating a game', async () => {
@@ -111,7 +140,9 @@ describe('NewGame', () => {
     api.post.mockRejectedValue(new ApiError('ERR_RATE_LIMIT', 429))
     show()
     fireEvent.click(screen.getByRole('button', { name: 'Старт' }))
-    expect(await screen.findByText('Много бързаш — изчакай малко и опитай пак.')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Много бързаш — изчакай малко и опитай пак.'),
+    ).toBeInTheDocument()
   })
 
   it('marks solo in the mode switch and navigates to the duel and bot setups', () => {

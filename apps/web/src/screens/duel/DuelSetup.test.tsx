@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useSession } from '../../features/auth/session'
@@ -8,7 +8,10 @@ const createBot = vi.fn()
 const createInvite = vi.fn()
 vi.mock('../../features/duel/api', async (orig) => ({
   ...(await orig<typeof import('../../features/duel/api')>()),
-  duelApi: { createBot: (...a: unknown[]) => createBot(...a), createInvite: (...a: unknown[]) => createInvite(...a) },
+  duelApi: {
+    createBot: (...a: unknown[]) => createBot(...a),
+    createInvite: (...a: unknown[]) => createInvite(...a),
+  },
 }))
 
 const { DuelSetup } = await import('./DuelSetup')
@@ -30,7 +33,10 @@ function show(path: string, mode: 'duel' | 'bot') {
 }
 
 function signIn(isGuest: boolean) {
-  useSession.setState({ session: { accessToken: 'jwt', refreshToken: 'r', expiresAt: 9e12, user: { id: 'u', isGuest } }, me: null } as never)
+  useSession.setState({
+    session: { accessToken: 'jwt', refreshToken: 'r', expiresAt: 9e12, user: { id: 'u', isGuest } },
+    me: null,
+  } as never)
 }
 
 beforeEach(() => {
@@ -39,10 +45,18 @@ beforeEach(() => {
 })
 
 describe('DuelSetup', () => {
-  it.each([['/duel/new', 'duel'], ['/bot/new', 'bot']] as const)('%s offers „Класически“ first and picks it by default', (path, mode) => {
+  it.each([
+    ['/duel/new', 'duel'],
+    ['/bot/new', 'bot'],
+  ] as const)('%s offers „Класически“ first and picks it by default', (path, mode) => {
     show(path, mode)
-    const formats = screen.getAllByRole('radio').filter((r) => /Класически|Надпревара/.test(r.textContent ?? ''))
-    expect(formats.map((r) => r.textContent)).toEqual([expect.stringMatching(/^Класически/), expect.stringMatching(/^Надпревара/)])
+    const formats = screen
+      .getAllByRole('radio')
+      .filter((r) => /Класически|Надпревара/.test(r.textContent ?? ''))
+    expect(formats.map((r) => r.textContent)).toEqual([
+      expect.stringMatching(/^Класически/),
+      expect.stringMatching(/^Надпревара/),
+    ])
     expect(formats[0]).toHaveAttribute('aria-checked', 'true')
   })
 
@@ -54,7 +68,9 @@ describe('DuelSetup', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Трудно' }))
     expect(screen.getByText(/Понякога изпуска подсказка/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Срещу Плашилото' }))
-    await waitFor(() => expect(createBot).toHaveBeenCalledWith({ len: 4, zero: false, format: 'classic', level: 3 }))
+    await waitFor(() =>
+      expect(createBot).toHaveBeenCalledWith({ len: 4, zero: false, format: 'classic', level: 3 }),
+    )
     expect(await screen.findByTestId('where')).toHaveTextContent('/duel/r1?token=t1')
   })
 
@@ -63,8 +79,13 @@ describe('DuelSetup', () => {
     show('/duel/new', 'duel')
     const quick = screen.getByRole('radio', { name: /Бърз мач/ })
     expect(quick).toBeDisabled()
-    expect(screen.getByText('Това е за регистрирани пастири — направи си профил')).toBeInTheDocument()
-    expect(screen.getByRole('radio', { name: /Покани приятел/ })).toHaveAttribute('aria-checked', 'true')
+    expect(
+      screen.getByText('Това е за регистрирани пастири — направи си профил'),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /Покани приятел/ })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
   })
 
   it('quick match goes to the queue with the settings in the URL', () => {
@@ -76,12 +97,43 @@ describe('DuelSetup', () => {
   })
 
   it('friend invite creates the invite and opens the waiting screen', async () => {
-    createInvite.mockResolvedValue({ code: 'AB2CD', url: 'https://x/d/AB2CD', roomId: 'r2', token: 't2' })
+    createInvite.mockResolvedValue({
+      code: 'AB2CD',
+      url: 'https://x/d/AB2CD',
+      roomId: 'r2',
+      token: 't2',
+    })
     show('/duel/new', 'duel')
     fireEvent.click(screen.getByRole('radio', { name: /Покани приятел/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Създай покана' }))
-    await waitFor(() => expect(createInvite).toHaveBeenCalledWith({ len: 4, zero: false, format: 'classic' }))
+    await waitFor(() =>
+      expect(createInvite).toHaveBeenCalledWith({ len: 4, zero: false, format: 'classic' }),
+    )
     expect(await screen.findByTestId('where')).toHaveTextContent('/duel/invite/AB2CD')
+  })
+
+  it('opens with the settings of the last started duel', async () => {
+    createInvite.mockResolvedValue({
+      code: 'AB2CD',
+      url: 'https://x/d/AB2CD',
+      roomId: 'r2',
+      token: 't2',
+    })
+    show('/duel/new', 'duel')
+    fireEvent.click(screen.getByRole('radio', { name: /Покани приятел/ }))
+    fireEvent.click(screen.getByRole('radio', { name: /Надпревара/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Създай покана' }))
+    await screen.findByTestId('where')
+    cleanup()
+    show('/duel/new', 'duel')
+    expect(screen.getByRole('radio', { name: /Покани приятел/ })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+    expect(screen.getByRole('radio', { name: /Надпревара/ })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
   })
 
   it('shows a translated error when the request fails', async () => {
